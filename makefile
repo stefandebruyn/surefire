@@ -10,6 +10,7 @@ utest:
 	sfa/statevec/StateVectorParser.cpp \
 	sfa/util/MemoryOps.cpp \
 	sfa/ConfigTokenizer.cpp \
+	sfa/ConfigInfo.cpp \
 	-I. \
 	-lCppUTest
 

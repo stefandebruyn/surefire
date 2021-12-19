@@ -1,7 +1,10 @@
 [REGION/Foo]
 I32 foo
-F64 b!ar
+F64 bar
 bool baz
 
 [REGION/Bar]
-I32 qux
+I32 bazzy
+
+
+

@@ -1,7 +1,20 @@
 #include <fstream>
-#include <sstream>
 
 #include "sfa/ConfigTokenizer.hpp"
+
+std::unordered_map<TokenType, std::string, EnumHash> gTokenNames =
+{
+    {TOK_NONE, "none"},
+    {TOK_SECTION, "section"},
+    {TOK_LABEL, "label"},
+    {TOK_IDENTIFIER, "identifier"},
+    {TOK_OPERATOR, "operator"},
+    {TOK_CONSTANT, "constant"},
+    {TOK_COLON, "colon"},
+    {TOK_NEWLINE, "newline"},
+    {TOK_LPAREN, "left parenthese"},
+    {TOK_RPAREN, "right parenthese"}
+};
 
 bool Token::operator==(const Token& other) const
 {
@@ -15,24 +28,7 @@ bool Token::operator!=(const Token& other) const
     return !(*this == other);
 }
 
-std::string ConfigErrorInfo::prettify() const
-{
-    std::stringstream ss;
-
-    ss << "ERROR @ " << fileName << ", line " << lineNum << ", col " << colNum
-       << ":\n";
-    ss << "\t" << line << "\n";
-    ss << "\t";
-
-    for (I32 i = 0; i < colNum; ++i)
-    {
-        ss << " ";
-    }
-
-    ss << "^ " << msg << "\n";
-
-    return ss.str();
-}
+U32 Tokenizer::mLineNum = 0;
 
 std::map<TokenType, std::regex> Tokenizer::mTokenRegexes =
 {
@@ -48,7 +44,7 @@ std::map<TokenType, std::regex> Tokenizer::mTokenRegexes =
 
 Result Tokenizer::tokenize(std::string kFilePath,
                            std::vector<Token>& kRet,
-                           ConfigErrorInfo* kErrInfo)
+                           ConfigInfo* kConfigInfo)
 {
     std::ifstream ifs(kFilePath);
     if (ifs.is_open() == false)
@@ -56,18 +52,30 @@ Result Tokenizer::tokenize(std::string kFilePath,
         return E_OPEN_FILE;
     }
 
-    return Tokenizer::tokenize(ifs, kRet, kErrInfo);
+    if (kConfigInfo != nullptr)
+    {
+        kConfigInfo->filePath = kFilePath;
+    }
+
+    return Tokenizer::tokenize(ifs, kRet, kConfigInfo);
 }
 
 Result Tokenizer::tokenize(std::istream& kIs,
                            std::vector<Token>& kRet,
-                           ConfigErrorInfo* kErrInfo)
+                           ConfigInfo* kConfigInfo)
 {
+    mLineNum = 0;
+
+    if ((kConfigInfo != nullptr) && (kConfigInfo->filePath.size() == 0))
+    {
+        kConfigInfo->filePath = "(no file)";
+    }
+
     std::string line;
     while (std::getline(kIs, line))
     {
         // Tokenize the line.
-        Result res = Tokenizer::tokenizeLine(line, kRet, kErrInfo);
+        Result res = Tokenizer::tokenizeLine(line, kRet, kConfigInfo);
         if (res != SUCCESS)
         {
             return res;
@@ -78,9 +86,18 @@ Result Tokenizer::tokenize(std::istream& kIs,
         // delimiters if they want.
         if ((kIs.eof() == false) && (kIs.fail() == false))
         {
-            const Token newlineTok = {TOK_NEWLINE, 0, "(newline)"};
+            const Token newlineTok =
+            {
+                TOK_NEWLINE,
+                0,
+                "(newline)",
+                static_cast<I32>(mLineNum),
+                static_cast<I32>(line.size() - 1)
+            };
             kRet.push_back(newlineTok);
         }
+
+        ++mLineNum;
     }
 
     return SUCCESS;
@@ -88,11 +105,16 @@ Result Tokenizer::tokenize(std::istream& kIs,
 
 Result Tokenizer::tokenizeLine(const std::string& kLine,
                                std::vector<Token>& kRet,
-                               ConfigErrorInfo* kErrInfo)
+                               ConfigInfo* kConfigInfo)
 {
     // Index at which we'll try to match a token in the line. This index will
     // be bumped along as we parse tokens.
     U32 idx = 0;
+
+    if (kConfigInfo != nullptr)
+    {
+        kConfigInfo->lines.push_back(kLine);
+    }
 
     while (idx < kLine.size())
     {
@@ -112,8 +134,16 @@ Result Tokenizer::tokenizeLine(const std::string& kLine,
                 tokType.second,
                 std::regex_constants::match_continuous) == true)
             {
-                // Match successful- pack into a `Token` and bump the line index.
-                const Token tok = {tokType.first, 0, match[1].str()};
+                // Match successful- pack into a `Token` and bump the line
+                // index.
+                const Token tok =
+                {
+                    tokType.first,
+                    0,
+                    match[1].str(),
+                    static_cast<I32>(mLineNum),
+                    static_cast<I32>(idx)
+                };
                 kRet.push_back(tok);
                 idx += match[0].str().size();
                 matched = true;
@@ -125,13 +155,11 @@ Result Tokenizer::tokenizeLine(const std::string& kLine,
         {
             // Failed to match a token at the current index, so the input is
             // invalid.
-            if (kErrInfo != nullptr)
+            if (kConfigInfo != nullptr)
             {
-                kErrInfo->fileName = "lol.txt";
-                kErrInfo->line = "big bollocks";
-                kErrInfo->lineNum = 99;
-                kErrInfo->colNum = 5;
-                kErrInfo->msg = "invalid token";
+                kConfigInfo->error.lineNum = (kConfigInfo->lines.size() - 1);
+                kConfigInfo->error.colNum = idx;
+                kConfigInfo->error.msg = "invalid token";
             }
             return E_TOKENIZE;
         }

@@ -6,9 +6,12 @@
 #include <regex>
 #include <vector>
 #include <istream>
+#include <unordered_map>
 
 #include "sfa/BasicTypes.hpp"
 #include "sfa/Result.hpp"
+#include "sfa/ConfigInfo.hpp"
+#include "sfa/EnumHash.hpp"
 
 enum TokenType : U32
 {
@@ -24,26 +27,19 @@ enum TokenType : U32
     TOK_RPAREN = 9
 };
 
+extern std::unordered_map<TokenType, std::string, EnumHash> gTokenNames;
+
 struct Token final
 {
     TokenType type;
     U32 which;
     std::string str;
+    I32 lineNum;
+    I32 colNum;
 
     bool operator==(const Token& other) const;
 
     bool operator!=(const Token& other) const;
-};
-
-struct ConfigErrorInfo
-{
-    std::string fileName;
-    std::string line;
-    I32 lineNum;
-    I32 colNum;
-    std::string msg;
-
-    std::string prettify() const;
 };
 
 class Tokenizer final
@@ -54,19 +50,21 @@ public:
 
     static Result tokenize(std::string kFilePath,
                            std::vector<Token>& kRet,
-                           ConfigErrorInfo* kErrInfo);
+                           ConfigInfo* kConfigInfo);
 
     static Result tokenize(std::istream& kIs,
                            std::vector<Token>& kRet,
-                           ConfigErrorInfo* kErrInfo);
+                           ConfigInfo* kConfigInfo);
 
 private:
+
+    static U32 mLineNum;
 
     static std::map<TokenType, std::regex> mTokenRegexes;
 
     static Result tokenizeLine(const std::string& kLine,
                                std::vector<Token>& kRet,
-                               ConfigErrorInfo* kErrInfo);
+                               ConfigInfo* kConfigInfo);
 };
 
 #endif

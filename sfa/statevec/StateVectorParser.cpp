@@ -8,7 +8,7 @@ const std::regex StateVectorParser::mRegionSectionRegex(
 
 Result StateVectorParser::parse(const std::string kFilePath,
                                 StateVector::Config& kConfig,
-                                ConfigErrorInfo* kErrInfo)
+                                ConfigInfo* kConfigInfo)
 {
     std::ifstream ifs(kFilePath);
     if (ifs.is_open() == false)
@@ -16,26 +16,31 @@ Result StateVectorParser::parse(const std::string kFilePath,
         return E_OPEN_FILE;
     }
 
-    return StateVectorParser::parse(ifs, kConfig, kErrInfo);
+    if (kConfigInfo != nullptr)
+    {
+        kConfigInfo->filePath = kFilePath;
+    }
+
+    return StateVectorParser::parse(ifs, kConfig, kConfigInfo);
 }
 
 Result StateVectorParser::parse(std::istream& kIs,
                                 StateVector::Config& kConfig,
-                                ConfigErrorInfo* kErrInfo)
+                                ConfigInfo* kConfigInfo)
 {
     std::vector<Token> toks;
-    Result res = Tokenizer::tokenize(kIs, toks, kErrInfo);
+    Result res = Tokenizer::tokenize(kIs, toks, kConfigInfo);
     if (res != SUCCESS)
     {
         return res;
     }
 
-    return StateVectorParser::parseImpl(toks, kConfig, kErrInfo);
+    return StateVectorParser::parseImpl(toks, kConfig, kConfigInfo);
 }
 
 Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                                     StateVector::Config& kConfig,
-                                    ConfigErrorInfo* kErrInfo)
+                                    ConfigInfo* kConfigInfo)
 {
     StateVectorParse stateVec;
 
@@ -60,7 +65,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                     RegionParse region;
                     region.name = match[1].str();
                     Result res = StateVectorParser::parseRegion(
-                        kToks, idx, region, kErrInfo);
+                        kToks, idx, region, kConfigInfo);
                     if (res != SUCCESS)
                     {
                         return res;
@@ -70,6 +75,12 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                 else
                 {
                     // Unknown section.
+                    if (kConfigInfo != nullptr)
+                    {
+                        kConfigInfo->error.lineNum = tok.lineNum;
+                        kConfigInfo->error.colNum = tok.colNum;
+                        kConfigInfo->error.msg = "invalid section name";
+                    }
                     return E_PARSE;
                 }
                 break;
@@ -82,6 +93,13 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
 
             default:
                 // Unexpected token.
+                if (kConfigInfo != nullptr)
+                {
+                    kConfigInfo->error.lineNum = tok.lineNum;
+                    kConfigInfo->error.colNum = tok.colNum;
+                    kConfigInfo->error.msg =
+                        "unexpected " + gTokenNames[tok.type];
+                }
                 return E_PARSE;
         }
     }
@@ -101,7 +119,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
 Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                                       U32& kIdx,
                                       RegionParse& kRegion,
-                                      ConfigErrorInfo* kErrInfo)
+                                      ConfigInfo* kConfigInfo)
 {
     while (kIdx < kToks.size())
     {
@@ -113,7 +131,7 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                 // Element token indicates start of element declaration.
                 ElementParse elem;
                 Result res = StateVectorParser::parseElement(
-                    kToks, kIdx, elem, kErrInfo);
+                    kToks, kIdx, elem, kConfigInfo);
                 if (res != SUCCESS)
                 {
                     return res;
@@ -133,6 +151,14 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
 
             default:
                 // Unexpected token.
+                if (kConfigInfo != nullptr)
+                {
+                    kConfigInfo->error.lineNum = tok.lineNum;
+                    kConfigInfo->error.colNum = tok.colNum;
+                    kConfigInfo->error.msg =
+                        "unexpected " + gTokenNames[tok.type] + " in region `"
+                        + kRegion.name + "`";
+                }
                 return E_PARSE;
         }
     }
@@ -143,19 +169,38 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
 Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
                                        U32& kIdx,
                                        ElementParse& kElem,
-                                       ConfigErrorInfo* kErrInfo)
+                                       ConfigInfo* kConfigInfo)
 {
     // Consume element type token.
-    kElem.type = kToks[kIdx++].str;
+    const Token& tokType = kToks[kIdx++];
+    kElem.type = tokType.str;
 
-    if (kIdx == kToks.size())
+    if (kIdx == kToks.size() || (kToks[kIdx].type == TOK_NEWLINE))
     {
-        // Unexpected end of token stream.
+        // End of line or token stream before the element name.
+        if (kConfigInfo != nullptr)
+        {
+            kConfigInfo->error.lineNum = tokType.lineNum;
+            kConfigInfo->error.colNum = tokType.colNum;
+            kConfigInfo->error.msg = "expected element name after type";
+        }
         return E_PARSE;
     }
 
     // Consume element name token.
-    kElem.name = kToks[kIdx++].str;
+    const Token& tokName = kToks[kIdx++];
+    if (tokName.type != TOK_IDENTIFIER)
+    {
+        // Token following element type is not an identifier.
+        if (kConfigInfo != nullptr)
+        {
+            kConfigInfo->error.lineNum = tokName.lineNum;
+            kConfigInfo->error.colNum = tokName.colNum;
+            kConfigInfo->error.msg = "expected element name";
+        }
+        return E_PARSE;
+    }
+    kElem.name = tokName.str;
 
     return SUCCESS;
 }
