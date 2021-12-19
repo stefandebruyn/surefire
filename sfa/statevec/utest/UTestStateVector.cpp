@@ -1,5 +1,5 @@
 #include "sfa/statevec/StateVector.hpp"
-#include "CppUTest/TestHarness.h"
+#include "sfa/UTest.hpp"
 
 // Backing storage for test state vector.
 static struct
@@ -62,7 +62,7 @@ TEST(StateVector, I8Element)
 {
     StateVector sv(gConfig);
     Element<I8> i8;
-    CHECK_EQUAL(SUCCESS, sv.getElement("i8", i8));
+    CHECK_SUCCESS(sv.getElement("i8", i8));
     i8.write(1);
     CHECK_EQUAL(1, gElemI8.read());
 }
@@ -72,7 +72,7 @@ TEST(StateVector, I16Element)
 {
     StateVector sv(gConfig);
     Element<I16> i16;
-    CHECK_EQUAL(SUCCESS, sv.getElement("i16", i16));
+    CHECK_SUCCESS(sv.getElement("i16", i16));
     i16.write(1);
     CHECK_EQUAL(1, gElemI16.read());
 }
@@ -82,7 +82,7 @@ TEST(StateVector, I32Element)
 {
     StateVector sv(gConfig);
     Element<I32> i32;
-    CHECK_EQUAL(SUCCESS, sv.getElement("i32", i32));
+    CHECK_SUCCESS(sv.getElement("i32", i32));
     i32.write(1);
     CHECK_EQUAL(1, gElemI32.read());
 }
@@ -92,7 +92,7 @@ TEST(StateVector, I64Element)
 {
     StateVector sv(gConfig);
     Element<I64> i64;
-    CHECK_EQUAL(SUCCESS, sv.getElement("i64", i64));
+    CHECK_SUCCESS(sv.getElement("i64", i64));
     i64.write(1);
     CHECK_EQUAL(1, (long int) gElemI64.read());
 }
@@ -102,7 +102,7 @@ TEST(StateVector, U8Element)
 {
     StateVector sv(gConfig);
     Element<U8> u8;
-    CHECK_EQUAL(SUCCESS, sv.getElement("u8", u8));
+    CHECK_SUCCESS(sv.getElement("u8", u8));
     u8.write(1);
     CHECK_EQUAL(1, gElemU8.read());
 }
@@ -112,7 +112,7 @@ TEST(StateVector, U16Element)
 {
     StateVector sv(gConfig);
     Element<U16> u16;
-    CHECK_EQUAL(SUCCESS, sv.getElement("u16", u16));
+    CHECK_SUCCESS(sv.getElement("u16", u16));
     u16.write(1);
     CHECK_EQUAL(1, gElemU16.read());
 }
@@ -122,7 +122,7 @@ TEST(StateVector, U32Element)
 {
     StateVector sv(gConfig);
     Element<U32> u32;
-    CHECK_EQUAL(SUCCESS, sv.getElement("u32", u32));
+    CHECK_SUCCESS(sv.getElement("u32", u32));
     u32.write(1);
     CHECK_EQUAL(1, gElemU32.read());
 }
@@ -132,7 +132,7 @@ TEST(StateVector, U64Element)
 {
     StateVector sv(gConfig);
     Element<U64> u64;
-    CHECK_EQUAL(SUCCESS, sv.getElement("u64", u64));
+    CHECK_SUCCESS(sv.getElement("u64", u64));
     u64.write(1);
     CHECK_EQUAL(1, (unsigned long int) gElemU64.read());
 }
@@ -142,7 +142,7 @@ TEST(StateVector, F32Element)
 {
     StateVector sv(gConfig);
     Element<F32> f32;
-    CHECK_EQUAL(SUCCESS, sv.getElement("f32", f32));
+    CHECK_SUCCESS(sv.getElement("f32", f32));
     f32.write(1.0f);
     CHECK_EQUAL(1.0f, gElemF32.read());
 }
@@ -152,7 +152,7 @@ TEST(StateVector, F64Element)
 {
     StateVector sv(gConfig);
     Element<F64> f64;
-    CHECK_EQUAL(SUCCESS, sv.getElement("f64", f64));
+    CHECK_SUCCESS(sv.getElement("f64", f64));
     f64.write(1.0);
     CHECK_EQUAL(1.0, gElemF64.read());
 }
@@ -162,7 +162,7 @@ TEST(StateVector, BoolElement)
 {
     StateVector sv(gConfig);
     Element<bool> b;
-    CHECK_EQUAL(SUCCESS, sv.getElement("b", b));
+    CHECK_SUCCESS(sv.getElement("b", b));
     b.write(true);
     CHECK_EQUAL(true, b.read());
 }

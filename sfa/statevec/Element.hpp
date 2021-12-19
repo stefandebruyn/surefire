@@ -22,6 +22,8 @@ class IElement
 {
 public:
 
+    virtual ~IElement() = default;
+
     virtual ElementType getElementType() const = 0;
 
     virtual U32 getSizeBytes() const = 0;

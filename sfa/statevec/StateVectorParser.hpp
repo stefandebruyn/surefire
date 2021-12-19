@@ -5,6 +5,8 @@
 #include <istream>
 #include <vector>
 #include <regex>
+#include <memory>
+#include <unordered_map>
 
 #include "sfa/statevec/StateVector.hpp"
 #include "sfa/ConfigTokenizer.hpp"
@@ -14,40 +16,60 @@ class StateVectorParser final
 {
 public:
 
+    class Config final
+    {
+    public:
+
+        Config(const StateVector::Config kSvConfig,
+               const char* const kSvBacking);
+
+        ~Config();
+
+        const StateVector::Config& get() const;
+
+    private:
+
+        const StateVector::Config mSvConfig;
+
+        const char* const mSvBacking;
+    };
+
     StateVectorParser() = delete;
 
     static Result parse(const std::string kFilePath,
-                        StateVector::Config& kConfig,
+                        std::shared_ptr<Config>& kConfig,
                         ConfigInfo* kConfigInfo);
 
     static Result parse(std::istream& kIs,
-                        StateVector::Config& kConfig,
+                        std::shared_ptr<Config>& kConfig,
                         ConfigInfo* kConfigInfo);
 
 private:
 
     static const std::regex mRegionSectionRegex;
 
+    static const std::unordered_map<std::string, U32> mElemTypeSize;
+
     struct ElementParse
     {
-        std::string type;
-        std::string name;
+        Token tokType;
+        Token tokName;
     };
 
     struct RegionParse
     {
-        std::string name;
+        Token tokName;
+        std::string plainName;
         std::vector<ElementParse> elems;
     };
 
     struct StateVectorParse
     {
         std::vector<RegionParse> regions;
-        U32 svSizeBytes;
     };
 
     static Result parseImpl(const std::vector<Token>& kToks,
-                            StateVector::Config& kConfig,
+                            std::shared_ptr<Config>& kConfig,
                             ConfigInfo* kConfigInfo);
 
     static Result parseRegion(const std::vector<Token>& kToks,
@@ -59,6 +81,10 @@ private:
                                U32& kIdx,
                                ElementParse& kElem,
                                ConfigInfo* kConfigInfo);
+
+    static Result allocateElement(const ElementParse& kElem,
+                                  StateVector::ElementInfo& kElemInfo,
+                                  char*& kBumpPtr);
 };
 
 #endif

@@ -1,7 +1,8 @@
 #include <sstream>
 
 #include "sfa/ConfigTokenizer.hpp"
-#include "CppUTest/TestHarness.h"
+#include "sfa/UTest.hpp"
+
 
 TEST_GROUP(ConfigTokenizer)
 {
@@ -24,8 +25,7 @@ TEST(ConfigTokenizer, SectionToken)
 {
     std::stringstream ss("[FOO]");
     std::vector<Token> toksActual;
-    Result res = Tokenizer::tokenize(ss, toksActual, nullptr);
-    CHECK_EQUAL(SUCCESS, res);
+    CHECK_SUCCESS(Tokenizer::tokenize(ss, toksActual, nullptr));
     std::vector<Token> toksExpect =
     {
         {TOK_SECTION, 0, "FOO"}
