@@ -1,6 +1,6 @@
 #include "sfa/statevec/Element.hpp"
 #include "sfa/BasicTypes.hpp"
-#include "sfa/UTest.hpp"
+#include "utest/UTest.hpp"
 
 TEST_GROUP(Element)
 {

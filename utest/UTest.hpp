@@ -1,5 +1,5 @@
-#ifndef SFA_UTEST_HELPERS_HPP
-#define SFA_UTEST_HELPERS_HPP
+#ifndef SFA_UTEST_HPP
+#define SFA_UTEST_HPP
 
 #include "sfa/Result.hpp"
 #include "CppUTest/TestHarness.h"

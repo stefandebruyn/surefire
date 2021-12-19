@@ -1,5 +1,5 @@
 #include "sfa/statevec/StateVector.hpp"
-#include "sfa/UTest.hpp"
+#include "utest/UTest.hpp"
 
 // Backing storage for test state vector.
 static struct

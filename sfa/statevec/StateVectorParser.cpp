@@ -20,7 +20,7 @@ StateVectorParser::Config::~Config()
         ++i;
     }
 
-    // Delete `ElementInfo` array.
+    // Delete element info array.
     delete[] mSvConfig.elems;
 
     // Delete state vector backing storage.
@@ -92,7 +92,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
 {
     StateVectorParse stateVec;
 
-    // Process token stream and populate `stateVec`.
+    // Process token stream to populate the `StateVectorParse`.
     U32 idx = 0;
     while (idx < kToks.size())
     {
@@ -159,6 +159,9 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                 return E_PARSE;
         }
     }
+
+    // At this point the `StateVectorParse` contains a probably valid
+    // state vector parsing- now we compile it into a `StateVector::Config`.
 
     // Count the number of elements in the state vector and its size in bytes.
     U32 elemCnt = 0;
