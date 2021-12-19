@@ -6,7 +6,7 @@
 
 #include "sfa/BasicTypes.hpp"
 
-struct ConfigErrorInfo
+struct ConfigErrorInfo final
 {
     ConfigErrorInfo();
 
@@ -17,7 +17,7 @@ struct ConfigErrorInfo
     std::string msg;
 };
 
-struct ConfigInfo
+struct ConfigInfo final
 {
     std::string filePath;
 

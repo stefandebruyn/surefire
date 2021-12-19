@@ -13,7 +13,7 @@ TEST(StateVectorParser, Parse)
     std::cout << std::endl;
     ConfigInfo configInfo;
     Result res = StateVectorParser::parse(
-        "/home/srd2557/thesis/derp.txt", config, &configInfo);
+        "/home/stefan/thesis/derp.txt", config, &configInfo);
     std::cout << res << std::endl;
     if (res != SUCCESS)
     {

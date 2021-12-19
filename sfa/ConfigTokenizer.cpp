@@ -2,7 +2,7 @@
 
 #include "sfa/ConfigTokenizer.hpp"
 
-std::unordered_map<TokenType, std::string, EnumHash> gTokenNames =
+const std::unordered_map<TokenType, std::string, EnumHash> gTokenNames =
 {
     {TOK_NONE, "none"},
     {TOK_SECTION, "section"},
@@ -49,6 +49,10 @@ Result Tokenizer::tokenize(std::string kFilePath,
     std::ifstream ifs(kFilePath);
     if (ifs.is_open() == false)
     {
+        if (kConfigInfo != nullptr)
+        {
+            kConfigInfo->error.msg = "failed to open file: " + kFilePath;
+        }
         return E_OPEN_FILE;
     }
 

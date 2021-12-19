@@ -13,5 +13,6 @@ typedef I32 Result;
 #define E_TOKENIZE (5)
 #define E_UNREACHABLE (6)
 #define E_PARSE (7)
+#define E_KEY (8)
 
 #endif

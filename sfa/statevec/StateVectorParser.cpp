@@ -13,6 +13,10 @@ Result StateVectorParser::parse(const std::string kFilePath,
     std::ifstream ifs(kFilePath);
     if (ifs.is_open() == false)
     {
+        if (kConfigInfo != nullptr)
+        {
+            kConfigInfo->error.msg = "failed to open file: " + kFilePath;
+        }
         return E_OPEN_FILE;
     }
 
@@ -97,8 +101,15 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                 {
                     kConfigInfo->error.lineNum = tok.lineNum;
                     kConfigInfo->error.colNum = tok.colNum;
-                    kConfigInfo->error.msg =
-                        "unexpected " + gTokenNames[tok.type];
+                    auto iter = gTokenNames.find(tok.type);
+                    if (iter == gTokenNames.end())
+                    {
+                        // Should be unreachable- indicates that `gTokenNames`
+                        // is incomplete.
+                        return E_KEY;
+                    }
+                    const std::string& tokTypeName = (*iter).second;
+                    kConfigInfo->error.msg = "unexpected " + tokTypeName;
                 }
                 return E_PARSE;
         }
@@ -155,8 +166,16 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                 {
                     kConfigInfo->error.lineNum = tok.lineNum;
                     kConfigInfo->error.colNum = tok.colNum;
+                    auto iter = gTokenNames.find(tok.type);
+                    if (iter == gTokenNames.end())
+                    {
+                        // Should be unreachable- indicates that `gTokenNames`
+                        // is incomplete.
+                        return E_KEY;
+                    }
+                    const std::string& tokTypeName = (*iter).second;
                     kConfigInfo->error.msg =
-                        "unexpected " + gTokenNames[tok.type] + " in region `"
+                        "unexpected " + tokTypeName + " in region `"
                         + kRegion.name + "`";
                 }
                 return E_PARSE;

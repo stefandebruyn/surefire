@@ -27,7 +27,7 @@ enum TokenType : U32
     TOK_RPAREN = 9
 };
 
-extern std::unordered_map<TokenType, std::string, EnumHash> gTokenNames;
+extern const std::unordered_map<TokenType, std::string, EnumHash> gTokenNames;
 
 struct Token final
 {
