@@ -1,0 +1,7 @@
+[REGION/Foo]
+I32 foo
+F64 b!ar
+bool baz
+
+[REGION/Bar]
+I32 qux
