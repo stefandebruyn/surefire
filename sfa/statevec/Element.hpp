@@ -34,11 +34,7 @@ class Element final : public IElement
 {
 public:
 
-    Element(T& backing) : mBacking(&backing)
-    {
-    }
-
-    Element() : mBacking(nullptr)
+    Element(T& backing) : mBacking(backing)
     {
     }
 
@@ -49,20 +45,12 @@ public:
 
     void write(const T val) const
     {
-        if (mBacking != nullptr)
-        {
-            *mBacking = val;
-        }
+        mBacking = val;
     }
 
     T read() const
     {
-        T ret = 0;
-        if (mBacking != nullptr)
-        {
-            ret = *mBacking;
-        }
-        return ret;
+        return mBacking;
     }
 
     ElementType getElementType() const final override;
@@ -74,7 +62,7 @@ public:
 
 private:
 
-    T* mBacking;
+    T& mBacking;
 };
 
 #endif
