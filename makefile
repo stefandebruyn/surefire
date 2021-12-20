@@ -11,7 +11,7 @@ utest:
 	sfa/sv/StateVector.cpp \
 	sfa/sv/StateVectorParser.cpp \
 	sfa/ConfigTokenizer.cpp \
-	sfa/ConfigInfo.cpp \
+	sfa/ConfigErrorInfo.cpp \
 	sfa/util/MemoryOps.cpp \
 	-I. \
 	-lCppUTest

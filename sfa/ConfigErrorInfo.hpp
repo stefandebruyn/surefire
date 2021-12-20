@@ -8,22 +8,17 @@
 
 struct ConfigErrorInfo final
 {
-    ConfigErrorInfo();
+    std::string filePath;
+
+    std::vector<std::string> lines;
 
     I32 lineNum;
 
     I32 colNum;
 
     std::string msg;
-};
 
-struct ConfigInfo final
-{
-    std::string filePath;
-
-    std::vector<std::string> lines;
-
-    ConfigErrorInfo error;
+    ConfigErrorInfo();
 
     std::string prettifyError() const;
 };

@@ -64,43 +64,43 @@ const std::unordered_map<std::string, U32> StateVectorParser::mElemTypeSize =
 
 Result StateVectorParser::parse(const std::string kFilePath,
                                 std::shared_ptr<Config>& kConfig,
-                                ConfigInfo* kConfigInfo)
+                                ConfigErrorInfo* kConfigErr)
 {
     std::ifstream ifs(kFilePath);
     if (ifs.is_open() == false)
     {
-        if (kConfigInfo != nullptr)
+        if (kConfigErr != nullptr)
         {
-            kConfigInfo->error.msg = "failed to open file: " + kFilePath;
+            kConfigErr->msg = "failed to open file: " + kFilePath;
         }
         return E_OPEN_FILE;
     }
 
-    if (kConfigInfo != nullptr)
+    if (kConfigErr != nullptr)
     {
-        kConfigInfo->filePath = kFilePath;
+        kConfigErr->filePath = kFilePath;
     }
 
-    return StateVectorParser::parse(ifs, kConfig, kConfigInfo);
+    return StateVectorParser::parse(ifs, kConfig, kConfigErr);
 }
 
 Result StateVectorParser::parse(std::istream& kIs,
                                 std::shared_ptr<Config>& kConfig,
-                                ConfigInfo* kConfigInfo)
+                                ConfigErrorInfo* kConfigErr)
 {
     std::vector<Token> toks;
-    Result res = Tokenizer::tokenize(kIs, toks, kConfigInfo);
+    Result res = Tokenizer::tokenize(kIs, toks, kConfigErr);
     if (res != SUCCESS)
     {
         return res;
     }
 
-    return StateVectorParser::parseImpl(toks, kConfig, kConfigInfo);
+    return StateVectorParser::parseImpl(toks, kConfig, kConfigErr);
 }
 
 Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                                     std::shared_ptr<Config>& kConfig,
-                                    ConfigInfo* kConfigInfo)
+                                    ConfigErrorInfo* kConfigErr)
 {
     Parse parse;
 
@@ -126,7 +126,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                     region.tokName = tok;
                     region.plainName = match[1].str();
                     Result res = StateVectorParser::parseRegion(
-                        kToks, idx, region, kConfigInfo);
+                        kToks, idx, region, kConfigErr);
                     if (res != SUCCESS)
                     {
                         return res;
@@ -136,11 +136,11 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                 else
                 {
                     // Unknown section.
-                    if (kConfigInfo != nullptr)
+                    if (kConfigErr != nullptr)
                     {
-                        kConfigInfo->error.lineNum = tok.lineNum;
-                        kConfigInfo->error.colNum = tok.colNum;
-                        kConfigInfo->error.msg = "invalid section name";
+                        kConfigErr->lineNum = tok.lineNum;
+                        kConfigErr->colNum = tok.colNum;
+                        kConfigErr->msg = "invalid section name";
                     }
                     return E_PARSE;
                 }
@@ -154,10 +154,10 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
 
             default:
                 // Unexpected token.
-                if (kConfigInfo != nullptr)
+                if (kConfigErr != nullptr)
                 {
-                    kConfigInfo->error.lineNum = tok.lineNum;
-                    kConfigInfo->error.colNum = tok.colNum;
+                    kConfigErr->lineNum = tok.lineNum;
+                    kConfigErr->colNum = tok.colNum;
                     auto iter = gTokenNames.find(tok.type);
                     if (iter == gTokenNames.end())
                     {
@@ -166,7 +166,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                         return E_KEY;
                     }
                     const std::string& tokTypeName = (*iter).second;
-                    kConfigInfo->error.msg = "unexpected " + tokTypeName;
+                    kConfigErr->msg = "unexpected " + tokTypeName;
                 }
                 return E_PARSE;
         }
@@ -188,11 +188,11 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
             if (iter == mElemTypeSize.end())
             {
                 // Unknown element type.
-                if (kConfigInfo != nullptr)
+                if (kConfigErr != nullptr)
                 {
-                    kConfigInfo->error.lineNum = elem.tokType.lineNum;
-                    kConfigInfo->error.colNum = elem.tokType.colNum;
-                    kConfigInfo->error.msg =
+                    kConfigErr->lineNum = elem.tokType.lineNum;
+                    kConfigErr->colNum = elem.tokType.colNum;
+                    kConfigErr->msg =
                         "unknown type `" + elem.tokType.str + "`";
                 }
                 return E_PARSE;
@@ -272,7 +272,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
 Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                                       U32& kIdx,
                                       RegionParse& kRegion,
-                                      ConfigInfo* kConfigInfo)
+                                      ConfigErrorInfo* kConfigErr)
 {
     while (kIdx < kToks.size())
     {
@@ -284,7 +284,7 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                 // Element token indicates start of element declaration.
                 ElementParse elem;
                 Result res = StateVectorParser::parseElement(
-                    kToks, kIdx, elem, kConfigInfo);
+                    kToks, kIdx, elem, kConfigErr);
                 if (res != SUCCESS)
                 {
                     return res;
@@ -304,10 +304,10 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
 
             default:
                 // Unexpected token.
-                if (kConfigInfo != nullptr)
+                if (kConfigErr != nullptr)
                 {
-                    kConfigInfo->error.lineNum = tok.lineNum;
-                    kConfigInfo->error.colNum = tok.colNum;
+                    kConfigErr->lineNum = tok.lineNum;
+                    kConfigErr->colNum = tok.colNum;
                     auto iter = gTokenNames.find(tok.type);
                     if (iter == gTokenNames.end())
                     {
@@ -316,7 +316,7 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                         return E_KEY;
                     }
                     const std::string& tokTypeName = (*iter).second;
-                    kConfigInfo->error.msg =
+                    kConfigErr->msg =
                         "unexpected " + tokTypeName + " in region `"
                         + kRegion.plainName + "`";
                 }
@@ -330,7 +330,7 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
 Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
                                        U32& kIdx,
                                        ElementParse& kElem,
-                                       ConfigInfo* kConfigInfo)
+                                       ConfigErrorInfo* kConfigErr)
 {
     // Consume element type token.
     const Token& tokType = kToks[kIdx++];
@@ -339,11 +339,11 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
     if (kIdx == kToks.size() || (kToks[kIdx].type == TOK_NEWLINE))
     {
         // End of line or token stream before the element name.
-        if (kConfigInfo != nullptr)
+        if (kConfigErr != nullptr)
         {
-            kConfigInfo->error.lineNum = tokType.lineNum;
-            kConfigInfo->error.colNum = tokType.colNum;
-            kConfigInfo->error.msg = "expected element name after type";
+            kConfigErr->lineNum = tokType.lineNum;
+            kConfigErr->colNum = tokType.colNum;
+            kConfigErr->msg = "expected element name after type";
         }
         return E_PARSE;
     }
@@ -353,11 +353,11 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
     if (tokName.type != TOK_IDENTIFIER)
     {
         // Token following element type is not an identifier.
-        if (kConfigInfo != nullptr)
+        if (kConfigErr != nullptr)
         {
-            kConfigInfo->error.lineNum = tokName.lineNum;
-            kConfigInfo->error.colNum = tokName.colNum;
-            kConfigInfo->error.msg = "expected element name";
+            kConfigErr->lineNum = tokName.lineNum;
+            kConfigErr->colNum = tokName.colNum;
+            kConfigErr->msg = "expected element name";
         }
         return E_PARSE;
     }

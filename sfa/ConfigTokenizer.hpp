@@ -10,7 +10,7 @@
 
 #include "sfa/BasicTypes.hpp"
 #include "sfa/Result.hpp"
-#include "sfa/ConfigInfo.hpp"
+#include "sfa/ConfigErrorInfo.hpp"
 #include "sfa/EnumHash.hpp"
 
 enum TokenType : U32
@@ -50,11 +50,11 @@ public:
 
     static Result tokenize(std::string kFilePath,
                            std::vector<Token>& kToks,
-                           ConfigInfo* kConfigInfo);
+                           ConfigErrorInfo* kConfigErr);
 
     static Result tokenize(std::istream& kIs,
                            std::vector<Token>& kToks,
-                           ConfigInfo* kConfigInfo);
+                           ConfigErrorInfo* kConfigErr);
 
 private:
 
@@ -64,7 +64,7 @@ private:
 
     static Result tokenizeLine(const std::string& kLine,
                                std::vector<Token>& kToks,
-                               ConfigInfo* kConfigInfo);
+                               ConfigErrorInfo* kConfigErr);
 };
 
 #endif

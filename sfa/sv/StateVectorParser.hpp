@@ -10,7 +10,7 @@
 
 #include "sfa/sv/StateVector.hpp"
 #include "sfa/ConfigTokenizer.hpp"
-#include "sfa/ConfigInfo.hpp"
+#include "sfa/ConfigErrorInfo.hpp"
 
 class StateVectorParser final
 {
@@ -38,11 +38,11 @@ public:
 
     static Result parse(const std::string kFilePath,
                         std::shared_ptr<Config>& kConfig,
-                        ConfigInfo* kConfigInfo);
+                        ConfigErrorInfo* kConfigErr);
 
     static Result parse(std::istream& kIs,
                         std::shared_ptr<Config>& kConfig,
-                        ConfigInfo* kConfigInfo);
+                        ConfigErrorInfo* kConfigErr);
 
 private:
 
@@ -70,17 +70,17 @@ private:
 
     static Result parseImpl(const std::vector<Token>& kToks,
                             std::shared_ptr<Config>& kConfig,
-                            ConfigInfo* kConfigInfo);
+                            ConfigErrorInfo* kConfigErr);
 
     static Result parseRegion(const std::vector<Token>& kToks,
                               U32& kIdx,
                               RegionParse& kRegion,
-                              ConfigInfo* kConfigInfo);
+                              ConfigErrorInfo* kConfigErr);
 
     static Result parseElement(const std::vector<Token>& kToks,
                                U32& kIdx,
                                ElementParse& kElem,
-                               ConfigInfo* kConfigInfo);
+                               ConfigErrorInfo* kConfigErr);
 
     static Result allocateElement(const ElementParse& kElem,
                                   StateVector::ElementConfig& kElemInfo,
