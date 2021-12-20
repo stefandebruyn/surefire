@@ -43,7 +43,7 @@ std::map<TokenType, std::regex> Tokenizer::mTokenRegexes =
 };
 
 Result Tokenizer::tokenize(std::string kFilePath,
-                           std::vector<Token>& kRet,
+                           std::vector<Token>& kToks,
                            ConfigInfo* kConfigInfo)
 {
     std::ifstream ifs(kFilePath);
@@ -61,11 +61,11 @@ Result Tokenizer::tokenize(std::string kFilePath,
         kConfigInfo->filePath = kFilePath;
     }
 
-    return Tokenizer::tokenize(ifs, kRet, kConfigInfo);
+    return Tokenizer::tokenize(ifs, kToks, kConfigInfo);
 }
 
 Result Tokenizer::tokenize(std::istream& kIs,
-                           std::vector<Token>& kRet,
+                           std::vector<Token>& kToks,
                            ConfigInfo* kConfigInfo)
 {
     mLineNum = 0;
@@ -79,7 +79,7 @@ Result Tokenizer::tokenize(std::istream& kIs,
     while (std::getline(kIs, line))
     {
         // Tokenize the line.
-        Result res = Tokenizer::tokenizeLine(line, kRet, kConfigInfo);
+        Result res = Tokenizer::tokenizeLine(line, kToks, kConfigInfo);
         if (res != SUCCESS)
         {
             return res;
@@ -98,7 +98,7 @@ Result Tokenizer::tokenize(std::istream& kIs,
                 static_cast<I32>(mLineNum),
                 static_cast<I32>(line.size() - 1)
             };
-            kRet.push_back(newlineTok);
+            kToks.push_back(newlineTok);
         }
 
         ++mLineNum;
@@ -108,7 +108,7 @@ Result Tokenizer::tokenize(std::istream& kIs,
 }
 
 Result Tokenizer::tokenizeLine(const std::string& kLine,
-                               std::vector<Token>& kRet,
+                               std::vector<Token>& kToks,
                                ConfigInfo* kConfigInfo)
 {
     // Index at which we'll try to match a token in the line. This index will
@@ -148,7 +148,7 @@ Result Tokenizer::tokenizeLine(const std::string& kLine,
                     static_cast<I32>(mLineNum),
                     static_cast<I32>(idx)
                 };
-                kRet.push_back(tok);
+                kToks.push_back(tok);
                 idx += match[0].str().size();
                 matched = true;
                 break;

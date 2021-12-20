@@ -49,11 +49,11 @@ public:
     Tokenizer() = delete;
 
     static Result tokenize(std::string kFilePath,
-                           std::vector<Token>& kRet,
+                           std::vector<Token>& kToks,
                            ConfigInfo* kConfigInfo);
 
     static Result tokenize(std::istream& kIs,
-                           std::vector<Token>& kRet,
+                           std::vector<Token>& kToks,
                            ConfigInfo* kConfigInfo);
 
 private:
@@ -63,7 +63,7 @@ private:
     static std::map<TokenType, std::regex> mTokenRegexes;
 
     static Result tokenizeLine(const std::string& kLine,
-                               std::vector<Token>& kRet,
+                               std::vector<Token>& kToks,
                                ConfigInfo* kConfigInfo);
 };
 
