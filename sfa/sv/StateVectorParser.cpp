@@ -73,7 +73,7 @@ Result StateVectorParser::parse(const std::string kFilePath,
         {
             kConfigErr->msg = "failed to open file: " + kFilePath;
         }
-        return E_OPEN_FILE;
+        return E_FILE;
     }
 
     if (kConfigErr != nullptr)

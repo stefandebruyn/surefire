@@ -10,6 +10,8 @@ utest:
 	sfa/sv/Region.cpp \
 	sfa/sv/StateVector.cpp \
 	sfa/sv/StateVectorParser.cpp \
+	sfa/sm/StateMachine.cpp \
+	sfa/sm/utest/UTestStateMachineConfigErrors.cpp \
 	sfa/ConfigTokenizer.cpp \
 	sfa/ConfigErrorInfo.cpp \
 	sfa/util/MemoryOps.cpp \
