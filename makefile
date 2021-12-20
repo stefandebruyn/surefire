@@ -11,7 +11,13 @@ utest:
 	sfa/sv/StateVector.cpp \
 	sfa/sv/StateVectorParser.cpp \
 	sfa/sm/StateMachine.cpp \
+	sfa/sm/ExpressionTree.hpp \
+	sfa/sm/TransitionAction.cpp \
+	sfa/sm/IAction.cpp \
 	sfa/sm/utest/UTestStateMachineConfigErrors.cpp \
+	sfa/sm/utest/UTestExpressionTree.cpp \
+	sfa/sm/utest/UTestTransitionAction.cpp \
+	sfa/sm/utest/UTestAssignmentAction.cpp \
 	sfa/ConfigTokenizer.cpp \
 	sfa/ConfigErrorInfo.cpp \
 	sfa/util/MemoryOps.cpp \

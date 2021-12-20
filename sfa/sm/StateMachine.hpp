@@ -43,6 +43,10 @@ public:
 
     StateMachine();
 
+    StateMachine(const StateMachine&) = delete;
+    StateMachine& operator=(const StateMachine&) = delete;
+    StateMachine(StateMachine&&) = delete;
+
     Result step(const U64 kT);
 
 private:
@@ -58,6 +62,8 @@ private:
     StateConfig* mCurrentState;
 
     StateMachine(Config kConfig, Result& kRes);
+
+    StateMachine& operator=(StateMachine&&) = default;
 
     Result executeLabel(LabelConfig* const kLabel);
 

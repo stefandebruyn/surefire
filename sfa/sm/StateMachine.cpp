@@ -165,7 +165,7 @@ Result StateMachine::executeLabel(LabelConfig* const kLabel)
     while (kLabel->actions[i] != nullptr)
     {
         U32 transitionToState = mNoState;
-        res = kLabel->actions[i]->evaluate(transitionToState);
+        // res = kLabel->actions[i]->evaluate(transitionToState);
         if (res != SUCCESS)
         {
             return res;
