@@ -173,7 +173,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
     }
 
     // At this point `parse` contains a potentially valid state vector parsing-
-    // now we compile it into a `StateVectorParser::Config`.
+    // now we try compiling it into a `StateVectorParser::Config`.
 
     // Count the number of elements, regions, and bytes in the state vector.
     U32 elemCnt = 0;

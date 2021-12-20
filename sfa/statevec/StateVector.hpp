@@ -30,6 +30,11 @@ public:
 
     StateVector(const Config kConfig);
 
+    StateVector(const StateVector&) = delete;
+    StateVector& operator=(const StateVector&) = delete;
+    StateVector(StateVector&&) = delete;
+    StateVector& operator=(StateVector&&) = delete;
+
     template<typename T>
     Result getElement(const char* const kName, Element<T>*& kELem);
 

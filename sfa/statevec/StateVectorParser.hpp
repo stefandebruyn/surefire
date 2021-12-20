@@ -50,20 +50,20 @@ private:
 
     static const std::unordered_map<std::string, U32> mElemTypeSize;
 
-    struct ElementParse
+    struct ElementParse final
     {
         Token tokType;
         Token tokName;
     };
 
-    struct RegionParse
+    struct RegionParse final
     {
         Token tokName;
         std::string plainName;
         std::vector<ElementParse> elems;
     };
 
-    struct Parse
+    struct Parse final
     {
         std::vector<RegionParse> regions;
     };

@@ -18,9 +18,9 @@ std::string ConfigInfo::prettifyError() const
     {
         std::stringstream ss;
         ss << "CONFIG ERROR @ " << filePath << ":" << (error.lineNum + 1)
-        << ":" << (error.colNum + 1) << "\n"
-        << "   | " << lines[error.lineNum] << "\n"
-        << "   | ";
+           << ":" << (error.colNum + 1) << "\n"
+           << "   | " << lines[error.lineNum] << "\n"
+           << "   | ";
 
         I32 i = 0;
         for (; i < error.colNum; ++i)

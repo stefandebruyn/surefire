@@ -13,7 +13,7 @@ struct ConfigErrorInfo final
     I32 lineNum;
 
     I32 colNum;
-    
+
     std::string msg;
 };
 
