@@ -8,7 +8,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "sfa/statevec/StateVector.hpp"
+#include "sfa/sv/StateVector.hpp"
 #include "sfa/ConfigTokenizer.hpp"
 #include "sfa/ConfigInfo.hpp"
 

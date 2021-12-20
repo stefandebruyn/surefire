@@ -1,7 +1,7 @@
 #include <fstream>
 #include <cstring>
 
-#include "sfa/statevec/StateVectorParser.hpp"
+#include "sfa/sv/StateVectorParser.hpp"
 
 StateVectorParser::Config::Config(const StateVector::Config kSvConfig,
                                   const char* const kSvBacking) :

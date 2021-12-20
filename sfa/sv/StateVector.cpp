@@ -1,4 +1,4 @@
-#include "sfa/statevec/StateVector.hpp"
+#include "sfa/sv/StateVector.hpp"
 #include "sfa/util/MemoryOps.hpp"
 
 #define GET_ELEMENT_IMPL(kTemplateType, kElementType)                          \

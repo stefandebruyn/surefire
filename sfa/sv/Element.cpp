@@ -1,4 +1,4 @@
-#include "sfa/statevec/Element.hpp"
+#include "sfa/sv/Element.hpp"
 
 template<>
 ElementType Element<I8>::getElementType() const

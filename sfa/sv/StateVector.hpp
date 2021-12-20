@@ -1,8 +1,8 @@
 #ifndef SFA_STATE_VECTOR_HPP
 #define SFA_STATE_VECTOR_HPP
 
-#include "sfa/statevec/Element.hpp"
-#include "sfa/statevec/Region.hpp"
+#include "sfa/sv/Element.hpp"
+#include "sfa/sv/Region.hpp"
 #include "sfa/BasicTypes.hpp"
 #include "sfa/Result.hpp"
 

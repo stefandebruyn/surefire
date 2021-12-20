@@ -1,4 +1,4 @@
-#include "sfa/statevec/Region.hpp"
+#include "sfa/sv/Region.hpp"
 #include "utest/UTest.hpp"
 
 TEST_GROUP(Region)

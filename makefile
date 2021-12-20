@@ -1,15 +1,15 @@
 .PHONY: utest
 utest:
 	g++ -std=c++11 utest/UTestMain.cpp -o utest.exe \
-	sfa/statevec/utest/UTestElement.cpp \
-	sfa/statevec/utest/UTestStateVector.cpp \
-	sfa/statevec/utest/UTestRegion.cpp \
+	sfa/sv/utest/UTestElement.cpp \
+	sfa/sv/utest/UTestStateVector.cpp \
+	sfa/sv/utest/UTestRegion.cpp \
 	sfa/utest/UTestConfigTokenizer.cpp \
-	sfa/statevec/utest/UTestStateVectorParser.cpp \
-	sfa/statevec/Element.cpp \
-	sfa/statevec/Region.cpp \
-	sfa/statevec/StateVector.cpp \
-	sfa/statevec/StateVectorParser.cpp \
+	sfa/sv/utest/UTestStateVectorParser.cpp \
+	sfa/sv/Element.cpp \
+	sfa/sv/Region.cpp \
+	sfa/sv/StateVector.cpp \
+	sfa/sv/StateVectorParser.cpp \
 	sfa/ConfigTokenizer.cpp \
 	sfa/ConfigInfo.cpp \
 	sfa/util/MemoryOps.cpp \

@@ -1,4 +1,4 @@
-#include "sfa/statevec/Region.hpp"
+#include "sfa/sv/Region.hpp"
 #include "sfa/util/MemoryOps.hpp"
 
 Result Region::write(const void* const kBuf, const U32 kBufSizeBytes)

@@ -1,4 +1,4 @@
-#include "sfa/statevec/StateVector.hpp"
+#include "sfa/sv/StateVector.hpp"
 #include "utest/UTest.hpp"
 
 // Backing storage for test state vector.
