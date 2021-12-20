@@ -37,6 +37,11 @@ public:
     {
     }
 
+    ExpressionTree(const ExpressionTree<T>&) = delete;
+    ExpressionTree(ExpressionTree<T>&&) = delete;
+    ExpressionTree<T>& operator=(const ExpressionTree<T>&) = delete;
+    ExpressionTree<T>& operator=(ExpressionTree<T>&&) = delete;
+
     Result evaluate(T& kAns) const
     {
         if (mOp != OP_NONE)

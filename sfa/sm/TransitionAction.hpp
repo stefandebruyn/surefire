@@ -7,12 +7,16 @@ class TransitionAction final : public IAction
 {
 public:
 
-    constexpr TransitionAction(StateVector& kStateVector,
-                               const ExpressionTree<bool>* kGuard,
+    constexpr TransitionAction(const ExpressionTree<bool>* kGuard,
                                const U32 kTransitionState) :
-        IAction(kStateVector, kGuard, kTransitionState)
+        IAction(kGuard, kTransitionState)
     {
     }
+
+    TransitionAction(const TransitionAction&) = delete;
+    TransitionAction(TransitionAction&&) = delete;
+    TransitionAction& operator=(const TransitionAction&) = delete;
+    TransitionAction& operator=(TransitionAction&&) = delete;
 
 protected:
 

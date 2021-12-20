@@ -2,7 +2,7 @@
 
 const U64 StateMachine::mNoTime = 0xFFFFFFFFFFFFFFFF;
 
-const U32 StateMachine::mNoState = 0xFFFFFFFF;
+const U32 StateMachine::NO_STATE = 0xFFFFFFFF;
 
 Result StateMachine::create(Config kConfig, StateMachine& kSm)
 {
@@ -46,7 +46,7 @@ StateMachine::StateMachine(Config kConfig, Result& kRes) : StateMachine()
         const StateConfig* const stateConfig = &mConfig.states[stateIdx];
 
         // Check that state ID is not a reserved value.
-        if (stateConfig->id == mNoState)
+        if (stateConfig->id == NO_STATE)
         {
             kRes = E_RESERVED;
             return;
@@ -164,14 +164,14 @@ Result StateMachine::executeLabel(LabelConfig* const kLabel)
     Result res;
     while (kLabel->actions[i] != nullptr)
     {
-        U32 transitionToState = mNoState;
+        U32 transitionToState = NO_STATE;
         // res = kLabel->actions[i]->evaluate(transitionToState);
         if (res != SUCCESS)
         {
             return res;
         }
 
-        if (transitionToState != mNoState)
+        if (transitionToState != NO_STATE)
         {
             res = this->findState(transitionToState, mCurrentState);
             if (res != SUCCESS)

@@ -1,6 +1,7 @@
 #ifndef SFA_ASSIGNMENT_ACTION_HPP
 #define SFA_ASSIGNMENT_ACTION_HPP
 
+#include "sfa/sm/StateMachine.hpp"
 #include "sfa/sm/IAction.hpp"
 #include "sfa/sv/Element.hpp"
 
@@ -9,13 +10,17 @@ class AssignmentAction final : public IAction
 {
 public:
 
-    constexpr AssignmentAction(StateVector& kStateVector,
-                               const ExpressionTree<bool>* kGuard,
+    constexpr AssignmentAction(const ExpressionTree<bool>* kGuard,
                                Element<T>& kElem,
                                const ExpressionTree<T>& kExpr) :
-        IAction(kStateVector, kGuard, 0xFFFFFFFF), mElem(kElem), mExpr(kExpr)
+        IAction(kGuard, StateMachine::NO_STATE), mElem(kElem), mExpr(kExpr)
     {
     }
+
+    AssignmentAction(const AssignmentAction<T>&) = delete;
+    AssignmentAction(AssignmentAction<T>&&) = delete;
+    AssignmentAction<T>& operator=(const AssignmentAction<T>&) = delete;
+    AssignmentAction<T>& operator=(AssignmentAction<T>&&) = delete;
 
 protected:
 
@@ -23,7 +28,7 @@ protected:
     {
         kTransition = false;
         T value = 0;
-        Result res = mExpr.evaluate(value);
+        const Result res = mExpr.evaluate(value);
         if (res != SUCCESS)
         {
             return res;

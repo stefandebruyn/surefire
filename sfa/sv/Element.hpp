@@ -39,8 +39,8 @@ public:
     }
 
     Element(const Element<T>&) = delete;
-    Element<T>& operator=(const Element<T>&) = delete;
     Element(Element<T>&&) = delete;
+    Element<T>& operator=(const Element<T>&) = delete;
     Element<T>& operator=(Element<T>&&) = delete;
 
     void write(const T val) const

@@ -9,6 +9,8 @@ class StateMachine final
 {
 public:
 
+    static const U32 NO_STATE;
+
     enum LabelType : U32
     {
         LAB_NULL,
@@ -44,16 +46,14 @@ public:
     StateMachine();
 
     StateMachine(const StateMachine&) = delete;
-    StateMachine& operator=(const StateMachine&) = delete;
     StateMachine(StateMachine&&) = delete;
+    StateMachine& operator=(const StateMachine&) = delete;
 
     Result step(const U64 kT);
 
 private:
 
     static const U64 mNoTime;
-
-    static const U32 mNoState;
 
     Config mConfig;
 

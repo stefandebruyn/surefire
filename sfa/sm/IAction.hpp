@@ -1,7 +1,6 @@
 #ifndef SFA_IACTION_HPP
 #define SFA_IACTION_HPP
 
-#include "sfa/sv/StateVector.hpp"
 #include "sfa/sm/ExpressionTree.hpp"
 #include "sfa/BasicTypes.hpp"
 #include "sfa/Result.hpp"
@@ -14,20 +13,20 @@ public:
 
     virtual ~IAction() = default;
 
-    constexpr IAction(StateVector& kStateVector,
-                      const ExpressionTree<bool>* kGuard,
+    constexpr IAction(const ExpressionTree<bool>* kGuard,
                       const U32 kTransitionState) :
-        mStateVector(kStateVector),
-        mGuard(kGuard),
-        transitionState(kTransitionState)
+        mGuard(kGuard), transitionState(kTransitionState)
     {
     }
+
+    IAction(const IAction&) = delete;
+    IAction(IAction&&) = delete;
+    IAction& operator=(const IAction&) = delete;
+    IAction& operator=(IAction&&) = delete;
 
     virtual Result evaluate(bool& kTransition) final;
 
 protected:
-
-    StateVector& mStateVector;
 
     virtual Result execute(bool& kTransition) = 0;
 
