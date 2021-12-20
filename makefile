@@ -4,7 +4,7 @@ utest:
 	sfa/statevec/utest/UTestElement.cpp \
 	sfa/statevec/utest/UTestStateVector.cpp \
 	sfa/statevec/utest/UTestRegion.cpp \
-	sfa/statevec/utest/UTestConfigTokenizer.cpp \
+	sfa/utest/UTestConfigTokenizer.cpp \
 	sfa/statevec/utest/UTestStateVectorParser.cpp \
 	sfa/statevec/Element.cpp \
 	sfa/statevec/Region.cpp \
