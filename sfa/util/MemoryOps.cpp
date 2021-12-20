@@ -30,4 +30,17 @@ bool stringsEqual(const char* kA, const char* kB)
     return ret;
 }
 
+void* memcpy(void* kDest, const void* const kSrc, const U32 kSizeBytes)
+{
+    char* const dest = (char* const) kDest;
+    const char* const src = (const char* const) kSrc;
+
+    for (U32 i = 0; i < kSizeBytes; ++i)
+    {
+        *(dest + i) = *(src + i);
+    }
+
+    return dest;
+}
+
 } // namespace Sfa

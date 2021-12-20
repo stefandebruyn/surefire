@@ -63,7 +63,7 @@ private:
         std::vector<ElementParse> elems;
     };
 
-    struct StateVectorParse
+    struct Parse
     {
         std::vector<RegionParse> regions;
     };
@@ -83,7 +83,7 @@ private:
                                ConfigInfo* kConfigInfo);
 
     static Result allocateElement(const ElementParse& kElem,
-                                  StateVector::ElementInfo& kElemInfo,
+                                  StateVector::ElementConfig& kElemInfo,
                                   char*& kBumpPtr);
 };
 

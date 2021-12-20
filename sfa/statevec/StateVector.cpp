@@ -22,7 +22,7 @@
     else                                                                       \
     {                                                                          \
         /* Type match- narrow reference to element template instantiation. */  \
-        kRet = (Element<kTemplateType>&) ielem;                                \
+        kRet = (Element<kTemplateType>*) &ielem;                               \
     }                                                                          \
                                                                                \
     return res;
@@ -32,81 +32,107 @@ StateVector::StateVector(const Config kConfig) : mConfig(kConfig)
 }
 
 template<>
-Result StateVector::getElement<I8>(const char* const kName, Element<I8>& kRet)
+Result StateVector::getElement<I8>(const char* const kName, Element<I8>*& kRet)
 {
     GET_ELEMENT_IMPL(I8, ElementType::INT8);
 }
 
 template<>
-Result StateVector::getElement<I16>(const char* const kName, Element<I16>& kRet)
+Result StateVector::getElement<I16>(
+    const char* const kName, Element<I16>*& kRet)
 {
     GET_ELEMENT_IMPL(I16, ElementType::INT16);
 }
 
 template<>
-Result StateVector::getElement<I32>(const char* const kName, Element<I32>& kRet)
+Result StateVector::getElement<I32>(
+    const char* const kName, Element<I32>*& kRet)
 {
     GET_ELEMENT_IMPL(I32, ElementType::INT32);
 }
 
 template<>
-Result StateVector::getElement<I64>(const char* const kName, Element<I64>& kRet)
+Result StateVector::getElement<I64>(
+    const char* const kName, Element<I64>*& kRet)
 {
     GET_ELEMENT_IMPL(I64, ElementType::INT64);
 }
 
 template<>
-Result StateVector::getElement<U8>(const char* const kName, Element<U8>& kRet)
+Result StateVector::getElement<U8>(const char* const kName, Element<U8>*& kRet)
 {
     GET_ELEMENT_IMPL(U8, ElementType::UINT8);
 }
 
 template<>
-Result StateVector::getElement<U16>(const char* const kName, Element<U16>& kRet)
+Result StateVector::getElement<U16>(
+    const char* const kName, Element<U16>*& kRet)
 {
     GET_ELEMENT_IMPL(U16, ElementType::UINT16);
 }
 
 template<>
-Result StateVector::getElement<U32>(const char* const kName, Element<U32>& kRet)
+Result StateVector::getElement<U32>(
+    const char* const kName, Element<U32>*& kRet)
 {
     GET_ELEMENT_IMPL(U32, ElementType::UINT32);
 }
 
 template<>
-Result StateVector::getElement<U64>(const char* const kName, Element<U64>& kRet)
+Result StateVector::getElement<U64>(
+    const char* const kName, Element<U64>*& kRet)
 {
     GET_ELEMENT_IMPL(U64, ElementType::UINT64);
 }
 
 template<>
-Result StateVector::getElement<F32>(const char* const kName, Element<F32>& kRet)
+Result StateVector::getElement<F32>(
+    const char* const kName, Element<F32>*& kRet)
 {
     GET_ELEMENT_IMPL(F32, ElementType::FLOAT32);
 }
 
 template<>
-Result StateVector::getElement<F64>(const char* const kName, Element<F64>& kRet)
+Result StateVector::getElement<F64>(
+    const char* const kName, Element<F64>*& kRet)
 {
     GET_ELEMENT_IMPL(F64, ElementType::FLOAT64);
 }
 
 template<>
-Result StateVector::getElement<bool>(const char* const kName,
-                                     Element<bool>& kRet)
+Result StateVector::getElement<bool>(
+    const char* const kName, Element<bool>*& kRet)
 {
     GET_ELEMENT_IMPL(bool, ElementType::BOOL);
 }
 
-Result StateVector::getElementIndex(const char* const kName, U32& kRet) const
+Result StateVector::getRegion(const char* const kName, Region*& kRegion)
 {
-    // Look up index of element info by name.
+    if (mConfig.regions == nullptr)
+    {
+        return E_EMPTY;
+    }
+
+    U32 idx;
+    Result res = this->getRegionIndex(kName, idx);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    kRegion = mConfig.regions[idx].region;
+    return SUCCESS;
+}
+
+Result StateVector::getElementIndex(const char* const kName, U32& kIdx) const
+{
+    // Look up index of element config by name.
     U32 i = 0;
     while (mConfig.elems[i].name != nullptr)
     {
         if (Sfa::stringsEqual(mConfig.elems[i].name, kName) == true)
         {
-            kRet = i;
+            kIdx = i;
             return SUCCESS;
         }
 
@@ -114,5 +140,24 @@ Result StateVector::getElementIndex(const char* const kName, U32& kRet) const
     }
 
     // If we get this far, the element wasn't found.
-    return E_ELEMENT;
+    return E_KEY;
+}
+
+Result StateVector::getRegionIndex(const char* const kName, U32& kIdx) const
+{
+    // Look up index of region config by name.
+    U32 i = 0;
+    while (mConfig.regions[i].name != nullptr)
+    {
+        if (Sfa::stringsEqual(mConfig.regions[i].name, kName) == true)
+        {
+            kIdx = i;
+            return SUCCESS;
+        }
+
+        ++i;
+    }
+
+    // If we get this far, the region wasn't found.
+    return E_KEY;
 }

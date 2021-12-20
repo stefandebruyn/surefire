@@ -8,6 +8,8 @@ namespace Sfa
 
 bool stringsEqual(const char* kA, const char* kB);
 
+void* memcpy(void* kDest, const void* const kSrc, const U32 kSizeBytes);
+
 } // namespace
 
 #endif

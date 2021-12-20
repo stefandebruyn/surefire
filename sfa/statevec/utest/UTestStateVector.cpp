@@ -2,36 +2,44 @@
 #include "utest/UTest.hpp"
 
 // Backing storage for test state vector.
+#pragma pack(push, 1)
 static struct
 {
-    I8 i8;
-    I16 i16;
-    I32 i32;
-    I64 i64;
-    U8 u8;
-    U16 u16;
-    U32 u32;
-    U64 u64;
-    F32 f32;
-    F64 f64;
-    bool b;
+    struct
+    {
+        I8 i8;
+        I16 i16;
+        I32 i32;
+        I64 i64;
+    } foo;
+    struct
+    {
+        U8 u8;
+        U16 u16;
+        U32 u32;
+        U64 u64;
+        F32 f32;
+        F64 f64;
+        bool b;
+    } bar;
 } gBacking;
+#pragma pack(pop)
 
 // Test state vector elements.
-static Element<I8> gElemI8(gBacking.i8);
-static Element<I16> gElemI16(gBacking.i16);
-static Element<I32> gElemI32(gBacking.i32);
-static Element<I64> gElemI64(gBacking.i64);
-static Element<U8> gElemU8(gBacking.u8);
-static Element<U16> gElemU16(gBacking.u16);
-static Element<U32> gElemU32(gBacking.u32);
-static Element<U64> gElemU64(gBacking.u64);
-static Element<F32> gElemF32(gBacking.f32);
-static Element<F64> gElemF64(gBacking.f64);
-static Element<bool> gElemBool(gBacking.b);
+static Element<I8> gElemI8(gBacking.foo.i8);
+static Element<I16> gElemI16(gBacking.foo.i16);
+static Element<I32> gElemI32(gBacking.foo.i32);
+static Element<I64> gElemI64(gBacking.foo.i64);
+static Element<U8> gElemU8(gBacking.bar.u8);
+static Element<U16> gElemU16(gBacking.bar.u16);
+static Element<U32> gElemU32(gBacking.bar.u32);
+static Element<U64> gElemU64(gBacking.bar.u64);
+static Element<F32> gElemF32(gBacking.bar.f32);
+static Element<F64> gElemF64(gBacking.bar.f64);
+static Element<bool> gElemBool(gBacking.bar.b);
 
-// Test state vector element info.
-static StateVector::ElementInfo gElems[12] =
+// Test state vector element configs.
+static StateVector::ElementConfig gElems[12] =
 {
     {"i8", &gElemI8},
     {"i16", &gElemI16},
@@ -47,122 +55,42 @@ static StateVector::ElementInfo gElems[12] =
     {nullptr, nullptr}
 };
 
-// Test state vector config.
-static StateVector::Config gConfig =
+// Test state vector regions.
+static Region gRegionFoo(&gBacking.foo, sizeof(gBacking.foo));
+static Region gRegionBar(&gBacking.bar, sizeof(gBacking.bar));
+
+// Test state vector region configs.
+static StateVector::RegionConfig gRegions[3] =
 {
-    gElems
+    {"foo", &gRegionFoo},
+    {"bar", &gRegionBar},
+    {nullptr, nullptr}
 };
+
+// Test state vector config.
+static StateVector::Config gConfig = {gElems, gRegions};
 
 TEST_GROUP(StateVector)
 {
 };
 
-// Getting and writing an I8 element.
+// Getting I8 element.
 TEST(StateVector, I8Element)
 {
     StateVector sv(gConfig);
-    Element<I8> i8;
+    Element<I8>* i8 = nullptr;
     CHECK_SUCCESS(sv.getElement("i8", i8));
-    i8.write(1);
-    CHECK_EQUAL(1, gElemI8.read());
+    POINTERS_EQUAL(i8, &gElemI8);
 }
 
-// Getting and writing an I16 element.
-TEST(StateVector, I16Element)
+// Getting regions.
+TEST(StateVector, GetRegion)
 {
     StateVector sv(gConfig);
-    Element<I16> i16;
-    CHECK_SUCCESS(sv.getElement("i16", i16));
-    i16.write(1);
-    CHECK_EQUAL(1, gElemI16.read());
-}
-
-// Getting and writing an I32 element.
-TEST(StateVector, I32Element)
-{
-    StateVector sv(gConfig);
-    Element<I32> i32;
-    CHECK_SUCCESS(sv.getElement("i32", i32));
-    i32.write(1);
-    CHECK_EQUAL(1, gElemI32.read());
-}
-
-// Getting and writing an I64 element.
-TEST(StateVector, I64Element)
-{
-    StateVector sv(gConfig);
-    Element<I64> i64;
-    CHECK_SUCCESS(sv.getElement("i64", i64));
-    i64.write(1);
-    CHECK_EQUAL(1, (long int) gElemI64.read());
-}
-
-// Getting and writing a U8 element.
-TEST(StateVector, U8Element)
-{
-    StateVector sv(gConfig);
-    Element<U8> u8;
-    CHECK_SUCCESS(sv.getElement("u8", u8));
-    u8.write(1);
-    CHECK_EQUAL(1, gElemU8.read());
-}
-
-// Getting and writing a U16 element.
-TEST(StateVector, U16Element)
-{
-    StateVector sv(gConfig);
-    Element<U16> u16;
-    CHECK_SUCCESS(sv.getElement("u16", u16));
-    u16.write(1);
-    CHECK_EQUAL(1, gElemU16.read());
-}
-
-// Getting and writing a U32 element.
-TEST(StateVector, U32Element)
-{
-    StateVector sv(gConfig);
-    Element<U32> u32;
-    CHECK_SUCCESS(sv.getElement("u32", u32));
-    u32.write(1);
-    CHECK_EQUAL(1, gElemU32.read());
-}
-
-// Getting and writing a U64 element.
-TEST(StateVector, U64Element)
-{
-    StateVector sv(gConfig);
-    Element<U64> u64;
-    CHECK_SUCCESS(sv.getElement("u64", u64));
-    u64.write(1);
-    CHECK_EQUAL(1, (unsigned long int) gElemU64.read());
-}
-
-// Getting and writing an F32 element.
-TEST(StateVector, F32Element)
-{
-    StateVector sv(gConfig);
-    Element<F32> f32;
-    CHECK_SUCCESS(sv.getElement("f32", f32));
-    f32.write(1.0f);
-    CHECK_EQUAL(1.0f, gElemF32.read());
-}
-
-// Getting and writing an F64 element.
-TEST(StateVector, F64Element)
-{
-    StateVector sv(gConfig);
-    Element<F64> f64;
-    CHECK_SUCCESS(sv.getElement("f64", f64));
-    f64.write(1.0);
-    CHECK_EQUAL(1.0, gElemF64.read());
-}
-
-// Getting and writing a bool element.
-TEST(StateVector, BoolElement)
-{
-    StateVector sv(gConfig);
-    Element<bool> b;
-    CHECK_SUCCESS(sv.getElement("b", b));
-    b.write(true);
-    CHECK_EQUAL(true, b.read());
+    Region* region = nullptr;
+    CHECK_SUCCESS(sv.getRegion("foo", region));
+    POINTERS_EQUAL(region, &gRegionFoo);
+    CHECK_SUCCESS(sv.getRegion("bar", region));
+    POINTERS_EQUAL(region, &gRegionBar);
+    CHECK_EQUAL(E_KEY, sv.getRegion("baz", region));
 }

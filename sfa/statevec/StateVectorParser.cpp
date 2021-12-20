@@ -20,8 +20,20 @@ StateVectorParser::Config::~Config()
         ++i;
     }
 
-    // Delete element info array.
+    // Delete name string and object for each region.
+    i = 0;
+    while (mSvConfig.regions[i].name != nullptr)
+    {
+        delete[] mSvConfig.regions[i].name;
+        delete mSvConfig.regions[i].region;
+        ++i;
+    }
+
+    // Delete element config array.
     delete[] mSvConfig.elems;
+
+    // Delete region config array.
+    delete[] mSvConfig.regions;
 
     // Delete state vector backing storage.
     delete[] mSvBacking;
@@ -90,9 +102,9 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                                     std::shared_ptr<Config>& kConfig,
                                     ConfigInfo* kConfigInfo)
 {
-    StateVectorParse stateVec;
+    Parse parse;
 
-    // Process token stream to populate the `StateVectorParse`.
+    // Process token stream to populate `parse`.
     U32 idx = 0;
     while (idx < kToks.size())
     {
@@ -119,7 +131,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                     {
                         return res;
                     }
-                    stateVec.regions.push_back(region);
+                    parse.regions.push_back(region);
                 }
                 else
                 {
@@ -160,17 +172,18 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
         }
     }
 
-    // At this point the `StateVectorParse` contains a probably valid
-    // state vector parsing- now we compile it into a `StateVector::Config`.
+    // At this point `parse` contains a potentially valid state vector parsing-
+    // now we compile it into a `StateVectorParser::Config`.
 
-    // Count the number of elements in the state vector and its size in bytes.
+    // Count the number of elements, regions, and bytes in the state vector.
     U32 elemCnt = 0;
+    const U32 regionCnt = parse.regions.size();
     U32 svSizeBytes = 0;
-    for (const RegionParse& region : stateVec.regions)
+    for (const RegionParse& region : parse.regions)
     {
+        elemCnt += region.elems.size();
         for (const ElementParse& elem : region.elems)
         {
-            ++elemCnt;
             auto iter = mElemTypeSize.find(elem.tokType.str);
             if (iter == mElemTypeSize.end())
             {
@@ -188,36 +201,69 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
         }
     }
 
-    // Allocate elements array for `StateVector::Config`.
-    StateVector::ElementInfo* elemInfos =
-        new StateVector::ElementInfo[elemCnt + 1];
-    elemInfos[elemCnt] = {nullptr, nullptr}; // Null terminator
+    // Allocate array for element configs.
+    StateVector::ElementConfig* elemConfigs =
+        new StateVector::ElementConfig[elemCnt + 1];
+    elemConfigs[elemCnt] = {nullptr, nullptr}; // Null terminator
 
-    // Allocate backing storage for state vector.
+    // Allocate array for region configs.
+    StateVector::RegionConfig* regionConfigs =
+        new StateVector::RegionConfig[regionCnt + 1];
+    regionConfigs[regionCnt] = {nullptr, nullptr};
+
+    // Allocate backing storage for state vector and zero it out.
     char* svBacking = new char[svSizeBytes];
     std::memset(svBacking, 0, svSizeBytes);
 
-    // Allocate element objects.
+    // Allocate `Element` and `Region` objects and put them into the arrays
+    // we just allocated.
     char* bumpPtr = svBacking;
     U32 elemIdx = 0;
-    for (const RegionParse& region : stateVec.regions)
+    for (U32 regionIdx = 0; regionIdx < parse.regions.size(); ++regionIdx)
     {
-        for (const ElementParse& elem : region.elems)
+        const RegionParse& regionParse = parse.regions[regionIdx];
+
+        // Save a copy of the bump pointer, which right now points to the start
+        // of the region.
+        char* const regionPtr = bumpPtr;
+
+        // Allocate elements and populate element config array.
+        for (const ElementParse& elemParse : regionParse.elems)
         {
             Result res = StateVectorParser::allocateElement(
-                elem, elemInfos[elemIdx++], bumpPtr);
+                elemParse, elemConfigs[elemIdx], bumpPtr);
             if (res != SUCCESS)
             {
-                delete[] elemInfos;
+                // Clean up allocations since aborting parse.
+                delete[] elemConfigs;
+                delete[] regionConfigs;
                 delete[] svBacking;
                 return res;
             }
+            ++elemIdx;
         }
+
+        // Allocate a copy of the region name for the
+        // `StateVector::RegionConfig` representing this region.
+        char* regionNameCpy = new char[regionParse.plainName.size() + 1];
+        std::strcpy(regionNameCpy, regionParse.plainName.c_str());
+        regionConfigs[regionIdx].name = regionNameCpy;
+
+        // Compute the size of the region. Since the `allocateElement` calls
+        // above will have bumped the bump pointer to the end of the region,
+        // we compute the region size as the difference between the bump pointer
+        // and the region pointer we saved at the top of the loop.
+        const U64 regionSizeBytes = ((U64) bumpPtr - (U64) regionPtr);
+
+        // Allocate region and put into config array.
+        Region* region = new Region(regionPtr, regionSizeBytes);
+        regionConfigs[regionIdx] = {regionNameCpy, region};
     }
 
     // Create `StateVector::Config` and wrap it in a `StateVectorParser::Config`
-    // shared pointer to handle deallocation.
-    StateVector::Config svConfig = {elemInfos};
+    // shared pointer, which will handle deallocation of all the memory we just
+    // allocated.
+    StateVector::Config svConfig = {elemConfigs, regionConfigs};
     kConfig.reset(new Config(svConfig, svBacking));
 
     return SUCCESS;
@@ -321,9 +367,11 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
 }
 
 Result StateVectorParser::allocateElement(const ElementParse& kElem,
-                                          StateVector::ElementInfo& kElemInfo,
+                                          StateVector::ElementConfig& kElemInfo,
                                           char*& kBumpPtr)
 {
+    // Allocate a copy of the element name for the `StateVector::ElementConfig`
+    // representing this element.
     char* nameCpy = new char[kElem.tokName.str.size() + 1];
     std::strcpy(nameCpy, kElem.tokName.str.c_str());
     kElemInfo.name = nameCpy;
