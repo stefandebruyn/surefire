@@ -129,3 +129,18 @@ TEST(ExpressionTree, CompoundLogicalExpression)
     CHECK_SUCCESS(andZ.evaluate(ans));
     CHECK_EQUAL(true, ans);
 }
+
+TEST(ExpressionTree, MixedTypeSubtrees)
+{
+    const ExpressionTree<F64> foo(9.81);
+    const ExpressionTree<I32> bar(10);
+    const ExpressionTree<I32> baz(3);
+    const ExpressionTree<F32> qux(1.522f);
+    const ExpressionTree<I32> div(OP_DIVIDE, &bar, &baz);
+    const ExpressionTree<F32, I32, F64> add(OP_ADD, &div, &foo);
+    const ExpressionTree<F32> sub(OP_SUBTRACT, &add, &qux);
+    F32 ans = 0.0;
+    const F32 expect = (((10 / 3) + 9.81) - 1.522f);
+    CHECK_SUCCESS(sub.evaluate(ans));
+    CHECK_EQUAL(expect, ans);
+}
