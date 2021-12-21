@@ -9,7 +9,7 @@
 /**************************** STATE VECTOR CONFIG *****************************/
 
 #pragma pack(push, 1)
-struct
+static struct
 {
     U32 foo;
     F64 bar;
@@ -162,6 +162,7 @@ TEST_GROUP(StateMachineBasic)
 {
     void teardown()
     {
+        // Zero state vector.
         std::memset(&gSvBacking, 0, sizeof(gSvBacking));
     }
 };
@@ -217,22 +218,22 @@ TEST(StateMachineBasic, RangeLabel)
     CHECK_EQUAL(9.81, gElemBar.read());
     CHECK_EQUAL(true, gElemBaz.read());
 
-    // Just before the start of the range, the elements are still unchanged.
+    // Just before the start of the range, `bar` and `baz` are still unchanged.
     CHECK_SUCCESS(sm.step(99));
     CHECK_EQUAL(9.81, gElemBar.read());
     CHECK_EQUAL(true, gElemBaz.read());
 
-    // On the first step of the range, the elements get overwritten.
+    // On the first step of the range, `bar` and `baz` get overwritten.
     CHECK_SUCCESS(sm.step(100));
     CHECK_EQUAL(7.777, gElemBar.read());
     CHECK_EQUAL(false, gElemBaz.read());
 
-    // On the last step of the range, the elements are still overwritten.
+    // On the last step of the range, `bar` and `baz` are still overwritten.
     CHECK_SUCCESS(sm.step(200));
     CHECK_EQUAL(7.777, gElemBar.read());
     CHECK_EQUAL(false, gElemBaz.read());
 
-    // Beyond the range, the elements return to the values set in step label.
+    // Beyond the range, `bar` and `baz` return to the values set in step label.
     CHECK_SUCCESS(sm.step(201));
     CHECK_EQUAL(9.81, gElemBar.read());
     CHECK_EQUAL(true, gElemBaz.read());
