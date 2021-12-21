@@ -20,6 +20,8 @@ utest:
 	sfa/sm/utest/UTestTransitionAction.cpp \
 	sfa/sm/utest/UTestAssignmentAction.cpp \
 	sfa/sm/utest/UTestStateMachineBasic.cpp \
+	sfa/task/ITask.cpp \
+	sfa/task/utest/UTestITask.cpp \
 	sfa/ConfigTokenizer.cpp \
 	sfa/ConfigErrorInfo.cpp \
 	sfa/util/MemoryOps.cpp \
