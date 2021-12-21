@@ -27,7 +27,7 @@ TEST(ExpressionTree, EvaluateElement)
 {
     I32 backing = 10;
     Element<I32> elem(backing);
-    const ExpressionTree<I32> node(&elem);
+    const ExpressionTree<I32> node(elem);
     I32 ans = 0;
     CHECK_SUCCESS(node.evaluate(ans));
     CHECK_EQUAL(10, ans);

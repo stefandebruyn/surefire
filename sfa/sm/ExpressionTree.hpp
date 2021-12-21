@@ -41,8 +41,8 @@ public:
     {
     }
 
-    constexpr ExpressionTree(const Element<T>* kElem) :
-        ExpressionTree(0, kElem, OP_NONE, nullptr, nullptr)
+    constexpr ExpressionTree(const Element<T>& kElem) :
+        ExpressionTree(0, &kElem, OP_NONE, nullptr, nullptr)
     {
     }
 
@@ -145,10 +145,6 @@ public:
         }
         else if (mElem != nullptr)
         {
-            if (mElem == nullptr)
-            {
-                return E_NULLPTR;
-            }
             // State vector element node.
             kAns = mElem->read();
         }

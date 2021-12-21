@@ -46,9 +46,9 @@ static ExpressionTree<F64> gExpr7p777(7.777);
 static ExpressionTree<bool> gExprFalse(false);
 static ExpressionTree<F64> gExpr1p522(1.522);
 
-static ExpressionTree<F64> gExprBar(&gElemBar);
-static ExpressionTree<bool> gExprBaz(&gElemBaz);
-static ExpressionTree<I32> gExprQux(&gElemQux);
+static ExpressionTree<F64> gExprBar(gElemBar);
+static ExpressionTree<bool> gExprBaz(gElemBaz);
+static ExpressionTree<I32> gExprQux(gElemQux);
 
 static ExpressionTree<bool, I32> gExprQuxEquals200(OP_EQUALS,
                                                    &gExprQux,
