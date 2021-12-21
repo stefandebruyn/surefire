@@ -85,6 +85,22 @@ StateMachine::StateMachine(Config kConfig, Result& kRes) : StateMachine()
                 return;
             }
 
+            // If an exit label, check that no actions are transitions.
+            if ((labelConfig->type == LAB_EXIT)
+                && (labelConfig->actions != nullptr))
+            {
+                U32 actionIdx = 0;
+                while (labelConfig->actions[actionIdx] != nullptr)
+                {
+                    if (labelConfig->actions[actionIdx]->destinationState
+                        != NO_STATE)
+                    {
+                        kRes = E_TRANSITION;
+                        return;
+                    }
+                }
+            }
+
             // We don't check that the actions array is non-null since this can
             // represents a label with no actions.
 
@@ -119,40 +135,50 @@ Result StateMachine::step(const U64 kT)
         mTimeStateStart = kT;
     }
 
+    // Execute actions for the current state.
     U32 i = 0;
     Result res = SUCCESS;
+    U32 destState = NO_STATE;
     while (mCurrentState->labels[i].type != LAB_NULL)
     {
         LabelConfig* const label = &mCurrentState->labels[i];
+
         switch (label->type)
         {
             case LAB_ENTRY:
+                // Entry actions happen only on the first step in the state.
                 if (mTimeStateStart == kT)
                 {
-                    res = this->executeLabel(label);
+                    res = this->executeLabel(label, destState);
                 }
                 break;
 
             case LAB_STEP:
-                res = this->executeLabel(label);
+                // Step actions happen on every step in the state.
+                res = this->executeLabel(label, destState);
                 break;
 
             case LAB_RANGE:
             {
+                // Range actions happen only in steps in the specified range.
                 const U64 elapsed = (kT - mTimeStateStart);
                 if ((elapsed >= label->rangeLower)
                     && (elapsed <= label->rangeUpper))
                 {
-                    res = this->executeLabel(label);
+                    res = this->executeLabel(label, destState);
                 }
                 break;
             }
 
+            case LAB_EXIT:
+                // Exit actions happen prior to leaving the state. They are not
+                // executed at this point in time.
+                break;
+
             default:
-                if (label->type != LAB_EXIT)
-                {
-                    res = E_ENUM;
-                }
+                // Unreachable assuming the state machine config was validated
+                // correctly.
+                return E_UNREACHABLE;
         }
 
         if (res != SUCCESS)
@@ -160,18 +186,61 @@ Result StateMachine::step(const U64 kT)
             return res;
         }
 
+        // Immediately break the loop when a transition is triggered.
+        if (destState != NO_STATE)
+        {
+            break;
+        }
+
         ++i;
+    }
+
+    if (destState != NO_STATE)
+    {
+        // Transitioning to a new state- execute exit label for the current
+        // state.
+        i = 0;
+        while (mCurrentState->labels[i].type != LAB_NULL)
+        {
+            LabelConfig* const label = &mCurrentState->labels[i];
+            if (label->type == LAB_EXIT)
+            {
+                // Transitioning in an exit label is not legal. This call to
+                // `executeLabel` will not return a destination state in `_`
+                // assuming the state machine config was validated correctly.
+                U32 _;
+                Result res = this->executeLabel(label, _);
+                if (res != SUCCESS)
+                {
+                    return res;
+                }
+            }
+            ++i;
+        }
+
+        // Transition to destination state. The next state machine step will be
+        // the first step in the new state.
+        res = this->findState(destState, mCurrentState);
+        if (res != SUCCESS)
+        {
+            // Unreachable assuming the state machine config was validated
+            // correctly.
+            return res;
+        }
+        mConfig.eState->write(destState);
     }
 
     return SUCCESS;
 }
 
-Result StateMachine::executeLabel(LabelConfig* const kLabel)
+Result StateMachine::executeLabel(LabelConfig* const kLabel,
+                                  U32& kDestState)
 {
     U32 i = 0;
     Result res;
     while (kLabel->actions[i] != nullptr)
     {
+        // Evaluate transition. It will be executed if its guard is met.
         bool transition = false;
         res = kLabel->actions[i]->evaluate(transition);
         if (res != SUCCESS)
@@ -179,16 +248,12 @@ Result StateMachine::executeLabel(LabelConfig* const kLabel)
             return res;
         }
 
+        // If the action triggered a transition, immeditiately return the
+        // destination state to the caller without executing more actions.
         if (transition == true)
         {
-            const U32 destState = kLabel->actions[i]->transitionState;
-            res = this->findState(destState, mCurrentState);
-            if (res != SUCCESS)
-            {
-                mCurrentState = nullptr;
-                return res;
-            }
-            mConfig.eState->write(destState);
+            kDestState = kLabel->actions[i]->destinationState;
+            return SUCCESS;
         }
     }
 

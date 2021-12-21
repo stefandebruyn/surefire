@@ -9,13 +9,13 @@ class IAction
 {
 public:
 
-    const U32 transitionState;
+    const U32 destinationState;
 
     virtual ~IAction() = default;
 
     constexpr IAction(const ExpressionTree<bool>* kGuard,
-                      const U32 kTransitionState) :
-        mGuard(kGuard), transitionState(kTransitionState)
+                      const U32 kDestState) :
+        mGuard(kGuard), destinationState(kDestState)
     {
     }
 

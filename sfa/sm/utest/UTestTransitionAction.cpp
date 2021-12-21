@@ -8,7 +8,7 @@ TEST_GROUP(TransitionAction)
 TEST(TransitionAction, SetTransitionState)
 {
     TransitionAction act(nullptr, 10);
-    CHECK_EQUAL(10, act.transitionState);
+    CHECK_EQUAL(10, act.destinationState);
 }
 
 TEST(TransitionAction, EvaluateNoGuard)

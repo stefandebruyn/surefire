@@ -8,8 +8,8 @@ class TransitionAction final : public IAction
 public:
 
     constexpr TransitionAction(const ExpressionTree<bool>* kGuard,
-                               const U32 kTransitionState) :
-        IAction(kGuard, kTransitionState)
+                               const U32 kDestState) :
+        IAction(kGuard, kDestState)
     {
     }
 

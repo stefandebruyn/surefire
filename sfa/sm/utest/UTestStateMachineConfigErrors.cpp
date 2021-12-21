@@ -1,9 +1,11 @@
 #include "sfa/sm/StateMachine.hpp"
+#include "sfa/sm/TransitionAction.hpp"
 #include "utest/UTest.hpp"
 
 static StateMachine::LabelConfig gLabelConfigs[] =
 {
     {StateMachine::LAB_RANGE, nullptr, 0, 10},
+    {StateMachine::LAB_EXIT, nullptr, 0, 0},
     {StateMachine::LAB_NULL, nullptr, 0, 0}
 };
 
@@ -91,5 +93,18 @@ TEST(StateMachineConfigErrors, InvalidLabelRange)
     const Result res = StateMachine::create(gConfig, sm);
     gLabelConfigs[0].rangeLower = tmp;
     CHECK_EQUAL(E_RANGE, res);
+    CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
+}
+
+TEST(StateMachineConfigErrors, TransitionInExitLabel)
+{
+    IAction** tmp = gLabelConfigs[1].actions;
+    TransitionAction act(nullptr, 1);
+    IAction* acts[] = {&act, nullptr};
+    gLabelConfigs[1].actions = acts;
+    StateMachine sm;
+    const Result res = StateMachine::create(gConfig, sm);
+    gLabelConfigs[1].actions = tmp;
+    CHECK_EQUAL(E_TRANSITION, res);
     CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
 }
