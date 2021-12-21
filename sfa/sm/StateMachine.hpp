@@ -59,6 +59,8 @@ private:
 
     U64 mTimeStateStart;
 
+    U64 mTimeLastStep;
+
     StateConfig* mCurrentState;
 
     StateMachine(Config kConfig, Result& kRes);

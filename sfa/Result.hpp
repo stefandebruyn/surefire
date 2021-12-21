@@ -21,5 +21,6 @@ typedef I32 Result;
 #define E_RANGE (13)
 #define E_RESERVED (14)
 #define E_UNINITIALIZED (15)
+#define E_TIME (16)
 
 #endif

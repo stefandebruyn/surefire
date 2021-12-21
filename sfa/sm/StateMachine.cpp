@@ -14,6 +14,7 @@ Result StateMachine::create(Config kConfig, StateMachine& kSm)
 StateMachine::StateMachine() :
     mConfig({nullptr, nullptr}),
     mTimeStateStart(mNoTime),
+    mTimeLastStep(mNoTime),
     mCurrentState(nullptr)
 {
 }
@@ -106,6 +107,13 @@ Result StateMachine::step(const U64 kT)
         return E_UNINITIALIZED;
     }
 
+    // Check that time is monotonically increasing.
+    if ((mTimeLastStep != mNoTime) && (kT <= mTimeLastStep))
+    {
+        return E_TIME;
+    }
+    mTimeLastStep = kT;
+
     if (mTimeStateStart == mNoTime)
     {
         mTimeStateStart = kT;
@@ -164,22 +172,23 @@ Result StateMachine::executeLabel(LabelConfig* const kLabel)
     Result res;
     while (kLabel->actions[i] != nullptr)
     {
-        U32 transitionToState = NO_STATE;
-        // res = kLabel->actions[i]->evaluate(transitionToState);
+        bool transition = false;
+        res = kLabel->actions[i]->evaluate(transition);
         if (res != SUCCESS)
         {
             return res;
         }
 
-        if (transitionToState != NO_STATE)
+        if (transition == true)
         {
-            res = this->findState(transitionToState, mCurrentState);
+            const U32 destState = kLabel->actions[i]->transitionState;
+            res = this->findState(destState, mCurrentState);
             if (res != SUCCESS)
             {
                 mCurrentState = nullptr;
                 return res;
             }
-            mConfig.eState->write(transitionToState);
+            mConfig.eState->write(destState);
         }
     }
 
