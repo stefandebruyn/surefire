@@ -98,6 +98,7 @@ StateMachine::StateMachine(Config kConfig, Result& kRes) : StateMachine()
                         kRes = E_TRANSITION;
                         return;
                     }
+                    ++actionIdx;
                 }
             }
 
@@ -227,7 +228,8 @@ Result StateMachine::step(const U64 kT)
             // correctly.
             return res;
         }
-        mConfig.eState->write(destState);
+        mConfig.eState->write(destState); // Update state element.
+        mTimeStateStart = mNoTime;        // Reset state start time.
     }
 
     return SUCCESS;
@@ -255,6 +257,8 @@ Result StateMachine::executeLabel(LabelConfig* const kLabel,
             kDestState = kLabel->actions[i]->destinationState;
             return SUCCESS;
         }
+
+        ++i;
     }
 
     return SUCCESS;

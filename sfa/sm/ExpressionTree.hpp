@@ -1,5 +1,5 @@
-#ifndef SFA_EXPRESSION_NODE_HPP
-#define SFA_EXPRESSION_NODE_HPP
+#ifndef SFA_EXPRESSION_TREE_HPP
+#define SFA_EXPRESSION_TREE_HPP
 
 #include "sfa/sv/Element.hpp"
 #include "sfa/Result.hpp"
@@ -31,7 +31,7 @@ public:
     virtual Result evaluate(T& kAns) const = 0;
 };
 
-template <typename T, typename T_Left = T, typename T_Right = T>
+template <typename T, typename T_Left = T, typename T_Right = T_Left>
 class ExpressionTree final : public IExpressionTree<T>
 {
 public:
@@ -145,6 +145,10 @@ public:
         }
         else if (mElem != nullptr)
         {
+            if (mElem == nullptr)
+            {
+                return E_NULLPTR;
+            }
             // State vector element node.
             kAns = mElem->read();
         }

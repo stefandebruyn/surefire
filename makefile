@@ -18,7 +18,7 @@ utest:
 	sfa/sm/utest/UTestExpressionTree.cpp \
 	sfa/sm/utest/UTestTransitionAction.cpp \
 	sfa/sm/utest/UTestAssignmentAction.cpp \
-	sfa/sm/utest/UTestStateMachine.cpp \
+	sfa/sm/utest/UTestStateMachineBasic.cpp \
 	sfa/ConfigTokenizer.cpp \
 	sfa/ConfigErrorInfo.cpp \
 	sfa/util/MemoryOps.cpp \
