@@ -23,5 +23,6 @@ typedef I32 Result;
 #define E_UNINITIALIZED (15)
 #define E_TIME (16)
 #define E_TRANSITION (17)
+#define E_LAYOUT (18)
 
 #endif

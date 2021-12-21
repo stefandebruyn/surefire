@@ -28,12 +28,13 @@ public:
         RegionConfig* regions;
     };
 
-    StateVector(const Config kConfig);
+    static Result create(const StateVector::Config kConfig, StateVector& kSm);
+
+    StateVector();
 
     StateVector(const StateVector&) = delete;
     StateVector& operator=(const StateVector&) = delete;
     StateVector(StateVector&&) = delete;
-    StateVector& operator=(StateVector&&) = delete;
 
     template<typename T>
     Result getElement(const char* const kName, Element<T>*& kELem);
@@ -43,6 +44,10 @@ public:
 private:
 
     Config mConfig;
+
+    StateVector(const Config kConfig, Result& kRes);
+
+    StateVector& operator=(StateVector&&) = default;
 
     Result getElementIndex(const char* const kName, U32& kIdx) const;
 

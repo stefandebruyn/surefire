@@ -22,3 +22,13 @@ Result Region::read(void* const kBuf, const U32 kBufSizeBytes) const
     Sfa::memcpy(kBuf, mAddr, mSizeBytes);
     return SUCCESS;
 }
+
+const void* Region::getAddr() const
+{
+    return mAddr;
+}
+
+U32 Region::getSizeBytes() const
+{
+    return mSizeBytes;
+}

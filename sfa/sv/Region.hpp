@@ -22,6 +22,10 @@ public:
 
     Result read(void* const kBuf, const U32 mBufSizeBytes) const;
 
+    const void* getAddr() const;
+
+    U32 getSizeBytes() const;
+
 private:
 
     void* const mAddr;

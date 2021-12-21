@@ -31,7 +31,7 @@ public:
     virtual Result evaluate(T& kAns) const = 0;
 };
 
-template <typename T, typename T_Left = T, typename T_Right = T_Left>
+template <typename T, typename TLeft = T, typename TRight = TLeft>
 class ExpressionTree final : public IExpressionTree<T>
 {
 public:
@@ -47,24 +47,24 @@ public:
     }
 
     constexpr ExpressionTree(const ExpressionTreeOperator kOp,
-                             const IExpressionTree<T_Left>* kLeft,
-                             const IExpressionTree<T_Right>* kRight) :
+                             const IExpressionTree<TLeft>* kLeft,
+                             const IExpressionTree<TRight>* kRight) :
         ExpressionTree(0, nullptr, kOp, kLeft, kRight)
     {
     }
 
-    ExpressionTree(const ExpressionTree<T, T_Left, T_Right>&) = delete;
-    ExpressionTree(ExpressionTree<T, T_Left, T_Right>&&) = delete;
-    ExpressionTree<T, T_Left, T_Right>& operator=(
-        const ExpressionTree<T, T_Left, T_Right>&) = delete;
-    ExpressionTree<T, T_Left, T_Right>& operator=(
-        ExpressionTree<T, T_Left, T_Right>&&) = delete;
+    ExpressionTree(const ExpressionTree<T, TLeft, TRight>&) = delete;
+    ExpressionTree(ExpressionTree<T, TLeft, TRight>&&) = delete;
+    ExpressionTree<T, TLeft, TRight>& operator=(
+        const ExpressionTree<T, TLeft, TRight>&) = delete;
+    ExpressionTree<T, TLeft, TRight>& operator=(
+        ExpressionTree<T, TLeft, TRight>&&) = delete;
 
     Result evaluate(T& kAns) const final override
     {
         if (mOp != OP_NONE)
         {
-            // Operation node.
+            // Operator node.
 
             // Check that left and right subtrees are non-null.
             if ((mLeft == nullptr) || (mRight == nullptr))
@@ -73,7 +73,7 @@ public:
             }
 
             // Evaluate left subtree.
-            T_Left leftValue = 0;
+            TLeft leftValue = 0;
             Result res = mLeft->evaluate(leftValue);
             if (res != SUCCESS)
             {
@@ -81,7 +81,7 @@ public:
             }
 
             // Evaluate right subtree.
-            T_Right rightValue = 0;
+            TRight rightValue = 0;
             res = mRight->evaluate(rightValue);
             if (res != SUCCESS)
             {
@@ -169,15 +169,15 @@ private:
 
     const ExpressionTreeOperator mOp;
 
-    const IExpressionTree<T_Left>* mLeft;
+    const IExpressionTree<TLeft>* mLeft;
 
-    const IExpressionTree<T_Right>* mRight;
+    const IExpressionTree<TRight>* mRight;
 
     constexpr ExpressionTree(const T kValue,
                              const Element<T>* kElem,
                              const ExpressionTreeOperator kOp,
-                             const IExpressionTree<T_Left>* kLeft,
-                             const IExpressionTree<T_Right>* kRight) :
+                             const IExpressionTree<TLeft>* kLeft,
+                             const IExpressionTree<TRight>* kRight) :
         mValue(kValue), mElem(kElem), mOp(kOp), mLeft(kLeft), mRight(kRight)
     {
     }

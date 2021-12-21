@@ -6,6 +6,7 @@ utest:
 	sfa/sv/utest/UTestRegion.cpp \
 	sfa/utest/UTestConfigTokenizer.cpp \
 	sfa/sv/utest/UTestStateVectorParser.cpp \
+	sfa/sv/utest/UTestStateVectorConfigErrors.cpp \
 	sfa/sv/Element.cpp \
 	sfa/sv/Region.cpp \
 	sfa/sv/StateVector.cpp \

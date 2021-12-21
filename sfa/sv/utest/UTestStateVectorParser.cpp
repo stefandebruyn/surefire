@@ -32,7 +32,8 @@ TEST(StateVectorParser, SimpleConfig)
     POINTERS_EQUAL(nullptr, svConfig.elems[4].name);
 
     // Check element lookups.
-    StateVector sv(svConfig);
+    StateVector sv;
+    CHECK_SUCCESS(StateVector::create(svConfig, sv));
     Element<I32>* foo = nullptr;
     CHECK_SUCCESS(sv.getElement("foo", foo));
     Element<F64>* bar = nullptr;

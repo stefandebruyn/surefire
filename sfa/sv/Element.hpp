@@ -26,6 +26,8 @@ public:
 
     virtual ElementType getElementType() const = 0;
 
+    virtual const void* getAddr() const = 0;
+
     virtual U32 getSizeBytes() const = 0;
 };
 
@@ -54,6 +56,11 @@ public:
     }
 
     ElementType getElementType() const final override;
+
+    const void* getAddr() const final override
+    {
+        return &mBacking;
+    }
 
     U32 getSizeBytes() const final override
     {

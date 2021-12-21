@@ -6,8 +6,8 @@
 
 #define CHECK_SUCCESS(kExpr)                                                   \
 {                                                                              \
-    const Result res = (kExpr);                                                \
-    CHECK_EQUAL(SUCCESS, res);                                                 \
+    const Result __res = (kExpr);                                              \
+    CHECK_EQUAL(SUCCESS, __res);                                               \
 }
 
 #endif

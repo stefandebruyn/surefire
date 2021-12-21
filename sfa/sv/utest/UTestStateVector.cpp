@@ -1,7 +1,7 @@
 #include "sfa/sv/StateVector.hpp"
 #include "utest/UTest.hpp"
 
-// Backing storage for test state vector.
+// Test state vector backing storage.
 #pragma pack(push, 1)
 static struct
 {
@@ -39,7 +39,7 @@ static Element<F64> gElemF64(gBacking.bar.f64);
 static Element<bool> gElemBool(gBacking.bar.b);
 
 // Test state vector element configs.
-static StateVector::ElementConfig gElems[12] =
+static StateVector::ElementConfig gElems[] =
 {
     {"i8", &gElemI8},
     {"i16", &gElemI16},
@@ -52,7 +52,7 @@ static StateVector::ElementConfig gElems[12] =
     {"f32", &gElemF32},
     {"f64", &gElemF64},
     {"b", &gElemBool},
-    {nullptr, nullptr}
+    {}
 };
 
 // Test state vector regions.
@@ -60,11 +60,11 @@ static Region gRegionFoo(&gBacking.foo, sizeof(gBacking.foo));
 static Region gRegionBar(&gBacking.bar, sizeof(gBacking.bar));
 
 // Test state vector region configs.
-static StateVector::RegionConfig gRegions[3] =
+static StateVector::RegionConfig gRegions[] =
 {
     {"foo", &gRegionFoo},
     {"bar", &gRegionBar},
-    {nullptr, nullptr}
+    {}
 };
 
 // Test state vector config.
@@ -72,12 +72,19 @@ static StateVector::Config gConfig = {gElems, gRegions};
 
 TEST_GROUP(StateVector)
 {
+    void teardown()
+    {
+        // `AllowElementMisalignmentWithoutRegions` can fail without restoring
+        // the `i8` element pointer in `gConfig`, so do that here.
+        gConfig.elems[0].elem = &gElemI8;
+    }
 };
 
 // Getting I8 element.
 TEST(StateVector, I8Element)
 {
-    StateVector sv(gConfig);
+    StateVector sv;
+    CHECK_SUCCESS(StateVector::create(gConfig, sv));
     Element<I8>* i8 = nullptr;
     CHECK_SUCCESS(sv.getElement("i8", i8));
     POINTERS_EQUAL(i8, &gElemI8);
@@ -86,11 +93,38 @@ TEST(StateVector, I8Element)
 // Getting regions.
 TEST(StateVector, GetRegion)
 {
-    StateVector sv(gConfig);
+    StateVector sv;
+    CHECK_SUCCESS(StateVector::create(gConfig, sv));
     Region* region = nullptr;
     CHECK_SUCCESS(sv.getRegion("foo", region));
     POINTERS_EQUAL(region, &gRegionFoo);
     CHECK_SUCCESS(sv.getRegion("bar", region));
     POINTERS_EQUAL(region, &gRegionBar);
     CHECK_EQUAL(E_KEY, sv.getRegion("baz", region));
+}
+
+// Non-contiguous elements are allowed when not using regions.
+TEST(StateVector, AllowElementMisalignmentWithoutRegions)
+{
+    // Replace `i8` element with one outside the state vector backing storage
+    // and null out the regions array.
+    I8 backing = 0.0;
+    Element<I8> elem(backing);
+    IElement* const tmp0 = gConfig.elems[0].elem;
+    gConfig.elems[0].elem = &elem;
+    StateVector::RegionConfig* const tmp1 = gConfig.regions;
+    gConfig.regions = nullptr;
+
+    // Creating state vector.
+    StateVector sv;
+    Result res = StateVector::create(gConfig, sv);
+    gConfig.regions = tmp1;
+    CHECK_SUCCESS(res);
+
+    // Getting `i8` element returns the element created above.
+    Element<I8>* i8 = nullptr;
+    res = sv.getElement("i8", i8);
+    gConfig.elems[0].elem = tmp0;
+    CHECK_SUCCESS(res);
+    POINTERS_EQUAL(&elem, i8);
 }
