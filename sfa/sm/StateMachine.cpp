@@ -2,7 +2,7 @@
 
 const U64 StateMachine::mNoTime = 0xFFFFFFFFFFFFFFFF;
 
-const U32 StateMachine::NO_STATE = 0xFFFFFFFF;
+const U32 StateMachine::NO_STATE = 0;
 
 Result StateMachine::create(Config kConfig, StateMachine& kSm)
 {
@@ -24,7 +24,7 @@ StateMachine::StateMachine(Config kConfig, Result& kRes) : StateMachine()
     mConfig = kConfig;
     kRes = SUCCESS;
 
-    // Check that state array and element are non-null.
+    // Check that state array and state element are non-null.
     if ((mConfig.states == nullptr) || (mConfig.eState == nullptr))
     {
         kRes = E_NULLPTR;
@@ -41,16 +41,10 @@ StateMachine::StateMachine(Config kConfig, Result& kRes) : StateMachine()
     }
 
     // Check state configs.
-    for (U32 i = 0; mConfig.states[i].id != 0; ++i)
+    U32 i;
+    for (i = 0; mConfig.states[i].id != NO_STATE; ++i)
     {
         const StateConfig* const stateConfig = &mConfig.states[i];
-
-        // Check that state ID is not a reserved value.
-        if (stateConfig->id == NO_STATE)
-        {
-            kRes = E_RESERVED;
-            return;
-        }
 
         // Check that state ID is unique.
         for (U32 j = 0; j < i; j++)
@@ -189,7 +183,9 @@ Result StateMachine::step(const U64 kT)
             // correctly.
             return res;
         }
-        mTimeStateStart = mNoTime;        // Reset state start time.
+
+        // Reset state start time.
+        mTimeStateStart = mNoTime;
     }
 
     return SUCCESS;
@@ -229,7 +225,7 @@ Result StateMachine::executeLabel(LabelConfig* const kLabel,
 
 Result StateMachine::findState(const U32 kId, StateConfig*& kState)
 {
-    for (U32 i = 0; mConfig.states[i].id != 0; ++i)
+    for (U32 i = 0; mConfig.states[i].id != NO_STATE; ++i)
     {
         if (mConfig.states[i].id == kId)
         {

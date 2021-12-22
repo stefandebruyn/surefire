@@ -64,14 +64,14 @@ TEST(StateMachineConfigErrors, DuplicateStateId)
     CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
 }
 
-TEST(StateMachineConfigErrors, ReservedStateId)
+TEST(StateMachineConfigErrors, NoStates)
 {
-    const U32 tmp = gConfig.states[1].id;
-    gConfig.states[1].id = 0xFFFFFFFF;
+    const U32 tmp = gConfig.states[0].id;
+    gConfig.states[0].id = 0;
     StateMachine sm;
     const Result res = StateMachine::create(gConfig, sm);
-    gConfig.states[1].id = tmp;
-    CHECK_EQUAL(E_RESERVED, res);
+    gConfig.states[0].id = tmp;
+    CHECK_EQUAL(E_STATE, res);
     CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
 }
 
