@@ -16,10 +16,10 @@ utest:
 	sfa/sm/TransitionAction.cpp \
 	sfa/sm/IAction.cpp \
 	sfa/sm/utest/UTestStateMachineConfigErrors.cpp \
+	sfa/sm/utest/UTestStateMachineBasic.cpp \
 	sfa/sm/utest/UTestExpressionTree.cpp \
 	sfa/sm/utest/UTestTransitionAction.cpp \
 	sfa/sm/utest/UTestAssignmentAction.cpp \
-	sfa/sm/utest/UTestStateMachineBasic.cpp \
 	sfa/task/ITask.cpp \
 	sfa/task/utest/UTestITask.cpp \
 	sfa/ConfigTokenizer.cpp \

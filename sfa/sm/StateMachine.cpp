@@ -41,10 +41,9 @@ StateMachine::StateMachine(Config kConfig, Result& kRes) : StateMachine()
     }
 
     // Check state configs.
-    U32 stateIdx = 0;
-    while (mConfig.states[stateIdx].labels != nullptr)
+    for (U32 i = 0; mConfig.states[i].id != 0; ++i)
     {
-        const StateConfig* const stateConfig = &mConfig.states[stateIdx];
+        const StateConfig* const stateConfig = &mConfig.states[i];
 
         // Check that state ID is not a reserved value.
         if (stateConfig->id == NO_STATE)
@@ -54,61 +53,44 @@ StateMachine::StateMachine(Config kConfig, Result& kRes) : StateMachine()
         }
 
         // Check that state ID is unique.
-        for (U32 i = 0; i < stateIdx; i++)
+        for (U32 j = 0; j < i; j++)
         {
-            if (mConfig.states[i].id == stateConfig->id)
+            if (mConfig.states[j].id == stateConfig->id)
             {
                 kRes = E_DUPLICATE;
                 return;
             }
         }
 
-        // Check label configs.
-        U32 labelIdx = 0;
-        while (stateConfig->labels[labelIdx].type != LAB_NULL)
+        // If range labels were provided, check that the ranges are valid.
+        if (stateConfig->rangeLabels != nullptr)
         {
-            const LabelConfig* const labelConfig =
-                &stateConfig->labels[labelIdx];
-
-            // Check that label type is valid.
-            if (labelConfig->type >= LAB_LAST)
+            for (U32 i = 0; stateConfig->rangeLabels[i].actions != nullptr; ++i)
             {
-                kRes = E_ENUM;
-                return;
-            }
-
-            // If a range label, check that the range is valid.
-            if ((labelConfig->type == LAB_RANGE)
-                && (labelConfig->rangeUpper < labelConfig->rangeLower))
-            {
-                kRes = E_RANGE;
-                return;
-            }
-
-            // If an exit label, check that no actions are transitions.
-            if ((labelConfig->type == LAB_EXIT)
-                && (labelConfig->actions != nullptr))
-            {
-                U32 actionIdx = 0;
-                while (labelConfig->actions[actionIdx] != nullptr)
+                const LabelConfig* const labelConfig =
+                    &stateConfig->rangeLabels[i];
+                if (labelConfig->rangeLower > labelConfig->rangeUpper)
                 {
-                    if (labelConfig->actions[actionIdx]->destinationState
-                        != NO_STATE)
-                    {
-                        kRes = E_TRANSITION;
-                        return;
-                    }
-                    ++actionIdx;
+                    kRes = E_RANGE;
+                    return;
                 }
             }
-
-            // We don't check that the actions array is non-null since this can
-            // represents a label with no actions.
-
-            ++labelIdx;
         }
 
-        ++stateIdx;
+        // If an exit label was provided, check that none of the actions can
+        // trigger transitions.
+        if (stateConfig->exitLabel.actions != nullptr)
+        {
+            for (U32 i = 0; stateConfig->exitLabel.actions[i] != nullptr; ++i)
+            {
+                if (stateConfig->exitLabel.actions[i]->destinationState
+                    != NO_STATE)
+                {
+                    kRes = E_TRANSITION;
+                    return;
+                }
+            }
+        }
     }
 
     // If we got this far, the config is valid- set `mCurrentState` to the
@@ -131,93 +113,72 @@ Result StateMachine::step(const U64 kT)
     }
     mTimeLastStep = kT;
 
-    if (mTimeStateStart == mNoTime)
-    {
-        mTimeStateStart = kT;
-    }
-
-    // Execute actions for the current state.
-    U32 i = 0;
+    // If the state start time is unset, this is the first step of the current
+    // state.
     Result res = SUCCESS;
     U32 destState = NO_STATE;
-    while (mCurrentState->labels[i].type != LAB_NULL)
+    if (mTimeStateStart == mNoTime)
     {
-        LabelConfig* const label = &mCurrentState->labels[i];
+        // Record the state start time.
+        mTimeStateStart = kT;
 
-        switch (label->type)
-        {
-            case LAB_ENTRY:
-                // Entry actions happen only on the first step in the state.
-                if (mTimeStateStart == kT)
-                {
-                    res = this->executeLabel(label, destState);
-                }
-                break;
+        // Update state element.
+        mConfig.eState->write(mCurrentState->id);
 
-            case LAB_STEP:
-                // Step actions happen on every step in the state.
-                res = this->executeLabel(label, destState);
-                break;
-
-            case LAB_RANGE:
-            {
-                // Range actions happen only in steps in the specified range.
-                const U64 elapsed = (kT - mTimeStateStart);
-                if ((elapsed >= label->rangeLower)
-                    && (elapsed <= label->rangeUpper))
-                {
-                    res = this->executeLabel(label, destState);
-                }
-                break;
-            }
-
-            case LAB_EXIT:
-                // Exit actions happen prior to leaving the state. They are not
-                // executed at this point in time.
-                break;
-
-            default:
-                // Unreachable assuming the state machine config was validated
-                // correctly.
-                return E_UNREACHABLE;
-        }
-
+        // Execute state entry label.
+        res = this->executeLabel(&mCurrentState->entryLabel, destState);
         if (res != SUCCESS)
         {
             return res;
         }
-
-        // Immediately break the loop when a transition is triggered.
-        if (destState != NO_STATE)
-        {
-            break;
-        }
-
-        ++i;
     }
 
-    if (destState != NO_STATE)
+    // Execute step label for current state if and a previous label did not
+    // trigger a transition.
+    if (destState == NO_STATE)
     {
-        // Transitioning to a new state- execute exit label for the current
-        // state.
-        i = 0;
-        while (mCurrentState->labels[i].type != LAB_NULL)
+        res = this->executeLabel(&mCurrentState->stepLabel, destState);
+        if (res != SUCCESS)
         {
-            LabelConfig* const label = &mCurrentState->labels[i];
-            if (label->type == LAB_EXIT)
+            return res;
+        }
+    }
+
+    // Execute any range labels for current state if the current time is in
+    // range and a previous label did not trigger a transition.
+    if ((destState == NO_STATE) && (mCurrentState->rangeLabels != nullptr))
+    {
+        const U64 elapsed = (kT - mTimeStateStart);
+        for (U32 i = 0; mCurrentState->rangeLabels[i].actions != nullptr; ++i)
+        {
+            const LabelConfig* const labelConfig =
+                &mCurrentState->rangeLabels[i];
+
+            if ((elapsed >= labelConfig->rangeLower)
+                && (elapsed <= labelConfig->rangeUpper))
             {
-                // Transitioning in an exit label is not legal. This call to
-                // `executeLabel` will not return a destination state in `_`
-                // assuming the state machine config was validated correctly.
-                U32 _;
-                Result res = this->executeLabel(label, _);
+                res = this->executeLabel(&mCurrentState->rangeLabels[i],
+                                         destState);
                 if (res != SUCCESS)
                 {
                     return res;
                 }
+                if (destState != NO_STATE)
+                {
+                    break;
+                }
             }
-            ++i;
         }
+    }
+
+    // Do end-of-state logic if a previous label triggered a transition.
+    if (destState != NO_STATE)
+    {
+        // Execute exit label. Transitioning in an exit label is illegal, so
+        // this `executeLabel` call should not return a state in `_` assuming
+        // the state machine config was validated correctly.
+        U32 _;
+        res = this->executeLabel(&mCurrentState->exitLabel, _);
 
         // Transition to destination state. The next state machine step will be
         // the first step in the new state.
@@ -228,7 +189,6 @@ Result StateMachine::step(const U64 kT)
             // correctly.
             return res;
         }
-        mConfig.eState->write(destState); // Update state element.
         mTimeStateStart = mNoTime;        // Reset state start time.
     }
 
@@ -238,12 +198,17 @@ Result StateMachine::step(const U64 kT)
 Result StateMachine::executeLabel(LabelConfig* const kLabel,
                                   U32& kDestState)
 {
-    U32 i = 0;
-    Result res;
-    while (kLabel->actions[i] != nullptr)
+    // A null actions array indicates an empty label.
+    if (kLabel->actions == nullptr)
+    {
+        return SUCCESS;
+    }
+
+    bool transition = false;
+    Result res = E_UNREACHABLE;
+    for (U32 i = 0; kLabel->actions[i] != nullptr; ++i)
     {
         // Evaluate transition. It will be executed if its guard is met.
-        bool transition = false;
         res = kLabel->actions[i]->evaluate(transition);
         if (res != SUCCESS)
         {
@@ -257,8 +222,6 @@ Result StateMachine::executeLabel(LabelConfig* const kLabel,
             kDestState = kLabel->actions[i]->destinationState;
             return SUCCESS;
         }
-
-        ++i;
     }
 
     return SUCCESS;
@@ -266,15 +229,13 @@ Result StateMachine::executeLabel(LabelConfig* const kLabel,
 
 Result StateMachine::findState(const U32 kId, StateConfig*& kState)
 {
-    U32 i = 0;
-    while (mConfig.states[i].labels != nullptr)
+    for (U32 i = 0; mConfig.states[i].id != 0; ++i)
     {
         if (mConfig.states[i].id == kId)
         {
             kState = &mConfig.states[i];
             return SUCCESS;
         }
-        ++i;
     }
 
     return E_STATE;

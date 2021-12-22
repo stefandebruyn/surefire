@@ -11,19 +11,8 @@ public:
 
     static const U32 NO_STATE;
 
-    enum LabelType : U32
-    {
-        LAB_NULL,
-        LAB_ENTRY,
-        LAB_STEP,
-        LAB_RANGE,
-        LAB_EXIT,
-        LAB_LAST
-    };
-
     struct LabelConfig
     {
-        LabelType type;
         IAction** actions;
         U64 rangeLower;
         U64 rangeUpper;
@@ -32,7 +21,10 @@ public:
     struct StateConfig
     {
         U32 id;
-        LabelConfig* labels;
+        LabelConfig entryLabel;
+        LabelConfig stepLabel;
+        LabelConfig* rangeLabels;
+        LabelConfig exitLabel;
     };
 
     struct Config
