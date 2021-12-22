@@ -37,28 +37,28 @@ static Element<I32> gElemQux(gSvBacking.qux);
 //     baz = false
 // EXIT:
 //     bar = 1.522
-static ExpressionTree<I32> gExpr1400(1400);
-static ExpressionTree<F64> gExpr9p81(9.81);
-static ExpressionTree<bool> gExprTrue(true);
-static ExpressionTree<I32> gExpr200(200);
-static ExpressionTree<F64> gExpr0p0(0.0);
-static ExpressionTree<F64> gExpr7p777(7.777);
-static ExpressionTree<bool> gExprFalse(false);
-static ExpressionTree<F64> gExpr1p522(1.522);
+static const ExpressionTree<I32> gExpr1400(1400);
+static const ExpressionTree<F64> gExpr9p81(9.81);
+static const ExpressionTree<bool> gExprTrue(true);
+static const ExpressionTree<I32> gExpr200(200);
+static const ExpressionTree<F64> gExpr0p0(0.0);
+static const ExpressionTree<F64> gExpr7p777(7.777);
+static const ExpressionTree<bool> gExprFalse(false);
+static const ExpressionTree<F64> gExpr1p522(1.522);
 
-static ExpressionTree<F64> gExprBar(gElemBar);
-static ExpressionTree<bool> gExprBaz(gElemBaz);
-static ExpressionTree<I32> gExprQux(gElemQux);
+static const ExpressionTree<F64> gExprBar(gElemBar);
+static const ExpressionTree<bool> gExprBaz(gElemBaz);
+static const ExpressionTree<I32> gExprQux(gElemQux);
 
-static ExpressionTree<bool, I32> gExprQuxEquals200(OP_EQUALS,
-                                                   &gExprQux,
-                                                   &gExpr200);
-static ExpressionTree<bool, F64> gExprBarEquals0p0(OP_LESS_THAN,
-                                                   &gExprBar,
-                                                   &gExpr0p0);
-static ExpressionTree<bool> gGuardTransState2(OP_AND,
-                                              &gExprQuxEquals200,
-                                              &gExprBarEquals0p0);
+static const ExpressionTree<bool, I32> gExprQuxEquals200(OP_EQUALS,
+                                                         &gExprQux,
+                                                         &gExpr200);
+static const ExpressionTree<bool, F64> gExprBarEquals0p0(OP_LESS_THAN,
+                                                         &gExprBar,
+                                                         &gExpr0p0);
+static const ExpressionTree<bool> gGuardTransState2(OP_AND,
+                                                    &gExprQuxEquals200,
+                                                    &gExprBarEquals0p0);
 
 static AssignmentAction<I32> gActQuxGets1400(nullptr, gElemQux, gExpr1400);
 static AssignmentAction<F64> gActBarGets9p81(nullptr, gElemBar, gExpr9p81);
@@ -68,35 +68,35 @@ static AssignmentAction<F64> gActBarGets7p777(nullptr, gElemBar, gExpr7p777);
 static AssignmentAction<bool> gActBazGetsFalse(nullptr, gElemBaz, gExprFalse);
 static AssignmentAction<F64> gActBarGets1p522(nullptr, gElemBar, gExpr1p522);
 
-static IAction* gState1EntryActs[] =
+static IAction* const gState1EntryActs[] =
 {
     &gActQuxGets1400,
     nullptr
 };
-static IAction* gState1StepActs[] =
+static IAction* const gState1StepActs[] =
 {
     &gActBazGetsTrue,
     &gActTransState2,
     &gActBarGets9p81,
     nullptr
 };
-static IAction* gState1RangeActs[] =
+static IAction* const gState1RangeActs[] =
 {
     &gActBarGets7p777,
     &gActBazGetsFalse,
     nullptr
 };
-static IAction* gState1ExitActs[] =
+static IAction* const gState1ExitActs[] =
 {
     &gActBarGets1p522,
     nullptr
 };
-static StateMachine::LabelConfig gState1RangeLabels[] =
+static const StateMachine::LabelConfig gState1RangeLabels[] =
 {
     {gState1RangeActs, 100, 200},
     {}
 };
-static StateMachine::StateConfig gState1Config =
+static const StateMachine::StateConfig gState1Config =
 {
     1,
     {gState1EntryActs},
@@ -113,36 +113,36 @@ static StateMachine::StateConfig gState1Config =
 //     (baz == false): -> State1
 // EXIT:
 //     qux = 97
-static ExpressionTree<I32> gExpr343(343);
-static ExpressionTree<F64> gExpr1p62(1.62);
-static ExpressionTree<I32> gExpr97(97);
+static const ExpressionTree<I32> gExpr343(343);
+static const ExpressionTree<F64> gExpr1p62(1.62);
+static const ExpressionTree<I32> gExpr97(97);
 
-static ExpressionTree<bool> gExprBazEqualsFalse(OP_EQUALS,
-                                                &gExprBaz,
-                                                &gExprFalse);
+static const ExpressionTree<bool> gExprBazEqualsFalse(OP_EQUALS,
+                                                      &gExprBaz,
+                                                      &gExprFalse);
 
 static AssignmentAction<I32> gActQuxGets343(nullptr, gElemQux, gExpr343);
 static AssignmentAction<F64> gBarGets1p62(nullptr, gElemBar, gExpr1p62);
 static TransitionAction gActTransState1(&gExprBazEqualsFalse, 0);
 static AssignmentAction<I32> gQuxGets97(nullptr, gElemQux, gExpr97);
 
-static IAction* gState2EntryActs[] =
+static IAction* const gState2EntryActs[] =
 {
     &gActQuxGets343,
     nullptr
 };
-static IAction* gState2StepActs[] =
+static IAction* const gState2StepActs[] =
 {
     &gBarGets1p62,
     &gActTransState1,
     nullptr
 };
-static IAction* gState2ExitActs[] =
+static IAction* const gState2ExitActs[] =
 {
     &gQuxGets97,
     nullptr
 };
-static StateMachine::StateConfig gState2Config =
+static const StateMachine::StateConfig gState2Config =
 {
     2,
     {gState2EntryActs},
@@ -152,7 +152,7 @@ static StateMachine::StateConfig gState2Config =
 };
 
 // State configs.
-static StateMachine::StateConfig gStateConfigs[] =
+static const StateMachine::StateConfig gStateConfigs[] =
 {
     gState1Config,
     gState2Config,
@@ -160,7 +160,7 @@ static StateMachine::StateConfig gStateConfigs[] =
 };
 
 // State machine config.
-static StateMachine::Config gSmConfig = {gStateConfigs, &gElemFoo};
+static const StateMachine::Config gSmConfig = {gStateConfigs, &gElemFoo};
 
 /*********************************** TESTS ************************************/
 
