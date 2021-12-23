@@ -13,27 +13,27 @@ public:
 
     struct LabelConfig
     {
-        IAction* const* const actions;
-        const U64 rangeLower;
-        const U64 rangeUpper;
+        IAction** actions;
+        U64 rangeLower;
+        U64 rangeUpper;
     };
 
     struct StateConfig
     {
-        const U32 id;
-        const LabelConfig entryLabel;
-        const LabelConfig stepLabel;
-        const LabelConfig* const rangeLabels;
-        const LabelConfig exitLabel;
+        U32 id;
+        LabelConfig entryLabel;
+        LabelConfig stepLabel;
+        LabelConfig* rangeLabels;
+        LabelConfig exitLabel;
     };
 
     struct Config
     {
-        const StateConfig* const states;
-        Element<U32>* const eState;
+        StateConfig* states;
+        Element<U32>* eState;
     };
 
-    static Result create(const Config& kConfig, StateMachine& kSm);
+    static Result create(Config kConfig, StateMachine& kSm);
 
     StateMachine();
 
@@ -47,22 +47,22 @@ private:
 
     static const U64 mNoTime;
 
-    const Config* mConfig;
+    Config mConfig;
 
     U64 mTimeStateStart;
 
     U64 mTimeLastStep;
 
-    const StateConfig* mCurrentState;
+    StateConfig* mCurrentState;
 
-    StateMachine(const Config& kConfig, Result& kRes);
+    StateMachine(Config kConfig, Result& kRes);
 
     StateMachine& operator=(StateMachine&&) = default;
 
-    Result executeLabel(const LabelConfig* const kLabel,
+    Result executeLabel(LabelConfig* const kLabel,
                         U32& kDestState);
 
-    Result findState(const U32 kId, const StateConfig*& kState);
+    Result findState(const U32 kId, StateConfig*& kState);
 };
 
 #endif

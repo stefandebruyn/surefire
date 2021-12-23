@@ -4,7 +4,7 @@ const U64 StateMachine::mNoTime = 0xFFFFFFFFFFFFFFFF;
 
 const U32 StateMachine::NO_STATE = 0;
 
-Result StateMachine::create(const Config& kConfig, StateMachine& kSm)
+Result StateMachine::create(Config kConfig, StateMachine& kSm)
 {
     Result res = E_UNREACHABLE;
     kSm = StateMachine(kConfig, res);
@@ -12,28 +12,28 @@ Result StateMachine::create(const Config& kConfig, StateMachine& kSm)
 }
 
 StateMachine::StateMachine() :
-    mConfig(nullptr),
+    mConfig({nullptr, nullptr}),
     mTimeStateStart(mNoTime),
     mTimeLastStep(mNoTime),
     mCurrentState(nullptr)
 {
 }
 
-StateMachine::StateMachine(const Config& kConfig, Result& kRes) : StateMachine()
+StateMachine::StateMachine(Config kConfig, Result& kRes) : StateMachine()
 {
+    mConfig = kConfig;
     kRes = SUCCESS;
-    mConfig = &kConfig;
 
     // Check that state array and state element are non-null.
-    if ((mConfig->states == nullptr) || (mConfig->eState == nullptr))
+    if ((mConfig.states == nullptr) || (mConfig.eState == nullptr))
     {
         kRes = E_NULLPTR;
         return;
     }
-
+    
     // Check that initial state exists.
-    const U32 initStateId = mConfig->eState->read();
-    const StateConfig* initStateConfig = nullptr;
+    const U32 initStateId = mConfig.eState->read();
+    StateConfig* initStateConfig = nullptr;
     kRes = this->findState(initStateId, initStateConfig);
     if (kRes != SUCCESS)
     {
@@ -41,14 +41,15 @@ StateMachine::StateMachine(const Config& kConfig, Result& kRes) : StateMachine()
     }
 
     // Check state configs.
-    for (U32 i = 0; mConfig->states[i].id != NO_STATE; ++i)
+    U32 i;
+    for (i = 0; mConfig.states[i].id != NO_STATE; ++i)
     {
-        const StateConfig* const stateConfig = &mConfig->states[i];
+        const StateConfig* const stateConfig = &mConfig.states[i];
 
         // Check that state ID is unique.
         for (U32 j = 0; j < i; j++)
         {
-            if (mConfig->states[j].id == stateConfig->id)
+            if (mConfig.states[j].id == stateConfig->id)
             {
                 kRes = E_DUPLICATE;
                 return;
@@ -86,15 +87,15 @@ StateMachine::StateMachine(const Config& kConfig, Result& kRes) : StateMachine()
         }
     }
 
-    // If we got this far, the config is valid- set current state so that the
-    // state machine is usable.
+    // If we got this far, the config is valid- set `mCurrentState` to the
+    // initial state so that the state machine is usable.
     mCurrentState = initStateConfig;
 }
 
 Result StateMachine::step(const U64 kT)
 {
     // Check that the state machine is initialized.
-    if ((mCurrentState == nullptr) || (mConfig == nullptr))
+    if (mCurrentState == nullptr)
     {
         return E_UNINITIALIZED;
     }
@@ -116,7 +117,7 @@ Result StateMachine::step(const U64 kT)
         mTimeStateStart = kT;
 
         // Update state element.
-        mConfig->eState->write(mCurrentState->id);
+        mConfig.eState->write(mCurrentState->id);
 
         // Execute state entry label.
         res = this->executeLabel(&mCurrentState->entryLabel, destState);
@@ -190,7 +191,7 @@ Result StateMachine::step(const U64 kT)
     return SUCCESS;
 }
 
-Result StateMachine::executeLabel(const LabelConfig* const kLabel,
+Result StateMachine::executeLabel(LabelConfig* const kLabel,
                                   U32& kDestState)
 {
     // A null actions array indicates an empty label.
@@ -222,13 +223,13 @@ Result StateMachine::executeLabel(const LabelConfig* const kLabel,
     return SUCCESS;
 }
 
-Result StateMachine::findState(const U32 kId, const StateConfig*& kState)
+Result StateMachine::findState(const U32 kId, StateConfig*& kState)
 {
-    for (U32 i = 0; mConfig->states[i].id != NO_STATE; ++i)
+    for (U32 i = 0; mConfig.states[i].id != NO_STATE; ++i)
     {
-        if (mConfig->states[i].id == kId)
+        if (mConfig.states[i].id == kId)
         {
-            kState = &mConfig->states[i];
+            kState = &mConfig.states[i];
             return SUCCESS;
         }
     }

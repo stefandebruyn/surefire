@@ -2,26 +2,26 @@
 #include "sfa/sm/TransitionAction.hpp"
 #include "utest/UTest.hpp"
 
-static IAction* const gRangeLabelActions[] = {nullptr};
+static IAction* gRangeLabelActions[] = {nullptr};
 
-static const StateMachine::LabelConfig gRangeLabelConfigs[] =
+static StateMachine::LabelConfig gRangeLabelConfigs[] =
 {
     {gRangeLabelActions, 0, 10},
     {}
 };
 
-static const StateMachine::StateConfig gStateConfigs[] =
+static StateMachine::StateConfig gStateConfigs[] =
 {
     {1, {}, {}, gRangeLabelConfigs, {}},
     {2, {}, {}, gRangeLabelConfigs, {}},
-    {}
+    {0, nullptr}
 };
 
 static U32 gStateElemBacking = 1;
 
 static Element<U32> gStateElem(gStateElemBacking);
 
-static const StateMachine::Config gConfig =
+static StateMachine::Config gConfig =
 {
     gStateConfigs,
     &gStateElem
@@ -33,80 +33,68 @@ TEST_GROUP(StateMachineConfigErrors)
 
 TEST(StateMachineConfigErrors, NullStateElem)
 {
-    const StateMachine::Config config = {gStateConfigs, nullptr};
+    Element<U32>* tmp = gConfig.eState;
+    gConfig.eState = nullptr;
     StateMachine sm;
-    const Result res = StateMachine::create(config, sm);
+    const Result res = StateMachine::create(gConfig, sm);
+    gConfig.eState = tmp;
     CHECK_EQUAL(E_NULLPTR, res);
     CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
 }
 
 TEST(StateMachineConfigErrors, NullStateArray)
 {
-    const StateMachine::Config config = {nullptr, &gStateElem};
+    StateMachine::StateConfig* tmp = gConfig.states;
+    gConfig.states = nullptr;
     StateMachine sm;
-    const Result res = StateMachine::create(config, sm);
+    const Result res = StateMachine::create(gConfig, sm);
+    gConfig.states = tmp;
     CHECK_EQUAL(E_NULLPTR, res);
     CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
 }
 
 TEST(StateMachineConfigErrors, DuplicateStateId)
 {
-    const StateMachine::StateConfig stateConfigs[] =
-    {
-        gStateConfigs[0],
-        {1},
-        {}
-    };
-    const StateMachine::Config config = {stateConfigs, &gStateElem};
+    const U32 tmp = gConfig.states[1].id;
+    gConfig.states[1].id = 1;
     StateMachine sm;
-    const Result res = StateMachine::create(config, sm);
+    const Result res = StateMachine::create(gConfig, sm);
+    gConfig.states[1].id = tmp;
     CHECK_EQUAL(E_DUPLICATE, res);
     CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
 }
 
 TEST(StateMachineConfigErrors, NoStates)
 {
-    const StateMachine::StateConfig stateConfigs[] = {{}};
-    const StateMachine::Config config = {stateConfigs, &gStateElem};
+    const U32 tmp = gConfig.states[0].id;
+    gConfig.states[0].id = 0;
     StateMachine sm;
-    const Result res = StateMachine::create(config, sm);
+    const Result res = StateMachine::create(gConfig, sm);
+    gConfig.states[0].id = tmp;
     CHECK_EQUAL(E_STATE, res);
     CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
 }
 
 TEST(StateMachineConfigErrors, InvalidLabelRange)
 {
-    const StateMachine::LabelConfig rangeLabelConfigs[] =
-    {
-        {gRangeLabelActions, 11, 10},
-        {}
-    };
-    const StateMachine::StateConfig stateConfigs[] =
-    {
-        gStateConfigs[0],
-        {2, {}, {}, rangeLabelConfigs, {}},
-        {}
-    };
-    const StateMachine::Config config = {stateConfigs, &gStateElem};
+    const U64 tmp = gRangeLabelConfigs[0].rangeLower;
+    gRangeLabelConfigs[0].rangeLower = 11;
     StateMachine sm;
-    const Result res = StateMachine::create(config, sm);
+    const Result res = StateMachine::create(gConfig, sm);
+    gRangeLabelConfigs[0].rangeLower = tmp;
     CHECK_EQUAL(E_RANGE, res);
     CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
 }
 
 TEST(StateMachineConfigErrors, TransitionInExitLabel)
 {
+    IAction** tmp = gStateConfigs[0].exitLabel.actions;
     TransitionAction act(nullptr, 1);
-    IAction* const actions[] = {&act, nullptr};
-    const StateMachine::StateConfig stateConfigs[] =
-    {
-        gStateConfigs[0],
-        {2, {}, {}, nullptr, {actions}},
-        {}
-    };
-    const StateMachine::Config config = {stateConfigs, &gStateElem};
+    IAction* acts[] = {&act, nullptr};
+    gStateConfigs[0].exitLabel.actions = acts;
     StateMachine sm;
-    const Result res = StateMachine::create(config, sm);
+    const Result res = StateMachine::create(gConfig, sm);
+    gStateConfigs[0].exitLabel.actions = tmp;
     CHECK_EQUAL(E_TRANSITION, res);
     CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
 }
