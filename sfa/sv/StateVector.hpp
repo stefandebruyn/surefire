@@ -10,25 +10,25 @@ class StateVector final
 {
 public:
 
-    struct ElementConfig
+    struct ElementConfig final
     {
         const char* name;
         IElement* elem;
     };
 
-    struct RegionConfig
+    struct RegionConfig final
     {
         const char* name;
         Region* region;
     };
 
-    struct Config
+    struct Config final
     {
         ElementConfig* elems;
         RegionConfig* regions;
     };
 
-    static Result create(const StateVector::Config kConfig, StateVector& kSm);
+    static Result create(const Config kConfig, StateVector& kSm);
 
     StateVector();
 

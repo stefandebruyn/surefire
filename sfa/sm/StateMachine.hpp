@@ -11,14 +11,14 @@ public:
 
     static const U32 NO_STATE;
 
-    struct LabelConfig
+    struct LabelConfig final
     {
         IAction** actions;
         U64 rangeLower;
         U64 rangeUpper;
     };
 
-    struct StateConfig
+    struct StateConfig final
     {
         U32 id;
         LabelConfig entryLabel;
@@ -27,13 +27,13 @@ public:
         LabelConfig exitLabel;
     };
 
-    struct Config
+    struct Config final
     {
         StateConfig* states;
         Element<U32>* eState;
     };
 
-    static Result create(Config kConfig, StateMachine& kSm);
+    static Result create(const Config kConfig, StateMachine& kSm);
 
     StateMachine();
 
@@ -55,7 +55,7 @@ private:
 
     StateConfig* mCurrentState;
 
-    StateMachine(Config kConfig, Result& kRes);
+    StateMachine(const Config kConfig, Result& kRes);
 
     StateMachine& operator=(StateMachine&&) = default;
 

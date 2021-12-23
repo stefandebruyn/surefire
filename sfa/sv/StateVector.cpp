@@ -38,7 +38,7 @@
                                                                                \
     return SUCCESS;
 
-Result StateVector::create(const StateVector::Config kConfig, StateVector& kSv)
+Result StateVector::create(const Config kConfig, StateVector& kSv)
 {
     Result res = E_UNREACHABLE;
     kSv = StateVector(kConfig, res);
@@ -63,8 +63,8 @@ Result StateVector::getElement<I16>(const char* const kName,
 }
 
 template<>
-Result StateVector::getElement<I32>(
-    const char* const kName, Element<I32>*& kElem)
+Result StateVector::getElement<I32>(const char* const kName,
+                                    Element<I32>*& kElem)
 {
     GET_ELEMENT_IMPL(I32, ElementType::INT32);
 }

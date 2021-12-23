@@ -4,7 +4,7 @@ const U64 StateMachine::mNoTime = 0xFFFFFFFFFFFFFFFF;
 
 const U32 StateMachine::NO_STATE = 0;
 
-Result StateMachine::create(Config kConfig, StateMachine& kSm)
+Result StateMachine::create(const Config kConfig, StateMachine& kSm)
 {
     Result res = E_UNREACHABLE;
     kSm = StateMachine(kConfig, res);
@@ -19,7 +19,7 @@ StateMachine::StateMachine() :
 {
 }
 
-StateMachine::StateMachine(Config kConfig, Result& kRes) : StateMachine()
+StateMachine::StateMachine(const Config kConfig, Result& kRes) : StateMachine()
 {
     mConfig = kConfig;
     kRes = SUCCESS;
