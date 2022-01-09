@@ -2,10 +2,14 @@
 
 const U64 StateMachine::mNoTime = 0xFFFFFFFFFFFFFFFF;
 
-const U32 StateMachine::NO_STATE = 0;
-
 Result StateMachine::create(const Config kConfig, StateMachine& kSm)
 {
+    // Check that provided state machine is not already initialized.
+    if (kSm.mCurrentState != nullptr)
+    {
+        return E_REINIT;
+    }
+
     Result res = E_UNREACHABLE;
     kSm = StateMachine(kConfig, res);
     return res;
@@ -24,15 +28,17 @@ StateMachine::StateMachine(const Config kConfig, Result& kRes) : StateMachine()
     mConfig = kConfig;
     kRes = SUCCESS;
 
-    // Check that state array and state element are non-null.
-    if ((mConfig.states == nullptr) || (mConfig.eState == nullptr))
+    // Check that state array, state element, and time element are non-null.
+    if ((mConfig.states == nullptr)
+        || (mConfig.elemState == nullptr)
+        || (mConfig.elemGlobalTime == nullptr))
     {
         kRes = E_NULLPTR;
         return;
     }
-    
+
     // Check that initial state exists.
-    const U32 initStateId = mConfig.eState->read();
+    const U32 initStateId = mConfig.elemState->read();
     StateConfig* initStateConfig = nullptr;
     kRes = this->findState(initStateId, initStateConfig);
     if (kRes != SUCCESS)
@@ -41,8 +47,7 @@ StateMachine::StateMachine(const Config kConfig, Result& kRes) : StateMachine()
     }
 
     // Check state configs.
-    U32 i;
-    for (i = 0; mConfig.states[i].id != NO_STATE; ++i)
+    for (U32 i = 0; mConfig.states[i].id != NO_STATE; ++i)
     {
         const StateConfig* const stateConfig = &mConfig.states[i];
 
@@ -59,10 +64,10 @@ StateMachine::StateMachine(const Config kConfig, Result& kRes) : StateMachine()
         // If range labels were provided, check that the ranges are valid.
         if (stateConfig->rangeLabels != nullptr)
         {
-            for (U32 i = 0; stateConfig->rangeLabels[i].actions != nullptr; ++i)
+            for (U32 j = 0; stateConfig->rangeLabels[j].actions != nullptr; ++j)
             {
                 const LabelConfig* const labelConfig =
-                    &stateConfig->rangeLabels[i];
+                    &stateConfig->rangeLabels[j];
                 if (labelConfig->rangeLower > labelConfig->rangeUpper)
                 {
                     kRes = E_RANGE;
@@ -75,9 +80,9 @@ StateMachine::StateMachine(const Config kConfig, Result& kRes) : StateMachine()
         // trigger transitions.
         if (stateConfig->exitLabel.actions != nullptr)
         {
-            for (U32 i = 0; stateConfig->exitLabel.actions[i] != nullptr; ++i)
+            for (U32 j = 0; stateConfig->exitLabel.actions[j] != nullptr; ++j)
             {
-                if (stateConfig->exitLabel.actions[i]->destinationState
+                if (stateConfig->exitLabel.actions[j]->destinationState
                     != NO_STATE)
                 {
                     kRes = E_TRANSITION;
@@ -92,7 +97,7 @@ StateMachine::StateMachine(const Config kConfig, Result& kRes) : StateMachine()
     mCurrentState = initStateConfig;
 }
 
-Result StateMachine::step(const U64 kT)
+Result StateMachine::step()
 {
     // Check that the state machine is initialized.
     if (mCurrentState == nullptr)
@@ -101,11 +106,12 @@ Result StateMachine::step(const U64 kT)
     }
 
     // Check that time is monotonically increasing.
-    if ((mTimeLastStep != mNoTime) && (kT <= mTimeLastStep))
+    const U64 curTime = mConfig.elemGlobalTime->read();
+    if ((mTimeLastStep != mNoTime) && (curTime <= mTimeLastStep))
     {
         return E_TIME;
     }
-    mTimeLastStep = kT;
+    mTimeLastStep = curTime;
 
     // If the state start time is unset, this is the first step of the current
     // state.
@@ -114,10 +120,10 @@ Result StateMachine::step(const U64 kT)
     if (mTimeStateStart == mNoTime)
     {
         // Record the state start time.
-        mTimeStateStart = kT;
+        mTimeStateStart = curTime;
 
         // Update state element.
-        mConfig.eState->write(mCurrentState->id);
+        mConfig.elemState->write(mCurrentState->id);
 
         // Execute state entry label.
         res = this->executeLabel(&mCurrentState->entryLabel, destState);
@@ -127,8 +133,15 @@ Result StateMachine::step(const U64 kT)
         }
     }
 
-    // Execute step label for current state if and a previous label did not
-    // trigger a transition.
+    // If a state time element was provided, write the state elapsed time to it.
+    const U64 stateElapsedTime = (curTime - mTimeStateStart);
+    if (mConfig.elemStateTime != nullptr)
+    {
+        mConfig.elemStateTime->write(stateElapsedTime);
+    }
+
+    // Execute step label for current state if a previous label did not trigger
+    // a transition.
     if (destState == NO_STATE)
     {
         res = this->executeLabel(&mCurrentState->stepLabel, destState);
@@ -142,14 +155,13 @@ Result StateMachine::step(const U64 kT)
     // range and a previous label did not trigger a transition.
     if ((destState == NO_STATE) && (mCurrentState->rangeLabels != nullptr))
     {
-        const U64 elapsed = (kT - mTimeStateStart);
         for (U32 i = 0; mCurrentState->rangeLabels[i].actions != nullptr; ++i)
         {
             const LabelConfig* const labelConfig =
                 &mCurrentState->rangeLabels[i];
 
-            if ((elapsed >= labelConfig->rangeLower)
-                && (elapsed <= labelConfig->rangeUpper))
+            if ((stateElapsedTime >= labelConfig->rangeLower)
+                && (stateElapsedTime <= labelConfig->rangeUpper))
             {
                 res = this->executeLabel(&mCurrentState->rangeLabels[i],
                                          destState);

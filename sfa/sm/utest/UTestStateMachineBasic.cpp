@@ -11,14 +11,16 @@
 #pragma pack(push, 1)
 static struct
 {
-    U32 foo;
+    U32 state;
+    U64 globalTime;
     F64 bar;
     bool baz;
     I32 qux;
 } gSvBacking;
 #pragma pack(pop)
 
-static Element<U32> gElemFoo(gSvBacking.foo);
+static Element<U32> gElemState(gSvBacking.state);
+static Element<U64> gElemGlobalTime(gSvBacking.globalTime);
 static Element<F64> gElemBar(gSvBacking.bar);
 static Element<bool> gElemBaz(gSvBacking.baz);
 static Element<I32> gElemQux(gSvBacking.qux);
@@ -160,7 +162,13 @@ static StateMachine::StateConfig gStateConfigs[] =
 };
 
 // State machine config.
-static StateMachine::Config gSmConfig = {gStateConfigs, &gElemFoo};
+static StateMachine::Config gSmConfig =
+{
+    gStateConfigs,
+    &gElemState,
+    &gElemGlobalTime,
+    nullptr
+};
 
 /*********************************** TESTS ************************************/
 
@@ -169,7 +177,7 @@ TEST_GROUP(StateMachineBasic)
     void setup()
     {
         // Set initial state 1.
-        gElemFoo.write(1);
+        gElemState.write(1);
     }
 
     void teardown()
@@ -185,16 +193,17 @@ TEST(StateMachineBasic, EntryLabel)
     CHECK_SUCCESS(StateMachine::create(gSmConfig, sm));
 
     // Element `qux` gets written when the state 1 entry label runs.
-    CHECK_SUCCESS(sm.step(0));
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(1400, gElemQux.read());
 
     // Zero `qux` and step the state machine again. `qux` stays 0.
     gElemQux.write(0);
-    CHECK_SUCCESS(sm.step(1));
+    gElemGlobalTime.write(1);
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(0, gElemQux.read());
 
     // State machine is still in state 1.
-    CHECK_EQUAL(1, gElemFoo.read());
+    CHECK_EQUAL(1, gElemState.read());
 }
 
 TEST(StateMachineBasic, StepLabel)
@@ -203,7 +212,7 @@ TEST(StateMachineBasic, StepLabel)
     CHECK_SUCCESS(StateMachine::create(gSmConfig, sm));
 
     // Elements `bar` and `baz` get written when the state 1 step label runs.
-    CHECK_SUCCESS(sm.step(0));
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(9.81, gElemBar.read());
     CHECK_EQUAL(true, gElemBaz.read());
 
@@ -212,12 +221,13 @@ TEST(StateMachineBasic, StepLabel)
     gElemBaz.write(false);
 
     // Step the state machine again. The elements get written again.
-    CHECK_SUCCESS(sm.step(1));
+    gElemGlobalTime.write(1);
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(9.81, gElemBar.read());
     CHECK_EQUAL(true, gElemBaz.read());
 
     // State machine is still in state 1.
-    CHECK_EQUAL(1, gElemFoo.read());
+    CHECK_EQUAL(1, gElemState.read());
 }
 
 TEST(StateMachineBasic, RangeLabel)
@@ -226,27 +236,31 @@ TEST(StateMachineBasic, RangeLabel)
     CHECK_SUCCESS(StateMachine::create(gSmConfig, sm));
 
     // Values of `bar` and `baz` are initially those set in the step label.
-    CHECK_SUCCESS(sm.step(0));
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(9.81, gElemBar.read());
     CHECK_EQUAL(true, gElemBaz.read());
 
     // Just before the start of the range, `bar` and `baz` are still unchanged.
-    CHECK_SUCCESS(sm.step(99));
+    gElemGlobalTime.write(99);
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(9.81, gElemBar.read());
     CHECK_EQUAL(true, gElemBaz.read());
 
     // On the first step of the range, `bar` and `baz` get overwritten.
-    CHECK_SUCCESS(sm.step(100));
+    gElemGlobalTime.write(100);
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(7.777, gElemBar.read());
     CHECK_EQUAL(false, gElemBaz.read());
 
     // On the last step of the range, `bar` and `baz` are still overwritten.
-    CHECK_SUCCESS(sm.step(200));
+    gElemGlobalTime.write(200);
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(7.777, gElemBar.read());
     CHECK_EQUAL(false, gElemBaz.read());
 
     // Beyond the range, `bar` and `baz` return to the values set in step label.
-    CHECK_SUCCESS(sm.step(201));
+    gElemGlobalTime.write(201);
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(9.81, gElemBar.read());
     CHECK_EQUAL(true, gElemBaz.read());
 }
@@ -258,29 +272,32 @@ TEST(StateMachineBasic, TransitionAndExitLabel)
 
     // Just `qux == 200` does not trigger transition to state 2.
     gElemQux.write(200);
-    CHECK_SUCCESS(sm.step(0));
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(9.81, gElemBar.read());
-    CHECK_EQUAL(1, gElemFoo.read());
+    CHECK_EQUAL(1, gElemState.read());
 
     // Just `bar < 0.0`does not trigger transition to state 2.
     gElemQux.write(0);
     gElemBar.write(-1.0);
-    CHECK_SUCCESS(sm.step(1));
+    gElemGlobalTime.write(1);
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(9.81, gElemBar.read());
-    CHECK_EQUAL(1, gElemFoo.read());
+    CHECK_EQUAL(1, gElemState.read());
 
     // Trigger transition to state 2. The exit label should set `bar` to 1.522.
     // Afterwards, `qux` should be unchanged since state 2 has not started yet.
     gElemQux.write(200);
     gElemBar.write(-1.0);
-    CHECK_SUCCESS(sm.step(2));
+    gElemGlobalTime.write(2);
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(1.522, gElemBar.read());
-    CHECK_EQUAL(1, gElemFoo.read());
+    CHECK_EQUAL(1, gElemState.read());
     CHECK_EQUAL(200, gElemQux.read());
 
     // Step again. State 1 entry and step labels execute.
-    CHECK_SUCCESS(sm.step(3));
+    gElemGlobalTime.write(3);
+    CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(343, gElemQux.read());
     CHECK_EQUAL(1.62, gElemBar.read());
-    CHECK_EQUAL(2, gElemFoo.read());
+    CHECK_EQUAL(2, gElemState.read());
 }

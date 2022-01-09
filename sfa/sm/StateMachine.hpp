@@ -9,7 +9,7 @@ class StateMachine final
 {
 public:
 
-    static const U32 NO_STATE;
+    static constexpr U32 NO_STATE = 0;
 
     struct LabelConfig final
     {
@@ -30,7 +30,9 @@ public:
     struct Config final
     {
         StateConfig* states;
-        Element<U32>* eState;
+        Element<U32>* elemState;
+        const Element<U64>* elemGlobalTime;
+        Element<U64>* elemStateTime;
     };
 
     static Result create(const Config kConfig, StateMachine& kSm);
@@ -41,7 +43,7 @@ public:
     StateMachine(StateMachine&&) = delete;
     StateMachine& operator=(const StateMachine&) = delete;
 
-    Result step(const U64 kT);
+    Result step();
 
 private:
 

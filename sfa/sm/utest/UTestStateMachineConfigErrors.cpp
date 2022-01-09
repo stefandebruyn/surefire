@@ -17,29 +17,44 @@ static StateMachine::StateConfig gStateConfigs[] =
     {0, nullptr}
 };
 
-static U32 gStateElemBacking = 1;
+static U32 gElemStateBacking = 1;
+static U64 gElemGlobalTimeBacking = 0;
 
-static Element<U32> gStateElem(gStateElemBacking);
+static Element<U32> gElemState(gElemStateBacking);
+static Element<U64> gElemGlobalTime(gElemGlobalTimeBacking);
 
 static StateMachine::Config gConfig =
 {
     gStateConfigs,
-    &gStateElem
+    &gElemState,
+    &gElemGlobalTime,
+    nullptr
 };
 
 TEST_GROUP(StateMachineConfigErrors)
 {
 };
 
-TEST(StateMachineConfigErrors, NullStateElem)
+TEST(StateMachineConfigErrors, NullElemState)
 {
-    Element<U32>* tmp = gConfig.eState;
-    gConfig.eState = nullptr;
+    Element<U32>* tmp = gConfig.elemState;
+    gConfig.elemState = nullptr;
     StateMachine sm;
     const Result res = StateMachine::create(gConfig, sm);
-    gConfig.eState = tmp;
+    gConfig.elemState = tmp;
     CHECK_EQUAL(E_NULLPTR, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
+    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
+}
+
+TEST(StateMachineConfigErrors, NullElemGlobalTime)
+{
+    const Element<U64>* tmp = gConfig.elemGlobalTime;
+    gConfig.elemGlobalTime = nullptr;
+    StateMachine sm;
+    const Result res = StateMachine::create(gConfig, sm);
+    gConfig.elemGlobalTime = tmp;
+    CHECK_EQUAL(E_NULLPTR, res);
+    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineConfigErrors, NullStateArray)
@@ -50,7 +65,7 @@ TEST(StateMachineConfigErrors, NullStateArray)
     const Result res = StateMachine::create(gConfig, sm);
     gConfig.states = tmp;
     CHECK_EQUAL(E_NULLPTR, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
+    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineConfigErrors, DuplicateStateId)
@@ -61,7 +76,7 @@ TEST(StateMachineConfigErrors, DuplicateStateId)
     const Result res = StateMachine::create(gConfig, sm);
     gConfig.states[1].id = tmp;
     CHECK_EQUAL(E_DUPLICATE, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
+    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineConfigErrors, NoStates)
@@ -72,7 +87,7 @@ TEST(StateMachineConfigErrors, NoStates)
     const Result res = StateMachine::create(gConfig, sm);
     gConfig.states[0].id = tmp;
     CHECK_EQUAL(E_STATE, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
+    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineConfigErrors, InvalidLabelRange)
@@ -83,7 +98,7 @@ TEST(StateMachineConfigErrors, InvalidLabelRange)
     const Result res = StateMachine::create(gConfig, sm);
     gRangeLabelConfigs[0].rangeLower = tmp;
     CHECK_EQUAL(E_RANGE, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
+    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineConfigErrors, TransitionInExitLabel)
@@ -96,5 +111,5 @@ TEST(StateMachineConfigErrors, TransitionInExitLabel)
     const Result res = StateMachine::create(gConfig, sm);
     gStateConfigs[0].exitLabel.actions = tmp;
     CHECK_EQUAL(E_TRANSITION, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step(0));
+    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
