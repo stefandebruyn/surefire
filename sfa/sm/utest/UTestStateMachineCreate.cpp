@@ -31,11 +31,11 @@ static StateMachine::Config gConfig =
     nullptr
 };
 
-TEST_GROUP(StateMachineConfigErrors)
+TEST_GROUP(StateMachineCreate)
 {
 };
 
-TEST(StateMachineConfigErrors, NullElemState)
+TEST(StateMachineCreate, ConfigErrorNullElemState)
 {
     Element<U32>* tmp = gConfig.elemState;
     gConfig.elemState = nullptr;
@@ -46,7 +46,7 @@ TEST(StateMachineConfigErrors, NullElemState)
     CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
 
-TEST(StateMachineConfigErrors, NullElemGlobalTime)
+TEST(StateMachineCreate, ConfigErrorNullElemGlobalTime)
 {
     const Element<U64>* tmp = gConfig.elemGlobalTime;
     gConfig.elemGlobalTime = nullptr;
@@ -57,7 +57,7 @@ TEST(StateMachineConfigErrors, NullElemGlobalTime)
     CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
 
-TEST(StateMachineConfigErrors, NullStateArray)
+TEST(StateMachineCreate, ConfigErrorNullStateArray)
 {
     StateMachine::StateConfig* tmp = gConfig.states;
     gConfig.states = nullptr;
@@ -68,7 +68,7 @@ TEST(StateMachineConfigErrors, NullStateArray)
     CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
 
-TEST(StateMachineConfigErrors, DuplicateStateId)
+TEST(StateMachineCreate, ConfigErrorDuplicateStateId)
 {
     const U32 tmp = gConfig.states[1].id;
     gConfig.states[1].id = 1;
@@ -79,7 +79,7 @@ TEST(StateMachineConfigErrors, DuplicateStateId)
     CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
 
-TEST(StateMachineConfigErrors, NoStates)
+TEST(StateMachineCreate, ConfigErrorNoStates)
 {
     const U32 tmp = gConfig.states[0].id;
     gConfig.states[0].id = 0;
@@ -90,7 +90,7 @@ TEST(StateMachineConfigErrors, NoStates)
     CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
 
-TEST(StateMachineConfigErrors, InvalidLabelRange)
+TEST(StateMachineCreate, ConfigErrorInvalidLabelRange)
 {
     const U64 tmp = gRangeLabelConfigs[0].rangeLower;
     gRangeLabelConfigs[0].rangeLower = 11;
@@ -101,7 +101,7 @@ TEST(StateMachineConfigErrors, InvalidLabelRange)
     CHECK_EQUAL(E_UNINITIALIZED, sm.step());
 }
 
-TEST(StateMachineConfigErrors, TransitionInExitLabel)
+TEST(StateMachineCreate, ConfigErrorTransitionInExitLabel)
 {
     IAction** tmp = gStateConfigs[0].exitLabel.actions;
     TransitionAction act(nullptr, 1);

@@ -6,7 +6,7 @@
 #include "sfa/sv/StateVector.hpp"
 #include "utest/UTest.hpp"
 
-/**************************** STATE VECTOR CONFIG *****************************/
+///////////////////////////// State Vector Config //////////////////////////////
 
 #pragma pack(push, 1)
 static struct
@@ -25,20 +25,23 @@ static Element<F64> gElemBar(gSvBacking.bar);
 static Element<bool> gElemBaz(gSvBacking.baz);
 static Element<I32> gElemQux(gSvBacking.qux);
 
-/*************************** STATE MACHINE CONFIG *****************************/
+//////////////////////////// State Machine Config //////////////////////////////
 
-// [STATE/State1]
-// ENTRY:
-//     qux = 1400
-// STEP:
-//     baz = true
-//     (qux == 200 AND bar < 0.0): -> State2
-//     bar = 9.81
-// T[100, 200]:
-//     bar = 7.777
-//     baz = false
-// EXIT:
-//     bar = 1.522
+/*
+[STATE/State1]
+ENTRY:
+    qux = 1400
+STEP:
+    baz = true
+    (qux == 200 AND bar < 0.0): -> State2
+    (qux == 300): -> State3
+    bar = 9.81
+T[100, 200]:
+    bar = 7.777
+    baz = false
+EXIT:
+    bar = 1.522
+*/
 static ExpressionTree<I32> gExpr1400(1400);
 static ExpressionTree<F64> gExpr9p81(9.81);
 static ExpressionTree<bool> gExprTrue(true);
@@ -47,6 +50,7 @@ static ExpressionTree<F64> gExpr0p0(0.0);
 static ExpressionTree<F64> gExpr7p777(7.777);
 static ExpressionTree<bool> gExprFalse(false);
 static ExpressionTree<F64> gExpr1p522(1.522);
+static ExpressionTree<I32> gExpr300(300);
 
 static ExpressionTree<F64> gExprBar(gElemBar);
 static ExpressionTree<bool> gExprBaz(gElemBaz);
@@ -61,11 +65,13 @@ static ExpressionTree<bool, F64> gExprBarEquals0p0(OP_LESS_THAN,
 static ExpressionTree<bool> gGuardTransState2(OP_AND,
                                               &gExprQuxEquals200,
                                               &gExprBarEquals0p0);
+static ExpressionTree<bool, I32> gQuxIs300(OP_EQUALS, &gExprQux, &gExpr300);
 
 static AssignmentAction<I32> gActQuxGets1400(nullptr, gElemQux, gExpr1400);
 static AssignmentAction<F64> gActBarGets9p81(nullptr, gElemBar, gExpr9p81);
 static AssignmentAction<bool> gActBazGetsTrue(nullptr, gElemBaz, gExprTrue);
 static TransitionAction gActTransState2(&gGuardTransState2, 2);
+static TransitionAction gActTransState3(&gQuxIs300, 3);
 static AssignmentAction<F64> gActBarGets7p777(nullptr, gElemBar, gExpr7p777);
 static AssignmentAction<bool> gActBazGetsFalse(nullptr, gElemBaz, gExprFalse);
 static AssignmentAction<F64> gActBarGets1p522(nullptr, gElemBar, gExpr1p522);
@@ -79,6 +85,7 @@ static IAction* gState1StepActs[] =
 {
     &gActBazGetsTrue,
     &gActTransState2,
+    &gActTransState3,
     &gActBarGets9p81,
     nullptr
 };
@@ -107,14 +114,16 @@ static StateMachine::StateConfig gState1Config =
     {gState1ExitActs}
 };
 
-// [STATE/State2]
-// ENTRY:
-//     qux = 343
-// STEP:
-//     bar = 1.62
-//     (baz == false): -> State1
-// EXIT:
-//     qux = 97
+/*
+[STATE/State2]
+ENTRY:
+    qux = 343
+STEP:
+    bar = 1.62
+    (baz == false): -> State1
+EXIT:
+    qux = 97
+*/
 static ExpressionTree<I32> gExpr343(343);
 static ExpressionTree<F64> gExpr1p62(1.62);
 static ExpressionTree<I32> gExpr97(97);
@@ -153,11 +162,108 @@ static StateMachine::StateConfig gState2Config =
     {gState2ExitActs}
 };
 
+/*
+This state is designed to test action and label precedence by setting `qux` to
+different values in each label.
+
+[STATE/State3]
+ENTRY:
+    qux = 0
+    qux = 1
+    baz = false
+STEP:
+    qux = 2
+    qux = 3
+    (baz == true): -> State1
+T[100, 105]:
+    qux = 4
+    qux = 5
+T[100, 100]:
+    qux = 6
+    qux = 7
+EXIT:
+    qux = 8
+    qux = 9
+*/
+static ExpressionTree<I32> gExpr0(0);
+static ExpressionTree<I32> gExpr1(1);
+static ExpressionTree<I32> gExpr2(2);
+static ExpressionTree<I32> gExpr3(3);
+static ExpressionTree<I32> gExpr4(4);
+static ExpressionTree<I32> gExpr5(5);
+static ExpressionTree<I32> gExpr6(6);
+static ExpressionTree<I32> gExpr7(7);
+static ExpressionTree<I32> gExpr8(8);
+static ExpressionTree<I32> gExpr9(9);
+
+static AssignmentAction<I32> gActQuxGets0(nullptr, gElemQux, gExpr0);
+static AssignmentAction<I32> gActQuxGets1(nullptr, gElemQux, gExpr1);
+static AssignmentAction<I32> gActQuxGets2(nullptr, gElemQux, gExpr2);
+static AssignmentAction<I32> gActQuxGets3(nullptr, gElemQux, gExpr3);
+static AssignmentAction<I32> gActQuxGets4(nullptr, gElemQux, gExpr4);
+static AssignmentAction<I32> gActQuxGets5(nullptr, gElemQux, gExpr5);
+static AssignmentAction<I32> gActQuxGets6(nullptr, gElemQux, gExpr6);
+static AssignmentAction<I32> gActQuxGets7(nullptr, gElemQux, gExpr7);
+static AssignmentAction<I32> gActQuxGets8(nullptr, gElemQux, gExpr8);
+static AssignmentAction<I32> gActQuxGets9(nullptr, gElemQux, gExpr9);
+
+static ExpressionTree<bool> gBazIsTrue(OP_EQUALS, &gExprBaz, &gExprTrue);
+
+static TransitionAction gActState3TransState1(&gBazIsTrue, 1);
+
+static IAction* gState3EntryActs[] =
+{
+    &gActQuxGets0,
+    &gActQuxGets1,
+    &gActBazGetsFalse,
+    nullptr
+};
+static IAction* gState3StepActs[] =
+{
+    &gActQuxGets2,
+    &gActQuxGets3,
+    &gActState3TransState1,
+    nullptr
+};
+static IAction* gState3Range1Acts[] =
+{
+    &gActQuxGets4,
+    &gActQuxGets5,
+    nullptr
+};
+static IAction* gState3Range2Acts[] =
+{
+    &gActQuxGets6,
+    &gActQuxGets7,
+    nullptr
+};
+static IAction* gState3ExitActs[] =
+{
+    &gActQuxGets8,
+    &gActQuxGets9,
+    nullptr
+};
+static StateMachine::LabelConfig gState3RangeLabels[] =
+{
+    {gState3Range1Acts, 100, 105},
+    {gState3Range2Acts, 100, 100},
+    {}
+};
+static StateMachine::StateConfig gState3Config =
+{
+    3,
+    {gState3EntryActs},
+    {gState3StepActs},
+    gState3RangeLabels,
+    {gState3ExitActs}
+};
+
 // State configs.
 static StateMachine::StateConfig gStateConfigs[] =
 {
     gState1Config,
     gState2Config,
+    gState3Config,
     {}
 };
 
@@ -170,9 +276,9 @@ static StateMachine::Config gSmConfig =
     nullptr
 };
 
-/*********************************** TESTS ************************************/
+//////////////////////////////////// Tests /////////////////////////////////////
 
-TEST_GROUP(StateMachineBasic)
+TEST_GROUP(StateMachineStep)
 {
     void setup()
     {
@@ -187,7 +293,7 @@ TEST_GROUP(StateMachineBasic)
     }
 };
 
-TEST(StateMachineBasic, EntryLabel)
+TEST(StateMachineStep, EntryLabel)
 {
     StateMachine sm;
     CHECK_SUCCESS(StateMachine::create(gSmConfig, sm));
@@ -206,7 +312,7 @@ TEST(StateMachineBasic, EntryLabel)
     CHECK_EQUAL(1, gElemState.read());
 }
 
-TEST(StateMachineBasic, StepLabel)
+TEST(StateMachineStep, StepLabel)
 {
     StateMachine sm;
     CHECK_SUCCESS(StateMachine::create(gSmConfig, sm));
@@ -230,7 +336,7 @@ TEST(StateMachineBasic, StepLabel)
     CHECK_EQUAL(1, gElemState.read());
 }
 
-TEST(StateMachineBasic, RangeLabel)
+TEST(StateMachineStep, RangeLabel)
 {
     StateMachine sm;
     CHECK_SUCCESS(StateMachine::create(gSmConfig, sm));
@@ -265,7 +371,7 @@ TEST(StateMachineBasic, RangeLabel)
     CHECK_EQUAL(true, gElemBaz.read());
 }
 
-TEST(StateMachineBasic, TransitionAndExitLabel)
+TEST(StateMachineStep, TransitionAndExitLabel)
 {
     StateMachine sm;
     CHECK_SUCCESS(StateMachine::create(gSmConfig, sm));
@@ -300,4 +406,55 @@ TEST(StateMachineBasic, TransitionAndExitLabel)
     CHECK_EQUAL(343, gElemQux.read());
     CHECK_EQUAL(1.62, gElemBar.read());
     CHECK_EQUAL(2, gElemState.read());
+}
+
+TEST(StateMachineStep, ActionPrecedence)
+{
+    StateMachine sm;
+    CHECK_SUCCESS(StateMachine::create(gSmConfig, sm));
+
+    // Trigger transition to state 3. Do this after the first step since the
+    // state 1 entry label overwrites any changes we would make to `qux`.
+    CHECK_SUCCESS(sm.step());
+    gElemQux.write(300);
+    gElemGlobalTime.write(1);
+    CHECK_SUCCESS(sm.step());
+
+    // Step in state 3. `qux` becomes 3 since this is the last assignment made
+    // in the step label, and the range and exit labels have not run. `baz`
+    // becomes false, being overwritten by the entry label. This shows that the
+    // step label executes after the entry label.
+    gElemGlobalTime.write(2);
+    gElemBaz.write(true);
+    CHECK_SUCCESS(sm.step());
+    CHECK_EQUAL(3, gElemQux.read());
+    CHECK_EQUAL(false, gElemBaz.read());
+
+    // Step at time 102. This causes the range labels to execute for the first
+    // time (since state 3 started on t=2), and `qux` becomes 7. This shows that
+    // range labels execute after the step label, and range labels execute in
+    // the order configured.
+    gElemGlobalTime.write(102);
+    CHECK_SUCCESS(sm.step());
+    CHECK_EQUAL(7, gElemQux.read());
+
+    // Step at time 103. This causes only the 2nd range label to execute, and
+    // `qux` becomes 5.
+    gElemGlobalTime.write(103);
+    CHECK_SUCCESS(sm.step());
+    CHECK_EQUAL(5, gElemQux.read());
+
+    // Trigger transition to state 1. On this step, the step label, 2nd range
+    // label, and exit label all execute. `qux` becomes 9 since the exit label
+    // runs after all other labels.
+    gElemBaz.write(true);
+    gElemGlobalTime.write(104);
+    CHECK_SUCCESS(sm.step());
+    CHECK_EQUAL(9, gElemQux.read());
+
+    // Sanity check that state machine transition from state 3 to 1.
+    CHECK_EQUAL(3, gElemState.read());
+    gElemGlobalTime.write(105);
+    CHECK_SUCCESS(sm.step());
+    CHECK_EQUAL(1, gElemState.read());
 }

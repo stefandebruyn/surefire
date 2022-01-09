@@ -15,8 +15,8 @@ utest:
 	sfa/sm/ExpressionTree.hpp \
 	sfa/sm/TransitionAction.cpp \
 	sfa/sm/IAction.cpp \
-	sfa/sm/utest/UTestStateMachineConfigErrors.cpp \
-	sfa/sm/utest/UTestStateMachineBasic.cpp \
+	sfa/sm/utest/UTestStateMachineCreate.cpp \
+	sfa/sm/utest/UTestStateMachineStep.cpp \
 	sfa/sm/utest/UTestExpressionTree.cpp \
 	sfa/sm/utest/UTestTransitionAction.cpp \
 	sfa/sm/utest/UTestAssignmentAction.cpp \
