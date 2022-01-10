@@ -22,19 +22,19 @@ std::string ConfigErrorInfo::prettifyError() const
     if ((lineNum >= 0) && (colNum >= 0))
     {
         std::stringstream ss;
-        ss << "CONFIG ERROR @ " << filePath << ":" << (lineNum + 1)
-           << ":" << (colNum + 1) << "\n"
-           << "   | " << lines[lineNum] << "\n"
-           << "   | ";
+        ss << "CONFIG ERROR @ " << filePath << ":" << lineNum
+           << ":" << colNum << ":\n"
+           << "  | " << lines[lineNum - 1] << "\n"
+           << "  | ";
 
         I32 i = 0;
-        for (; i < colNum; ++i)
+        for (; i < (colNum - 1); ++i)
         {
             ss << " ";
         }
 
-        for (; i < lines[lineNum].size()
-            && std::isspace(lines[lineNum][i]); ++i)
+        for (; i < lines[lineNum - 1].size()
+            && std::isspace(lines[lineNum - 1][i]); ++i)
         {
             ss << " ";
         }

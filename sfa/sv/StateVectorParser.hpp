@@ -74,11 +74,13 @@ private:
 
     static Result parseRegion(const std::vector<Token>& kToks,
                               U32& kIdx,
+                              Parse& kParse,
                               RegionParse& kRegion,
                               ConfigErrorInfo* kConfigErr);
 
     static Result parseElement(const std::vector<Token>& kToks,
                                U32& kIdx,
+                               Parse& kParse,
                                ElementParse& kElem,
                                ConfigErrorInfo* kConfigErr);
 

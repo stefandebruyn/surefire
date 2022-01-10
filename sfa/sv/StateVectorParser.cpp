@@ -1,5 +1,6 @@
 #include <fstream>
 #include <cstring>
+#include <sstream>
 
 #include "sfa/sv/StateVectorParser.hpp"
 
@@ -121,17 +122,42 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                 if (std::regex_match(
                     tok.str, match, mRegionSectionRegex) == true)
                 {
-                    // Parse region section.
-                    RegionParse region;
-                    region.tokName = tok;
-                    region.plainName = match[1].str();
-                    Result res = StateVectorParser::parseRegion(
-                        kToks, idx, region, kConfigErr);
+                    // Parse region section- check that region name is unique.
+                    for (const RegionParse& regionParse : parse.regions)
+                    {
+                        if (regionParse.tokName.str == tok.str)
+                        {
+                            // Name is not unique.
+                            if (kConfigErr != nullptr)
+                            {
+                                kConfigErr->lineNum = tok.lineNum;
+                                kConfigErr->colNum = tok.colNum;
+                                std::stringstream ss;
+                                ss << "reuse of region name `"
+                                   << regionParse.plainName
+                                   << "` (previously used on line "
+                                   << regionParse.tokName.lineNum << ")";
+                                kConfigErr->msg = ss.str();
+                            }
+                            return E_PARSE;
+                        }
+                    }
+
+                    // Add new `RegionParse` to regions vector prior to
+                    // `parseRegion` call so that `parseElement` can see
+                    // previously parsed elements in the same region for the
+                    // purpose of name uniqueness checking.
+                    parse.regions.push_back(RegionParse());
+                    RegionParse& regionParse = parse.regions.back();
+                    regionParse.tokName = tok;
+                    regionParse.plainName = match[1].str();
+
+                    const Result res = StateVectorParser::parseRegion(
+                        kToks, idx, parse, regionParse, kConfigErr);
                     if (res != SUCCESS)
                     {
                         return res;
                     }
-                    parse.regions.push_back(region);
                 }
                 else
                 {
@@ -166,7 +192,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                         return E_KEY;
                     }
                     const std::string& tokTypeName = (*iter).second;
-                    kConfigErr->msg = "unexpected " + tokTypeName;
+                    kConfigErr->msg = "expected a section";
                 }
                 return E_PARSE;
         }
@@ -271,6 +297,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
 
 Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                                       U32& kIdx,
+                                      Parse& kParse,
                                       RegionParse& kRegion,
                                       ConfigErrorInfo* kConfigErr)
 {
@@ -282,14 +309,14 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
             case TOK_IDENTIFIER:
             {
                 // Element token indicates start of element declaration.
-                ElementParse elem;
+                kRegion.elems.push_back(ElementParse());
+                ElementParse& elemParse = kRegion.elems.back();
                 Result res = StateVectorParser::parseElement(
-                    kToks, kIdx, elem, kConfigErr);
+                    kToks, kIdx, kParse, elemParse, kConfigErr);
                 if (res != SUCCESS)
                 {
                     return res;
                 }
-                kRegion.elems.push_back(elem);
                 break;
             }
 
@@ -317,8 +344,7 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                     }
                     const std::string& tokTypeName = (*iter).second;
                     kConfigErr->msg =
-                        "unexpected " + tokTypeName + " in region `"
-                        + kRegion.plainName + "`";
+                        "expected element or region, got " + tokTypeName;
                 }
                 return E_PARSE;
         }
@@ -329,6 +355,7 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
 
 Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
                                        U32& kIdx,
+                                       Parse& kParse,
                                        ElementParse& kElem,
                                        ConfigErrorInfo* kConfigErr)
 {
@@ -343,7 +370,8 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
         {
             kConfigErr->lineNum = tokType.lineNum;
             kConfigErr->colNum = tokType.colNum;
-            kConfigErr->msg = "expected element name after type";
+            kConfigErr->msg =
+                "expected element name after type `" + tokType.str + "`";
         }
         return E_PARSE;
     }
@@ -361,6 +389,32 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
         }
         return E_PARSE;
     }
+
+    // Check that element name is unique.
+    for (const RegionParse& regionParse : kParse.regions)
+    {
+        for (const ElementParse& elemParse : regionParse.elems)
+        {
+            if (elemParse.tokName.str == tokName.str)
+            {
+                // Name is not unique.
+                if (kConfigErr != nullptr)
+                {
+                    kConfigErr->lineNum = tokName.lineNum;
+                    kConfigErr->colNum = tokName.colNum;
+                    std::stringstream ss;
+                    ss << "reuse of element name `" << tokName.str + "`"
+                       << " (previously used on line "
+                       << elemParse.tokName.lineNum << ")";
+                    kConfigErr->msg = ss.str();
+                }
+                return E_PARSE;
+            }
+        }
+    }
+
+    // Assign name token to element parse. Do this after checking for duplicate
+    // element names to prevent comparing names to themselves.
     kElem.tokName = tokName;
 
     return SUCCESS;

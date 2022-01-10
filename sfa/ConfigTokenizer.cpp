@@ -1,4 +1,5 @@
 #include <fstream>
+#include <cctype>
 
 #include "sfa/ConfigTokenizer.hpp"
 
@@ -22,7 +23,9 @@ bool Token::operator==(const Token& other) const
 {
     return ((this->type == other.type)
             && (this->which == other.which)
-            && (this->str == other.str));
+            && (this->str == other.str)
+            && (this->lineNum == other.lineNum)
+            && (this->colNum == other.colNum));
 }
 
 bool Token::operator!=(const Token& other) const
@@ -142,6 +145,18 @@ Result Tokenizer::tokenizeLine(const std::string& kLine,
                 tokType.second,
                 std::regex_constants::match_continuous) == true)
             {
+                // Compute the index of the first non-whitespace character in
+                // the matched string so we can attach a column number to the
+                // token.
+                U32 nonWsIdx = 0;
+                for (; nonWsIdx < match[0].str().size(); ++nonWsIdx)
+                {
+                    if (!std::isspace(match[0].str()[nonWsIdx]))
+                    {
+                        break;
+                    }
+                }
+
                 // Match successful- if not a comment, pack into a `Token`.
                 if (tokType.first != TOK_COMMENT)
                 {
@@ -150,8 +165,8 @@ Result Tokenizer::tokenizeLine(const std::string& kLine,
                         tokType.first,
                         0,
                         match[1].str(),
-                        static_cast<I32>(mLineNum),
-                        static_cast<I32>(idx)
+                        static_cast<I32>(mLineNum + 1),
+                        static_cast<I32>(idx + nonWsIdx + 1)
                     };
                     kToks.push_back(tok);
                 }
