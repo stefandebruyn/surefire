@@ -61,10 +61,11 @@ private:
 
     StateMachine& operator=(StateMachine&&) = default;
 
-    Result executeLabel(LabelConfig* const kLabel,
-                        U32& kDestState);
+    Result executeLabel(const LabelConfig& kLabel, U32& kDestState);
 
     Result findState(const U32 kId, StateConfig*& kState);
+
+    Result validateLabelTransitions(const LabelConfig& kLabel);
 };
 
 #endif

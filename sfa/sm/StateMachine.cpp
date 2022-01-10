@@ -61,16 +61,37 @@ StateMachine::StateMachine(const Config kConfig, Result& kRes) : StateMachine()
             }
         }
 
-        // If range labels were provided, check that the ranges are valid.
+        // Check that transitions in entry and step labels are to valid states.
+        kRes = this->validateLabelTransitions(stateConfig->entryLabel);
+        if (kRes != SUCCESS)
+        {
+            return;
+        }
+        kRes = this->validateLabelTransitions(stateConfig->stepLabel);
+        if (kRes != SUCCESS)
+        {
+            return;
+        }
+
+        // Check range labels.
         if (stateConfig->rangeLabels != nullptr)
         {
             for (U32 j = 0; stateConfig->rangeLabels[j].actions != nullptr; ++j)
             {
                 const LabelConfig* const labelConfig =
                     &stateConfig->rangeLabels[j];
+
+                // Check that range is valid.
                 if (labelConfig->rangeLower > labelConfig->rangeUpper)
                 {
                     kRes = E_RANGE;
+                    return;
+                }
+
+                // Check that transitions are to valid states.
+                kRes = this->validateLabelTransitions(*labelConfig);
+                if (kRes != SUCCESS)
+                {
                     return;
                 }
             }
@@ -126,7 +147,7 @@ Result StateMachine::step()
         mConfig.elemState->write(mCurrentState->id);
 
         // Execute state entry label.
-        res = this->executeLabel(&mCurrentState->entryLabel, destState);
+        res = this->executeLabel(mCurrentState->entryLabel, destState);
         if (res != SUCCESS)
         {
             return res;
@@ -144,7 +165,7 @@ Result StateMachine::step()
     // a transition.
     if (destState == NO_STATE)
     {
-        res = this->executeLabel(&mCurrentState->stepLabel, destState);
+        res = this->executeLabel(mCurrentState->stepLabel, destState);
         if (res != SUCCESS)
         {
             return res;
@@ -163,7 +184,7 @@ Result StateMachine::step()
             if ((stateElapsedTime >= labelConfig->rangeLower)
                 && (stateElapsedTime <= labelConfig->rangeUpper))
             {
-                res = this->executeLabel(&mCurrentState->rangeLabels[i],
+                res = this->executeLabel(mCurrentState->rangeLabels[i],
                                          destState);
                 if (res != SUCCESS)
                 {
@@ -184,7 +205,7 @@ Result StateMachine::step()
         // this `executeLabel` call should not return a state in `_` assuming
         // the state machine config was validated correctly.
         U32 _;
-        res = this->executeLabel(&mCurrentState->exitLabel, _);
+        res = this->executeLabel(mCurrentState->exitLabel, _);
 
         // Transition to destination state. The next state machine step will be
         // the first step in the new state.
@@ -203,21 +224,20 @@ Result StateMachine::step()
     return SUCCESS;
 }
 
-Result StateMachine::executeLabel(LabelConfig* const kLabel,
-                                  U32& kDestState)
+Result StateMachine::executeLabel(const LabelConfig& kLabel, U32& kDestState)
 {
     // A null actions array indicates an empty label.
-    if (kLabel->actions == nullptr)
+    if (kLabel.actions == nullptr)
     {
         return SUCCESS;
     }
 
     bool transition = false;
     Result res = E_UNREACHABLE;
-    for (U32 i = 0; kLabel->actions[i] != nullptr; ++i)
+    for (U32 i = 0; kLabel.actions[i] != nullptr; ++i)
     {
         // Evaluate transition. It will be executed if its guard is met.
-        res = kLabel->actions[i]->evaluate(transition);
+        res = kLabel.actions[i]->evaluate(transition);
         if (res != SUCCESS)
         {
             return res;
@@ -227,7 +247,7 @@ Result StateMachine::executeLabel(LabelConfig* const kLabel,
         // destination state to the caller without executing more actions.
         if (transition == true)
         {
-            kDestState = kLabel->actions[i]->destinationState;
+            kDestState = kLabel.actions[i]->destinationState;
             return SUCCESS;
         }
     }
@@ -247,4 +267,28 @@ Result StateMachine::findState(const U32 kId, StateConfig*& kState)
     }
 
     return E_STATE;
+}
+
+Result StateMachine::validateLabelTransitions(const LabelConfig& kLabel)
+{
+    if (kLabel.actions == nullptr)
+    {
+        return SUCCESS;
+    }
+
+    for (U32 i = 0; kLabel.actions[i] != nullptr; ++i)
+    {
+        const U32 destState = kLabel.actions[i]->destinationState;
+        if (destState != NO_STATE)
+        {
+            StateConfig* _;
+            const Result res = this->findState(destState, _);
+            if (res != SUCCESS)
+            {
+                return res;
+            }
+        }
+    }
+
+    return SUCCESS;
 }

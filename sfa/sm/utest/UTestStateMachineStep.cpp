@@ -34,7 +34,6 @@ ENTRY:
 STEP:
     baz = true
     (qux == 200 AND bar < 0.0): -> State2
-    (qux == 300): -> State3
     bar = 9.81
 T[100, 200]:
     bar = 7.777
@@ -50,7 +49,6 @@ static ExpressionTree<F64> gExpr0p0(0.0);
 static ExpressionTree<F64> gExpr7p777(7.777);
 static ExpressionTree<bool> gExprFalse(false);
 static ExpressionTree<F64> gExpr1p522(1.522);
-static ExpressionTree<I32> gExpr300(300);
 
 static ExpressionTree<F64> gExprBar(gElemBar);
 static ExpressionTree<bool> gExprBaz(gElemBaz);
@@ -65,13 +63,11 @@ static ExpressionTree<bool, F64> gExprBarEquals0p0(OP_LESS_THAN,
 static ExpressionTree<bool> gGuardTransState2(OP_AND,
                                               &gExprQuxEquals200,
                                               &gExprBarEquals0p0);
-static ExpressionTree<bool, I32> gQuxIs300(OP_EQUALS, &gExprQux, &gExpr300);
 
 static AssignmentAction<I32> gActQuxGets1400(nullptr, gElemQux, gExpr1400);
 static AssignmentAction<F64> gActBarGets9p81(nullptr, gElemBar, gExpr9p81);
 static AssignmentAction<bool> gActBazGetsTrue(nullptr, gElemBaz, gExprTrue);
 static TransitionAction gActTransState2(&gGuardTransState2, 2);
-static TransitionAction gActTransState3(&gQuxIs300, 3);
 static AssignmentAction<F64> gActBarGets7p777(nullptr, gElemBar, gExpr7p777);
 static AssignmentAction<bool> gActBazGetsFalse(nullptr, gElemBaz, gExprFalse);
 static AssignmentAction<F64> gActBarGets1p522(nullptr, gElemBar, gExpr1p522);
@@ -85,7 +81,6 @@ static IAction* gState1StepActs[] =
 {
     &gActBazGetsTrue,
     &gActTransState2,
-    &gActTransState3,
     &gActBarGets9p81,
     nullptr
 };
@@ -410,37 +405,31 @@ TEST(StateMachineStep, TransitionAndExitLabel)
 
 TEST(StateMachineStep, ActionPrecedence)
 {
+    // Set initial state 3.
+    gElemState.write(3);
+
     StateMachine sm;
     CHECK_SUCCESS(StateMachine::create(gSmConfig, sm));
-
-    // Trigger transition to state 3. Do this after the first step since the
-    // state 1 entry label overwrites any changes we would make to `qux`.
-    CHECK_SUCCESS(sm.step());
-    gElemQux.write(300);
-    gElemGlobalTime.write(1);
-    CHECK_SUCCESS(sm.step());
 
     // Step in state 3. `qux` becomes 3 since this is the last assignment made
     // in the step label, and the range and exit labels have not run. `baz`
     // becomes false, being overwritten by the entry label. This shows that the
     // step label executes after the entry label.
-    gElemGlobalTime.write(2);
     gElemBaz.write(true);
     CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(3, gElemQux.read());
     CHECK_EQUAL(false, gElemBaz.read());
 
-    // Step at time 102. This causes the range labels to execute for the first
-    // time (since state 3 started on t=2), and `qux` becomes 7. This shows that
-    // range labels execute after the step label, and range labels execute in
-    // the order configured.
-    gElemGlobalTime.write(102);
+    // Step at time 100. This causes the range labels to execute for the first
+    // time, and `qux` becomes 7. This shows that range labels execute after the
+    // step label, and range labels execute in the order configured.
+    gElemGlobalTime.write(100);
     CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(7, gElemQux.read());
 
-    // Step at time 103. This causes only the 2nd range label to execute, and
+    // Step at time 101. This causes only the 2nd range label to execute, and
     // `qux` becomes 5.
-    gElemGlobalTime.write(103);
+    gElemGlobalTime.write(101);
     CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(5, gElemQux.read());
 
@@ -448,13 +437,13 @@ TEST(StateMachineStep, ActionPrecedence)
     // label, and exit label all execute. `qux` becomes 9 since the exit label
     // runs after all other labels.
     gElemBaz.write(true);
-    gElemGlobalTime.write(104);
+    gElemGlobalTime.write(102);
     CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(9, gElemQux.read());
 
     // Sanity check that state machine transition from state 3 to 1.
     CHECK_EQUAL(3, gElemState.read());
-    gElemGlobalTime.write(105);
+    gElemGlobalTime.write(103);
     CHECK_SUCCESS(sm.step());
     CHECK_EQUAL(1, gElemState.read());
 }
