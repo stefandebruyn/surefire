@@ -54,6 +54,7 @@ private:
     {
         Token tokType;
         Token tokName;
+        U32 sizeBytes;
     };
 
     struct RegionParse final
@@ -74,13 +75,13 @@ private:
 
     static Result parseRegion(const std::vector<Token>& kToks,
                               U32& kIdx,
-                              Parse& kParse,
+                              const Parse& kParse,
                               RegionParse& kRegion,
                               ConfigErrorInfo* kConfigErr);
 
     static Result parseElement(const std::vector<Token>& kToks,
                                U32& kIdx,
-                               Parse& kParse,
+                               const Parse& kParse,
                                ElementParse& kElem,
                                ConfigErrorInfo* kConfigErr);
 

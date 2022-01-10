@@ -13,21 +13,17 @@ StateVectorParser::Config::Config(const StateVector::Config kSvConfig,
 StateVectorParser::Config::~Config()
 {
     // Delete name string and object for each element.
-    U32 i = 0;
-    while (mSvConfig.elems[i].name != nullptr)
+    for (U32 i = 0; mSvConfig.elems[i].name != nullptr; ++i)
     {
         delete[] mSvConfig.elems[i].name;
         delete mSvConfig.elems[i].elem;
-        ++i;
     }
 
     // Delete name string and object for each region.
-    i = 0;
-    while (mSvConfig.regions[i].name != nullptr)
+    for (U32 i = 0; mSvConfig.regions[i].name != nullptr; ++i)
     {
         delete[] mSvConfig.regions[i].name;
         delete mSvConfig.regions[i].region;
-        ++i;
     }
 
     // Delete element config array.
@@ -184,22 +180,14 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                 {
                     kConfigErr->lineNum = tok.lineNum;
                     kConfigErr->colNum = tok.colNum;
-                    auto iter = gTokenNames.find(tok.type);
-                    if (iter == gTokenNames.end())
-                    {
-                        // Should be unreachable- indicates that `gTokenNames`
-                        // is missing a key.
-                        return E_KEY;
-                    }
-                    const std::string& tokTypeName = (*iter).second;
                     kConfigErr->msg = "expected a section";
                 }
                 return E_PARSE;
         }
     }
 
-    // At this point `parse` contains a potentially valid state vector parsing-
-    // now we try compiling it into a `StateVectorParser::Config`.
+    // At this point we have a potentially valid state vector parsing- now we
+    // try compiling it into a `StateVector::Config`.
 
     // Count the number of elements, regions, and bytes in the state vector.
     U32 elemCnt = 0;
@@ -210,32 +198,19 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
         elemCnt += region.elems.size();
         for (const ElementParse& elem : region.elems)
         {
-            auto iter = mElemTypeSize.find(elem.tokType.str);
-            if (iter == mElemTypeSize.end())
-            {
-                // Unknown element type.
-                if (kConfigErr != nullptr)
-                {
-                    kConfigErr->lineNum = elem.tokType.lineNum;
-                    kConfigErr->colNum = elem.tokType.colNum;
-                    kConfigErr->msg =
-                        "unknown type `" + elem.tokType.str + "`";
-                }
-                return E_PARSE;
-            }
-            svSizeBytes += (*iter).second;
+            svSizeBytes += elem.sizeBytes;
         }
     }
 
     // Allocate array for element configs.
     StateVector::ElementConfig* elemConfigs =
         new StateVector::ElementConfig[elemCnt + 1];
-    elemConfigs[elemCnt] = {nullptr, nullptr}; // Null terminator
+    elemConfigs[elemCnt] = {nullptr, nullptr}; // Null terminator.
 
     // Allocate array for region configs.
     StateVector::RegionConfig* regionConfigs =
         new StateVector::RegionConfig[regionCnt + 1];
-    regionConfigs[regionCnt] = {nullptr, nullptr};
+    regionConfigs[regionCnt] = {nullptr, nullptr}; // Null terminator.
 
     // Allocate backing storage for state vector and zero it out.
     char* svBacking = new char[svSizeBytes];
@@ -297,7 +272,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
 
 Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                                       U32& kIdx,
-                                      Parse& kParse,
+                                      const Parse& kParse,
                                       RegionParse& kRegion,
                                       ConfigErrorInfo* kConfigErr)
 {
@@ -333,8 +308,7 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                 // Unexpected token.
                 if (kConfigErr != nullptr)
                 {
-                    kConfigErr->lineNum = tok.lineNum;
-                    kConfigErr->colNum = tok.colNum;
+                    // Get human-readable name of unexpected token type.
                     auto iter = gTokenNames.find(tok.type);
                     if (iter == gTokenNames.end())
                     {
@@ -343,6 +317,10 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                         return E_KEY;
                     }
                     const std::string& tokTypeName = (*iter).second;
+
+                    // Populate config error info.
+                    kConfigErr->lineNum = tok.lineNum;
+                    kConfigErr->colNum = tok.colNum;
                     kConfigErr->msg =
                         "expected element or region, got " + tokTypeName;
                 }
@@ -355,7 +333,7 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
 
 Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
                                        U32& kIdx,
-                                       Parse& kParse,
+                                       const Parse& kParse,
                                        ElementParse& kElem,
                                        ConfigErrorInfo* kConfigErr)
 {
@@ -363,32 +341,75 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
     const Token& tokType = kToks[kIdx++];
     kElem.tokType = tokType;
 
-    if (kIdx == kToks.size() || (kToks[kIdx].type == TOK_NEWLINE))
+    // Check that type is valid.
+    auto iter = mElemTypeSize.find(tokType.str);
+    if (iter == mElemTypeSize.end())
     {
-        // End of line or token stream before the element name.
+        // Unknown element type.
         if (kConfigErr != nullptr)
         {
             kConfigErr->lineNum = tokType.lineNum;
             kConfigErr->colNum = tokType.colNum;
             kConfigErr->msg =
-                "expected element name after type `" + tokType.str + "`";
+                "unknown type `" + tokType.str + "`";
         }
+        return E_PARSE;
+    }
+
+    // Set element size.
+    kElem.sizeBytes = (*iter).second;
+
+    // Consume any newline tokens following the element type.
+    while ((kIdx < kToks.size()) && (kToks[kIdx].type == TOK_NEWLINE))
+    {
+        ++kIdx;
+    }
+
+    if (kIdx == kToks.size() || (kToks[kIdx].type != TOK_IDENTIFIER))
+    {
+        // Expected element name but got end of token stream or non-identifier
+        // token.
+        if (kConfigErr != nullptr)
+        {
+            if (kIdx == kToks.size())
+            {
+                // End of token stream error message will point to the type
+                // token.
+                kConfigErr->lineNum = tokType.lineNum;
+                kConfigErr->colNum = tokType.colNum;
+                kConfigErr->msg =
+                    "expected element name after type `" + tokType.str + "`";
+            }
+            else
+            {
+                // Non-identifier token error message will point to the
+                // unexpected token.
+
+                // Get human-readable name of unexpected token type.
+                const Token& tokUnexpect = kToks[kIdx];
+                auto iter = gTokenNames.find(tokUnexpect.type);
+                if (iter == gTokenNames.end())
+                {
+                    // Should be unreachable- indicates that `gTokenNames`
+                    // is missing a key.
+                    return E_KEY;
+                }
+                const std::string& tokUnexpectName = (*iter).second;
+
+                // Populate config error info.
+                kConfigErr->lineNum = tokUnexpect.lineNum;
+                kConfigErr->colNum = tokUnexpect.colNum;
+                kConfigErr->msg =
+                    "expected element name after type `" + tokType.str
+                    + "`, got " + tokUnexpectName;
+            }
+        }
+
         return E_PARSE;
     }
 
     // Consume element name token.
     const Token& tokName = kToks[kIdx++];
-    if (tokName.type != TOK_IDENTIFIER)
-    {
-        // Token following element type is not an identifier.
-        if (kConfigErr != nullptr)
-        {
-            kConfigErr->lineNum = tokName.lineNum;
-            kConfigErr->colNum = tokName.colNum;
-            kConfigErr->msg = "expected element name";
-        }
-        return E_PARSE;
-    }
 
     // Check that element name is unique.
     for (const RegionParse& regionParse : kParse.regions)

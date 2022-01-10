@@ -157,7 +157,8 @@ Result Tokenizer::tokenizeLine(const std::string& kLine,
                     }
                 }
 
-                // Match successful- if not a comment, pack into a `Token`.
+                // Match successful- if not a comment, pack into a `Token` and
+                // append to the return vector.
                 if (tokType.first != TOK_COMMENT)
                 {
                     const Token tok =

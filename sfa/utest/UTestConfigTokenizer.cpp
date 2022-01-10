@@ -3,8 +3,6 @@
 #include "sfa/ConfigTokenizer.hpp"
 #include "utest/UTest.hpp"
 
-#include <iostream> // rm later
-
 TEST_GROUP(ConfigTokenizer)
 {
 };

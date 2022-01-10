@@ -14,7 +14,7 @@ std::string ConfigErrorInfo::prettifyError() const
         return "`ConfigErrorInfo::msg` unset";
     }
 
-    if (lineNum >= static_cast<I32>(lines.size()))
+    if ((lineNum - 1) >= static_cast<I32>(lines.size()))
     {
         return "`ConfigErrorInfo::lineNum` out of range";
     }
