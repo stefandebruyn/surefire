@@ -33,9 +33,9 @@ bool Token::operator!=(const Token& other) const
     return !(*this == other);
 }
 
-U32 Tokenizer::mLineNum = 0;
+U32 ConfigTokenizer::mLineNum = 0;
 
-std::map<TokenType, std::regex> Tokenizer::mTokenRegexes =
+std::map<TokenType, std::regex> ConfigTokenizer::mTokenRegexes =
 {
     {TOK_SECTION, std::regex("\\s*\\[([a-zA-Z0-9_/]+)\\]")},
     {TOK_LABEL, std::regex("\\s*([a-zA-Z0-9_]+):")},
@@ -49,9 +49,9 @@ std::map<TokenType, std::regex> Tokenizer::mTokenRegexes =
     {TOK_COMMENT, std::regex("\\s*(#.*)")}
 };
 
-Result Tokenizer::tokenize(std::string kFilePath,
-                           std::vector<Token>& kToks,
-                           ConfigErrorInfo* kConfigErr)
+Result ConfigTokenizer::tokenize(std::string kFilePath,
+                                 std::vector<Token>& kToks,
+                                 ConfigErrorInfo* kConfigErr)
 {
     std::ifstream ifs(kFilePath);
     if (ifs.is_open() == false)
@@ -68,12 +68,12 @@ Result Tokenizer::tokenize(std::string kFilePath,
         kConfigErr->filePath = kFilePath;
     }
 
-    return Tokenizer::tokenize(ifs, kToks, kConfigErr);
+    return ConfigTokenizer::tokenize(ifs, kToks, kConfigErr);
 }
 
-Result Tokenizer::tokenize(std::istream& kIs,
-                           std::vector<Token>& kToks,
-                           ConfigErrorInfo* kConfigErr)
+Result ConfigTokenizer::tokenize(std::istream& kIs,
+                                 std::vector<Token>& kToks,
+                                 ConfigErrorInfo* kConfigErr)
 {
     mLineNum = 0;
 
@@ -86,7 +86,7 @@ Result Tokenizer::tokenize(std::istream& kIs,
     while (std::getline(kIs, line))
     {
         // Tokenize the line.
-        Result res = Tokenizer::tokenizeLine(line, kToks, kConfigErr);
+        Result res = ConfigTokenizer::tokenizeLine(line, kToks, kConfigErr);
         if (res != SUCCESS)
         {
             return res;
@@ -114,9 +114,9 @@ Result Tokenizer::tokenize(std::istream& kIs,
     return SUCCESS;
 }
 
-Result Tokenizer::tokenizeLine(const std::string& kLine,
-                               std::vector<Token>& kToks,
-                               ConfigErrorInfo* kConfigErr)
+Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
+                                     std::vector<Token>& kToks,
+                                     ConfigErrorInfo* kConfigErr)
 {
     // Index at which we'll try to match a token in the line. This index will
     // be bumped along as we parse tokens.

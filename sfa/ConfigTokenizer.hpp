@@ -44,11 +44,11 @@ struct Token final
     bool operator!=(const Token& other) const;
 };
 
-class Tokenizer final
+class ConfigTokenizer final
 {
 public:
 
-    Tokenizer() = delete;
+    ConfigTokenizer() = delete;
 
     static Result tokenize(std::string kFilePath,
                            std::vector<Token>& kToks,

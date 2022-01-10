@@ -86,7 +86,7 @@ Result StateVectorParser::parse(std::istream& kIs,
                                 ConfigErrorInfo* kConfigErr)
 {
     std::vector<Token> toks;
-    Result res = Tokenizer::tokenize(kIs, toks, kConfigErr);
+    Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
     if (res != SUCCESS)
     {
         return res;

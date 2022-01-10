@@ -28,7 +28,7 @@ TEST(ConfigTokenizer, SectionToken)
 {
     std::stringstream ss("[Foo]");
     std::vector<Token> toksActual;
-    CHECK_SUCCESS(Tokenizer::tokenize(ss, toksActual, nullptr));
+    CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toksActual, nullptr));
     std::vector<Token> toksExpect =
     {
         {TOK_SECTION, 0, "Foo", 1, 1}
@@ -41,7 +41,7 @@ TEST(ConfigTokenizer, CommentToken)
     std::stringstream ss("# hello world");
     std::vector<Token> toksActual;
     ConfigErrorInfo err;
-    CHECK_SUCCESS(Tokenizer::tokenize(ss, toksActual, &err));
+    CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toksActual, &err));
     std::vector<Token> toksExpect;
     CHECK_TRUE(toksExpect == toksActual);
 }
@@ -50,7 +50,7 @@ TEST(ConfigTokenizer, AnnotationToken)
 {
     std::stringstream ss("@FOO");
     std::vector<Token> toksActual;
-    CHECK_SUCCESS(Tokenizer::tokenize(ss, toksActual, nullptr));
+    CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toksActual, nullptr));
     std::vector<Token> toksExpect =
     {
         {TOK_ANNOTATION, 0, "@FOO", 1, 1}
