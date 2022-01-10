@@ -24,7 +24,9 @@ enum TokenType : U32
     TOK_COLON = 6,
     TOK_NEWLINE = 7,
     TOK_LPAREN = 8,
-    TOK_RPAREN = 9
+    TOK_RPAREN = 9,
+    TOK_ANNOTATION = 10,
+    TOK_COMMENT = 11
 };
 
 extern const std::unordered_map<TokenType, std::string, EnumHash> gTokenNames;

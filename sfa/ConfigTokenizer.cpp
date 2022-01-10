@@ -13,7 +13,9 @@ const std::unordered_map<TokenType, std::string, EnumHash> gTokenNames =
     {TOK_COLON, "colon"},
     {TOK_NEWLINE, "newline"},
     {TOK_LPAREN, "left parenthese"},
-    {TOK_RPAREN, "right parenthese"}
+    {TOK_RPAREN, "right parenthese"},
+    {TOK_ANNOTATION, "annotation"},
+    {TOK_COMMENT, "comment"}
 };
 
 bool Token::operator==(const Token& other) const
@@ -39,7 +41,9 @@ std::map<TokenType, std::regex> Tokenizer::mTokenRegexes =
     {TOK_OPERATOR, std::regex("\\s*(==|!=|=|<=|<|>=|>|->|OR|AND|\\+|\\-|\\*|/)")},
     {TOK_COLON, std::regex("\\s*(:)")},
     {TOK_LPAREN, std::regex("\\s*(\\()")},
-    {TOK_RPAREN, std::regex("\\s*(\\))")}
+    {TOK_RPAREN, std::regex("\\s*(\\))")},
+    {TOK_ANNOTATION, std::regex("\\s*(@[a-zA-Z][a-zA-Z0-9_]*)")},
+    {TOK_COMMENT, std::regex("\\s*(#.*)")}
 };
 
 Result Tokenizer::tokenize(std::string kFilePath,
@@ -138,17 +142,21 @@ Result Tokenizer::tokenizeLine(const std::string& kLine,
                 tokType.second,
                 std::regex_constants::match_continuous) == true)
             {
-                // Match successful- pack into a `Token` and bump the line
-                // index.
-                const Token tok =
+                // Match successful- if not a comment, pack into a `Token`.
+                if (tokType.first != TOK_COMMENT)
                 {
-                    tokType.first,
-                    0,
-                    match[1].str(),
-                    static_cast<I32>(mLineNum),
-                    static_cast<I32>(idx)
-                };
-                kToks.push_back(tok);
+                    const Token tok =
+                    {
+                        tokType.first,
+                        0,
+                        match[1].str(),
+                        static_cast<I32>(mLineNum),
+                        static_cast<I32>(idx)
+                    };
+                    kToks.push_back(tok);
+                }
+
+                // Bump the line index.
                 idx += match[0].str().size();
                 matched = true;
                 break;
