@@ -1,5 +1,5 @@
 #include "sfa/sv/StateVector.hpp"
-#include "sfa/util/MemoryOps.hpp"
+#include "sfa/util/MemOps.hpp"
 
 #define GET_ELEMENT_IMPL(kTemplateType, kElementType)                          \
     /* Check that the state vector is initialized. */                          \
@@ -233,7 +233,7 @@ Result StateVector::getElementIndex(const char* const kName, U32& kIdx) const
     U32 i = 0;
     while (mConfig.elems[i].name != nullptr)
     {
-        if (Sfa::stringsEqual(mConfig.elems[i].name, kName) == true)
+        if (MemOps::strcmp(mConfig.elems[i].name, kName) == 0)
         {
             kIdx = i;
             return SUCCESS;
@@ -252,7 +252,7 @@ Result StateVector::getRegionIndex(const char* const kName, U32& kIdx) const
     U32 i = 0;
     while (mConfig.regions[i].name != nullptr)
     {
-        if (Sfa::stringsEqual(mConfig.regions[i].name, kName) == true)
+        if (MemOps::strcmp(mConfig.regions[i].name, kName) == 0)
         {
             kIdx = i;
             return SUCCESS;

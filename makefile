@@ -24,7 +24,7 @@ utest:
 	sfa/task/utest/UTestITask.cpp \
 	sfa/ConfigTokenizer.cpp \
 	sfa/ConfigErrorInfo.cpp \
-	sfa/util/MemoryOps.cpp \
+	sfa/util/MemOps.cpp \
 	-I. \
 	-lCppUTest
 
