@@ -20,16 +20,15 @@ I32 strcmp(const char* kA, const char* kB)
     }
     else if ((kA != nullptr) && (kB != nullptr))
     {
-        while ((*kA != '\0') && (*kB != '\0'))
+        do
         {
             if (*kA != *kB)
             {
                 ret = (*kA - *kB);
                 break;
             }
-            ++kA;
-            ++kB;
         }
+        while ((*kA++ != '\0') && (*kB++ != '\0'));
     }
 
     return ret;
