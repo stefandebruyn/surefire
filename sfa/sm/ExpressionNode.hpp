@@ -4,7 +4,7 @@
 #include "sfa/sv/Element.hpp"
 #include "sfa/Result.hpp"
 
-enum ExpressionTreeOperator : U32
+enum ExpressionNodeOperator : U32
 {
     OP_NONE,
     OP_ADD,
@@ -22,43 +22,43 @@ enum ExpressionTreeOperator : U32
 };
 
 template <typename T>
-class IExpressionTree
+class IExpressionNode
 {
 public:
 
-    virtual ~IExpressionTree() = default;
+    virtual ~IExpressionNode() = default;
 
     virtual Result evaluate(T& kAns) const = 0;
 };
 
 template <typename T, typename TLeft = T, typename TRight = TLeft>
-class ExpressionTree final : public IExpressionTree<T>
+class ExpressionNode final : public IExpressionNode<T>
 {
 public:
 
-    constexpr ExpressionTree(const T kValue) :
-        ExpressionTree(kValue, nullptr, OP_NONE, nullptr, nullptr)
+    constexpr ExpressionNode(const T kValue) :
+        ExpressionNode(kValue, nullptr, OP_NONE, nullptr, nullptr)
     {
     }
 
-    constexpr ExpressionTree(const Element<T>& kElem) :
-        ExpressionTree(0, &kElem, OP_NONE, nullptr, nullptr)
+    constexpr ExpressionNode(const Element<T>& kElem) :
+        ExpressionNode(0, &kElem, OP_NONE, nullptr, nullptr)
     {
     }
 
-    constexpr ExpressionTree(const ExpressionTreeOperator kOp,
-                             const IExpressionTree<TLeft>* const kLeft,
-                             const IExpressionTree<TRight>* const kRight) :
-        ExpressionTree(0, nullptr, kOp, kLeft, kRight)
+    constexpr ExpressionNode(const ExpressionNodeOperator kOp,
+                             const IExpressionNode<TLeft>* const kLeft,
+                             const IExpressionNode<TRight>* const kRight) :
+        ExpressionNode(0, nullptr, kOp, kLeft, kRight)
     {
     }
 
-    ExpressionTree(const ExpressionTree<T, TLeft, TRight>&) = delete;
-    ExpressionTree(ExpressionTree<T, TLeft, TRight>&&) = delete;
-    ExpressionTree<T, TLeft, TRight>& operator=(
-        const ExpressionTree<T, TLeft, TRight>&) = delete;
-    ExpressionTree<T, TLeft, TRight>& operator=(
-        ExpressionTree<T, TLeft, TRight>&&) = delete;
+    ExpressionNode(const ExpressionNode<T, TLeft, TRight>&) = delete;
+    ExpressionNode(ExpressionNode<T, TLeft, TRight>&&) = delete;
+    ExpressionNode<T, TLeft, TRight>& operator=(
+        const ExpressionNode<T, TLeft, TRight>&) = delete;
+    ExpressionNode<T, TLeft, TRight>& operator=(
+        ExpressionNode<T, TLeft, TRight>&&) = delete;
 
     Result evaluate(T& kAns) const final override
     {
@@ -163,17 +163,17 @@ private:
 
     const Element<T>* const mElem;
 
-    const ExpressionTreeOperator mOp;
+    const ExpressionNodeOperator mOp;
 
-    const IExpressionTree<TLeft>* const mLeft;
+    const IExpressionNode<TLeft>* const mLeft;
 
-    const IExpressionTree<TRight>* const mRight;
+    const IExpressionNode<TRight>* const mRight;
 
-    constexpr ExpressionTree(const T kValue,
+    constexpr ExpressionNode(const T kValue,
                              const Element<T>* kElem,
-                             const ExpressionTreeOperator kOp,
-                             const IExpressionTree<TLeft>* kLeft,
-                             const IExpressionTree<TRight>* kRight) :
+                             const ExpressionNodeOperator kOp,
+                             const IExpressionNode<TLeft>* kLeft,
+                             const IExpressionNode<TRight>* kRight) :
         mValue(kValue), mElem(kElem), mOp(kOp), mLeft(kLeft), mRight(kRight)
     {
     }

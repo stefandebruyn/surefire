@@ -13,4 +13,5 @@ TEST(Element, ReadWrite)
     CHECK_EQUAL(1, elem.read());
     elem.write(2);
     CHECK_EQUAL(2, elem.read());
+    CHECK_EQUAL(2, backing);
 }

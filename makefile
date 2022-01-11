@@ -12,12 +12,12 @@ utest:
 	sfa/sv/StateVector.cpp \
 	sfa/sv/StateVectorParser.cpp \
 	sfa/sm/StateMachine.cpp \
-	sfa/sm/ExpressionTree.hpp \
+	sfa/sm/ExpressionNode.hpp \
 	sfa/sm/TransitionAction.cpp \
 	sfa/sm/IAction.cpp \
 	sfa/sm/utest/UTestStateMachineCreate.cpp \
 	sfa/sm/utest/UTestStateMachineStep.cpp \
-	sfa/sm/utest/UTestExpressionTree.cpp \
+	sfa/sm/utest/UTestExpressionNode.cpp \
 	sfa/sm/utest/UTestTransitionAction.cpp \
 	sfa/sm/utest/UTestAssignmentAction.cpp \
 	sfa/task/ITask.cpp \

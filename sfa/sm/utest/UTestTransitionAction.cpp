@@ -21,8 +21,8 @@ TEST(TransitionAction, EvaluateNoGuard)
 
 TEST(TransitionAction, EvaluateGuard)
 {
-    ExpressionTree<bool> guardTrue(true);
-    ExpressionTree<bool> guardFalse(false);
+    ExpressionNode<bool> guardTrue(true);
+    ExpressionNode<bool> guardFalse(false);
 
     TransitionAction actExec(&guardTrue, 0);
     bool trans = false;

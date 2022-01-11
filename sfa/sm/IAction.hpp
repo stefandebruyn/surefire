@@ -1,7 +1,7 @@
 #ifndef SFA_IACTION_HPP
 #define SFA_IACTION_HPP
 
-#include "sfa/sm/ExpressionTree.hpp"
+#include "sfa/sm/ExpressionNode.hpp"
 #include "sfa/BasicTypes.hpp"
 #include "sfa/Result.hpp"
 
@@ -13,7 +13,7 @@ public:
 
     virtual ~IAction() = default;
 
-    constexpr IAction(const IExpressionTree<bool>* const kGuard,
+    constexpr IAction(const IExpressionNode<bool>* const kGuard,
                       const U32 kDestState) :
         mGuard(kGuard), destinationState(kDestState)
     {
@@ -32,7 +32,7 @@ protected:
 
 private:
 
-    const IExpressionTree<bool>* const mGuard;
+    const IExpressionNode<bool>* const mGuard;
 };
 
 #endif

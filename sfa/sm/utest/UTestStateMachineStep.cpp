@@ -41,26 +41,26 @@ T[100, 200]:
 EXIT:
     bar = 1.522
 */
-static ExpressionTree<I32> gExpr1400(1400);
-static ExpressionTree<F64> gExpr9p81(9.81);
-static ExpressionTree<bool> gExprTrue(true);
-static ExpressionTree<I32> gExpr200(200);
-static ExpressionTree<F64> gExpr0p0(0.0);
-static ExpressionTree<F64> gExpr7p777(7.777);
-static ExpressionTree<bool> gExprFalse(false);
-static ExpressionTree<F64> gExpr1p522(1.522);
+static ExpressionNode<I32> gExpr1400(1400);
+static ExpressionNode<F64> gExpr9p81(9.81);
+static ExpressionNode<bool> gExprTrue(true);
+static ExpressionNode<I32> gExpr200(200);
+static ExpressionNode<F64> gExpr0p0(0.0);
+static ExpressionNode<F64> gExpr7p777(7.777);
+static ExpressionNode<bool> gExprFalse(false);
+static ExpressionNode<F64> gExpr1p522(1.522);
 
-static ExpressionTree<F64> gExprBar(gElemBar);
-static ExpressionTree<bool> gExprBaz(gElemBaz);
-static ExpressionTree<I32> gExprQux(gElemQux);
+static ExpressionNode<F64> gExprBar(gElemBar);
+static ExpressionNode<bool> gExprBaz(gElemBaz);
+static ExpressionNode<I32> gExprQux(gElemQux);
 
-static ExpressionTree<bool, I32> gExprQuxEquals200(OP_EQUALS,
+static ExpressionNode<bool, I32> gExprQuxEquals200(OP_EQUALS,
                                                    &gExprQux,
                                                    &gExpr200);
-static ExpressionTree<bool, F64> gExprBarEquals0p0(OP_LESS_THAN,
+static ExpressionNode<bool, F64> gExprBarEquals0p0(OP_LESS_THAN,
                                                    &gExprBar,
                                                    &gExpr0p0);
-static ExpressionTree<bool> gGuardTransState2(OP_AND,
+static ExpressionNode<bool> gGuardTransState2(OP_AND,
                                               &gExprQuxEquals200,
                                               &gExprBarEquals0p0);
 
@@ -119,11 +119,11 @@ STEP:
 EXIT:
     qux = 97
 */
-static ExpressionTree<I32> gExpr343(343);
-static ExpressionTree<F64> gExpr1p62(1.62);
-static ExpressionTree<I32> gExpr97(97);
+static ExpressionNode<I32> gExpr343(343);
+static ExpressionNode<F64> gExpr1p62(1.62);
+static ExpressionNode<I32> gExpr97(97);
 
-static ExpressionTree<bool> gExprBazEqualsFalse(OP_EQUALS,
+static ExpressionNode<bool> gExprBazEqualsFalse(OP_EQUALS,
                                                 &gExprBaz,
                                                 &gExprFalse);
 
@@ -180,16 +180,16 @@ EXIT:
     qux = 8
     qux = 9
 */
-static ExpressionTree<I32> gExpr0(0);
-static ExpressionTree<I32> gExpr1(1);
-static ExpressionTree<I32> gExpr2(2);
-static ExpressionTree<I32> gExpr3(3);
-static ExpressionTree<I32> gExpr4(4);
-static ExpressionTree<I32> gExpr5(5);
-static ExpressionTree<I32> gExpr6(6);
-static ExpressionTree<I32> gExpr7(7);
-static ExpressionTree<I32> gExpr8(8);
-static ExpressionTree<I32> gExpr9(9);
+static ExpressionNode<I32> gExpr0(0);
+static ExpressionNode<I32> gExpr1(1);
+static ExpressionNode<I32> gExpr2(2);
+static ExpressionNode<I32> gExpr3(3);
+static ExpressionNode<I32> gExpr4(4);
+static ExpressionNode<I32> gExpr5(5);
+static ExpressionNode<I32> gExpr6(6);
+static ExpressionNode<I32> gExpr7(7);
+static ExpressionNode<I32> gExpr8(8);
+static ExpressionNode<I32> gExpr9(9);
 
 static AssignmentAction<I32> gActQuxGets0(nullptr, gElemQux, gExpr0);
 static AssignmentAction<I32> gActQuxGets1(nullptr, gElemQux, gExpr1);
@@ -202,7 +202,7 @@ static AssignmentAction<I32> gActQuxGets7(nullptr, gElemQux, gExpr7);
 static AssignmentAction<I32> gActQuxGets8(nullptr, gElemQux, gExpr8);
 static AssignmentAction<I32> gActQuxGets9(nullptr, gElemQux, gExpr9);
 
-static ExpressionTree<bool> gBazIsTrue(OP_EQUALS, &gExprBaz, &gExprTrue);
+static ExpressionNode<bool> gBazIsTrue(OP_EQUALS, &gExprBaz, &gExprTrue);
 
 static TransitionAction gActState3TransState1(&gBazIsTrue, 1);
 

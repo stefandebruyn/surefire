@@ -7,7 +7,7 @@ class TransitionAction final : public IAction
 {
 public:
 
-    constexpr TransitionAction(const IExpressionTree<bool>* const kGuard,
+    constexpr TransitionAction(const IExpressionNode<bool>* const kGuard,
                                const U32 kDestState) :
         IAction(kGuard, kDestState)
     {

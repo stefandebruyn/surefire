@@ -10,9 +10,9 @@ class AssignmentAction final : public IAction
 {
 public:
 
-    constexpr AssignmentAction(const IExpressionTree<bool>* const kGuard,
+    constexpr AssignmentAction(const IExpressionNode<bool>* const kGuard,
                                Element<T>& kElem,
-                               const IExpressionTree<T>& kExpr) :
+                               const IExpressionNode<T>& kExpr) :
         IAction(kGuard, StateMachine::NO_STATE), mElem(kElem), mExpr(kExpr)
     {
     }
@@ -26,7 +26,7 @@ private:
 
     Element<T>& mElem;
 
-    const IExpressionTree<T>& mExpr;
+    const IExpressionNode<T>& mExpr;
 
     Result execute(bool& kTransition) final override
     {

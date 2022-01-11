@@ -9,7 +9,7 @@ TEST(AssignmentAction, EvaluateNoGuard)
 {
     I32 backing = 0;
     Element<I32> elem(backing);
-    const ExpressionTree<I32> expr(10);
+    const ExpressionNode<I32> expr(10);
     AssignmentAction<I32> act(nullptr, elem, expr);
     bool trans = true;
     CHECK_SUCCESS(act.evaluate(trans));
@@ -19,11 +19,11 @@ TEST(AssignmentAction, EvaluateNoGuard)
 
 TEST(AssignmentAction, EvaluateGuard)
 {
-    ExpressionTree<bool> guardTrue(true);
-    ExpressionTree<bool> guardFalse(false);
+    ExpressionNode<bool> guardTrue(true);
+    ExpressionNode<bool> guardFalse(false);
     I32 backing = 0;
     Element<I32> elem(backing);
-    const ExpressionTree<I32> expr(10);
+    const ExpressionNode<I32> expr(10);
     bool trans = true;
 
     AssignmentAction<I32> actExec(&guardTrue, elem, expr);
