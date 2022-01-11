@@ -7,7 +7,7 @@ class TransitionAction final : public IAction
 {
 public:
 
-    constexpr TransitionAction(const IExpressionTree<bool>* kGuard,
+    constexpr TransitionAction(const IExpressionTree<bool>* const kGuard,
                                const U32 kDestState) :
         IAction(kGuard, kDestState)
     {
@@ -18,7 +18,7 @@ public:
     TransitionAction& operator=(const TransitionAction&) = delete;
     TransitionAction& operator=(TransitionAction&&) = delete;
 
-protected:
+private:
 
     Result execute(bool& kTransition) final override;
 };

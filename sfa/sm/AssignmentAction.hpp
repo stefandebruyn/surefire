@@ -10,7 +10,7 @@ class AssignmentAction final : public IAction
 {
 public:
 
-    constexpr AssignmentAction(const IExpressionTree<bool>* kGuard,
+    constexpr AssignmentAction(const IExpressionTree<bool>* const kGuard,
                                Element<T>& kElem,
                                const IExpressionTree<T>& kExpr) :
         IAction(kGuard, StateMachine::NO_STATE), mElem(kElem), mExpr(kExpr)
@@ -22,7 +22,11 @@ public:
     AssignmentAction<T>& operator=(const AssignmentAction<T>&) = delete;
     AssignmentAction<T>& operator=(AssignmentAction<T>&&) = delete;
 
-protected:
+private:
+
+    Element<T>& mElem;
+
+    const IExpressionTree<T>& mExpr;
 
     Result execute(bool& kTransition) final override
     {
@@ -36,12 +40,6 @@ protected:
         mElem.write(value);
         return SUCCESS;
     }
-
-private:
-
-    Element<T>& mElem;
-
-    const IExpressionTree<T>& mExpr;
 };
 
 #endif

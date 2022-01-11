@@ -13,7 +13,7 @@ public:
 
     virtual ~IAction() = default;
 
-    constexpr IAction(const IExpressionTree<bool>* kGuard,
+    constexpr IAction(const IExpressionTree<bool>* const kGuard,
                       const U32 kDestState) :
         mGuard(kGuard), destinationState(kDestState)
     {
@@ -32,7 +32,7 @@ protected:
 
 private:
 
-    const IExpressionTree<bool>* mGuard;
+    const IExpressionTree<bool>* const mGuard;
 };
 
 #endif

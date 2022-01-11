@@ -47,8 +47,8 @@ public:
     }
 
     constexpr ExpressionTree(const ExpressionTreeOperator kOp,
-                             const IExpressionTree<TLeft>* kLeft,
-                             const IExpressionTree<TRight>* kRight) :
+                             const IExpressionTree<TLeft>* const kLeft,
+                             const IExpressionTree<TRight>* const kRight) :
         ExpressionTree(0, nullptr, kOp, kLeft, kRight)
     {
     }
@@ -161,13 +161,13 @@ private:
 
     const T mValue;
 
-    const Element<T>* mElem;
+    const Element<T>* const mElem;
 
     const ExpressionTreeOperator mOp;
 
-    const IExpressionTree<TLeft>* mLeft;
+    const IExpressionTree<TLeft>* const mLeft;
 
-    const IExpressionTree<TRight>* mRight;
+    const IExpressionTree<TRight>* const mRight;
 
     constexpr ExpressionTree(const T kValue,
                              const Element<T>* kElem,

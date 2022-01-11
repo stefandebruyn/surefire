@@ -6,7 +6,7 @@ Result IAction::evaluate(bool& kTransition)
     bool execute = true;
     if (mGuard != nullptr)
     {
-        Result res = mGuard->evaluate(execute);
+        const Result res = mGuard->evaluate(execute);
         if (res != SUCCESS)
         {
             return res;
