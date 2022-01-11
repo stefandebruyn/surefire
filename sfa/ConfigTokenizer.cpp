@@ -185,8 +185,8 @@ Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
             // invalid.
             if (kConfigErr != nullptr)
             {
-                kConfigErr->lineNum = (kConfigErr->lines.size() - 1);
-                kConfigErr->colNum = idx;
+                kConfigErr->lineNum = kConfigErr->lines.size();
+                kConfigErr->colNum = (idx + 1);
                 kConfigErr->msg = "invalid token";
             }
             return E_TOKENIZE;
