@@ -9,8 +9,8 @@
     }                                                                          \
                                                                                \
     /* Look up index of specified element. */                                  \
-    U32 elemIdx;                                                               \
-    const Result res = this->getElementIndex(kName, elemIdx);                  \
+    ElementConfig* elemConfig = nullptr;                                       \
+    const Result res = this->getElementConfig(kName, elemConfig);              \
     if (res != SUCCESS)                                                        \
     {                                                                          \
         /* Lookup failed. */                                                   \
@@ -18,14 +18,14 @@
     }                                                                          \
                                                                                \
     /* Check that type of element matches template parameter. */               \
-    IElement* ielem = mConfig.elems[elemIdx].elem;                             \
-    if (ielem == nullptr)                                                      \
+    IElement* elem = elemConfig->elem;                                         \
+    if (elem == nullptr)                                                       \
     {                                                                          \
         /* This should never happen assuming the state vector config was       \
            validated correctly. */                                             \
         return E_NULLPTR;                                                      \
     }                                                                          \
-    if (ielem->getElementType() != kElementType)                               \
+    if (elem->getElementType() != kElementType)                                \
     {                                                                          \
         /* Type mismatch. */                                                   \
         return E_TYPE;                                                         \
@@ -33,7 +33,7 @@
     else                                                                       \
     {                                                                          \
         /* Type match- narrow reference to element template instantiation. */  \
-        kElem = (Element<kTemplateType>*) ielem;                               \
+        kElem = (Element<kTemplateType>*) elem;                                \
     }                                                                          \
                                                                                \
     return SUCCESS;
@@ -136,14 +136,14 @@ Result StateVector::getRegion(const char* const kName, Region*& kRegion)
         return E_EMPTY;
     }
 
-    U32 idx;
-    Result res = this->getRegionIndex(kName, idx);
+    RegionConfig* regionConfig = nullptr;
+    Result res = this->getRegionConfig(kName, regionConfig);
     if (res != SUCCESS)
     {
         return res;
     }
 
-    kRegion = mConfig.regions[idx].region;
+    kRegion = regionConfig->region;
     return SUCCESS;
 }
 
@@ -159,35 +159,30 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
     }
 
     // Check that each element config element pointer is non-null.
-    U32 i = 0;
-    while (kConfig.elems[i].name != nullptr)
+    for (U32 i = 0; kConfig.elems[i].name != nullptr; ++i)
     {
         if (kConfig.elems[i].elem == nullptr)
         {
             kRes = E_NULLPTR;
             return;
         }
-        ++i;
     }
 
     if (kConfig.regions != nullptr)
     {
         // Check that each region config region pointer is non-null.
-        i = 0;
-        while (kConfig.regions[i].name != nullptr)
+        for (U32 i = 0; kConfig.regions[i].name != nullptr; ++i)
         {
             if (kConfig.regions[i].region == nullptr)
             {
                 kRes = E_NULLPTR;
                 return;
             }
-            ++i;
         }
 
         // Check that element memory exactly spans regions memory.
-        i = 0;
         U32 elemIdx = 0;
-        while (kConfig.regions[i].name != nullptr)
+        for (U32 i = 0; kConfig.regions[i].name != nullptr; ++i)
         {
             const U32 regionSize = kConfig.regions[i].region->getSizeBytes();
             const void* regionPtr = kConfig.regions[i].region->getAddr();
@@ -217,8 +212,6 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
                 kRes = E_LAYOUT;
                 return;
             }
-
-            ++i;
         }
     }
 
@@ -227,38 +220,34 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
     mConfig = kConfig;
 }
 
-Result StateVector::getElementIndex(const char* const kName, U32& kIdx) const
+Result StateVector::getElementConfig(const char* const kName,
+                                     ElementConfig*& kElemConfig) const
 {
-    // Look up index of element config by name.
-    U32 i = 0;
-    while (mConfig.elems[i].name != nullptr)
+    // Look up element config by name.
+    for (U32 i = 0; mConfig.elems[i].name != nullptr; ++i)
     {
         if (MemOps::strcmp(mConfig.elems[i].name, kName) == 0)
         {
-            kIdx = i;
+            kElemConfig = &mConfig.elems[i];
             return SUCCESS;
         }
-
-        ++i;
     }
 
     // If we get this far, the element wasn't found.
     return E_KEY;
 }
 
-Result StateVector::getRegionIndex(const char* const kName, U32& kIdx) const
+Result StateVector::getRegionConfig(const char* const kName,
+                                    RegionConfig*& kRegionConfig) const
 {
-    // Look up index of region config by name.
-    U32 i = 0;
-    while (mConfig.regions[i].name != nullptr)
+    // Look up region config by name.
+    for (U32 i = 0; mConfig.regions[i].name != nullptr; ++i)
     {
         if (MemOps::strcmp(mConfig.regions[i].name, kName) == 0)
         {
-            kIdx = i;
+            kRegionConfig = &mConfig.regions[i];
             return SUCCESS;
         }
-
-        ++i;
     }
 
     // If we get this far, the region wasn't found.

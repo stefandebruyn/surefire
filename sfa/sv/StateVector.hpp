@@ -49,9 +49,11 @@ private:
 
     StateVector& operator=(StateVector&&) = default;
 
-    Result getElementIndex(const char* const kName, U32& kIdx) const;
+    Result getElementConfig(const char* const kName,
+                            ElementConfig*& kElemConfig) const;
 
-    Result getRegionIndex(const char* const kName, U32& kIdx) const;
+    Result getRegionConfig(const char* const kName,
+                           RegionConfig*& kRegionConfig) const;
 };
 
 #endif

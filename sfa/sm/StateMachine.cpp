@@ -40,7 +40,7 @@ StateMachine::StateMachine(const Config kConfig, Result& kRes) : StateMachine()
     // Check that initial state exists.
     const U32 initStateId = mConfig.elemState->read();
     StateConfig* initStateConfig = nullptr;
-    kRes = this->findState(initStateId, initStateConfig);
+    kRes = this->getStateConfig(initStateId, initStateConfig);
     if (kRes != SUCCESS)
     {
         return;
@@ -209,7 +209,7 @@ Result StateMachine::step()
 
         // Transition to destination state. The next state machine step will be
         // the first step in the new state.
-        res = this->findState(destState, mCurrentState);
+        res = this->getStateConfig(destState, mCurrentState);
         if (res != SUCCESS)
         {
             // Unreachable assuming the state machine config was validated
@@ -255,7 +255,7 @@ Result StateMachine::executeLabel(const LabelConfig& kLabel, U32& kDestState)
     return SUCCESS;
 }
 
-Result StateMachine::findState(const U32 kId, StateConfig*& kState)
+Result StateMachine::getStateConfig(const U32 kId, StateConfig*& kState)
 {
     for (U32 i = 0; mConfig.states[i].id != NO_STATE; ++i)
     {
@@ -282,7 +282,7 @@ Result StateMachine::validateLabelTransitions(const LabelConfig& kLabel)
         if (destState != NO_STATE)
         {
             StateConfig* _;
-            const Result res = this->findState(destState, _);
+            const Result res = this->getStateConfig(destState, _);
             if (res != SUCCESS)
             {
                 return res;

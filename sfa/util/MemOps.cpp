@@ -22,9 +22,9 @@ I32 strcmp(const char* kA, const char* kB)
     {
         do
         {
-            if (*kA != *kB)
+            ret = (*kA - *kB);
+            if (ret != 0)
             {
-                ret = (*kA - *kB);
                 break;
             }
         }
