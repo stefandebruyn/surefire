@@ -63,7 +63,7 @@ private:
 
     Result executeLabel(const LabelConfig& kLabel, U32& kDestState);
 
-    Result findState(const U32 kId, StateConfig*& kState);
+    Result getStateConfig(const U32 kId, StateConfig*& kState);
 
     Result validateLabelTransitions(const LabelConfig& kLabel);
 };
