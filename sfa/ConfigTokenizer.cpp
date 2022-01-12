@@ -37,16 +37,16 @@ U32 ConfigTokenizer::mLineNum = 0;
 
 std::map<TokenType, std::regex> ConfigTokenizer::mTokenRegexes =
 {
-    {TOK_SECTION, std::regex("\\s*\\[([a-zA-Z0-9_/]+)\\]")},
-    {TOK_LABEL, std::regex("\\s*([a-zA-Z0-9_]+):")},
-    {TOK_CONSTANT, std::regex("\\s*(true|false|[0-9]*.?[0-9]+)")},
-    {TOK_IDENTIFIER, std::regex("\\s*([a-zA-Z][a-zA-Z0-9_]*)")},
-    {TOK_OPERATOR, std::regex("\\s*(==|!=|=|<=|<|>=|>|->|OR|AND|\\+|\\-|\\*|/)")},
-    {TOK_COLON, std::regex("\\s*(:)")},
-    {TOK_LPAREN, std::regex("\\s*(\\()")},
-    {TOK_RPAREN, std::regex("\\s*(\\))")},
-    {TOK_ANNOTATION, std::regex("\\s*(@[a-zA-Z][a-zA-Z0-9_]*)")},
-    {TOK_COMMENT, std::regex("\\s*(#.*)")}
+    {TOK_SECTION, std::regex("\\s*\\[([a-zA-Z0-9_/]+)\\]\\s*")},
+    {TOK_LABEL, std::regex("\\s*([a-zA-Z0-9_]+):\\s*")},
+    {TOK_CONSTANT, std::regex("\\s*(true|false|[0-9]*.?[0-9]+)\\s*")},
+    {TOK_IDENTIFIER, std::regex("\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*")},
+    {TOK_OPERATOR, std::regex("\\s*(==|!=|=|<=|<|>=|>|->|OR|AND|\\+|\\-|\\*|/)\\s*")},
+    {TOK_COLON, std::regex("\\s*(:)\\s*")},
+    {TOK_LPAREN, std::regex("\\s*(\\()\\s*")},
+    {TOK_RPAREN, std::regex("\\s*(\\))\\s*")},
+    {TOK_ANNOTATION, std::regex("\\s*(@[a-zA-Z][a-zA-Z0-9_]*)\\s*")},
+    {TOK_COMMENT, std::regex("\\s*(#.*)\\s*")}
 };
 
 Result ConfigTokenizer::tokenize(std::string kFilePath,
@@ -92,9 +92,9 @@ Result ConfigTokenizer::tokenize(std::istream& kIs,
             return res;
         }
 
-        // If the `getline` was terminated by a newline, then add a
-        // `TOK_NEWLINE` to the token stream so that parsers can use them as
-        // delimiters if they want.
+        // If the line was terminated by a newline, then add a newline token to
+        // to the token stream so that parsers can use them as delimiters if
+        // they want.
         if ((kIs.eof() == false) && (kIs.fail() == false))
         {
             const Token newlineTok =
