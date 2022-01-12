@@ -4,7 +4,6 @@ utest:
 	sfa/sv/utest/UTestElement.cpp \
 	sfa/sv/utest/UTestStateVector.cpp \
 	sfa/sv/utest/UTestRegion.cpp \
-	sfa/utest/UTestConfigTokenizer.cpp \
 	sfa/sv/utest/UTestStateVectorParser.cpp \
 	sfa/sv/utest/UTestStateVectorConfigErrors.cpp \
 	sfa/sv/Element.cpp \
@@ -22,8 +21,9 @@ utest:
 	sfa/sm/utest/UTestAssignmentAction.cpp \
 	sfa/task/ITask.cpp \
 	sfa/task/utest/UTestITask.cpp \
-	sfa/ConfigTokenizer.cpp \
-	sfa/ConfigErrorInfo.cpp \
+	sfa/config/ConfigTokenizer.cpp \
+	sfa/config/ConfigErrorInfo.cpp \
+	sfa/config/utest/UTestConfigTokenizer.cpp \
 	sfa/util/MemOps.cpp \
 	-I. \
 	-lCppUTest

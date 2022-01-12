@@ -10,7 +10,7 @@
 
 #include "sfa/BasicTypes.hpp"
 #include "sfa/Result.hpp"
-#include "sfa/ConfigErrorInfo.hpp"
+#include "sfa/config/ConfigErrorInfo.hpp"
 #include "sfa/EnumHash.hpp"
 
 enum TokenType : U32

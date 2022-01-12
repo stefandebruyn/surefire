@@ -1,7 +1,7 @@
 #include <fstream>
 #include <cctype>
 
-#include "sfa/ConfigTokenizer.hpp"
+#include "sfa/config/ConfigTokenizer.hpp"
 
 const std::unordered_map<TokenType, std::string, EnumHash> gTokenNames =
 {

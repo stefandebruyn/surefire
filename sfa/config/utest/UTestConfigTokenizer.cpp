@@ -1,6 +1,6 @@
 #include <sstream>
 
-#include "sfa/ConfigTokenizer.hpp"
+#include "sfa/config/ConfigTokenizer.hpp"
 #include "utest/UTest.hpp"
 
 TEST_GROUP(ConfigTokenizer)

@@ -1,7 +1,7 @@
 #include <sstream>
 #include <cctype>
 
-#include "sfa/ConfigErrorInfo.hpp"
+#include "sfa/config/ConfigErrorInfo.hpp"
 
 ConfigErrorInfo::ConfigErrorInfo() : lineNum(-1), colNum(-1)
 {

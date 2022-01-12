@@ -9,8 +9,8 @@
 #include <unordered_map>
 
 #include "sfa/sv/StateVector.hpp"
-#include "sfa/ConfigTokenizer.hpp"
-#include "sfa/ConfigErrorInfo.hpp"
+#include "sfa/config/ConfigTokenizer.hpp"
+#include "sfa/config/ConfigErrorInfo.hpp"
 
 class StateVectorParser final
 {
