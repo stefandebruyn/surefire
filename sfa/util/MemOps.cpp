@@ -50,4 +50,4 @@ void* memcpy(void* kDest, const void* const kSrc, const U32 kSizeBytes)
     return dest;
 }
 
-} // namespace Sfa
+} // namespace MemOps

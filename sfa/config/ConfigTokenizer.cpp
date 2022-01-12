@@ -93,8 +93,7 @@ Result ConfigTokenizer::tokenize(std::istream& kIs,
         }
 
         // If the line was terminated by a newline, then add a newline token to
-        // to the token stream so that parsers can use them as delimiters if
-        // they want.
+        // the token stream so that parsers can use them as delimiters.
         if ((kIs.eof() == false) && (kIs.fail() == false))
         {
             const Token newlineTok =

@@ -1,5 +1,5 @@
-#ifndef SFA_EXPRESSION_TREE_HPP
-#define SFA_EXPRESSION_TREE_HPP
+#ifndef SFA_EXPRESSION_NODE_HPP
+#define SFA_EXPRESSION_NODE_HPP
 
 #include "sfa/sv/Element.hpp"
 #include "sfa/Result.hpp"
