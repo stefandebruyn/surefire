@@ -1,4 +1,5 @@
 #include <sstream>
+#include <iostream> // rm later
 
 #include "sfa/sv/StateVectorParser.hpp"
 #include "utest/UTest.hpp"
@@ -9,19 +10,17 @@ TEST_GROUP(StateVectorParser)
 
 TEST(StateVectorParser, SimpleConfig)
 {
-    std::string src =
+    std::stringstream ss(
         "[REGION/Foo]\n"
         "I32 foo\n"
         "F64 bar\n"
         "bool baz\n"
         "[REGION/Bar]\n"
-        "F32 qux\n";
-    std::stringstream ss(src);
+        "F32 qux\n");
 
     // Check that config is parsed successfully.
     std::shared_ptr<StateVectorParser::Config> config = nullptr;
     CHECK_SUCCESS(StateVectorParser::parse(ss, config, nullptr));
-    CHECK_TRUE((void*) config.get() != nullptr);
 
     // Check element names and pointers in returned config.
     const StateVector::Config& svConfig = config->get();
@@ -87,4 +86,45 @@ TEST(StateVectorParser, SimpleConfig)
     CHECK_EQUAL(1.0, vec.regionFoo.bar);
     CHECK_EQUAL(true, vec.regionFoo.baz);
     CHECK_EQUAL(1.0f, vec.regionBar.qux);
+}
+
+TEST(StateVectorParser, SkipRegion)
+{
+    // Parse config, but only region `Foo`.
+    std::stringstream ss(
+        "[REGION/Foo]\n"
+        "I32 foo\n"
+        "F64 bar\n"
+        "[REGION/Bar]\n"
+        "bool baz\n"
+        "F32 qux\n");
+    std::shared_ptr<StateVectorParser::Config> config = nullptr;
+    CHECK_SUCCESS(StateVectorParser::parse(ss, config, nullptr, {"Foo"}));
+
+    // Create state vector.
+    StateVector sv;
+    CHECK_SUCCESS(StateVector::create(config->get(), sv));
+
+    // Getting region `Foo` succeeds.
+    Region* region = nullptr;
+    CHECK_SUCCESS(sv.getRegion("Foo", region));
+
+    // Getting elements in region `Foo` succeeds.
+    Element<I32>* foo = nullptr;
+    CHECK_SUCCESS(sv.getElement("foo", foo));
+    CHECK_TRUE(foo != nullptr);
+    Element<F64>* bar = nullptr;
+    CHECK_SUCCESS(sv.getElement("bar", bar));
+    CHECK_TRUE(bar != nullptr);
+
+    // Getting region `Bar` fails.
+    CHECK_EQUAL(E_KEY, sv.getRegion("Bar", region));
+
+    // Getting elements in region `Bar` fails.
+    Element<bool>* baz = nullptr;
+    CHECK_EQUAL(E_KEY, sv.getElement("baz", baz));
+    POINTERS_EQUAL(nullptr, baz);
+    Element<F32>* qux = nullptr;
+    CHECK_EQUAL(E_KEY, sv.getElement("qux", qux));
+    POINTERS_EQUAL(nullptr, qux);
 }

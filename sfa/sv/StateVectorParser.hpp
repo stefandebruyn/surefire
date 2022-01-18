@@ -16,6 +16,8 @@ class StateVectorParser final
 {
 public:
 
+    static const std::vector<std::string> ALL_REGIONS;
+
     class Config final
     {
     public:
@@ -38,11 +40,13 @@ public:
 
     static Result parse(const std::string kFilePath,
                         std::shared_ptr<Config>& kConfig,
-                        ConfigErrorInfo* kConfigErr);
+                        ConfigErrorInfo* kConfigErr,
+                        const std::vector<std::string> kRegions = ALL_REGIONS);
 
     static Result parse(std::istream& kIs,
                         std::shared_ptr<Config>& kConfig,
-                        ConfigErrorInfo* kConfigErr);
+                        ConfigErrorInfo* kConfigErr,
+                        const std::vector<std::string> kRegions = ALL_REGIONS);
 
 private:
 
@@ -71,7 +75,8 @@ private:
 
     static Result parseImpl(const std::vector<Token>& kToks,
                             std::shared_ptr<Config>& kConfig,
-                            ConfigErrorInfo* kConfigErr);
+                            ConfigErrorInfo* kConfigErr,
+                            const std::vector<std::string>& kRegions);
 
     static Result parseRegion(const std::vector<Token>& kToks,
                               U32& kIdx,

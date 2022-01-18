@@ -1,8 +1,11 @@
 #include <fstream>
 #include <cstring>
 #include <sstream>
+#include <algorithm>
 
 #include "sfa/sv/StateVectorParser.hpp"
+
+const std::vector<std::string> StateVectorParser::ALL_REGIONS;
 
 StateVectorParser::Config::Config(const StateVector::Config kSvConfig,
                                   const char* const kSvBacking) :
@@ -61,7 +64,8 @@ const std::unordered_map<std::string, U32> StateVectorParser::mElemTypeSize =
 
 Result StateVectorParser::parse(const std::string kFilePath,
                                 std::shared_ptr<Config>& kConfig,
-                                ConfigErrorInfo* kConfigErr)
+                                ConfigErrorInfo* kConfigErr,
+                                const std::vector<std::string> kRegions)
 {
     std::ifstream ifs(kFilePath);
     if (ifs.is_open() == false)
@@ -78,12 +82,13 @@ Result StateVectorParser::parse(const std::string kFilePath,
         kConfigErr->filePath = kFilePath;
     }
 
-    return StateVectorParser::parse(ifs, kConfig, kConfigErr);
+    return StateVectorParser::parse(ifs, kConfig, kConfigErr, kRegions);
 }
 
 Result StateVectorParser::parse(std::istream& kIs,
                                 std::shared_ptr<Config>& kConfig,
-                                ConfigErrorInfo* kConfigErr)
+                                ConfigErrorInfo* kConfigErr,
+                                const std::vector<std::string> kRegions)
 {
     std::vector<Token> toks;
     Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
@@ -92,12 +97,13 @@ Result StateVectorParser::parse(std::istream& kIs,
         return res;
     }
 
-    return StateVectorParser::parseImpl(toks, kConfig, kConfigErr);
+    return StateVectorParser::parseImpl(toks, kConfig, kConfigErr, kRegions);
 }
 
 Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                                     std::shared_ptr<Config>& kConfig,
-                                    ConfigErrorInfo* kConfigErr)
+                                    ConfigErrorInfo* kConfigErr,
+                                    const std::vector<std::string>& kRegions)
 {
     Parse parse;
 
@@ -118,6 +124,23 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                 if (std::regex_match(
                     tok.str, match, mRegionSectionRegex) == true)
                 {
+                    // If the caller provided a list of regions to parse and
+                    // this isn't one of them, skip to the next region section
+                    // or end of token stream.
+                    const std::string regionPlainName = match[1].str();
+                    if ((kRegions.size() > 0)
+                        && (std::find(kRegions.begin(),
+                                      kRegions.end(),
+                                      regionPlainName) == kRegions.end()))
+                    {
+                        while ((idx < kToks.size())
+                               && (kToks[idx].type != TOK_SECTION))
+                        {
+                            ++idx;
+                        }
+                        continue;
+                    }
+
                     // Parse region section- check that region name is unique.
                     for (const RegionParse& regionParse : parse.regions)
                     {
@@ -146,7 +169,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                     parse.regions.push_back(RegionParse());
                     RegionParse& regionParse = parse.regions.back();
                     regionParse.tokName = tok;
-                    regionParse.plainName = match[1].str();
+                    regionParse.plainName = regionPlainName;
 
                     const Result res = StateVectorParser::parseRegion(
                         kToks, idx, parse, regionParse, kConfigErr);
