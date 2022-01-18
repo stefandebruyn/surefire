@@ -39,7 +39,7 @@ std::map<TokenType, std::regex> ConfigTokenizer::mTokenRegexes =
 {
     {TOK_SECTION, std::regex("\\s*\\[([a-zA-Z0-9_/]+)\\]\\s*")},
     {TOK_LABEL, std::regex("\\s*([a-zA-Z0-9_]+):\\s*")},
-    {TOK_CONSTANT, std::regex("\\s*(true|false|[0-9]*.?[0-9]+)\\s*")},
+    {TOK_CONSTANT, std::regex("\\s*(true|false|[0-9]*\\.?[0-9]+)\\s*")},
     {TOK_IDENTIFIER, std::regex("\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*")},
     {TOK_OPERATOR, std::regex("\\s*(==|!=|=|<=|<|>=|>|->|OR|AND|\\+|\\-|\\*|/)\\s*")},
     {TOK_COLON, std::regex("\\s*(:)\\s*")},
