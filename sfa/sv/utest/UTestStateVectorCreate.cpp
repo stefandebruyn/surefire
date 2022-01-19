@@ -1,6 +1,8 @@
 #include "sfa/sv/StateVector.hpp"
 #include "utest/UTest.hpp"
 
+/////////////////////////////////// Globals ////////////////////////////////////
+
 // Test state vector backing storage.
 #pragma pack(push, 1)
 static struct
@@ -46,11 +48,40 @@ static StateVector::RegionConfig gRegions[] =
 // Test state vector config.
 static StateVector::Config gConfig = {gElems, gRegions};
 
-TEST_GROUP(StateVectorConfigErrors)
+/////////////////////////////////// Helpers ////////////////////////////////////
+
+static void checkStateVectorUninitialized(StateVector& kSv)
 {
+    // Getting an element fails.
+    Element<I32>* elem = nullptr;
+    CHECK_EQUAL(E_UNINITIALIZED, kSv.getElement("foo", elem));
+    POINTERS_EQUAL(nullptr, elem);
+
+    // Getting a region fails.
+    Region* region = nullptr;
+    CHECK_EQUAL(E_UNINITIALIZED, kSv.getRegion("foo", region));
+    POINTERS_EQUAL(nullptr, elem);
+}
+
+//////////////////////////////////// Tests /////////////////////////////////////
+
+TEST_GROUP(StateVectorCreate)
+{
+    void teardown()
+    {
+        // `AllowElementMisalignmentWithoutRegions` can fail without restoring
+        // the `bar` element pointer in `gConfig`, so do that here.
+        gConfig.elems[1].elem = &gElemBar;
+    }
 };
 
-TEST(StateVectorConfigErrors, NullElementArray)
+TEST(StateVectorCreate, Success)
+{
+    StateVector sv;
+    CHECK_SUCCESS(StateVector::create(gConfig, sv));
+}
+
+TEST(StateVectorCreate, ErrorNullElementArray)
 {
     // Replace element array with nullptr.
     StateVector::ElementConfig* const tmp = gConfig.elems;
@@ -63,14 +94,12 @@ TEST(StateVectorConfigErrors, NullElementArray)
     CHECK_EQUAL(E_NULLPTR, res);
 
     // State vector is uninitialized.
-    Element<I32>* foo = nullptr;
-    CHECK_EQUAL(E_UNINITIALIZED, sv.getElement("foo", foo));
-    POINTERS_EQUAL(nullptr, foo);
+    checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorConfigErrors, NullElementPointer)
+TEST(StateVectorCreate, ErrorNullElementPointer)
 {
-    // Replace `bar` element pointer with nullptr.
+    // Replace element `bar` pointer with nullptr.
     IElement* const tmp = gConfig.elems[1].elem;
     gConfig.elems[1].elem = nullptr;
 
@@ -81,14 +110,12 @@ TEST(StateVectorConfigErrors, NullElementPointer)
     CHECK_EQUAL(E_NULLPTR, res);
 
     // State vector is uninitialized.
-    Element<I32>* foo = nullptr;
-    CHECK_EQUAL(E_UNINITIALIZED, sv.getElement("foo", foo));
-    POINTERS_EQUAL(nullptr, foo);
+    checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorConfigErrors, NullRegionPointer)
+TEST(StateVectorCreate, ErrorNullRegionPointer)
 {
-    // Replace `bar`region pointer with nullptr.
+    // Replace region `bar` pointer with nullptr.
     Region* const tmp = gConfig.regions[1].region;
     gConfig.regions[1].region = nullptr;
 
@@ -99,14 +126,12 @@ TEST(StateVectorConfigErrors, NullRegionPointer)
     CHECK_EQUAL(E_NULLPTR, res);
 
     // State vector is uninitialized.
-    Element<I32>* foo = nullptr;
-    CHECK_EQUAL(E_UNINITIALIZED, sv.getElement("foo", foo));
-    POINTERS_EQUAL(nullptr, foo);
+    checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorConfigErrors, MisalignedElementMiddleOfRegion)
+TEST(StateVectorCreate, ErrorMisalignedElementMiddleOfRegion)
 {
-    // Replace `foo` element with one outside the state vector backing storage.
+    // Replace element `foo` with one outside the state vector backing storage.
     I32 backing = 0.0;
     Element<I32> elem(backing);
     IElement* const tmp = gConfig.elems[0].elem;
@@ -119,14 +144,12 @@ TEST(StateVectorConfigErrors, MisalignedElementMiddleOfRegion)
     CHECK_EQUAL(E_LAYOUT, res);
 
     // State vector is uninitialized.
-    Element<I32>* foo = nullptr;
-    CHECK_EQUAL(E_UNINITIALIZED, sv.getElement("foo", foo));
-    POINTERS_EQUAL(nullptr, foo);
+    checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorConfigErrors, MisalignedElementLastInRegion)
+TEST(StateVectorCreate, ErrorMisalignedElementLastInRegion)
 {
-    // Replace `bar` element with one outside the state vector backing storage.
+    // Replace element `bar` with one outside the state vector backing storage.
     F64 backing = 0.0;
     Element<F64> elem(backing);
     IElement* const tmp = gConfig.elems[1].elem;
@@ -138,15 +161,12 @@ TEST(StateVectorConfigErrors, MisalignedElementLastInRegion)
     gConfig.elems[1].elem = tmp;
 
     // State vector is uninitialized.
-    CHECK_EQUAL(E_LAYOUT, res);
-    Element<I32>* foo = nullptr;
-    CHECK_EQUAL(E_UNINITIALIZED, sv.getElement("foo", foo));
-    POINTERS_EQUAL(nullptr, foo);
+    checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorConfigErrors, MisalignedElementFirstInRegion)
+TEST(StateVectorCreate, ErrorMisalignedElementFirstInRegion)
 {
-    // Replace `baz` element with one outside the state vector backing storage.
+    // Replace element `baz` with one outside the state vector backing storage.
     bool backing = 0.0;
     Element<bool> elem(backing);
     IElement* const tmp = gConfig.elems[2].elem;
@@ -158,8 +178,31 @@ TEST(StateVectorConfigErrors, MisalignedElementFirstInRegion)
     gConfig.elems[2].elem = tmp;
 
     // State vector is uninitialized.
-    CHECK_EQUAL(E_LAYOUT, res);
-    Element<I32>* foo = nullptr;
-    CHECK_EQUAL(E_UNINITIALIZED, sv.getElement("foo", foo));
-    POINTERS_EQUAL(nullptr, foo);
+    checkStateVectorUninitialized(sv);
+}
+
+// Non-contiguous elements are allowed when not using regions.
+TEST(StateVectorCreate, AllowElementMisalignmentWithoutRegions)
+{
+    // Replace element `bar` with one outside the state vector backing storage
+    // and null out the regions array.
+    F64 backing = 0.0;
+    Element<F64> elem(backing);
+    IElement* const tmp0 = gConfig.elems[1].elem;
+    gConfig.elems[1].elem = &elem;
+    StateVector::RegionConfig* const tmp1 = gConfig.regions;
+    gConfig.regions = nullptr;
+
+    // Create state vector.
+    StateVector sv;
+    Result res = StateVector::create(gConfig, sv);
+    gConfig.regions = tmp1;
+    CHECK_SUCCESS(res);
+
+    // Getting element `bar` returns the element created locally above.
+    Element<F64>* elemBar = nullptr;
+    res = sv.getElement("bar", elemBar);
+    gConfig.elems[1].elem = tmp0;
+    CHECK_SUCCESS(res);
+    POINTERS_EQUAL(&elem, elemBar);
 }
