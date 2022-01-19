@@ -48,8 +48,6 @@ class ConfigTokenizer final
 {
 public:
 
-    ConfigTokenizer() = delete;
-
     static Result tokenize(std::string kFilePath,
                            std::vector<Token>& kToks,
                            ConfigErrorInfo* kConfigErr);
@@ -57,6 +55,8 @@ public:
     static Result tokenize(std::istream& kIs,
                            std::vector<Token>& kToks,
                            ConfigErrorInfo* kConfigErr);
+
+    ConfigTokenizer() = delete;
 
 private:
 

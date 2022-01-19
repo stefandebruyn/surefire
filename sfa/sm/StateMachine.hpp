@@ -39,11 +39,11 @@ public:
 
     StateMachine();
 
+    Result step();
+
     StateMachine(const StateMachine&) = delete;
     StateMachine(StateMachine&&) = delete;
     StateMachine& operator=(const StateMachine&) = delete;
-
-    Result step();
 
 private:
 

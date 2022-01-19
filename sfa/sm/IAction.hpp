@@ -19,12 +19,12 @@ public:
     {
     }
 
+    virtual Result evaluate(bool& kTransition) final;
+
     IAction(const IAction&) = delete;
     IAction(IAction&&) = delete;
     IAction& operator=(const IAction&) = delete;
     IAction& operator=(IAction&&) = delete;
-
-    virtual Result evaluate(bool& kTransition) final;
 
 protected:
 

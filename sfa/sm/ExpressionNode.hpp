@@ -53,13 +53,6 @@ public:
     {
     }
 
-    ExpressionNode(const ExpressionNode<T, TLeft, TRight>&) = delete;
-    ExpressionNode(ExpressionNode<T, TLeft, TRight>&&) = delete;
-    ExpressionNode<T, TLeft, TRight>& operator=(
-        const ExpressionNode<T, TLeft, TRight>&) = delete;
-    ExpressionNode<T, TLeft, TRight>& operator=(
-        ExpressionNode<T, TLeft, TRight>&&) = delete;
-
     Result evaluate(T& kAns) const final override
     {
         if (mOp != OP_NONE)
@@ -156,6 +149,13 @@ public:
 
         return SUCCESS;
     }
+
+    ExpressionNode(const ExpressionNode<T, TLeft, TRight>&) = delete;
+    ExpressionNode(ExpressionNode<T, TLeft, TRight>&&) = delete;
+    ExpressionNode<T, TLeft, TRight>& operator=(
+        const ExpressionNode<T, TLeft, TRight>&) = delete;
+    ExpressionNode<T, TLeft, TRight>& operator=(
+        ExpressionNode<T, TLeft, TRight>&&) = delete;
 
 private:
 

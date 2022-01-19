@@ -13,11 +13,6 @@ public:
     {
     }
 
-    Region(const Region&) = delete;
-    Region(Region&&) = delete;
-    Region& operator=(const Region&) = delete;
-    Region& operator=(Region&&) = delete;
-
     Result write(const void* const kBuf, const U32 kBufSizeBytes);
 
     Result read(void* const kBuf, const U32 mBufSizeBytes) const;
@@ -25,6 +20,11 @@ public:
     const void* addr() const;
 
     U32 size() const;
+
+    Region(const Region&) = delete;
+    Region(Region&&) = delete;
+    Region& operator=(const Region&) = delete;
+    Region& operator=(Region&&) = delete;
 
 private:
 
