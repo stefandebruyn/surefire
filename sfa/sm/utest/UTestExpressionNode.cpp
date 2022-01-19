@@ -1,5 +1,5 @@
 #include "sfa/sm/ExpressionNode.hpp"
-#include "utest/UTest.hpp"
+#include "UTest.hpp"
 
 #include <iostream>
 

@@ -1,8 +1,7 @@
 #include <sstream>
-#include <iostream> // rm later
 
 #include "sfa/sv/StateVectorParser.hpp"
-#include "utest/UTest.hpp"
+#include "UTest.hpp"
 
 TEST_GROUP(StateVectorParser)
 {

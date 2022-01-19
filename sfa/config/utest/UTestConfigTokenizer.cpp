@@ -1,7 +1,7 @@
 #include <sstream>
 
 #include "sfa/config/ConfigTokenizer.hpp"
-#include "utest/UTest.hpp"
+#include "UTest.hpp"
 
 TEST_GROUP(ConfigTokenizer)
 {
