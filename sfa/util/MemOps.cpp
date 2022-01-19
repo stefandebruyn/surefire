@@ -1,9 +1,6 @@
 #include "sfa/util/MemOps.hpp"
 
-namespace MemOps
-{
-
-I32 strcmp(const char* kA, const char* kB)
+I32 MemOps::strcmp(const char* kA, const char* kB)
 {
     I32 ret = 0;
 
@@ -34,10 +31,10 @@ I32 strcmp(const char* kA, const char* kB)
     return ret;
 }
 
-void* memcpy(void* kDest, const void* const kSrc, const U32 kSizeBytes)
+void* MemOps::memcpy(void* kDest, const void* const kSrc, const U32 kSizeBytes)
 {
-    char* const dest = (char* const) kDest;
-    const char* const src = (const char* const) kSrc;
+    char* const dest = static_cast<char* const>(kDest);
+    const char* const src = static_cast<const char* const>(kSrc);
 
     if ((dest != nullptr) && (src != nullptr))
     {
@@ -49,5 +46,3 @@ void* memcpy(void* kDest, const void* const kSrc, const U32 kSizeBytes)
 
     return dest;
 }
-
-} // namespace MemOps

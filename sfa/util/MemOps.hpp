@@ -5,11 +5,9 @@
 
 namespace MemOps
 {
+    I32 strcmp(const char* kA, const char* kB);
 
-I32 strcmp(const char* kA, const char* kB);
-
-void* memcpy(void* kDest, const void* const kSrc, const U32 kSizeBytes);
-
-} // namespace MemOps
+    void* memcpy(void* kDest, const void* const kSrc, const U32 kSizeBytes);
+}
 
 #endif
