@@ -21,7 +21,7 @@ enum ExpressionNodeOperator : U32
     OP_NOT_EQUALS
 };
 
-template <typename T>
+template<typename T>
 class IExpressionNode
 {
 public:
@@ -31,7 +31,7 @@ public:
     virtual Result evaluate(T& kAns) const = 0;
 };
 
-template <typename T, typename TLeft = T, typename TRight = TLeft>
+template<typename T, typename TLeft = T, typename TRight = TLeft>
 class ExpressionNode final : public IExpressionNode<T>
 {
 public:

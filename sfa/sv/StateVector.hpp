@@ -32,14 +32,14 @@ public:
 
     StateVector();
 
-    StateVector(const StateVector&) = delete;
-    StateVector& operator=(const StateVector&) = delete;
-    StateVector(StateVector&&) = delete;
-
     template<typename T>
     Result getElement(const char* const kName, Element<T>*& kELem);
 
     Result getRegion(const char* const kName, Region*& kRegion);
+
+    StateVector(const StateVector&) = delete;
+    StateVector& operator=(const StateVector&) = delete;
+    StateVector(StateVector&&) = delete;
 
 private:
 
