@@ -1,8 +1,6 @@
 #include "sfa/sm/ExpressionNode.hpp"
 #include "UTest.hpp"
 
-#include <iostream>
-
 static const ExpressionNode<I32> gA(5);
 static const ExpressionNode<I32> gB(3);
 static const ExpressionNode<I32> gC(-4);
