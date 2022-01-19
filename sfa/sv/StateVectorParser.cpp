@@ -209,6 +209,40 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
         }
     }
 
+    // If the caller provided a list of regions to parse, check that all
+    // specified regions existed in the config.
+    for (const std::string& regionName : kRegions)
+    {
+        bool found = false;
+        for (const RegionParse& regionParse : parse.regions)
+        {
+            if (regionParse.plainName == regionName)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (found == false)
+        {
+            if (kConfigErr != nullptr)
+            {
+                kConfigErr->msg = "no region by the name `" + regionName + "`";
+            }
+            return E_PARSE;
+        }
+    }
+
+    // Check that at least 1 region was parsed.
+    if (parse.regions.size() == 0)
+    {
+        if (kConfigErr != nullptr)
+        {
+            kConfigErr->msg = "no regions were parsed";
+        }
+        return E_PARSE;
+    }
+
     // At this point we have a potentially valid state vector parsing- now we
     // try compiling it into a `StateVector::Config`.
 
@@ -218,6 +252,18 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
     U32 svSizeBytes = 0;
     for (const RegionParse& region : parse.regions)
     {
+        // Check that region contains at least 1 element.
+        if (region.elems.size() == 0)
+        {
+            if (kConfigErr != nullptr)
+            {
+                kConfigErr->lineNum = region.tokName.lineNum;
+                kConfigErr->colNum = region.tokName.colNum;
+                kConfigErr->msg = "region is empty";
+            }
+            return E_PARSE;
+        }
+
         elemCnt += region.elems.size();
         for (const ElementParse& elem : region.elems)
         {

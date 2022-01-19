@@ -36,8 +36,6 @@ public:
         const char* const mSvBacking;
     };
 
-    StateVectorParser() = delete;
-
     static Result parse(const std::string kFilePath,
                         std::shared_ptr<Config>& kConfig,
                         ConfigErrorInfo* kConfigErr,
@@ -47,6 +45,8 @@ public:
                         std::shared_ptr<Config>& kConfig,
                         ConfigErrorInfo* kConfigErr,
                         const std::vector<std::string> kRegions = ALL_REGIONS);
+
+    StateVectorParser() = delete;
 
 private:
 

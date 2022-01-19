@@ -33,8 +33,8 @@ std::string ConfigErrorInfo::prettifyError() const
             ss << " ";
         }
 
-        for (; i < lines[lineNum - 1].size()
-            && std::isspace(lines[lineNum - 1][i]); ++i)
+        for (; (i < lines[lineNum - 1].size())
+               && std::isspace(lines[lineNum - 1][i]); ++i)
         {
             ss << " ";
         }
@@ -42,6 +42,11 @@ std::string ConfigErrorInfo::prettifyError() const
         ss << "^ " << msg << "\n";
 
         return ss.str();
+    }
+
+    if (filePath.size() != 0)
+    {
+        return ("CONFIG ERROR @ " + filePath + ": " + msg);
     }
 
     return ("CONFIG ERROR: " + msg);
