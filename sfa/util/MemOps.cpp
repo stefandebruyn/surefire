@@ -8,7 +8,7 @@ I32 MemOps::strcmp(const char* kA, const char* kB)
     {
         if (kA == nullptr)
         {
-            ret = kB[0];
+            ret = -kB[0];
         }
         else
         {
