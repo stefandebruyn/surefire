@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-struct EnumHash
+struct EnumHash final
 {
     template<typename T>
     std::size_t operator()(T k) const
