@@ -27,6 +27,7 @@ utest:
 	sfa/util/MemOps.cpp \
 	sfa/util/utest/UTestMemOps.cpp \
 	-I. \
+	-Iutest \
 	-lCppUTest
 
 clean:

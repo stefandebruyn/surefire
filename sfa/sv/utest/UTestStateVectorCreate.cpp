@@ -1,5 +1,5 @@
 #include "sfa/sv/StateVector.hpp"
-#include "utest/UTest.hpp"
+#include "UTest.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
 

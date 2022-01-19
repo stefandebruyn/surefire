@@ -1,5 +1,5 @@
 #include "sfa/sv/Region.hpp"
-#include "utest/UTest.hpp"
+#include "UTest.hpp"
 
 TEST_GROUP(Region)
 {

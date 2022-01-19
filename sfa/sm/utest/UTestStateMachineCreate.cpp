@@ -1,6 +1,6 @@
 #include "sfa/sm/StateMachine.hpp"
 #include "sfa/sm/TransitionAction.hpp"
-#include "utest/UTest.hpp"
+#include "UTest.hpp"
 
 //////////////////////////// State Machine Config //////////////////////////////
 

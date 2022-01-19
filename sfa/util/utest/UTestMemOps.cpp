@@ -1,5 +1,5 @@
 #include "sfa/util/MemOps.hpp"
-#include "utest/UTest.hpp"
+#include "UTest.hpp"
 
 TEST_GROUP(MemOps)
 {
