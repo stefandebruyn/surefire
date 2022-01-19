@@ -5,6 +5,8 @@
 
 #include "sfa/sv/StateVectorParser.hpp"
 
+/////////////////////////////////// Public /////////////////////////////////////
+
 const std::vector<std::string> StateVectorParser::ALL_REGIONS;
 
 StateVectorParser::Config::Config(const StateVector::Config kSvConfig,
@@ -44,24 +46,6 @@ const StateVector::Config& StateVectorParser::Config::get() const
     return mSvConfig;
 }
 
-const std::regex StateVectorParser::mRegionSectionRegex(
-    "REGION/([a-zA-Z][a-zA-Z0-9_]*)");
-
-const std::unordered_map<std::string, U32> StateVectorParser::mElemTypeSize =
-{
-    {"I8", 1},
-    {"I16", 2},
-    {"I32", 4},
-    {"I64", 8},
-    {"U8", 1},
-    {"U16", 2},
-    {"U32", 4},
-    {"U64", 8},
-    {"F32", 4},
-    {"F64", 8},
-    {"bool", 1}
-};
-
 Result StateVectorParser::parse(const std::string kFilePath,
                                 std::shared_ptr<Config>& kConfig,
                                 ConfigErrorInfo* kConfigErr,
@@ -99,6 +83,26 @@ Result StateVectorParser::parse(std::istream& kIs,
 
     return StateVectorParser::parseImpl(toks, kConfig, kConfigErr, kRegions);
 }
+
+/////////////////////////////////// Private ////////////////////////////////////
+
+const std::regex StateVectorParser::mRegionSectionRegex(
+    "REGION/([a-zA-Z][a-zA-Z0-9_]*)");
+
+const std::unordered_map<std::string, U32> StateVectorParser::mElemTypeSize =
+{
+    {"I8", 1},
+    {"I16", 2},
+    {"I32", 4},
+    {"I64", 8},
+    {"U8", 1},
+    {"U16", 2},
+    {"U32", 4},
+    {"U64", 8},
+    {"F32", 4},
+    {"F64", 8},
+    {"bool", 1}
+};
 
 Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                                     std::shared_ptr<Config>& kConfig,
@@ -244,7 +248,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
     }
 
     // At this point we have a potentially valid state vector parsing- now we
-    // try compiling it into a `StateVector::Config`.
+    // try compiling it into an actual state vector config.
     return StateVectorParser::makeConfig(parse, kConfigErr, kConfig);
 }
 
