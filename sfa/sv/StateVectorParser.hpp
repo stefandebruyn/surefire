@@ -93,6 +93,11 @@ private:
     static Result allocateElement(const ElementParse& kElem,
                                   StateVector::ElementConfig& kElemInfo,
                                   char*& kBumpPtr);
+
+    static Result makeConfig(const Parse& kParse,
+                             ConfigErrorInfo* kConfigErr,
+                             std::shared_ptr<Config>& kConfig);
+
 };
 
 #endif

@@ -245,98 +245,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
 
     // At this point we have a potentially valid state vector parsing- now we
     // try compiling it into a `StateVector::Config`.
-
-    // Count the number of elements, regions, and bytes in the state vector.
-    U32 elemCnt = 0;
-    const U32 regionCnt = parse.regions.size();
-    U32 svSizeBytes = 0;
-    for (const RegionParse& region : parse.regions)
-    {
-        // Check that region contains at least 1 element.
-        if (region.elems.size() == 0)
-        {
-            if (kConfigErr != nullptr)
-            {
-                kConfigErr->lineNum = region.tokName.lineNum;
-                kConfigErr->colNum = region.tokName.colNum;
-                kConfigErr->msg = "region is empty";
-            }
-            return E_PARSE;
-        }
-
-        elemCnt += region.elems.size();
-        for (const ElementParse& elem : region.elems)
-        {
-            svSizeBytes += elem.sizeBytes;
-        }
-    }
-
-    // Allocate array for element configs.
-    StateVector::ElementConfig* elemConfigs =
-        new StateVector::ElementConfig[elemCnt + 1];
-    elemConfigs[elemCnt] = {nullptr, nullptr}; // Null terminator.
-
-    // Allocate array for region configs.
-    StateVector::RegionConfig* regionConfigs =
-        new StateVector::RegionConfig[regionCnt + 1];
-    regionConfigs[regionCnt] = {nullptr, nullptr}; // Null terminator.
-
-    // Allocate backing storage for state vector and zero it out.
-    char* svBacking = new char[svSizeBytes];
-    std::memset(svBacking, 0, svSizeBytes);
-
-    // Allocate `Element` and `Region` objects and put them into the arrays
-    // we just allocated.
-    char* bumpPtr = svBacking;
-    U32 elemIdx = 0;
-    for (U32 regionIdx = 0; regionIdx < parse.regions.size(); ++regionIdx)
-    {
-        const RegionParse& regionParse = parse.regions[regionIdx];
-
-        // Save a copy of the bump pointer, which right now points to the start
-        // of the region.
-        char* const regionPtr = bumpPtr;
-
-        // Allocate elements and populate element config array.
-        for (const ElementParse& elemParse : regionParse.elems)
-        {
-            Result res = StateVectorParser::allocateElement(
-                elemParse, elemConfigs[elemIdx], bumpPtr);
-            if (res != SUCCESS)
-            {
-                // Clean up allocations since aborting parse.
-                delete[] elemConfigs;
-                delete[] regionConfigs;
-                delete[] svBacking;
-                return res;
-            }
-            ++elemIdx;
-        }
-
-        // Allocate a copy of the region name for the
-        // `StateVector::RegionConfig` representing this region.
-        char* regionNameCpy = new char[regionParse.plainName.size() + 1];
-        std::strcpy(regionNameCpy, regionParse.plainName.c_str());
-        regionConfigs[regionIdx].name = regionNameCpy;
-
-        // Compute the size of the region. Since the `allocateElement` calls
-        // above will have bumped the bump pointer to the end of the region,
-        // we compute the region size as the difference between the bump pointer
-        // and the region pointer we saved at the top of the loop.
-        const U64 regionSizeBytes = ((U64) bumpPtr - (U64) regionPtr);
-
-        // Allocate region and put into config array.
-        Region* region = new Region(regionPtr, regionSizeBytes);
-        regionConfigs[regionIdx] = {regionNameCpy, region};
-    }
-
-    // Create `StateVector::Config` and wrap it in a `StateVectorParser::Config`
-    // shared pointer, which will handle deallocation of all the memory we just
-    // allocated.
-    StateVector::Config svConfig = {elemConfigs, regionConfigs};
-    kConfig.reset(new Config(svConfig, svBacking));
-
-    return SUCCESS;
+    return StateVectorParser::makeConfig(parse, kConfigErr, kConfig);
 }
 
 Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
@@ -591,6 +500,103 @@ Result StateVectorParser::allocateElement(const ElementParse& kElem,
         delete[] kElemInfo.name;
         return E_UNREACHABLE;
     }
+
+    return SUCCESS;
+}
+
+Result StateVectorParser::makeConfig(const Parse& kParse,
+                                     ConfigErrorInfo* kConfigErr,
+                                     std::shared_ptr<Config>& kConfig)
+{
+    // Count the number of elements, regions, and bytes in the state vector.
+    U32 elemCnt = 0;
+    const U32 regionCnt = kParse.regions.size();
+    U32 svSizeBytes = 0;
+    for (const RegionParse& region : kParse.regions)
+    {
+        // Check that region contains at least 1 element.
+        if (region.elems.size() == 0)
+        {
+            if (kConfigErr != nullptr)
+            {
+                kConfigErr->lineNum = region.tokName.lineNum;
+                kConfigErr->colNum = region.tokName.colNum;
+                kConfigErr->msg = "region is empty";
+            }
+            return E_PARSE;
+        }
+
+        elemCnt += region.elems.size();
+        for (const ElementParse& elem : region.elems)
+        {
+            svSizeBytes += elem.sizeBytes;
+        }
+    }
+
+    // Allocate array for element configs.
+    StateVector::ElementConfig* elemConfigs =
+        new StateVector::ElementConfig[elemCnt + 1];
+    elemConfigs[elemCnt] = {nullptr, nullptr}; // Null terminator.
+
+    // Allocate array for region configs.
+    StateVector::RegionConfig* regionConfigs =
+        new StateVector::RegionConfig[regionCnt + 1];
+    regionConfigs[regionCnt] = {nullptr, nullptr}; // Null terminator.
+
+    // Allocate backing storage for state vector and zero it out.
+    char* svBacking = new char[svSizeBytes];
+    std::memset(svBacking, 0, svSizeBytes);
+
+    // Allocate element and region objects and put them into the arrays we just
+    // allocated.
+    char* bumpPtr = svBacking;
+    U32 elemIdx = 0;
+    for (U32 regionIdx = 0; regionIdx < kParse.regions.size(); ++regionIdx)
+    {
+        const RegionParse& regionParse = kParse.regions[regionIdx];
+
+        // Save a copy of the bump pointer, which right now points to the start
+        // of the region.
+        char* const regionPtr = bumpPtr;
+
+        // Allocate elements and populate element config array.
+        for (const ElementParse& elemParse : regionParse.elems)
+        {
+            Result res = StateVectorParser::allocateElement(
+                elemParse, elemConfigs[elemIdx], bumpPtr);
+            if (res != SUCCESS)
+            {
+                // Clean up allocations since aborting parse.
+                delete[] elemConfigs;
+                delete[] regionConfigs;
+                delete[] svBacking;
+                return res;
+            }
+            ++elemIdx;
+        }
+
+        // Allocate a copy of the region name for the region config object
+        // representing this region.
+        char* regionNameCpy = new char[regionParse.plainName.size() + 1];
+        std::strcpy(regionNameCpy, regionParse.plainName.c_str());
+        regionConfigs[regionIdx].name = regionNameCpy;
+
+        // Compute the size of the region. Since the `allocateElement` calls
+        // above will have bumped the bump pointer to the end of the region,
+        // we compute the region size as the difference between the bump pointer
+        // and the region pointer we saved at the top of the loop.
+        const U64 regionSizeBytes = ((U64) bumpPtr - (U64) regionPtr);
+
+        // Allocate region and put into config array.
+        Region* region = new Region(regionPtr, regionSizeBytes);
+        regionConfigs[regionIdx] = {regionNameCpy, region};
+    }
+
+    // Create `StateVector::Config` and wrap it in a `StateVectorParser::Config`
+    // shared pointer, which will handle deallocation of all the memory we just
+    // allocated.
+    StateVector::Config svConfig = {elemConfigs, regionConfigs};
+    kConfig.reset(new Config(svConfig, svBacking));
 
     return SUCCESS;
 }
