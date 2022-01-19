@@ -24,11 +24,11 @@ public:
 
     virtual ~IElement() = default;
 
-    virtual ElementType getElementType() const = 0;
+    virtual ElementType type() const = 0;
 
-    virtual const void* getAddr() const = 0;
+    virtual const void* addr() const = 0;
 
-    virtual U32 getSizeBytes() const = 0;
+    virtual U32 size() const = 0;
 };
 
 template<typename T>
@@ -55,14 +55,14 @@ public:
         return mBacking;
     }
 
-    ElementType getElementType() const final override;
+    ElementType type() const final override;
 
-    const void* getAddr() const final override
+    const void* addr() const final override
     {
         return &mBacking;
     }
 
-    U32 getSizeBytes() const final override
+    U32 size() const final override
     {
         return sizeof(T);
     }

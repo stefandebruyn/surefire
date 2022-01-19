@@ -25,7 +25,7 @@
            validated correctly. */                                             \
         return E_NULLPTR;                                                      \
     }                                                                          \
-    if (elem->getElementType() != kElementType)                                \
+    if (elem->type() != kElementType)                                          \
     {                                                                          \
         /* Type mismatch. */                                                   \
         return E_TYPE;                                                         \
@@ -184,8 +184,8 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
         U32 elemIdx = 0;
         for (U32 i = 0; kConfig.regions[i].name != nullptr; ++i)
         {
-            const U32 regionSize = kConfig.regions[i].region->getSizeBytes();
-            const void* regionPtr = kConfig.regions[i].region->getAddr();
+            const U32 regionSize = kConfig.regions[i].region->size();
+            const void* regionPtr = kConfig.regions[i].region->addr();
             const char* bumpPtr = static_cast<const char*>(regionPtr);
 
             // Advance through elements array until either the end of the array
@@ -194,14 +194,14 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
                    && (((U64) bumpPtr - (U64) regionPtr) < regionSize))
             {
                 // Check that current element address is at the bump pointer.
-                if (bumpPtr != kConfig.elems[elemIdx].elem->getAddr())
+                if (bumpPtr != kConfig.elems[elemIdx].elem->addr())
                 {
                     kRes = E_LAYOUT;
                     return;
                 }
 
                 // Bump pointer by size of element.
-                bumpPtr += kConfig.elems[elemIdx].elem->getSizeBytes();
+                bumpPtr += kConfig.elems[elemIdx].elem->size();
                 ++elemIdx;
             }
 

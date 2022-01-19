@@ -23,12 +23,12 @@ Result Region::read(void* const kBuf, const U32 kBufSizeBytes) const
     return SUCCESS;
 }
 
-const void* Region::getAddr() const
+const void* Region::addr() const
 {
     return mAddr;
 }
 
-U32 Region::getSizeBytes() const
+U32 Region::size() const
 {
     return mSizeBytes;
 }

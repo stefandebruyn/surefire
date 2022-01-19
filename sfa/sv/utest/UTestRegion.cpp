@@ -27,3 +27,17 @@ TEST(Region, ReadWrite)
     CHECK_EQUAL(1.522, foo.f64);
     CHECK_EQUAL(true, foo.b);
 }
+
+TEST(Region, GetAddr)
+{
+    char buf[16];
+    Region region(&buf, sizeof(buf));
+    POINTERS_EQUAL(buf, region.addr());
+}
+
+TEST(Region, GetSize)
+{
+    char buf[16];
+    Region region(&buf, sizeof(buf));
+    CHECK_EQUAL(16, region.size());
+}
