@@ -5,7 +5,8 @@ utest:
 	sfa/sv/utest/UTestRegion.cpp \
 	sfa/sv/utest/UTestStateVectorAccess.cpp \
 	sfa/sv/utest/UTestStateVectorCreate.cpp \
-	sfa/sv/utest/UTestStateVectorParser.cpp \
+	sfa/sv/utest/UTestStateVectorParserParse.cpp \
+	sfa/sv/utest/UTestStateVectorParserErrors.cpp \
 	sfa/sv/Element.cpp \
 	sfa/sv/Region.cpp \
 	sfa/sv/StateVector.cpp \
