@@ -34,11 +34,11 @@ static void checkStateVectorParserError(
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
-TEST_GROUP(StateVectorParserErrors)
+TEST_GROUP(StateVectorParserError)
 {
 };
 
-TEST(StateVectorParserErrors, DupeSectionName)
+TEST(StateVectorParserError, DupeSectionName)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -48,7 +48,7 @@ TEST(StateVectorParserErrors, DupeSectionName)
     checkStateVectorParserError(ss, E_SVP_RGN_DUPE, 3, 1);
 }
 
-TEST(StateVectorParserErrors, InvalidSectionName)
+TEST(StateVectorParserError, InvalidSectionName)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -58,7 +58,7 @@ TEST(StateVectorParserErrors, InvalidSectionName)
     checkStateVectorParserError(ss, E_SVP_SEC_NAME, 3, 1);
 }
 
-TEST(StateVectorParserErrors, UnexpectedTokenOutsideSection)
+TEST(StateVectorParserError, UnexpectedTokenOutsideSection)
 {
     std::stringstream ss(
         "64 " // Erroneous token
@@ -69,7 +69,7 @@ TEST(StateVectorParserErrors, UnexpectedTokenOutsideSection)
     checkStateVectorParserError(ss, E_SVP_TOK, 1, 1);
 }
 
-TEST(StateVectorParserErrors, SelectInvalidRegion)
+TEST(StateVectorParserError, SelectInvalidRegion)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -80,13 +80,13 @@ TEST(StateVectorParserErrors, SelectInvalidRegion)
     checkStateVectorParserError(ss, E_SVP_RGN_NAME, -1, -1, {"Baz"});
 }
 
-TEST(StateVectorParserErrors, EmptyConfig)
+TEST(StateVectorParserError, EmptyConfig)
 {
     std::stringstream ss;
     checkStateVectorParserError(ss, E_SVP_NO_RGNS, -1, -1);
 }
 
-TEST(StateVectorParserErrors, UnexpectedTokenInRegion)
+TEST(StateVectorParserError, UnexpectedTokenInRegion)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -97,7 +97,7 @@ TEST(StateVectorParserErrors, UnexpectedTokenInRegion)
     checkStateVectorParserError(ss, E_SVP_RGN_TOK, 2, 9);
 }
 
-TEST(StateVectorParserErrors, InvalidElementType)
+TEST(StateVectorParserError, InvalidElementType)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -108,7 +108,7 @@ TEST(StateVectorParserErrors, InvalidElementType)
     checkStateVectorParserError(ss, E_SVP_ELEM_TYPE, 2, 1);
 }
 
-TEST(StateVectorParserErrors, NonIdentifierAfterElementType)
+TEST(StateVectorParserError, NonIdentifierAfterElementType)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -118,7 +118,7 @@ TEST(StateVectorParserErrors, NonIdentifierAfterElementType)
     checkStateVectorParserError(ss, E_SVP_ELEM_NAME, 3, 1);
 }
 
-TEST(StateVectorParserErrors, NothingAfterElementType)
+TEST(StateVectorParserError, NothingAfterElementType)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -128,7 +128,7 @@ TEST(StateVectorParserErrors, NothingAfterElementType)
     checkStateVectorParserError(ss, E_SVP_ELEM_NAME, 4, 1);
 }
 
-TEST(StateVectorParserErrors, DupeElementName)
+TEST(StateVectorParserError, DupeElementName)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -139,7 +139,7 @@ TEST(StateVectorParserErrors, DupeElementName)
     checkStateVectorParserError(ss, E_SVP_ELEM_DUPE, 4, 5);
 }
 
-TEST(StateVectorParserErrors, EmptyRegionFirstInConfig)
+TEST(StateVectorParserError, EmptyRegionFollowedByRegion)
 {
     std::stringstream ss(
         "[REGION/Foo]\n" // Erroneous token
@@ -148,18 +148,7 @@ TEST(StateVectorParserErrors, EmptyRegionFirstInConfig)
     checkStateVectorParserError(ss, E_SVP_RGN_EMPTY, 1, 1);
 }
 
-TEST(StateVectorParserErrors, EmptyRegionMiddleOfConfig)
-{
-    std::stringstream ss(
-        "[REGION/Foo]\n"
-        "I32 foo\n"
-        "[REGION/Bar]\n" // Erroneous token
-        "[REGION/Baz]\n"
-        "I32 baz\n");
-    checkStateVectorParserError(ss, E_SVP_RGN_EMPTY, 3, 1);
-}
-
-TEST(StateVectorParserErrors, EmptyRegionLastInConfig)
+TEST(StateVectorParserError, EmptyRegionFollowedByNothing)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -170,10 +159,9 @@ TEST(StateVectorParserErrors, EmptyRegionLastInConfig)
     checkStateVectorParserError(ss, E_SVP_RGN_EMPTY, 5, 1);
 }
 
-TEST(StateVectorParserErrors, NonexistentInputFile)
+TEST(StateVectorParserError, NonexistentInputFile)
 {
     std::shared_ptr<StateVectorParser::Config> config = nullptr;
-    CHECK_EQUAL(E_FILE,
-                StateVectorParser::parse("foobar.baz", config, nullptr));
+    CHECK_EQUAL(E_FILE, StateVectorParser::parse("foo.bar", config, nullptr));
     POINTERS_EQUAL(nullptr, config.get());
 }
