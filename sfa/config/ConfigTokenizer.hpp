@@ -34,7 +34,6 @@ extern const std::unordered_map<TokenType, std::string, EnumHash> gTokenNames;
 struct Token final
 {
     TokenType type;
-    U32 which;
     std::string str;
     I32 lineNum;
     I32 colNum;
@@ -60,11 +59,10 @@ public:
 
 private:
 
-    static U32 mLineNum;
-
     static std::map<TokenType, std::regex> mTokenRegexes;
 
     static Result tokenizeLine(const std::string& kLine,
+                               const U32 kLineNum,
                                std::vector<Token>& kToks,
                                ConfigErrorInfo* kConfigErr);
 };

@@ -9,19 +9,17 @@ TEST_GROUP(ConfigTokenizer)
 
 TEST(ConfigTokenizer, TokenEquivalence)
 {
-    Token a = {TOK_CONSTANT, 0, "foo", 0, 0};
-    Token b = {TOK_CONSTANT, 0, "foo", 0, 0};
-    Token c = {TOK_LABEL,    0, "foo", 0, 0};
-    Token d = {TOK_CONSTANT, 1, "foo", 0, 0};
-    Token e = {TOK_CONSTANT, 0, "bar", 0, 0};
-    Token f = {TOK_CONSTANT, 0, "foo", 1, 0};
-    Token g = {TOK_CONSTANT, 0, "foo", 0, 1};
+    Token a = {TOK_CONSTANT, "foo", 0, 0};
+    Token b = {TOK_CONSTANT, "foo", 0, 0};
+    Token c = {TOK_LABEL,    "foo", 0, 0};
+    Token d = {TOK_CONSTANT, "bar", 0, 0};
+    Token e = {TOK_CONSTANT, "foo", 1, 0};
+    Token f = {TOK_CONSTANT, "foo", 0, 1};
     CHECK_TRUE(a == b);
     CHECK_TRUE(a != c);
     CHECK_TRUE(a != d);
     CHECK_TRUE(a != e);
     CHECK_TRUE(a != f);
-    CHECK_TRUE(a != g);
 }
 
 TEST(ConfigTokenizer, SectionToken)
@@ -31,7 +29,7 @@ TEST(ConfigTokenizer, SectionToken)
     CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toksActual, nullptr));
     std::vector<Token> toksExpect =
     {
-        {TOK_SECTION, 0, "Foo", 1, 1}
+        {TOK_SECTION, "Foo", 1, 1}
     };
     CHECK_TRUE(toksExpect == toksActual);
 }
@@ -53,7 +51,7 @@ TEST(ConfigTokenizer, AnnotationToken)
     CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toksActual, nullptr));
     std::vector<Token> toksExpect =
     {
-        {TOK_ANNOTATION, 0, "@FOO", 1, 1}
+        {TOK_ANNOTATION, "@FOO", 1, 1}
     };
     CHECK_TRUE(toksExpect == toksActual);
 }

@@ -22,7 +22,6 @@ const std::unordered_map<TokenType, std::string, EnumHash> gTokenNames =
 bool Token::operator==(const Token& other) const
 {
     return ((this->type == other.type)
-            && (this->which == other.which)
             && (this->str == other.str)
             && (this->lineNum == other.lineNum)
             && (this->colNum == other.colNum));
@@ -32,8 +31,6 @@ bool Token::operator!=(const Token& other) const
 {
     return !(*this == other);
 }
-
-U32 ConfigTokenizer::mLineNum = 0;
 
 std::map<TokenType, std::regex> ConfigTokenizer::mTokenRegexes =
 {
@@ -75,18 +72,18 @@ Result ConfigTokenizer::tokenize(std::istream& kIs,
                                  std::vector<Token>& kToks,
                                  ConfigErrorInfo* kConfigErr)
 {
-    mLineNum = 0;
-
     if ((kConfigErr != nullptr) && (kConfigErr->filePath.size() == 0))
     {
         kConfigErr->filePath = "(no file)";
     }
 
     std::string line;
+    U32 lineNum = 1;
     while (std::getline(kIs, line))
     {
         // Tokenize the line.
-        Result res = ConfigTokenizer::tokenizeLine(line, kToks, kConfigErr);
+        Result res = ConfigTokenizer::tokenizeLine(
+            line, lineNum, kToks, kConfigErr);
         if (res != SUCCESS)
         {
             return res;
@@ -99,21 +96,21 @@ Result ConfigTokenizer::tokenize(std::istream& kIs,
             const Token newlineTok =
             {
                 TOK_NEWLINE,
-                0,
                 "(newline)",
-                static_cast<I32>(mLineNum),
+                static_cast<I32>(lineNum),
                 static_cast<I32>(line.size() - 1)
             };
             kToks.push_back(newlineTok);
         }
 
-        ++mLineNum;
+        ++lineNum;
     }
 
     return SUCCESS;
 }
 
 Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
+                                     const U32 kLineNum,
                                      std::vector<Token>& kToks,
                                      ConfigErrorInfo* kConfigErr)
 {
@@ -163,9 +160,8 @@ Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
                     const Token tok =
                     {
                         tokType.first,
-                        0,
                         match[1].str(),
-                        static_cast<I32>(mLineNum + 1),
+                        static_cast<I32>(kLineNum),
                         static_cast<I32>(idx + nonWsIdx + 1)
                     };
                     kToks.push_back(tok);

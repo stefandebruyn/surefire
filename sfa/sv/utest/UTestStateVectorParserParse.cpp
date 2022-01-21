@@ -5,13 +5,13 @@
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
-struct ElementInfo
+struct CheckElementInfo final
 {
     std::string name;
     ElementType type;
 };
 
-struct RegionInfo
+struct CheckRegionInfo final
 {
     std::string name;
     U32 sizeBytes;
@@ -19,8 +19,8 @@ struct RegionInfo
 
 static void checkParseStateVectorConfig(
     std::stringstream& kSs,
-    const std::vector<ElementInfo> kElems,
-    const std::vector<RegionInfo> kRegions,
+    const std::vector<CheckElementInfo> kElems,
+    const std::vector<CheckRegionInfo> kRegions,
     const std::vector<std::string> kSelectRegions =
         StateVectorParser::ALL_REGIONS)
 {
@@ -59,7 +59,7 @@ static void checkParseStateVectorConfig(
     CHECK_SUCCESS(StateVector::create(svConfig, sv));
 
     // All elements can be looked up and have initial value zero.
-    for (const ElementInfo& elemInfo : kElems)
+    for (const CheckElementInfo& elemInfo : kElems)
     {
         switch (elemInfo.type)
         {
@@ -157,7 +157,7 @@ static void checkParseStateVectorConfig(
     }
 
     // All regions can be looked up and have the correct size.
-    for (const RegionInfo& regionInfo : kRegions)
+    for (const CheckRegionInfo& regionInfo : kRegions)
     {
         Region* region = nullptr;
         CHECK_SUCCESS(sv.getRegion(regionInfo.name.c_str(), region));
