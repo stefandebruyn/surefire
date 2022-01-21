@@ -162,7 +162,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                                    << regionParse.tokName.lineNum << ")";
                                 kConfigErr->msg = ss.str();
                             }
-                            return E_PARSE;
+                            return E_SVP_RGN_DUPE;
                         }
                     }
 
@@ -191,7 +191,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                         kConfigErr->colNum = tok.colNum;
                         kConfigErr->msg = "invalid section name";
                     }
-                    return E_PARSE;
+                    return E_SVP_SEC_NAME;
                 }
                 break;
             }
@@ -209,7 +209,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                     kConfigErr->colNum = tok.colNum;
                     kConfigErr->msg = "expected a section";
                 }
-                return E_PARSE;
+                return E_SVP_TOK;
         }
     }
 
@@ -233,7 +233,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
             {
                 kConfigErr->msg = "no region by the name `" + regionName + "`";
             }
-            return E_PARSE;
+            return E_SVP_RGN_NAME;
         }
     }
 
@@ -244,7 +244,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
         {
             kConfigErr->msg = "no regions were parsed";
         }
-        return E_PARSE;
+        return E_SVP_NO_RGNS;
     }
 
     // At this point we have a potentially valid state vector parsing- now we
@@ -306,7 +306,7 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                     kConfigErr->msg =
                         "expected element or region, got " + tokTypeName;
                 }
-                return E_PARSE;
+                return E_SVP_RGN_TOK;
         }
     }
 
@@ -335,7 +335,7 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
             kConfigErr->msg =
                 "unknown type `" + tokType.str + "`";
         }
-        return E_PARSE;
+        return E_SVP_ELEM_TYPE;
     }
 
     // Set element size.
@@ -387,7 +387,7 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
             }
         }
 
-        return E_PARSE;
+        return E_SVP_ELEM_NAME;
     }
 
     // Consume element name token.
@@ -411,7 +411,7 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
                        << elemParse.tokName.lineNum << ")";
                     kConfigErr->msg = ss.str();
                 }
-                return E_PARSE;
+                return E_SVP_ELEM_DUPE;
             }
         }
     }
@@ -527,7 +527,7 @@ Result StateVectorParser::makeConfig(const Parse& kParse,
                 kConfigErr->colNum = region.tokName.colNum;
                 kConfigErr->msg = "region is empty";
             }
-            return E_PARSE;
+            return E_SVP_RGN_EMPTY;
         }
 
         elemCnt += region.elems.size();

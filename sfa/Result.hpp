@@ -26,4 +26,17 @@ typedef I32 Result;
 #define E_LAYOUT (18)
 #define E_REINIT (19)
 
+////////////////////////////// StateVectorParser ///////////////////////////////
+
+#define E_SVP_RGN_DUPE (64)
+#define E_SVP_RGN_NAME (65)
+#define E_SVP_RGN_EMPTY (66)
+#define E_SVP_NO_RGNS (67)
+#define E_SVP_ELEM_DUPE (68)
+#define E_SVP_ELEM_NAME (69)
+#define E_SVP_ELEM_TYPE (70)
+#define E_SVP_SEC_NAME (71)
+#define E_SVP_TOK (72)
+#define E_SVP_RGN_TOK (73)
+
 #endif
