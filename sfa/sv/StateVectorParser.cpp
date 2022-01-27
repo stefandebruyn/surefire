@@ -290,21 +290,12 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                 // Unexpected token.
                 if (kConfigErr != nullptr)
                 {
-                    // Get human-readable name of unexpected token type.
-                    auto iter = Token::names.find(tok.type);
-                    if (iter == Token::names.end())
-                    {
-                        // Should be unreachable- indicates that `Token::names`
-                        // is missing a key.
-                        return E_KEY;
-                    }
-                    const std::string& tokTypeName = (*iter).second;
-
                     // Populate config error info.
                     kConfigErr->lineNum = tok.lineNum;
                     kConfigErr->colNum = tok.colNum;
                     kConfigErr->msg =
-                        "expected element or region, got " + tokTypeName;
+                        "expected element or region, got "
+                        + Token::names.at(tok.type);
                 }
                 return E_SVP_RGN_TOK;
         }
@@ -365,25 +356,13 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
             else
             {
                 // Non-identifier token error message will point to the
-                // unexpected token.
-
-                // Get human-readable name of unexpected token type.
+                // unexpected token
                 const Token& tokUnexpect = kToks[kIdx];
-                auto iter = Token::names.find(tokUnexpect.type);
-                if (iter == Token::names.end())
-                {
-                    // Should be unreachable- indicates that `Token::names`
-                    // is missing a key.
-                    return E_KEY;
-                }
-                const std::string& tokUnexpectName = (*iter).second;
-
-                // Populate config error info.
                 kConfigErr->lineNum = tokUnexpect.lineNum;
                 kConfigErr->colNum = tokUnexpect.colNum;
                 kConfigErr->msg =
                     "expected element name after type `" + tokType.str
-                    + "`, got " + tokUnexpectName;
+                    + "`, got " + Token::names.at(tokUnexpect.type);
             }
         }
 
