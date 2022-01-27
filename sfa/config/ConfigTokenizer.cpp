@@ -3,20 +3,36 @@
 
 #include "sfa/config/ConfigTokenizer.hpp"
 
-const std::unordered_map<TokenType, std::string, EnumHash> gTokenNames =
+/////////////////////////////////// Public /////////////////////////////////////
+
+const std::unordered_map<Token::Type, std::string, EnumHash> Token::names =
 {
-    {TOK_NONE, "none"},
-    {TOK_SECTION, "section"},
-    {TOK_LABEL, "label"},
-    {TOK_IDENTIFIER, "identifier"},
-    {TOK_OPERATOR, "operator"},
-    {TOK_CONSTANT, "constant"},
-    {TOK_COLON, "colon"},
-    {TOK_NEWLINE, "newline"},
-    {TOK_LPAREN, "left parenthese"},
-    {TOK_RPAREN, "right parenthese"},
-    {TOK_ANNOTATION, "annotation"},
-    {TOK_COMMENT, "comment"}
+    {Token::SECTION, "section"},
+    {Token::LABEL, "label"},
+    {Token::IDENTIFIER, "identifier"},
+    {Token::OPERATOR, "operator"},
+    {Token::CONSTANT, "constant"},
+    {Token::COLON, "colon"},
+    {Token::NEWLINE, "newline"},
+    {Token::LPAREN, "left parenthese"},
+    {Token::RPAREN, "right parenthese"},
+    {Token::ANNOTATION, "annotation"},
+    {Token::COMMENT, "comment"}
+};
+
+const std::map<Token::Type, std::regex> Token::regexes =
+{
+    {Token::SECTION, std::regex("\\s*\\[([a-zA-Z0-9_/]+)\\]\\s*")},
+    {Token::LABEL, std::regex("\\s*([a-zA-Z0-9_]+):\\s*")},
+    {Token::CONSTANT, std::regex("\\s*(true|false|[0-9]*\\.?[0-9]+)\\s*")},
+    {Token::IDENTIFIER, std::regex("\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*")},
+    {Token::OPERATOR, std::regex(
+        "\\s*(==|!=|=|<=|<|>=|>|->|OR|AND|\\+|\\-|\\*|/)\\s*")},
+    {Token::COLON, std::regex("\\s*(:)\\s*")},
+    {Token::LPAREN, std::regex("\\s*(\\()\\s*")},
+    {Token::RPAREN, std::regex("\\s*(\\))\\s*")},
+    {Token::ANNOTATION, std::regex("\\s*(@[a-zA-Z][a-zA-Z0-9_]*)\\s*")},
+    {Token::COMMENT, std::regex("\\s*(#.*)\\s*")}
 };
 
 bool Token::operator==(const Token& other) const
@@ -31,20 +47,6 @@ bool Token::operator!=(const Token& other) const
 {
     return !(*this == other);
 }
-
-std::map<TokenType, std::regex> ConfigTokenizer::mTokenRegexes =
-{
-    {TOK_SECTION, std::regex("\\s*\\[([a-zA-Z0-9_/]+)\\]\\s*")},
-    {TOK_LABEL, std::regex("\\s*([a-zA-Z0-9_]+):\\s*")},
-    {TOK_CONSTANT, std::regex("\\s*(true|false|[0-9]*\\.?[0-9]+)\\s*")},
-    {TOK_IDENTIFIER, std::regex("\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*")},
-    {TOK_OPERATOR, std::regex("\\s*(==|!=|=|<=|<|>=|>|->|OR|AND|\\+|\\-|\\*|/)\\s*")},
-    {TOK_COLON, std::regex("\\s*(:)\\s*")},
-    {TOK_LPAREN, std::regex("\\s*(\\()\\s*")},
-    {TOK_RPAREN, std::regex("\\s*(\\))\\s*")},
-    {TOK_ANNOTATION, std::regex("\\s*(@[a-zA-Z][a-zA-Z0-9_]*)\\s*")},
-    {TOK_COMMENT, std::regex("\\s*(#.*)\\s*")}
-};
 
 Result ConfigTokenizer::tokenize(std::string kFilePath,
                                  std::vector<Token>& kToks,
@@ -95,7 +97,7 @@ Result ConfigTokenizer::tokenize(std::istream& kIs,
         {
             const Token newlineTok =
             {
-                TOK_NEWLINE,
+                Token::NEWLINE,
                 "(newline)",
                 static_cast<I32>(lineNum),
                 static_cast<I32>(line.size() - 1)
@@ -108,6 +110,8 @@ Result ConfigTokenizer::tokenize(std::istream& kIs,
 
     return SUCCESS;
 }
+
+/////////////////////////////////// Private ////////////////////////////////////
 
 Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
                                      const U32 kLineNum,
@@ -129,8 +133,8 @@ Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
 
         // Loop across all token types and try to match them at the current
         // index. The order of this iteration is significant- see
-        // `mTokenRegexes`.
-        for (const std::pair<TokenType, std::regex>& tokType : mTokenRegexes)
+        // `Token::regexes`.
+        for (const std::pair<Token::Type, std::regex>& tokType : Token::regexes)
         {
             // Try to match token at the current position.
             std::string substr = kLine.substr(idx);
@@ -155,7 +159,7 @@ Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
 
                 // Match successful- if not a comment, pack into a `Token` and
                 // append to the return vector.
-                if (tokType.first != TOK_COMMENT)
+                if (tokType.first != Token::COMMENT)
                 {
                     const Token tok =
                     {

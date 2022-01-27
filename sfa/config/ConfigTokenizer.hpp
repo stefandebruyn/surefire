@@ -13,27 +13,28 @@
 #include "sfa/config/ConfigErrorInfo.hpp"
 #include "sfa/util/EnumHash.hpp"
 
-enum TokenType : U32
-{
-    TOK_NONE = 0,
-    TOK_SECTION = 1,
-    TOK_LABEL = 2,
-    TOK_IDENTIFIER = 3,
-    TOK_OPERATOR = 4,
-    TOK_CONSTANT = 5,
-    TOK_COLON = 6,
-    TOK_NEWLINE = 7,
-    TOK_LPAREN = 8,
-    TOK_RPAREN = 9,
-    TOK_ANNOTATION = 10,
-    TOK_COMMENT = 11
-};
-
-extern const std::unordered_map<TokenType, std::string, EnumHash> gTokenNames;
-
 struct Token final
 {
-    TokenType type;
+    enum Type : U32
+    {
+        SECTION,
+        LABEL,
+        IDENTIFIER,
+        OPERATOR,
+        CONSTANT,
+        COLON,
+        NEWLINE,
+        LPAREN,
+        RPAREN,
+        ANNOTATION,
+        COMMENT
+    };
+
+    static const std::unordered_map<Type, std::string, EnumHash> names;
+
+    static const std::map<Type, std::regex> regexes;
+
+    Type type;
     std::string str;
     I32 lineNum;
     I32 colNum;
@@ -58,8 +59,6 @@ public:
     ConfigTokenizer() = delete;
 
 private:
-
-    static std::map<TokenType, std::regex> mTokenRegexes;
 
     static Result tokenizeLine(const std::string& kLine,
                                const U32 kLineNum,

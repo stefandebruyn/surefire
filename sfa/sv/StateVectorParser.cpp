@@ -118,7 +118,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
         const Token& tok = kToks[idx];
         switch (tok.type)
         {
-            case TOK_SECTION:
+            case Token::SECTION:
             {
                 // Consume section token.
                 ++idx;
@@ -138,7 +138,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                                       regionPlainName) == kRegions.end()))
                     {
                         while ((idx < kToks.size())
-                               && (kToks[idx].type != TOK_SECTION))
+                               && (kToks[idx].type != Token::SECTION))
                         {
                             ++idx;
                         }
@@ -196,7 +196,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                 break;
             }
 
-            case TOK_NEWLINE:
+            case Token::NEWLINE:
                 // Consume newline token.
                 ++idx;
                 break;
@@ -263,7 +263,7 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
         const Token& tok = kToks[kIdx];
         switch (tok.type)
         {
-            case TOK_IDENTIFIER:
+            case Token::IDENTIFIER:
             {
                 // Element token indicates start of element declaration.
                 kRegion.elems.push_back(ElementParse());
@@ -277,12 +277,12 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                 break;
             }
 
-            case TOK_NEWLINE:
+            case Token::NEWLINE:
                 // Consume newline token.
                 ++kIdx;
                 break;
 
-            case TOK_SECTION:
+            case Token::SECTION:
                 // Section token indicates end of region.
                 return SUCCESS;
 
@@ -291,10 +291,10 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                 if (kConfigErr != nullptr)
                 {
                     // Get human-readable name of unexpected token type.
-                    auto iter = gTokenNames.find(tok.type);
-                    if (iter == gTokenNames.end())
+                    auto iter = Token::names.find(tok.type);
+                    if (iter == Token::names.end())
                     {
-                        // Should be unreachable- indicates that `gTokenNames`
+                        // Should be unreachable- indicates that `Token::names`
                         // is missing a key.
                         return E_KEY;
                     }
@@ -342,12 +342,12 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
     kElem.sizeBytes = (*iter).second;
 
     // Consume any newline tokens following the element type.
-    while ((kIdx < kToks.size()) && (kToks[kIdx].type == TOK_NEWLINE))
+    while ((kIdx < kToks.size()) && (kToks[kIdx].type == Token::NEWLINE))
     {
         ++kIdx;
     }
 
-    if (kIdx == kToks.size() || (kToks[kIdx].type != TOK_IDENTIFIER))
+    if (kIdx == kToks.size() || (kToks[kIdx].type != Token::IDENTIFIER))
     {
         // Expected element name but got end of token stream or non-identifier
         // token.
@@ -369,10 +369,10 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
 
                 // Get human-readable name of unexpected token type.
                 const Token& tokUnexpect = kToks[kIdx];
-                auto iter = gTokenNames.find(tokUnexpect.type);
-                if (iter == gTokenNames.end())
+                auto iter = Token::names.find(tokUnexpect.type);
+                if (iter == Token::names.end())
                 {
-                    // Should be unreachable- indicates that `gTokenNames`
+                    // Should be unreachable- indicates that `Token::names`
                     // is missing a key.
                     return E_KEY;
                 }
