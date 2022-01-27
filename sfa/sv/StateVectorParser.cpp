@@ -87,7 +87,7 @@ Result StateVectorParser::parse(std::istream& kIs,
 /////////////////////////////////// Private ////////////////////////////////////
 
 const std::regex StateVectorParser::mRegionSectionRegex(
-    "REGION/([a-zA-Z][a-zA-Z0-9_]*)");
+    "\\[REGION/([a-zA-Z][a-zA-Z0-9_]*)\\]");
 
 const std::unordered_map<std::string, U32> StateVectorParser::mElemTypeSize =
 {
@@ -323,8 +323,7 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
         {
             kConfigErr->lineNum = tokType.lineNum;
             kConfigErr->colNum = tokType.colNum;
-            kConfigErr->msg =
-                "unknown type `" + tokType.str + "`";
+            kConfigErr->msg = "unknown type `" + tokType.str + "`";
         }
         return E_SVP_ELEM_TYPE;
     }

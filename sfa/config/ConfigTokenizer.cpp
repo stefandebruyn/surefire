@@ -17,35 +17,46 @@ const std::unordered_map<Token::Type, std::string, EnumHash> Token::names =
     {Token::LPAREN, "left parenthese"},
     {Token::RPAREN, "right parenthese"},
     {Token::ANNOTATION, "annotation"},
-    {Token::COMMENT, "comment"}
+    {Token::COMMENT, "comment"},
+    {Token::LBRACE, "left brace"},
+    {Token::RBRACE, "right brace"}
 };
 
-const std::map<Token::Type, std::regex> Token::regexes =
+const std::vector<std::pair<Token::Type, std::regex>> Token::regexes =
 {
-    {Token::SECTION, std::regex("\\s*\\[([a-zA-Z0-9_/]+)\\]\\s*")},
-    {Token::LABEL, std::regex("\\s*([a-zA-Z0-9_]+):\\s*")},
+    {Token::SECTION, std::regex("\\s*(\\[[a-zA-Z0-9_/]+\\])\\s*")},
+    {Token::LABEL, std::regex("\\s*(\\.[a-zA-Z][a-zA-Z0-9_\\-\\[\\]]+)\\s*")},
     {Token::CONSTANT, std::regex("\\s*(true|false|[0-9]*\\.?[0-9]+)\\s*")},
-    {Token::IDENTIFIER, std::regex("\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*")},
     {Token::OPERATOR, std::regex(
-        "\\s*(==|!=|=|<=|<|>=|>|->|OR|AND|\\+|\\-|\\*|/)\\s*")},
+        "\\s*(==|!=|=|<=|<|>=|>|->|and|or|\\+|\\-|\\*|/)\\s*")},
+    {Token::IDENTIFIER, std::regex("\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*")},
     {Token::COLON, std::regex("\\s*(:)\\s*")},
     {Token::LPAREN, std::regex("\\s*(\\()\\s*")},
     {Token::RPAREN, std::regex("\\s*(\\))\\s*")},
     {Token::ANNOTATION, std::regex("\\s*(@[a-zA-Z][a-zA-Z0-9_]*)\\s*")},
-    {Token::COMMENT, std::regex("\\s*(#.*)\\s*")}
+    {Token::COMMENT, std::regex("\\s*(#.*)\\s*")},
+    {Token::LBRACE, std::regex("\\s*(\\{)\\s*")},
+    {Token::RBRACE, std::regex("\\s*(\\})\\s*")}
 };
 
-bool Token::operator==(const Token& other) const
+bool Token::operator==(const Token& kOther) const
 {
-    return ((this->type == other.type)
-            && (this->str == other.str)
-            && (this->lineNum == other.lineNum)
-            && (this->colNum == other.colNum));
+    return ((this->type == kOther.type)
+            && (this->str == kOther.str)
+            && (this->lineNum == kOther.lineNum)
+            && (this->colNum == kOther.colNum));
 }
 
-bool Token::operator!=(const Token& other) const
+bool Token::operator!=(const Token& kOther) const
 {
-    return !(*this == other);
+    return !(*this == kOther);
+}
+
+std::ostream& operator<<(std::ostream& kOs, const Token& kTok)
+{
+    return (kOs << "Token(type=" << kTok.type << ", str=\"" << kTok.str
+                << "\", lineNum=" << kTok.lineNum << ", colNum=" << kTok.colNum
+                << ")");
 }
 
 Result ConfigTokenizer::tokenize(std::string kFilePath,
@@ -100,7 +111,7 @@ Result ConfigTokenizer::tokenize(std::istream& kIs,
                 Token::NEWLINE,
                 "(newline)",
                 static_cast<I32>(lineNum),
-                static_cast<I32>(line.size() - 1)
+                ((line.size() == 0) ? 1 : static_cast<I32>(line.size()))
             };
             kToks.push_back(newlineTok);
         }

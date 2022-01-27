@@ -2,10 +2,9 @@
 #define SFA_CONFIG_TOKENIZER_HPP
 
 #include <string>
-#include <map>
 #include <regex>
 #include <vector>
-#include <istream>
+#include <iostream>
 #include <unordered_map>
 
 #include "sfa/BasicTypes.hpp"
@@ -17,31 +16,35 @@ struct Token final
 {
     enum Type : U32
     {
-        SECTION,
-        LABEL,
-        IDENTIFIER,
-        OPERATOR,
-        CONSTANT,
-        COLON,
-        NEWLINE,
-        LPAREN,
-        RPAREN,
-        ANNOTATION,
-        COMMENT
+        SECTION = 0,
+        LABEL = 1,
+        IDENTIFIER = 2,
+        OPERATOR = 3,
+        CONSTANT = 4,
+        COLON = 5,
+        NEWLINE = 6,
+        LPAREN = 7,
+        RPAREN = 8,
+        ANNOTATION = 9,
+        COMMENT = 10,
+        LBRACE = 11,
+        RBRACE = 12
     };
 
     static const std::unordered_map<Type, std::string, EnumHash> names;
 
-    static const std::map<Type, std::regex> regexes;
+    static const std::vector<std::pair<Type, std::regex>> regexes;
 
     Type type;
     std::string str;
     I32 lineNum;
     I32 colNum;
 
-    bool operator==(const Token& other) const;
+    bool operator==(const Token& kOther) const;
 
-    bool operator!=(const Token& other) const;
+    bool operator!=(const Token& kOther) const;
+
+    friend std::ostream& operator<<(std::ostream& kOs, const Token& kTok);
 };
 
 class ConfigTokenizer final
