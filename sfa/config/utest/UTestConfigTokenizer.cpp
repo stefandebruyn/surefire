@@ -168,7 +168,10 @@ TEST(ConfigTokenizer, EveryToken)
 TEST(ConfigTokenizer, InvalidToken)
 {
     // Tokenizer returns error on invalid token.
-    std::stringstream ss("\n@foo 123.456\n foo! [foo]");
+    std::stringstream ss(
+        "\n"
+        "@foo 123.456\n"
+        " foo$ [foo]"); // `$` is invalid
     std::vector<Token> toks;
     ConfigErrorInfo err;
     CHECK_EQUAL(E_TOK_INVALID, ConfigTokenizer::tokenize(ss, toks, &err));
