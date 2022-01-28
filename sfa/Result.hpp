@@ -26,6 +26,10 @@ typedef I32 Result;
 #define E_LAYOUT (18)
 #define E_REINIT (19)
 
+/////////////////////////////// ConfigTokenizer ////////////////////////////////
+
+#define E_TOK_INVALID (32)
+
 ////////////////////////////// StateVectorParser ///////////////////////////////
 
 #define E_SVP_RGN_DUPE (64)

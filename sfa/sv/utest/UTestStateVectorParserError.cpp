@@ -21,7 +21,7 @@ static void checkStateVectorParserError(
     // Got expected return code.
     CHECK_EQUAL(kRes, res);
 
-    // Line and column numbers of offending token is correctly identified.
+    // Line and column numbers of offending token are correctly identified.
     CHECK_EQUAL(kLineNum, err.lineNum);
     CHECK_EQUAL(kColNum, err.colNum);
 

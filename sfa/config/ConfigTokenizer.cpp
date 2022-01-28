@@ -99,6 +99,8 @@ Result ConfigTokenizer::tokenize(std::istream& kIs,
             line, lineNum, kToks, kConfigErr);
         if (res != SUCCESS)
         {
+            // Error occurred- clear return vector.
+            kToks.clear();
             return res;
         }
 
@@ -111,7 +113,7 @@ Result ConfigTokenizer::tokenize(std::istream& kIs,
                 Token::NEWLINE,
                 "(newline)",
                 static_cast<I32>(lineNum),
-                ((line.size() == 0) ? 1 : static_cast<I32>(line.size()))
+                static_cast<I32>(line.size() + 1)
             };
             kToks.push_back(newlineTok);
         }
@@ -199,7 +201,7 @@ Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
                 kConfigErr->colNum = (idx + 1);
                 kConfigErr->msg = "invalid token";
             }
-            return E_TOKENIZE;
+            return E_TOK_INVALID;
         }
     }
 

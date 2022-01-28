@@ -4,6 +4,8 @@
 #include "sfa/config/ConfigTokenizer.hpp"
 #include "UTest.hpp"
 
+/////////////////////////////////// Helpers ////////////////////////////////////
+
 #define CHECK_TOKENS(kSrc, kToksExpect)                                        \
 {                                                                              \
     std::stringstream ss(kSrc);                                                \
@@ -20,6 +22,8 @@
     };                                                                         \
     CHECK_TOKENS(kSrc, toksExpect);                                            \
 }
+
+//////////////////////////////////// Tests /////////////////////////////////////
 
 TEST_GROUP(ConfigTokenizer)
 {
@@ -110,7 +114,7 @@ TEST(ConfigTokenizer, Annotation)
 TEST(ConfigTokenizer, Comment)
 {
     const std::vector<Token> empty;
-    CHECK_TOKENS("# hello world", empty);
+    CHECK_TOKENS("# hello world !#$%^", empty);
 }
 
 TEST(ConfigTokenizer, LeftBrace)
@@ -121,4 +125,61 @@ TEST(ConfigTokenizer, LeftBrace)
 TEST(ConfigTokenizer, RightBrace)
 {
     CHECK_TOKEN("}", Token::RBRACE, "}", 1, 1);
+}
+
+TEST(ConfigTokenizer, EveryToken)
+{
+    const std::vector<Token> toksExpect =
+    {
+        {Token::NEWLINE, "(newline)", 1, 1},
+        {Token::NEWLINE, "(newline)", 2, 1},
+        {Token::RBRACE, "}", 3, 2},
+        {Token::CONSTANT, ".3", 3, 7},
+        {Token::IDENTIFIER, "foo", 3, 11},
+        {Token::NEWLINE, "(newline)", 3, 14},
+        {Token::NEWLINE, "(newline)", 4, 1},
+        {Token::NEWLINE, "(newline)", 5, 6},
+        {Token::SECTION, "[foo]", 6, 5},
+        {Token::LPAREN, "(", 6, 10},
+        {Token::LBRACE, "{", 6, 11},
+        {Token::ANNOTATION, "@foo", 6, 12},
+        {Token::NEWLINE, "(newline)", 6, 16},
+        {Token::LABEL, ".foo", 7, 2},
+        {Token::OPERATOR, "!=", 7, 9},
+        {Token::CONSTANT, "false", 7, 11},
+        {Token::NEWLINE, "(newline)", 7, 22},
+        {Token::RPAREN, ")", 8, 1},
+        {Token::COLON, ":", 8, 2},
+        {Token::OPERATOR, "and", 8, 4},
+        {Token::CONSTANT, "123", 8, 8}
+    };
+    CHECK_TOKENS(
+        "\n"
+        "\n"
+        "\t}    .3  foo\n"
+        "\n"
+        "# foo\n"
+        "    [foo]({@foo\n"
+        " .foo   !=false # foo\n"
+        "): and 123",
+        toksExpect);
+}
+
+TEST(ConfigTokenizer, InvalidToken)
+{
+    // Tokenizer returns error on invalid token.
+    std::stringstream ss("\n@foo 123.456\n foo! [foo]");
+    std::vector<Token> toks;
+    ConfigErrorInfo err;
+    CHECK_EQUAL(E_TOK_INVALID, ConfigTokenizer::tokenize(ss, toks, &err));
+
+    // Line and column numbers of offending substring are correctly identified.
+    CHECK_EQUAL(3, err.lineNum);
+    CHECK_EQUAL(5, err.colNum);
+
+    // An error message was given.
+    CHECK_TRUE(err.msg.size() > 0);
+
+    // Tokens vector was not populated.
+    CHECK_EQUAL(0, toks.size());
 }
