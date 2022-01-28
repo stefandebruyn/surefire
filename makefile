@@ -27,6 +27,8 @@ utest:
 	sfa/config/utest/UTestConfigTokenizer.cpp \
 	sfa/util/MemOps.cpp \
 	sfa/util/utest/UTestMemOps.cpp \
+	psl/linux/Socket.cpp \
+	pal/utest/UTestUdpSocket.cpp \
 	-I. \
 	-Iutest \
 	-lCppUTest

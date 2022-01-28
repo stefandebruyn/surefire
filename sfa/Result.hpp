@@ -43,4 +43,16 @@ typedef I32 Result;
 #define E_SVP_TOK (72)
 #define E_SVP_RGN_TOK (73)
 
+/////////////////////////////////// Socket /////////////////////////////////////
+
+#define E_SOCK_PROTO (256)
+#define E_SOCK_OPEN (257)
+#define E_SOCK_BIND (258)
+#define E_SOCK_SEND (259)
+#define E_SOCK_RECV (260)
+#define E_SOCK_SELECT (261)
+#define E_SOCK_TIMEOUT (262)
+#define E_SOCK_CLOSE (263)
+#define E_SOCK_NULLPTR (264)
+
 #endif
