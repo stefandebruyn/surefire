@@ -162,6 +162,6 @@ TEST(StateVectorParserError, EmptyRegionFollowedByNothing)
 TEST(StateVectorParserError, NonexistentInputFile)
 {
     std::shared_ptr<StateVectorParser::Config> config = nullptr;
-    CHECK_EQUAL(E_FILE, StateVectorParser::parse("foo.bar", config, nullptr));
+    CHECK_ERROR(E_FILE, StateVectorParser::parse("foo.bar", config, nullptr));
     POINTERS_EQUAL(nullptr, config.get());
 }

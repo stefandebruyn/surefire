@@ -99,7 +99,7 @@ TEST(ITask, Uninitialized)
     TestTask task(sv, &gElemMode);
 
     // Stepping uninitialized task fails. `foo` element is unchanged.
-    CHECK_EQUAL(E_UNINITIALIZED, task.step());
+    CHECK_ERROR(E_UNINITIALIZED, task.step());
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
@@ -110,8 +110,8 @@ TEST(ITask, InitializeFail)
     TestTask task(sv, nullptr);
 
     // Task initialization fails. Task cannot step. `foo` element is unchanged.
-    CHECK_EQUAL(E_KEY, task.initialize());
-    CHECK_EQUAL(E_UNINITIALIZED, task.step());
+    CHECK_ERROR(E_KEY, task.initialize());
+    CHECK_ERROR(E_UNINITIALIZED, task.step());
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
@@ -124,7 +124,7 @@ TEST(ITask, InvalidMode)
 
     // Stepping in invalid mode fails. `foo` element is unchanged.
     gElemMode.write(3);
-    CHECK_EQUAL(E_ENUM, task.step());
+    CHECK_ERROR(E_ENUM, task.step());
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
@@ -177,7 +177,7 @@ TEST(ITask, StepSafeSurfaceError)
 
     // With element `bar` false, stepping in safe mode returns `E_STATE`.
     gElemMode.write(MODE_SAFE);
-    CHECK_EQUAL(E_STATE, task.step());
+    CHECK_ERROR(E_STATE, task.step());
 }
 
 TEST(ITask, StepEnableSurfaceError)
@@ -189,5 +189,5 @@ TEST(ITask, StepEnableSurfaceError)
 
     // With element `bar` false, stepping in enabled mode returns `E_ENUM`.
     gElemMode.write(MODE_ENABLE);
-    CHECK_EQUAL(E_ENUM, task.step());
+    CHECK_ERROR(E_ENUM, task.step());
 }

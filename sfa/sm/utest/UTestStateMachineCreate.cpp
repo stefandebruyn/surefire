@@ -54,8 +54,8 @@ TEST(StateMachineCreate, ConfigErrorNullElemState)
     const Result res = StateMachine::create(gConfig, sm);
     gConfig.elemState = tmp;
 
-    CHECK_EQUAL(E_NULLPTR, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
+    CHECK_ERROR(E_NULLPTR, res);
+    CHECK_ERROR(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineCreate, ConfigErrorNullElemGlobalTime)
@@ -66,8 +66,8 @@ TEST(StateMachineCreate, ConfigErrorNullElemGlobalTime)
     const Result res = StateMachine::create(gConfig, sm);
     gConfig.elemGlobalTime = tmp;
 
-    CHECK_EQUAL(E_NULLPTR, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
+    CHECK_ERROR(E_NULLPTR, res);
+    CHECK_ERROR(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineCreate, ConfigErrorNullStateArray)
@@ -78,8 +78,8 @@ TEST(StateMachineCreate, ConfigErrorNullStateArray)
     const Result res = StateMachine::create(gConfig, sm);
     gConfig.states = tmp;
 
-    CHECK_EQUAL(E_NULLPTR, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
+    CHECK_ERROR(E_NULLPTR, res);
+    CHECK_ERROR(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineCreate, ConfigErrorDuplicateStateId)
@@ -90,8 +90,8 @@ TEST(StateMachineCreate, ConfigErrorDuplicateStateId)
     const Result res = StateMachine::create(gConfig, sm);
     gConfig.states[1].id = tmp;
 
-    CHECK_EQUAL(E_DUPLICATE, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
+    CHECK_ERROR(E_DUPLICATE, res);
+    CHECK_ERROR(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineCreate, ConfigErrorNoStates)
@@ -102,8 +102,8 @@ TEST(StateMachineCreate, ConfigErrorNoStates)
     const Result res = StateMachine::create(gConfig, sm);
     gConfig.states[0].id = tmp;
 
-    CHECK_EQUAL(E_STATE, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
+    CHECK_ERROR(E_STATE, res);
+    CHECK_ERROR(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineCreate, ConfigErrorInvalidLabelRange)
@@ -114,8 +114,8 @@ TEST(StateMachineCreate, ConfigErrorInvalidLabelRange)
     const Result res = StateMachine::create(gConfig, sm);
     gRangeLabelConfigs[0].rangeLower = tmp;
 
-    CHECK_EQUAL(E_RANGE, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
+    CHECK_ERROR(E_RANGE, res);
+    CHECK_ERROR(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineCreate, ConfigErrorTransitionInExitLabel)
@@ -128,8 +128,8 @@ TEST(StateMachineCreate, ConfigErrorTransitionInExitLabel)
     const Result res = StateMachine::create(gConfig, sm);
     gStateConfigs[0].exitLabel.actions = tmp;
 
-    CHECK_EQUAL(E_TRANSITION, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
+    CHECK_ERROR(E_TRANSITION, res);
+    CHECK_ERROR(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineCreate, ConfigErrorInvalidTransitionInEntryLabel)
@@ -142,8 +142,8 @@ TEST(StateMachineCreate, ConfigErrorInvalidTransitionInEntryLabel)
     const Result res = StateMachine::create(gConfig, sm);
     gStateConfigs[0].entryLabel.actions = tmp;
 
-    CHECK_EQUAL(E_STATE, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
+    CHECK_ERROR(E_STATE, res);
+    CHECK_ERROR(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineCreate, ConfigErrorInvalidTransitionInStepLabel)
@@ -156,8 +156,8 @@ TEST(StateMachineCreate, ConfigErrorInvalidTransitionInStepLabel)
     const Result res = StateMachine::create(gConfig, sm);
     gStateConfigs[0].stepLabel.actions = tmp;
 
-    CHECK_EQUAL(E_STATE, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
+    CHECK_ERROR(E_STATE, res);
+    CHECK_ERROR(E_UNINITIALIZED, sm.step());
 }
 
 TEST(StateMachineCreate, ConfigErrorInvalidTransitionInRangeLabel)
@@ -170,6 +170,6 @@ TEST(StateMachineCreate, ConfigErrorInvalidTransitionInRangeLabel)
     const Result res = StateMachine::create(gConfig, sm);
     gStateConfigs[0].rangeLabels[0].actions = tmp;
 
-    CHECK_EQUAL(E_STATE, res);
-    CHECK_EQUAL(E_UNINITIALIZED, sm.step());
+    CHECK_ERROR(E_STATE, res);
+    CHECK_ERROR(E_UNINITIALIZED, sm.step());
 }

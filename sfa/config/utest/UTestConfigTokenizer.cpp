@@ -174,7 +174,7 @@ TEST(ConfigTokenizer, InvalidToken)
         " foo$ [foo]"); // `$` is invalid
     std::vector<Token> toks;
     ConfigErrorInfo err;
-    CHECK_EQUAL(E_TOK_INVALID, ConfigTokenizer::tokenize(ss, toks, &err));
+    CHECK_ERROR(E_TOK_INVALID, ConfigTokenizer::tokenize(ss, toks, &err));
 
     // Line and column numbers of offending substring are correctly identified.
     CHECK_EQUAL(3, err.lineNum);

@@ -42,7 +42,7 @@ TEST(UdpSocket, CreateAndClose)
 
 TEST(UdpSocket, CreateInvalidProtocol)
 {
-    CHECK_EQUAL(E_SOCK_PROTO,
+    CHECK_ERROR(E_SOCK_PROTO,
                 Socket::create(TEST_IP1,
                                TEST_PORT,
                                static_cast<Socket::Protocol>(0xFF),
@@ -52,7 +52,7 @@ TEST(UdpSocket, CreateInvalidProtocol)
 
 TEST(UdpSocket, CreateInvalidIp)
 {
-    CHECK_EQUAL(E_SOCK_BIND,
+    CHECK_ERROR(E_SOCK_BIND,
                 Socket::create("123.123.123.123",
                                TEST_PORT,
                                Socket::UDP,
@@ -62,7 +62,7 @@ TEST(UdpSocket, CreateInvalidIp)
 
 TEST(UdpSocket, CreateNullIp)
 {
-    CHECK_EQUAL(E_SOCK_NULLPTR,
+    CHECK_ERROR(E_SOCK_NULLPTR,
                 Socket::create(nullptr,
                                TEST_PORT,
                                Socket::UDP,
@@ -73,7 +73,7 @@ TEST(UdpSocket, CreateNullIp)
 TEST(UdpSocket, CreatePortInUse)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
-    CHECK_EQUAL(E_SOCK_BIND,
+    CHECK_ERROR(E_SOCK_BIND,
                 Socket::create(TEST_IP1,
                                TEST_PORT,
                                Socket::UDP,
@@ -176,7 +176,7 @@ TEST(UdpSocket, SendNullIp)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
     U64 buf;
-    CHECK_EQUAL(E_SOCK_NULLPTR,
+    CHECK_ERROR(E_SOCK_NULLPTR,
                 Socket::send(gSock1,
                              nullptr,
                              TEST_PORT,
@@ -188,7 +188,7 @@ TEST(UdpSocket, SendNullIp)
 TEST(UdpSocket, SendNullBuffer)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
-    CHECK_EQUAL(E_SOCK_NULLPTR,
+    CHECK_ERROR(E_SOCK_NULLPTR,
                 Socket::send(gSock1,
                              TEST_IP2,
                              TEST_PORT,
@@ -200,10 +200,10 @@ TEST(UdpSocket, SendNullBuffer)
 TEST(UdpSocket, RecvNullBuffer)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
-    CHECK_EQUAL(E_SOCK_NULLPTR, Socket::recv(gSock1, nullptr, 8, nullptr));
+    CHECK_ERROR(E_SOCK_NULLPTR, Socket::recv(gSock1, nullptr, 8, nullptr));
 }
 
 TEST(UdpSocket, CloseError)
 {
-    CHECK_EQUAL(E_SOCK_CLOSE, Socket::close(-1));
+    CHECK_ERROR(E_SOCK_CLOSE, Socket::close(-1));
 }

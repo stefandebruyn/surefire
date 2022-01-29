@@ -54,12 +54,12 @@ static void checkStateVectorUninitialized(StateVector& kSv)
 {
     // Getting an element fails.
     Element<I32>* elem = nullptr;
-    CHECK_EQUAL(E_UNINITIALIZED, kSv.getElement("foo", elem));
+    CHECK_ERROR(E_UNINITIALIZED, kSv.getElement("foo", elem));
     POINTERS_EQUAL(nullptr, elem);
 
     // Getting a region fails.
     Region* region = nullptr;
-    CHECK_EQUAL(E_UNINITIALIZED, kSv.getRegion("foo", region));
+    CHECK_ERROR(E_UNINITIALIZED, kSv.getRegion("foo", region));
     POINTERS_EQUAL(nullptr, elem);
 }
 
@@ -91,7 +91,7 @@ TEST(StateVectorCreate, ErrorNullElementArray)
     StateVector sv;
     const Result res = StateVector::create(gConfig, sv);
     gConfig.elems = tmp;
-    CHECK_EQUAL(E_NULLPTR, res);
+    CHECK_ERROR(E_NULLPTR, res);
 
     // State vector is uninitialized.
     checkStateVectorUninitialized(sv);
@@ -107,7 +107,7 @@ TEST(StateVectorCreate, ErrorNullElementPointer)
     StateVector sv;
     const Result res = StateVector::create(gConfig, sv);
     gConfig.elems[1].elem = tmp;
-    CHECK_EQUAL(E_NULLPTR, res);
+    CHECK_ERROR(E_NULLPTR, res);
 
     // State vector is uninitialized.
     checkStateVectorUninitialized(sv);
@@ -123,7 +123,7 @@ TEST(StateVectorCreate, ErrorNullRegionPointer)
     StateVector sv;
     const Result res = StateVector::create(gConfig, sv);
     gConfig.regions[1].region = tmp;
-    CHECK_EQUAL(E_NULLPTR, res);
+    CHECK_ERROR(E_NULLPTR, res);
 
     // State vector is uninitialized.
     checkStateVectorUninitialized(sv);
@@ -141,7 +141,7 @@ TEST(StateVectorCreate, ErrorMisalignedElementMiddleOfRegion)
     StateVector sv;
     const Result res = StateVector::create(gConfig, sv);
     gConfig.elems[0].elem = tmp;
-    CHECK_EQUAL(E_LAYOUT, res);
+    CHECK_ERROR(E_LAYOUT, res);
 
     // State vector is uninitialized.
     checkStateVectorUninitialized(sv);

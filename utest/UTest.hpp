@@ -21,6 +21,12 @@
     CHECK_EQUAL(SUCCESS, _res);                                                \
 }
 
+#define CHECK_ERROR(kErr, kExpr)                                               \
+{                                                                              \
+    const Result _res = (kExpr);                                               \
+    CHECK_EQUAL(kErr, _res);                                                   \
+}
+
 #if defined(SFA_UTEST_HAS_VECTOR) && defined(SFA_UTEST_HAS_SSTREAM)
 template<typename T>
 SimpleString StringFrom(const std::vector<T>& kVec)
