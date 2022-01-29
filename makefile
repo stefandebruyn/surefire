@@ -28,7 +28,9 @@ utest:
 	sfa/util/MemOps.cpp \
 	sfa/util/utest/UTestMemOps.cpp \
 	psl/linux/Socket.cpp \
+	psl/linux/Clock.cpp \
 	pal/utest/UTestUdpSocket.cpp \
+	pal/utest/UTestClock.cpp \
 	-I. \
 	-Iutest \
 	-lCppUTest
