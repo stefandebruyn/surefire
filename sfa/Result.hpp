@@ -53,5 +53,6 @@ typedef I32 Result;
 #define E_SOCK_SELECT (261)
 #define E_SOCK_CLOSE (262)
 #define E_SOCK_NULLPTR (263)
+#define E_SOCK_SEL_NONE (264)
 
 #endif

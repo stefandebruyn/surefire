@@ -197,3 +197,21 @@ TEST(SocketSelect, Timeout)
     // Timed out.
     CHECK_EQUAL(0, timeoutUs);
 }
+
+TEST(SocketSelect, ErrorInvalidIp)
+{
+    CREATE_SOCKETS;
+    const I32 socks[] = {gSock1, gSock2, -1};
+    bool ready[] = {false, false, false};
+    U32 timeoutUs = 1000;
+    CHECK_ERROR(E_SOCK_SELECT, Socket::select(socks, ready, 3, timeoutUs));
+}
+
+TEST(SocketSelect, ErrorNoSockets)
+{
+    CREATE_SOCKETS;
+    const I32 socks[] = {gSock1, gSock2, gSock3};
+    bool ready[] = {false, false, false};
+    U32 timeoutUs = 1000;
+    CHECK_ERROR(E_SOCK_SEL_NONE, Socket::select(socks, ready, 0, timeoutUs));
+}

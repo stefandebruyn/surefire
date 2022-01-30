@@ -133,6 +133,12 @@ Result Socket::select(const I32* const kSocks,
         return E_SOCK_NULLPTR;
     }
 
+    // Check that at least 1 socket was provided.
+    if (kNumSocks == 0)
+    {
+        return E_SOCK_SEL_NONE;
+    }
+
     // Make FD set.
     fd_set fds;
     FD_ZERO(&fds);
