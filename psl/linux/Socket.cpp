@@ -30,7 +30,7 @@ Result Socket::create(const char* const kIp,
 
     // Open socket.
     const I32 fd = socket(AF_INET, sockType, 0);
-    if (fd == -1)
+    if (fd < 0)
     {
         return E_SOCK_OPEN;
     }
@@ -150,25 +150,23 @@ Result Socket::select(const I32* const kSocks,
     timeout.tv_sec = (kTimeoutUs / usInSec);
     timeout.tv_usec = (kTimeoutUs % usInSec);
 
-    // Call select.
+    // Do select.
     const I32 selRet = select(FD_SETSIZE, &fds, nullptr, nullptr, &timeout);
     if (selRet < 0)
     {
         // Select failed.
         return E_SOCK_SELECT;
     }
-    else if (selRet == 0)
-    {
-        // No sockets were ready in time.
-        return E_SOCK_TIMEOUT;
-    }
 
-    // Set ready flags according to which sockets have data available.
-    for (U32 i = 0; i < kNumSocks; ++i)
+    if (selRet != 0)
     {
-        if (FD_ISSET(kSocks[i], &fds) != 0)
+        // Set ready flags according to which sockets have data available.
+        for (U32 i = 0; i < kNumSocks; ++i)
         {
-            kReady[i] = true;
+            if (FD_ISSET(kSocks[i], &fds) != 0)
+            {
+                kReady[i] = true;
+            }
         }
     }
 

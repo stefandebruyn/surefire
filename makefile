@@ -31,6 +31,7 @@ utest:
 	psl/linux/Clock.cpp \
 	pal/utest/UTestUdpSocket.cpp \
 	pal/utest/UTestClock.cpp \
+	pal/utest/UTestSocketSelect.cpp \
 	-I. \
 	-Iutest \
 	-lCppUTest
