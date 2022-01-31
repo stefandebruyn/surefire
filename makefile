@@ -1,6 +1,6 @@
 .PHONY: utest
 utest:
-	g++ -std=c++11 utest/UTestMain.cpp -o utest.exe \
+	g++ -std=c++17 utest/UTestMain.cpp -o utest.exe \
 	sfa/sv/utest/UTestElement.cpp \
 	sfa/sv/utest/UTestRegion.cpp \
 	sfa/sv/utest/UTestStateVectorAccess.cpp \

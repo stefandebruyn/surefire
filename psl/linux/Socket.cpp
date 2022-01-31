@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#include "pal/Clock.hpp"
 #include "pal/Socket.hpp"
 
 Result Socket::create(const char* const kIp,
@@ -145,10 +146,9 @@ Result Socket::select(const I32* const kSocks,
     }
 
     // Make timeout.
-    static constexpr U32 usInSec = 1000000U;
     timeval timeout = {};
-    timeout.tv_sec = (kTimeoutUs / usInSec);
-    timeout.tv_usec = (kTimeoutUs % usInSec);
+    timeout.tv_sec = (kTimeoutUs / Clock::US_IN_S);
+    timeout.tv_usec = (kTimeoutUs % Clock::US_IN_S);
 
     // Call select.
     const I32 selRet = select(FD_SETSIZE, &fds, nullptr, nullptr, &timeout);
@@ -173,7 +173,7 @@ Result Socket::select(const I32* const kSocks,
     }
 
     // Update timeout return parameter based on how much time remained.
-    kTimeoutUs = ((timeout.tv_sec * usInSec) + timeout.tv_usec);
+    kTimeoutUs = ((timeout.tv_sec * Clock::US_IN_S) + timeout.tv_usec);
 
     return SUCCESS;
 }
