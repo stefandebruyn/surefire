@@ -197,10 +197,28 @@ TEST(UdpSocket, SendNullBuffer)
                              nullptr));
 }
 
+TEST(UdpSocket, SendInvalidSocket)
+{
+    U64 buf;
+    CHECK_ERROR(E_SOCK_SEND,
+                Socket::send(-1,
+                             TEST_IP1,
+                             TEST_PORT,
+                             &buf,
+                             sizeof(buf),
+                             nullptr));
+}
+
 TEST(UdpSocket, RecvNullBuffer)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
     CHECK_ERROR(E_SOCK_NULLPTR, Socket::recv(gSock1, nullptr, 8, nullptr));
+}
+
+TEST(UdpSocket, RecvInvalidSocket)
+{
+    U64 buf;
+    CHECK_ERROR(E_SOCK_RECV, Socket::recv(-1, &buf, sizeof(buf), nullptr));
 }
 
 TEST(UdpSocket, CloseError)
