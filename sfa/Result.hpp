@@ -50,9 +50,26 @@ typedef I32 Result;
 #define E_SOCK_BIND (258)
 #define E_SOCK_SEND (259)
 #define E_SOCK_RECV (260)
-#define E_SOCK_SELECT (261)
+#define E_SOCK_SEL (261)
 #define E_SOCK_CLOSE (262)
 #define E_SOCK_NULLPTR (263)
 #define E_SOCK_SEL_NONE (264)
+
+/////////////////////////////////// Thread /////////////////////////////////////
+
+#define E_THR_MAX (288)
+#define E_THR_POL (289)
+#define E_THR_PRI (290)
+#define E_THR_CREATE (291)
+#define E_THR_AFF (292)
+#define E_THR_EXIST (293)
+#define E_THR_AWAIT (294)
+#define E_THR_RANGE (295)
+
+///////////////////////////////// Linux Thread /////////////////////////////////
+
+#define E_THR_INIT_ATTR (1024)
+#define E_THR_DTRY_ATTR (1025)
+#define E_THR_INH_PRI (1025)
 
 #endif

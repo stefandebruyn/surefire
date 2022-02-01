@@ -30,13 +30,15 @@ utest:
 	psl/linux/Socket.cpp \
 	psl/linux/Clock.cpp \
 	psl/linux/Console.cpp \
+	psl/linux/Thread.cpp \
 	pal/utest/UTestUdpSocket.cpp \
 	pal/utest/UTestClock.cpp \
 	pal/utest/UTestSocketSelect.cpp \
 	pal/utest/UTestConsole.cpp \
+	pal/utest/UTestThread.cpp \
 	-I. \
 	-Iutest \
-	-lCppUTest
+	-lCppUTest -lpthread
 
 clean:
 	rm *.exe
