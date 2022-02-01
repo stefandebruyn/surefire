@@ -43,11 +43,11 @@ Result Thread::create(const Function kFunc,
         return E_THR_INIT_ATTR;
     }
 
-    // Map policy onto pthread constant.
+    // Map scheduling policy onto pthread constant.
     I32 schedPolicy = -1;
     switch (kPolicy)
     {
-        case DEFAULT_SCHED:
+        case FAIR:
             schedPolicy = SCHED_OTHER;
             break;
 
@@ -67,7 +67,7 @@ Result Thread::create(const Function kFunc,
 
     // `SCHED_OTHER` requires using a static priority of 0, so only set the
     // user-specified thread priority when using non-default scheduling policy.
-    if (kPolicy != DEFAULT_SCHED)
+    if (kPolicy != FAIR)
     {
         // Set thread priority.
         sched_param param = {};
@@ -116,7 +116,7 @@ Result Thread::create(const Function kFunc,
     gThreadSlots[threadSlot].used = true;
     kThread = threadSlot;
 
-    // Destroy thread attributes since we're done with it. This should never
+    // Destroy thread attributes since we're done with them. This should never
     // fail according to POSIX.
     if (pthread_attr_destroy(&attr) != 0)
     {

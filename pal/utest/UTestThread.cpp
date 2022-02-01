@@ -19,7 +19,7 @@ TEST(Thread, Doop)
     CHECK_SUCCESS(Thread::create(foo,
                                  &x,
                                  8,
-                                 Thread::DEFAULT_SCHED,
+                                 Thread::FAIR,
                                  Thread::NO_AFFINITY,
                                  thread));
     Result threadRes = -1;

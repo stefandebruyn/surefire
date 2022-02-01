@@ -8,7 +8,7 @@ namespace Thread
 {
     enum Policy : U8
     {
-        DEFAULT_SCHED,
+        FAIR,
         REALTIME
     };
 
@@ -18,6 +18,7 @@ namespace Thread
 
     /// Starts a thread.
     ///
+    /// @note Linux: This function is not thread-safe.
     /// @note Linux: The thread has the default stack bounds as chosen by
     ///       pthread.
     /// @note Linux: A maximum of 16 threads may be alive at once.
@@ -29,8 +30,8 @@ namespace Thread
     ///                      be in scope for the lifetime of the thread.
     /// @param[i] kPriority  Thread priority. Valid priority ranges may vary
     ///                      with platform.
-    ///                      Linux: This is ignored if a `DEFAULT_SCHED` policy
-    ///                      is used; the thread is given pthread policy
+    ///                      Linux: This parameter is ignored if a `FAIR` policy
+    ///                      is used. The thread is given pthread policy
     ///                      `SCHED_OTHER` with a static priority of 0.
     /// @param[i] kPolicy    Thread scheduling policy.
     /// @param[i] kAffinity  Thread affinity. This should be a zero-indexed CPU
