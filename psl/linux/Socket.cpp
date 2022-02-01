@@ -161,7 +161,7 @@ Result Socket::select(const I32* const kSocks,
     if (selRet < 0)
     {
         // Select failed.
-        return E_SOCK_SELECT;
+        return E_SOCK_SEL;
     }
 
     if (selRet != 0)
