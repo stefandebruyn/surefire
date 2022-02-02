@@ -1,18 +1,44 @@
 #include "pal/Thread.hpp"
+#include "pal/Clock.hpp"
 #include "UTest.hpp"
 
 inline constexpr U32 gThreadsSize = 16;
 
 static I32 gThreads[gThreadsSize];
 
+struct ThreadArgs final
+{
+    bool flag;
+    U64 time;
+};
+
+static ThreadArgs gArgs1;
+static ThreadArgs gArgs2;
+static ThreadArgs gArgs3;
+
 static Result noop(void* kArgs)
 {
     return SUCCESS;
 }
 
-static Result flagSetter(void* kArgs)
+static Result setFlag(void* kArgs)
 {
     *((bool*) kArgs) = true;
+    return SUCCESS;
+}
+
+static Result spinOnFlagAndRecordTime(void* kArgs)
+{
+    ThreadArgs* const args = (ThreadArgs*) kArgs;
+    while (args->flag == false);
+    args->time = Clock::nanoTime();
+    return SUCCESS;
+}
+
+static Result recordTime(void* kArgs)
+{
+    ThreadArgs* const args = (ThreadArgs*) kArgs;
+    args->time = Clock::nanoTime();
     return SUCCESS;
 }
 
@@ -34,6 +60,11 @@ TEST_GROUP(ThreadRealTime)
         {
             gThreads[i] = -1;
         }
+
+        // Clear global thread args.
+        gArgs1 = {};
+        gArgs2 = {};
+        gArgs3 = {};
     }
 
     void teardown()
@@ -55,7 +86,7 @@ TEST(ThreadRealTime, CreateMaxThreads)
     // Create max number of threads.
     for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
     {
-        CHECK_SUCCESS(Thread::create(flagSetter,
+        CHECK_SUCCESS(Thread::create(setFlag,
                                      &flags[i],
                                      Thread::REALTIME_MIN_PRI,
                                      Thread::REALTIME,
@@ -65,7 +96,7 @@ TEST(ThreadRealTime, CreateMaxThreads)
 
     // Creating another thread fails.
     CHECK_ERROR(E_THR_MAX,
-                Thread::create(flagSetter,
+                Thread::create(setFlag,
                                &flags[0],
                                Thread::REALTIME_MIN_PRI,
                                Thread::REALTIME,
@@ -91,7 +122,7 @@ TEST(ThreadRealTime, CreateMaxThreads)
     // Create max number of threads again to ensure the interface is reusable.
     for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
     {
-        CHECK_SUCCESS(Thread::create(flagSetter,
+        CHECK_SUCCESS(Thread::create(setFlag,
                                      &flags[i],
                                      Thread::REALTIME_MIN_PRI,
                                      Thread::REALTIME,
@@ -101,7 +132,7 @@ TEST(ThreadRealTime, CreateMaxThreads)
 
     // Creating another thread fails.
     CHECK_ERROR(E_THR_MAX,
-                Thread::create(flagSetter,
+                Thread::create(setFlag,
                                &flags[0],
                                Thread::REALTIME_MIN_PRI,
                                Thread::REALTIME,
@@ -124,7 +155,7 @@ TEST(ThreadRealTime, PriorityRange)
     for (I32 i = Thread::REALTIME_MIN_PRI; i <= Thread::REALTIME_MAX_PRI; ++i)
     {
         bool flag = false;
-        CHECK_SUCCESS(Thread::create(flagSetter,
+        CHECK_SUCCESS(Thread::create(setFlag,
                                      &flag,
                                      i,
                                      Thread::REALTIME,
@@ -159,4 +190,39 @@ TEST(ThreadRealTime, PriorityTooHigh)
                                Thread::NO_AFFINITY,
                                gThreads[0]));
     CHECK_EQUAL(-1, gThreads[0]);
+}
+
+TEST(ThreadRealTime, RealTime)
+{
+    CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
+                                 &gArgs1,
+                                 Thread::REALTIME_MIN_PRI,
+                                 Thread::REALTIME,
+                                 0,
+                                 gThreads[0]));
+    CHECK_SUCCESS(Thread::create(recordTime,
+                                 &gArgs2,
+                                 (Thread::REALTIME_MIN_PRI + 1),
+                                 Thread::REALTIME,
+                                 0,
+                                 gThreads[1]));
+    CHECK_SUCCESS(Thread::create(recordTime,
+                                 &gArgs3,
+                                 (Thread::REALTIME_MIN_PRI + 2),
+                                 Thread::REALTIME,
+                                 0,
+                                 gThreads[2]));
+
+    CHECK_EQUAL(0, gArgs1.time);
+    CHECK_EQUAL(0, gArgs2.time);
+    CHECK_EQUAL(0, gArgs3.time);
+
+    gArgs1.flag = true;
+
+    CHECK_SUCCESS(Thread::await(gThreads[0], nullptr));
+    CHECK_SUCCESS(Thread::await(gThreads[1], nullptr));
+    CHECK_SUCCESS(Thread::await(gThreads[2], nullptr));
+
+    CHECK_TRUE(gArgs1.time < gArgs2.time);
+    CHECK_TRUE(gArgs2.time < gArgs3.time);
 }

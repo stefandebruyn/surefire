@@ -61,8 +61,8 @@ namespace Thread
     ///                          failed.
     ///                          Linux: If the `REALTIME` policy is used, this
     ///                          error may indicate that the process does not
-    ///                          have the necessary permissions to create
-    ///                          real-time threads.
+    ///                          have sufficient permissions to create real-time
+    ///                          threads.
     /// @retval E_THR_AFF        Failed to set thread affinity. The affinity may
     ///                          be invalid or unsupported by the platform.
     /// @retval E_THR_INIT_ATTR  Linux: Failed to initialize thread attributes.
