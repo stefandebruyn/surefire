@@ -12,6 +12,12 @@ namespace Clock
     inline constexpr U64 MS_IN_S = 1000;
 
     U64 nanoTime();
+
+    inline void spinWait(const U64 kNs)
+    {
+        const U64 startNs = nanoTime();
+        while ((nanoTime() - startNs) < kNs);
+    }
 }
 
 #endif

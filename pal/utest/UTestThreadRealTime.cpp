@@ -2,6 +2,8 @@
 #include "pal/Clock.hpp"
 #include "UTest.hpp"
 
+/////////////////////////////////// Globals ////////////////////////////////////
+
 inline constexpr U32 gThreadsSize = 16;
 
 static I32 gThreads[gThreadsSize];
@@ -9,12 +11,15 @@ static I32 gThreads[gThreadsSize];
 struct ThreadArgs final
 {
     bool flag;
-    U64 time;
+    U64 tReturnNs;
+    U64 waitNs;
 };
 
 static ThreadArgs gArgs1;
 static ThreadArgs gArgs2;
 static ThreadArgs gArgs3;
+
+/////////////////////////////////// Helpers ////////////////////////////////////
 
 static Result noop(void* kArgs)
 {
@@ -31,16 +36,19 @@ static Result spinOnFlagAndRecordTime(void* kArgs)
 {
     ThreadArgs* const args = (ThreadArgs*) kArgs;
     while (args->flag == false);
-    args->time = Clock::nanoTime();
+    args->tReturnNs = Clock::nanoTime();
     return SUCCESS;
 }
 
-static Result recordTime(void* kArgs)
+static Result spinAndRecordTime(void* kArgs)
 {
     ThreadArgs* const args = (ThreadArgs*) kArgs;
-    args->time = Clock::nanoTime();
+    Clock::spinWait(args->waitNs);
+    args->tReturnNs = Clock::nanoTime();
     return SUCCESS;
 }
+
+//////////////////////////////////// Tests /////////////////////////////////////
 
 TEST_GROUP(ThreadRealTime)
 {
@@ -50,10 +58,8 @@ TEST_GROUP(ThreadRealTime)
         // number of thread descriptors. This is necessary since the array
         // cannot be statically sized according to `Thread::MAX_THREADS`, and
         // we want to avoid allocating memory in this test to keep it portable.
-        if (Thread::MAX_THREADS > gThreadsSize)
-        {
-            FAIL("increase `gThreadsSize` to be >= `Thread::MAX_THREADS`");
-        }
+        // If this check fails, increase `gThreadsSize`.
+        CHECK_TRUE(gThreadsSize >= Thread::MAX_THREADS);
 
         // Reset global thread descriptors.
         for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
@@ -192,37 +198,96 @@ TEST(ThreadRealTime, PriorityTooHigh)
     CHECK_EQUAL(-1, gThreads[0]);
 }
 
-TEST(ThreadRealTime, RealTime)
+TEST(ThreadRealTime, RealTimeSameAffinity)
 {
+    // Threads 2 and 3 will spin for 250 ms before returning.
+    gArgs2.waitNs = (0.25 * Clock::NS_IN_S);
+    gArgs3.waitNs = gArgs2.waitNs;
+
+    // Create 3 real-time threads with descending priorities on the same core.
+    // The first thread blocks the other 2 by spin-waiting until we set a flag.
+    // Threads will record the time of their return in the argument structs
+    // passed to them.
+    CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
+                                 &gArgs1,
+                                 (Thread::REALTIME_MIN_PRI + 2),
+                                 Thread::REALTIME,
+                                 0,
+                                 gThreads[0]));
+    CHECK_SUCCESS(Thread::create(spinAndRecordTime,
+                                 &gArgs2,
+                                 (Thread::REALTIME_MIN_PRI + 1),
+                                 Thread::REALTIME,
+                                 0,
+                                 gThreads[1]));
+    CHECK_SUCCESS(Thread::create(spinAndRecordTime,
+                                 &gArgs3,
+                                 Thread::REALTIME_MIN_PRI,
+                                 Thread::REALTIME,
+                                 0,
+                                 gThreads[2]));
+
+    // Wait for a relatively long time to avoid racing.
+    Clock::spinWait(0.25 * Clock::NS_IN_S);
+
+    // At this point no threads have run, so all return times are unset.
+    CHECK_EQUAL(0, gArgs1.tReturnNs);
+    CHECK_EQUAL(0, gArgs2.tReturnNs);
+    CHECK_EQUAL(0, gArgs3.tReturnNs);
+
+    // Release first thread from its spin.
+    gArgs1.flag = true;
+
+    // Wait for threads in expected order of completion.
+    CHECK_SUCCESS(Thread::await(gThreads[0], nullptr));
+    CHECK_SUCCESS(Thread::await(gThreads[1], nullptr));
+    CHECK_SUCCESS(Thread::await(gThreads[2], nullptr));
+
+    // Threads ran in the order of their priorities.
+    CHECK_TRUE(gArgs1.tReturnNs < gArgs2.tReturnNs);
+    CHECK_TRUE(gArgs2.tReturnNs < gArgs3.tReturnNs);
+
+    // Time elapsed between each thread returning is at least the time spent
+    // spinning by the last two threads.
+    CHECK_TRUE((gArgs2.tReturnNs - gArgs1.tReturnNs) >= gArgs2.waitNs);
+    CHECK_TRUE((gArgs3.tReturnNs - gArgs2.tReturnNs) >= gArgs3.waitNs);
+}
+
+TEST(ThreadRealTime, RealTimeDifferentAffinity)
+{
+    // Create 2 real-time threads with different priorities on different cores.
+    // Each thread spin-waits on a different flag.
     CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
                                  &gArgs1,
                                  Thread::REALTIME_MIN_PRI,
                                  Thread::REALTIME,
                                  0,
                                  gThreads[0]));
-    CHECK_SUCCESS(Thread::create(recordTime,
+    CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
                                  &gArgs2,
-                                 (Thread::REALTIME_MIN_PRI + 1),
+                                 Thread::REALTIME_MAX_PRI,
                                  Thread::REALTIME,
-                                 0,
+                                 1,
                                  gThreads[1]));
-    CHECK_SUCCESS(Thread::create(recordTime,
-                                 &gArgs3,
-                                 (Thread::REALTIME_MIN_PRI + 2),
-                                 Thread::REALTIME,
-                                 0,
-                                 gThreads[2]));
 
-    CHECK_EQUAL(0, gArgs1.time);
-    CHECK_EQUAL(0, gArgs2.time);
-    CHECK_EQUAL(0, gArgs3.time);
+    // Wait for a relatively long time to avoid racing.
+    Clock::spinWait(0.25 * Clock::NS_IN_S);
 
+    // At this point no threads have run, so all return times are unset.
+    CHECK_EQUAL(0, gArgs1.tReturnNs);
+    CHECK_EQUAL(0, gArgs2.tReturnNs);
+
+    // Release lower priority thread from its spin and wait for it to complete.
+    // This succeeds because the other thread, though still spinning and higher
+    // priority, is on a different core.
     gArgs1.flag = true;
-
     CHECK_SUCCESS(Thread::await(gThreads[0], nullptr));
-    CHECK_SUCCESS(Thread::await(gThreads[1], nullptr));
-    CHECK_SUCCESS(Thread::await(gThreads[2], nullptr));
 
-    CHECK_TRUE(gArgs1.time < gArgs2.time);
-    CHECK_TRUE(gArgs2.time < gArgs3.time);
+    // At this point only the lower priority thread has set its return time.
+    CHECK_TRUE(gArgs1.tReturnNs != 0);
+    CHECK_EQUAL(0, gArgs2.tReturnNs);
+
+    // Release and wait on higher priority thread.
+    gArgs2.flag = true;
+    CHECK_SUCCESS(Thread::await(gThreads[1], nullptr));
 }
