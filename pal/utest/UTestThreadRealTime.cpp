@@ -198,6 +198,8 @@ TEST(ThreadRealTime, PriorityTooHigh)
     CHECK_EQUAL(-1, gThreads[0]);
 }
 
+// @note This test assumes that a larger priority value corresponds to higher
+//       priority.
 TEST(ThreadRealTime, RealTimeSameAffinity)
 {
     // Threads 2 and 3 will spin for 250 ms before returning.
@@ -253,6 +255,8 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
     CHECK_TRUE((gArgs3.tReturnNs - gArgs2.tReturnNs) >= gArgs3.waitNs);
 }
 
+// @note This test requires that affinities 0 and 1 be valid on the current
+//       platform.
 TEST(ThreadRealTime, RealTimeDifferentAffinity)
 {
     // Create 2 real-time threads with different priorities on different cores.
