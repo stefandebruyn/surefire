@@ -1,3 +1,6 @@
+#include <sys/sysinfo.h>
+#include <sched.h>
+
 #include "ThreadPrivate.hpp"
 
 const I32 Thread::FAIR_MIN_PRI = 0;
@@ -9,6 +12,10 @@ const I32 Thread::REALTIME_MIN_PRI = 1;
 const I32 Thread::REALTIME_MAX_PRI = 99;
 
 const U32 Thread::MAX_THREADS = MAX_THREADS_CONSTEXPR;
+
+const I32 Thread::TEST_PRI = Thread::FAIR_MIN_PRI;
+
+const Thread::Policy Thread::TEST_POLICY = Thread::FAIR;
 
 ThreadSlot gThreadSlots[MAX_THREADS_CONSTEXPR];
 
@@ -30,6 +37,12 @@ Result Thread::create(const Function kFunc,
     if (kFunc == nullptr)
     {
         return E_THR_NULL;
+    }
+
+    // Check that affinity is valid.
+    if ((kAffinity != ALL_CORES) && (kAffinity >= numCores()))
+    {
+        return E_THR_AFF;
     }
 
     // Look for an empty slot to store the thread info.
@@ -113,12 +126,12 @@ Result Thread::create(const Function kFunc,
     }
 
     // Set thread affinity.
-    if (kAffinity != NO_AFFINITY)
+    if (kAffinity != ALL_CORES)
     {
         cpu_set_t cpuSet;
         CPU_ZERO(&cpuSet);
         CPU_SET(kAffinity, &cpuSet);
-        if (pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuSet) != 0)
+        if (pthread_attr_setaffinity_np(&attr, sizeof(cpuSet), &cpuSet) != 0)
         {
             return E_THR_AFF;
         }
@@ -153,7 +166,7 @@ Result Thread::create(const Function kFunc,
     return SUCCESS;
 }
 
-Result Thread::await(const I32 kThread, Result* kThreadRes)
+Result Thread::await(const I32 kThread, Result* const kThreadRes)
 {
     // Check that thread descriptor is in range.
     if ((kThread < 0) || (kThread >= MAX_THREADS))
@@ -185,4 +198,14 @@ Result Thread::await(const I32 kThread, Result* kThreadRes)
     gThreadSlots[kThread] = {};
 
     return SUCCESS;
+}
+
+U8 Thread::numCores()
+{
+    return get_nprocs();
+}
+
+U8 Thread::currentCore()
+{
+    return static_cast<U8>(sched_getcpu());
 }

@@ -22,7 +22,17 @@ namespace Thread
 
     extern const U32 MAX_THREADS;
 
-    inline constexpr U8 NO_AFFINITY = 0xFF;
+    /// A valid priority for the current platform that can be used to create
+    /// threads in priority-agnostic, low-stakes test code. This should not be
+    /// accessed in production code.
+    extern const I32 TEST_PRI;
+
+    /// A valid scheduling policy for the current platform that can be used to
+    /// create threads in policy-agnostic, low-stakes test code. This should not
+    /// be accessed in production code.
+    extern const Policy TEST_POLICY;
+
+    inline constexpr U8 ALL_CORES = 0xFF;
 
     typedef Result (*Function)(void* kArgs);
 
@@ -77,7 +87,11 @@ namespace Thread
                   const U8 kAffinity,
                   I32& kThread);
 
-    Result await(const I32 kThread, Result* kThreadRes);
+    Result await(const I32 kThread, Result* const kThreadRes);
+
+    U8 numCores();
+
+    U8 currentCore();
 }
 
 #endif

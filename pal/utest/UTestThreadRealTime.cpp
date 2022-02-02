@@ -1,12 +1,7 @@
-#include "pal/Thread.hpp"
 #include "pal/Clock.hpp"
-#include "UTest.hpp"
+#include "UTestThreadCommon.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
-
-inline constexpr U32 gThreadsSize = 16;
-
-static I32 gThreads[gThreadsSize];
 
 struct ThreadArgs final
 {
@@ -20,17 +15,6 @@ static ThreadArgs gArgs2;
 static ThreadArgs gArgs3;
 
 /////////////////////////////////// Helpers ////////////////////////////////////
-
-static Result noop(void* kArgs)
-{
-    return SUCCESS;
-}
-
-static Result setFlag(void* kArgs)
-{
-    *((bool*) kArgs) = true;
-    return SUCCESS;
-}
 
 static Result spinOnFlagAndRecordTime(void* kArgs)
 {
@@ -54,18 +38,7 @@ TEST_GROUP(ThreadRealTime)
 {
     void setup()
     {
-        // Check that `gThreads` array is large enough to store the maximum
-        // number of thread descriptors. This is necessary since the array
-        // cannot be statically sized according to `Thread::MAX_THREADS`, and
-        // we want to avoid allocating memory in this test to keep it portable.
-        // If this check fails, increase `gThreadsSize`.
-        CHECK_TRUE(gThreadsSize >= Thread::MAX_THREADS);
-
-        // Reset global thread descriptors.
-        for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-        {
-            gThreads[i] = -1;
-        }
+        threadTestSetup();
 
         // Clear global thread args.
         gArgs1 = {};
@@ -75,89 +48,15 @@ TEST_GROUP(ThreadRealTime)
 
     void teardown()
     {
-        // Attempt to wait on all threads in case the test failed with threads
-        // still alive. If the test passed, these waits fail silently.
-        for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-        {
-            Thread::await(gThreads[i], nullptr);
-        }
+        threadTestTeardown();
     }
 };
 
-TEST(ThreadRealTime, CreateMaxThreads)
-{
-    // Array of flags to be set by threads.
-    bool flags[Thread::MAX_THREADS + 1] = {};
-
-    // Create max number of threads.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-    {
-        CHECK_SUCCESS(Thread::create(setFlag,
-                                     &flags[i],
-                                     Thread::REALTIME_MIN_PRI,
-                                     Thread::REALTIME,
-                                     Thread::NO_AFFINITY,
-                                     gThreads[i]));
-    }
-
-    // Creating another thread fails.
-    CHECK_ERROR(E_THR_MAX,
-                Thread::create(setFlag,
-                               &flags[0],
-                               Thread::REALTIME_MIN_PRI,
-                               Thread::REALTIME,
-                               Thread::NO_AFFINITY,
-                               gThreads[0]));
-
-    // Wait for all threads to finish.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-    {
-        Result threadRes = -1;
-        CHECK_SUCCESS(Thread::await(gThreads[i], &threadRes));
-        CHECK_SUCCESS(threadRes);
-        // Flag was set by thread.
-        CHECK_TRUE(flags[i]);
-    }
-
-    // Clear flags.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-    {
-        flags[i] = false;
-    }
-
-    // Create max number of threads again to ensure the interface is reusable.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-    {
-        CHECK_SUCCESS(Thread::create(setFlag,
-                                     &flags[i],
-                                     Thread::REALTIME_MIN_PRI,
-                                     Thread::REALTIME,
-                                     Thread::NO_AFFINITY,
-                                     gThreads[i]));
-    }
-
-    // Creating another thread fails.
-    CHECK_ERROR(E_THR_MAX,
-                Thread::create(setFlag,
-                               &flags[0],
-                               Thread::REALTIME_MIN_PRI,
-                               Thread::REALTIME,
-                               Thread::NO_AFFINITY,
-                               gThreads[0]));
-
-    // Wait for all threads to finish.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-    {
-        Result threadRes = -1;
-        CHECK_SUCCESS(Thread::await(gThreads[i], &threadRes));
-        CHECK_SUCCESS(threadRes);
-        // Flag was set by thread.
-        CHECK_TRUE(flags[i]);
-    }
-}
-
+/// Real-time threads can be successfully created at every valid priority.
 TEST(ThreadRealTime, PriorityRange)
 {
+    CHECK_TRUE(Thread::REALTIME_MIN_PRI <= Thread::REALTIME_MAX_PRI);
+
     for (I32 i = Thread::REALTIME_MIN_PRI; i <= Thread::REALTIME_MAX_PRI; ++i)
     {
         bool flag = false;
@@ -165,7 +64,7 @@ TEST(ThreadRealTime, PriorityRange)
                                      &flag,
                                      i,
                                      Thread::REALTIME,
-                                     Thread::NO_AFFINITY,
+                                     Thread::ALL_CORES,
                                      gThreads[0]));
         Result threadRes = -1;
         CHECK_SUCCESS(Thread::await(gThreads[0], &threadRes));
@@ -181,7 +80,7 @@ TEST(ThreadRealTime, PriorityTooLow)
                                nullptr,
                                (Thread::REALTIME_MIN_PRI - 1),
                                Thread::REALTIME,
-                               Thread::NO_AFFINITY,
+                               Thread::ALL_CORES,
                                gThreads[0]));
     CHECK_EQUAL(-1, gThreads[0]);
 }
@@ -193,13 +92,13 @@ TEST(ThreadRealTime, PriorityTooHigh)
                                nullptr,
                                (Thread::REALTIME_MAX_PRI + 1),
                                Thread::REALTIME,
-                               Thread::NO_AFFINITY,
+                               Thread::ALL_CORES,
                                gThreads[0]));
     CHECK_EQUAL(-1, gThreads[0]);
 }
 
-// @note This test assumes that a larger priority value corresponds to higher
-//       priority.
+/// @note This test assumes that a larger priority value corresponds to higher
+///       priority.
 TEST(ThreadRealTime, RealTimeSameAffinity)
 {
     // Threads 2 and 3 will spin for 250 ms before returning.
@@ -255,8 +154,8 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
     CHECK_TRUE((gArgs3.tReturnNs - gArgs2.tReturnNs) >= gArgs3.waitNs);
 }
 
-// @note This test requires that affinities 0 and 1 be valid on the current
-//       platform.
+/// @note This test requires that affinities 0 and 1 be valid on the current
+///       platform.
 TEST(ThreadRealTime, RealTimeDifferentAffinity)
 {
     // Create 2 real-time threads with different priorities on different cores.
