@@ -3,14 +3,6 @@
 
 #include "ThreadPrivate.hpp"
 
-const I32 Thread::FAIR_MIN_PRI = 0;
-
-const I32 Thread::FAIR_MAX_PRI = 0;
-
-const I32 Thread::REALTIME_MIN_PRI = 1;
-
-const I32 Thread::REALTIME_MAX_PRI = 99;
-
 const U32 Thread::MAX_THREADS = MAX_THREADS_CONSTEXPR;
 
 const I32 Thread::TEST_PRI = Thread::FAIR_MIN_PRI;

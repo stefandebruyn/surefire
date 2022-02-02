@@ -31,6 +31,7 @@ utest:
 	psl/linux/Clock.cpp \
 	psl/linux/Console.cpp \
 	psl/linux/Thread.cpp \
+	psl/linux/ThreadPriorityRanges.cpp \
 	pal/utest/UTestUdpSocket.cpp \
 	pal/utest/UTestClock.cpp \
 	pal/utest/UTestSocketSelect.cpp \
