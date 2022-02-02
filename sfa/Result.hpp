@@ -52,7 +52,7 @@ typedef I32 Result;
 #define E_SOCK_RECV (260)
 #define E_SOCK_SEL (261)
 #define E_SOCK_CLOSE (262)
-#define E_SOCK_NULLPTR (263)
+#define E_SOCK_NULL (263)
 #define E_SOCK_SEL_NONE (264)
 
 /////////////////////////////////// Thread /////////////////////////////////////
@@ -65,6 +65,7 @@ typedef I32 Result;
 #define E_THR_EXIST (293)
 #define E_THR_AWAIT (294)
 #define E_THR_RANGE (295)
+#define E_THR_NULL (296)
 
 ///////////////////////////////// Linux Thread /////////////////////////////////
 

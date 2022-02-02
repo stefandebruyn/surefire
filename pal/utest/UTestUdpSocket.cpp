@@ -62,7 +62,7 @@ TEST(UdpSocket, CreateInvalidIp)
 
 TEST(UdpSocket, CreateNullIp)
 {
-    CHECK_ERROR(E_SOCK_NULLPTR,
+    CHECK_ERROR(E_SOCK_NULL,
                 Socket::create(nullptr,
                                TEST_PORT,
                                Socket::UDP,
@@ -176,7 +176,7 @@ TEST(UdpSocket, SendNullIp)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
     U64 buf;
-    CHECK_ERROR(E_SOCK_NULLPTR,
+    CHECK_ERROR(E_SOCK_NULL,
                 Socket::send(gSock1,
                              nullptr,
                              TEST_PORT,
@@ -188,7 +188,7 @@ TEST(UdpSocket, SendNullIp)
 TEST(UdpSocket, SendNullBuffer)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
-    CHECK_ERROR(E_SOCK_NULLPTR,
+    CHECK_ERROR(E_SOCK_NULL,
                 Socket::send(gSock1,
                              TEST_IP2,
                              TEST_PORT,
@@ -212,7 +212,7 @@ TEST(UdpSocket, SendInvalidSocket)
 TEST(UdpSocket, RecvNullBuffer)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
-    CHECK_ERROR(E_SOCK_NULLPTR, Socket::recv(gSock1, nullptr, 8, nullptr));
+    CHECK_ERROR(E_SOCK_NULL, Socket::recv(gSock1, nullptr, 8, nullptr));
 }
 
 TEST(UdpSocket, RecvInvalidSocket)

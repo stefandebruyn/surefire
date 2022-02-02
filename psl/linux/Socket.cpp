@@ -14,7 +14,7 @@ Result Socket::create(const char* const kIp,
     // Verify IP is non-null.
     if (kIp == nullptr)
     {
-        return E_SOCK_NULLPTR;
+        return E_SOCK_NULL;
     }
 
     // Map protocol onto corresponding UNIX constant.
@@ -61,7 +61,7 @@ Result Socket::send(const I32 kSock,
     // Verify destination IP and buffer are non-null.
     if ((kDestIp == nullptr) || (kBuf == nullptr))
     {
-        return E_SOCK_NULLPTR;
+        return E_SOCK_NULL;
     }
 
     // Create destination address.
@@ -100,7 +100,7 @@ Result Socket::recv(const I32 kSock,
     // Verify buffer is non-null.
     if (kBuf == nullptr)
     {
-        return E_SOCK_NULLPTR;
+        return E_SOCK_NULL;
     }
 
     // Receive into buffer.
@@ -131,7 +131,7 @@ Result Socket::select(const I32* const kSocks,
     // Verify arrays are non-null.
     if ((kSocks == nullptr) || (kReady == nullptr))
     {
-        return E_SOCK_NULLPTR;
+        return E_SOCK_NULL;
     }
 
     // Check that at least 1 socket was provided.
