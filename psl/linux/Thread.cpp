@@ -1,6 +1,16 @@
 #include "ThreadPrivate.hpp"
 
-ThreadSlot gThreadSlots[MAX_THREADS];
+const I32 Thread::FAIR_MIN_PRI = -20;
+
+const I32 Thread::FAIR_MAX_PRI = 19;
+
+const I32 Thread::REALTIME_MIN_PRI = 1;
+
+const I32 Thread::REALTIME_MAX_PRI = 99;
+
+const U32 Thread::MAX_THREADS = MAX_THREADS_CONSTEXPR;
+
+ThreadSlot gThreadSlots[MAX_THREADS_CONSTEXPR];
 
 void* pthreadWrapper(void* kArgs)
 {
@@ -16,6 +26,12 @@ Result Thread::create(const Function kFunc,
                       const U8 kAffinity,
                       I32& kThread)
 {
+    // Check that function is non-null.
+    if (kFunc == nullptr)
+    {
+        return E_THR_NULL;
+    }
+
     // Look for an empty slot to store the thread info.
     pthread_t* pthread = nullptr;
     U32 threadSlot = 0;
@@ -48,10 +64,21 @@ Result Thread::create(const Function kFunc,
     switch (kPolicy)
     {
         case FAIR:
+            // Check that priority is in range for this policy.
+            if ((kPriority < FAIR_MIN_PRI) || (kPriority > FAIR_MAX_PRI))
+            {
+                return E_THR_PRI;
+            }
             schedPolicy = SCHED_OTHER;
             break;
 
         case REALTIME:
+            // Check that priority is in range for this policy.
+            if ((kPriority < REALTIME_MIN_PRI)
+                || (kPriority > REALTIME_MAX_PRI))
+            {
+                return E_THR_PRI;
+            }
             schedPolicy = SCHED_FIFO;
             break;
 

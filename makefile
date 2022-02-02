@@ -36,6 +36,8 @@ utest:
 	pal/utest/UTestSocketSelect.cpp \
 	pal/utest/UTestConsole.cpp \
 	pal/utest/UTestThread.cpp \
+	pal/utest/UTestThreadFair.cpp \
+	pal/utest/UTestThreadRealTime.cpp \
 	-I. \
 	-Iutest \
 	-lCppUTest -lpthread

@@ -12,6 +12,16 @@ namespace Thread
         REALTIME
     };
 
+    extern const I32 FAIR_MIN_PRI;
+
+    extern const I32 FAIR_MAX_PRI;
+
+    extern const I32 REALTIME_MIN_PRI;
+
+    extern const I32 REALTIME_MAX_PRI;
+
+    extern const U32 MAX_THREADS;
+
     inline constexpr U8 NO_AFFINITY = 0xFF;
 
     typedef Result (*Function)(void* kArgs);
@@ -19,15 +29,14 @@ namespace Thread
     /// Starts a thread.
     ///
     /// @note Linux: This function is not thread-safe.
-    /// @note Linux: The thread has the default stack bounds as chosen by
-    ///       pthread.
-    /// @note Linux: A maximum of 16 threads may be alive at once.
+    /// @note Linux: The thread has the default stack bounds chosen by pthread.
     ///
     /// @param[i] kFunc      Thread function. The thread exits when this
     ///                      function returns.
     /// @param[i] kArgs      Thread arguments. This pointer is passed to the
-    ///                      thread function as-is. The data pointed to should
-    ///                      be in scope for the lifetime of the thread.
+    ///                      thread function as-is. If the pointer is non-null,
+    ///                      The data pointed to should be in scope for the
+    ///                      lifetime of the thread.
     /// @param[i] kPriority  Thread priority. Valid priority ranges may vary
     ///                      with platform.
     ///                      Linux: This parameter is ignored if a `FAIR` policy
@@ -41,6 +50,7 @@ namespace Thread
     ///
     /// @retval SUCCESS          Thread started successfully. Thread descriptor
     ///                          was stored in `kThread`.
+    /// @retval E_THR_NULL       Function pointer was null.
     /// @retval E_THR_MAX        Maximum number of threads reached.
     /// @retval E_THR_POL        Failed to set scheduling policy. The policy may
     ///                          be invalid or unsupported by the platform.
@@ -49,6 +59,10 @@ namespace Thread
     /// @retval E_THR_CREATE     Failed to create thread. This usually means the
     ///                          platform-specific thread creation API call
     ///                          failed.
+    ///                          Linux: If the `REALTIME` policy is used, this
+    ///                          error may indicate that the process does not
+    ///                          have the necessary permissions to create
+    ///                          real-time threads.
     /// @retval E_THR_AFF        Failed to set thread affinity. The affinity may
     ///                          be invalid or unsupported by the platform.
     /// @retval E_THR_INIT_ATTR  Linux: Failed to initialize thread attributes.

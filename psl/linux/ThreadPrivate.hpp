@@ -6,7 +6,7 @@
 #include "pal/Thread.hpp"
 #include "sfa/BasicTypes.hpp"
 
-inline constexpr U32 MAX_THREADS = 16;
+inline constexpr U32 MAX_THREADS_CONSTEXPR = 16;
 
 struct PthreadWrapperArgs
 {
@@ -21,7 +21,7 @@ struct ThreadSlot
     bool used;
 };
 
-extern ThreadSlot gThreadSlots[MAX_THREADS];
+extern ThreadSlot gThreadSlots[MAX_THREADS_CONSTEXPR];
 
 void* pthreadWrapper(void* kArgs);
 
