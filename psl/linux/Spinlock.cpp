@@ -1,7 +1,5 @@
 #include "pal/Spinlock.hpp"
 
-/////////////////////////////////// Public /////////////////////////////////////
-
 Result Spinlock::create(Spinlock& kLock)
 {
     if (pthread_spin_init(&kLock.mLock, PTHREAD_PROCESS_PRIVATE) != 0)
@@ -11,6 +9,15 @@ Result Spinlock::create(Spinlock& kLock)
 
     kLock.mInit = true;
     return SUCCESS;
+}
+
+Spinlock::Spinlock() : mInit(false)
+{
+}
+
+Spinlock::~Spinlock()
+{
+    (void) pthread_spin_destroy(&mLock);
 }
 
 Result Spinlock::acquire()
@@ -41,10 +48,4 @@ Result Spinlock::release()
     }
 
     return SUCCESS;
-}
-
-/////////////////////////////////// Private ////////////////////////////////////
-
-Spinlock::Spinlock() : mInit(false)
-{
 }

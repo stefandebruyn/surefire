@@ -16,6 +16,8 @@ public:
 
     Spinlock();
 
+    ~Spinlock();
+
     Result acquire();
 
     Result release();

@@ -50,7 +50,6 @@ TEST_GROUP(ThreadRealTime)
     }
 };
 
-/// Real-time threads can be successfully created at every valid priority.
 TEST(ThreadRealTime, PriorityRange)
 {
     CHECK_TRUE(Thread::REALTIME_MIN_PRI <= Thread::REALTIME_MAX_PRI);
@@ -99,8 +98,8 @@ TEST(ThreadRealTime, PriorityTooHigh)
 ///       priority.
 TEST(ThreadRealTime, RealTimeSameAffinity)
 {
-    // Threads 2 and 3 will spin for 250 ms before returning.
-    gArgs2.waitNs = (0.25 * Clock::NS_IN_S);
+    // Threads 2 and 3 will spin for 100 ms before returning.
+    gArgs2.waitNs = (0.1 * Clock::NS_IN_S);
     gArgs3.waitNs = gArgs2.waitNs;
 
     // Create 3 real-time threads with descending priorities on the same core.
@@ -126,8 +125,8 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
                                  0,
                                  gTestThreads[2]));
 
-    // Wait for a relatively long time to avoid racing.
-    Clock::spinWait(0.25 * Clock::NS_IN_S);
+    // Wait for a relatively long time to avoid racing thread creation.
+    Clock::spinWait(0.1 * Clock::NS_IN_S);
 
     // At this point no threads have run, so all return times are unset.
     CHECK_EQUAL(0, gArgs1.tReturnNs);
@@ -171,8 +170,8 @@ TEST(ThreadRealTime, RealTimeDifferentAffinity)
                                  1,
                                  gTestThreads[1]));
 
-    // Wait for a relatively long time to avoid racing.
-    Clock::spinWait(0.25 * Clock::NS_IN_S);
+    // Wait for a relatively long time to avoid racing thread creation.
+    Clock::spinWait(0.1 * Clock::NS_IN_S);
 
     // At this point no threads have run, so all return times are unset.
     CHECK_EQUAL(0, gArgs1.tReturnNs);
