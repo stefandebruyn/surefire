@@ -57,7 +57,7 @@ typedef I32 Result;
 
 /////////////////////////////////// Thread /////////////////////////////////////
 
-#define E_THR_MAX (288)
+#define E_THR_UNINIT (288)
 #define E_THR_POL (289)
 #define E_THR_PRI (290)
 #define E_THR_CREATE (291)

@@ -1,38 +1,43 @@
 #ifndef SFA_THREAD_HPP
 #define SFA_THREAD_HPP
 
+#include "pal/Platform.hpp"
 #include "sfa/BasicTypes.hpp"
 #include "sfa/Result.hpp"
 
-namespace Thread
+#ifdef SFA_PLATFORM_LINUX
+#    include <pthread.h>
+#endif
+
+class Thread final
 {
+public:
+
     enum Policy : U8
     {
         FAIR,
         REALTIME
     };
 
-    extern const I32 FAIR_MIN_PRI;
+    static const I32 FAIR_MIN_PRI;
 
-    extern const I32 FAIR_MAX_PRI;
+    static const I32 FAIR_MAX_PRI;
 
-    extern const I32 REALTIME_MIN_PRI;
+    static const I32 REALTIME_MIN_PRI;
 
-    extern const I32 REALTIME_MAX_PRI;
-
-    extern const U32 MAX_THREADS;
+    static const I32 REALTIME_MAX_PRI;
 
     /// A valid priority for the current platform that can be used to create
     /// threads in priority-agnostic, low-stakes test code. This should not be
     /// accessed in production code.
-    extern const I32 TEST_PRI;
+    static const I32 TEST_PRI;
 
     /// A valid scheduling policy for the current platform that can be used to
     /// create threads in policy-agnostic, low-stakes test code. This should not
     /// be accessed in production code.
-    extern const Policy TEST_POLICY;
+    static const Policy TEST_POLICY;
 
-    inline constexpr U8 ALL_CORES = 0xFF;
+    static inline constexpr U8 ALL_CORES = 0xFF;
 
     typedef Result (*Function)(void* kArgs);
 
@@ -80,18 +85,43 @@ namespace Thread
     ///                          inheritance.
     /// @retval E_THR_DTRY_ATTR  Linux: Failed to destroy thread attributes, but
     ///                          the thread was still created successfully.
-    Result create(const Function kFunc,
-                  void* const kArgs,
-                  const I32 kPriority,
-                  const Policy kPolicy,
-                  const U8 kAffinity,
-                  I32& kThread);
+    static Result create(const Function kFunc,
+                         void* const kArgs,
+                         const I32 kPriority,
+                         const Policy kPolicy,
+                         const U8 kAffinity,
+                         Thread& kThread);
 
-    Result await(const I32 kThread, Result* const kThreadRes);
+    static U8 numCores();
 
-    U8 numCores();
+    static U8 currentCore();
 
-    U8 currentCore();
-}
+    Thread();
+
+    Result await(Result* const kThreadRes);
+
+    Thread(const Thread&) = delete;
+    Thread(Thread&&) = delete;
+    Thread& operator=(const Thread&) = delete;
+    Thread& operator=(Thread&&) = delete;
+
+private:
+
+    bool mInit;
+
+#ifdef SFA_PLATFORM_LINUX
+    pthread_t mPthread;
+
+    struct PthreadWrapperArgs final
+    {
+        Function func;
+        void* args;
+    };
+
+    PthreadWrapperArgs mWrapperArgs;
+
+    static void* pthreadWrapper(void* kArgs);
+#endif
+};
 
 #endif

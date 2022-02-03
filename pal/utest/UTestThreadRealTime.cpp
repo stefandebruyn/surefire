@@ -38,8 +38,6 @@ TEST_GROUP(ThreadRealTime)
 {
     void setup()
     {
-        threadTestSetup();
-
         // Clear global thread args.
         gArgs1 = {};
         gArgs2 = {};
@@ -65,9 +63,9 @@ TEST(ThreadRealTime, PriorityRange)
                                      i,
                                      Thread::REALTIME,
                                      Thread::ALL_CORES,
-                                     gThreads[0]));
+                                     gTestThreads[0]));
         Result threadRes = -1;
-        CHECK_SUCCESS(Thread::await(gThreads[0], &threadRes));
+        CHECK_SUCCESS(gTestThreads[0].await(&threadRes));
         CHECK_SUCCESS(threadRes);
         CHECK_TRUE(flag);
     }
@@ -76,25 +74,25 @@ TEST(ThreadRealTime, PriorityRange)
 TEST(ThreadRealTime, PriorityTooLow)
 {
     CHECK_ERROR(E_THR_PRI,
-                Thread::create(noop,
+                Thread::create(nop,
                                nullptr,
                                (Thread::REALTIME_MIN_PRI - 1),
                                Thread::REALTIME,
                                Thread::ALL_CORES,
-                               gThreads[0]));
-    CHECK_EQUAL(-1, gThreads[0]);
+                               gTestThreads[0]));
+    CHECK_ERROR(E_THR_UNINIT, gTestThreads[0].await(nullptr));
 }
 
 TEST(ThreadRealTime, PriorityTooHigh)
 {
     CHECK_ERROR(E_THR_PRI,
-                Thread::create(noop,
+                Thread::create(nop,
                                nullptr,
                                (Thread::REALTIME_MAX_PRI + 1),
                                Thread::REALTIME,
                                Thread::ALL_CORES,
-                               gThreads[0]));
-    CHECK_EQUAL(-1, gThreads[0]);
+                               gTestThreads[0]));
+    CHECK_ERROR(E_THR_UNINIT, gTestThreads[0].await(nullptr));
 }
 
 /// @note This test assumes that a larger priority value corresponds to higher
@@ -106,7 +104,7 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
     gArgs3.waitNs = gArgs2.waitNs;
 
     // Create 3 real-time threads with descending priorities on the same core.
-    // The first thread blocks the other 2 by spin-waiting until we set a flag.
+    // The first thread blocks the other 2 by spinwaiting until we set a flag.
     // Threads will record the time of their return in the argument structs
     // passed to them.
     CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
@@ -114,19 +112,19 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
                                  (Thread::REALTIME_MIN_PRI + 2),
                                  Thread::REALTIME,
                                  0,
-                                 gThreads[0]));
+                                 gTestThreads[0]));
     CHECK_SUCCESS(Thread::create(spinAndRecordTime,
                                  &gArgs2,
                                  (Thread::REALTIME_MIN_PRI + 1),
                                  Thread::REALTIME,
                                  0,
-                                 gThreads[1]));
+                                 gTestThreads[1]));
     CHECK_SUCCESS(Thread::create(spinAndRecordTime,
                                  &gArgs3,
                                  Thread::REALTIME_MIN_PRI,
                                  Thread::REALTIME,
                                  0,
-                                 gThreads[2]));
+                                 gTestThreads[2]));
 
     // Wait for a relatively long time to avoid racing.
     Clock::spinWait(0.25 * Clock::NS_IN_S);
@@ -140,9 +138,9 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
     gArgs1.flag = true;
 
     // Wait for threads in expected order of completion.
-    CHECK_SUCCESS(Thread::await(gThreads[0], nullptr));
-    CHECK_SUCCESS(Thread::await(gThreads[1], nullptr));
-    CHECK_SUCCESS(Thread::await(gThreads[2], nullptr));
+    CHECK_SUCCESS(gTestThreads[0].await(nullptr));
+    CHECK_SUCCESS(gTestThreads[1].await(nullptr));
+    CHECK_SUCCESS(gTestThreads[2].await(nullptr));
 
     // Threads ran in the order of their priorities.
     CHECK_TRUE(gArgs1.tReturnNs < gArgs2.tReturnNs);
@@ -159,19 +157,19 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
 TEST(ThreadRealTime, RealTimeDifferentAffinity)
 {
     // Create 2 real-time threads with different priorities on different cores.
-    // Each thread spin-waits on a different flag.
+    // Each thread spinwaits on a different flag.
     CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
                                  &gArgs1,
                                  Thread::REALTIME_MIN_PRI,
                                  Thread::REALTIME,
                                  0,
-                                 gThreads[0]));
+                                 gTestThreads[0]));
     CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
                                  &gArgs2,
                                  Thread::REALTIME_MAX_PRI,
                                  Thread::REALTIME,
                                  1,
-                                 gThreads[1]));
+                                 gTestThreads[1]));
 
     // Wait for a relatively long time to avoid racing.
     Clock::spinWait(0.25 * Clock::NS_IN_S);
@@ -184,7 +182,7 @@ TEST(ThreadRealTime, RealTimeDifferentAffinity)
     // This succeeds because the other thread, though still spinning and higher
     // priority, is on a different core.
     gArgs1.flag = true;
-    CHECK_SUCCESS(Thread::await(gThreads[0], nullptr));
+    CHECK_SUCCESS(gTestThreads[0].await(nullptr));
 
     // At this point only the lower priority thread has set its return time.
     CHECK_TRUE(gArgs1.tReturnNs != 0);
@@ -192,5 +190,5 @@ TEST(ThreadRealTime, RealTimeDifferentAffinity)
 
     // Release and wait on higher priority thread.
     gArgs2.flag = true;
-    CHECK_SUCCESS(Thread::await(gThreads[1], nullptr));
+    CHECK_SUCCESS(gTestThreads[1].await(nullptr));
 }

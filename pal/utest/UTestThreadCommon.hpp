@@ -6,40 +6,21 @@
 
 /////////////////////////////////// Globals ////////////////////////////////////
 
-inline constexpr U32 gThreadsSize = 16;
+inline constexpr U32 gTestMaxThreads = 16;
 
-extern I32 gThreads[gThreadsSize];
+extern Thread gTestThreads[gTestMaxThreads];
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
-inline void threadTestSetup()
-{
-    // Check that `gThreads` array is large enough to store the maximum
-    // number of thread descriptors. This is necessary since the array
-    // cannot be statically sized according to `Thread::MAX_THREADS`, and
-    // we want to avoid allocating memory in this test to keep it portable.
-    // If this check fails, increase `gThreadsSize`.
-    CHECK_TEXT(gThreadsSize >= Thread::MAX_THREADS,
-               "increase `gThreadsSize` to be >= `Thread::MAX_THREADS");
-
-    // Reset global thread descriptors.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-    {
-        gThreads[i] = -1;
-    }
-}
-
 inline void threadTestTeardown()
 {
-    // Attempt to wait on all threads in case the test failed with threads
-    // still alive. If the test passed, these waits fail silently.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
+    for (U32 i = 0; i < gTestMaxThreads; ++i)
     {
-        Thread::await(gThreads[i], nullptr);
+        gTestThreads[i].await(nullptr);
     }
 }
 
-static Result noop(void* kArgs)
+static Result nop(void* kArgs)
 {
     return SUCCESS;
 }

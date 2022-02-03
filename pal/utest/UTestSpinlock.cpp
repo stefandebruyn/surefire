@@ -12,7 +12,7 @@ struct ThreadArgs
 static Result atomicIncrement(void* kArgs)
 {
     ThreadArgs* const args = (ThreadArgs* const) kArgs;
-    // Spin-wait on start flag.
+    // Spinwait on start flag.
     while (args->start == false);
 
     Result res = SUCCESS;
@@ -42,11 +42,6 @@ static Result atomicIncrement(void* kArgs)
 
 TEST_GROUP(Spinlock)
 {
-    void setup()
-    {
-        threadTestSetup();
-    }
-
     void teardown()
     {
         threadTestTeardown();
@@ -59,25 +54,25 @@ TEST(Spinlock, Atomicity)
     CHECK_SUCCESS(Spinlock::create(args.lock));
     args.increments = 1000000;
 
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
+    for (U32 i = 0; i < gTestMaxThreads; ++i)
     {
         CHECK_SUCCESS(Thread::create(atomicIncrement,
                                      &args,
                                      Thread::TEST_PRI,
                                      Thread::TEST_POLICY,
                                      (i % Thread::numCores()),
-                                     gThreads[i]));
+                                     gTestThreads[i]));
     }
 
     CHECK_EQUAL(0, args.counter);
 
     args.start = true;
 
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
+    for (U32 i = 0; i < gTestMaxThreads; ++i)
     {
-        CHECK_SUCCESS(Thread::await(gThreads[i], nullptr));
+        CHECK_SUCCESS(gTestThreads[i].await(nullptr));
     }
 
-    const U64 expectCounter = (Thread::MAX_THREADS * args.increments);
+    const U64 expectCounter = (gTestMaxThreads * args.increments);
     CHECK_EQUAL(expectCounter, args.counter);
 }

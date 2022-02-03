@@ -2,7 +2,7 @@
 
 /////////////////////////////////// Globals ////////////////////////////////////
 
-I32 gThreads[gThreadsSize];
+Thread gTestThreads[gTestMaxThreads];
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
@@ -12,105 +12,67 @@ static Result checkCore(void* kArgs)
     return ((expectCore == Thread::currentCore()) ? SUCCESS : E_THR_AFF);
 }
 
+static Result returnError(void* kArgs)
+{
+    return E_NULLPTR;
+}
+
 //////////////////////////////////// Tests /////////////////////////////////////
 
 TEST_GROUP(Thread)
 {
-    void setup()
-    {
-        threadTestSetup();
-    }
-
     void teardown()
     {
         threadTestTeardown();
     }
 };
 
-TEST(Thread, CreateMaxThreads)
+TEST(Thread, Uninitialized)
 {
-    // Array of flags to be set by threads.
-    bool flags[Thread::MAX_THREADS] = {};
+    Thread thread;
+    CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
+}
 
-    // Create max number of threads.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-    {
-        CHECK_SUCCESS(Thread::create(setFlag,
-                                     &flags[i],
-                                     Thread::TEST_PRI,
-                                     Thread::TEST_POLICY,
-                                     0,
-                                     gThreads[i]));
-    }
+TEST(Thread, UninitializedAfterAwait)
+{
+    Thread thread;
+    CHECK_SUCCESS(Thread::create(nop,
+                                 nullptr,
+                                 Thread::TEST_PRI,
+                                 Thread::TEST_POLICY,
+                                 0,
+                                 thread));
+    CHECK_SUCCESS(thread.await(nullptr));
+    CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
+}
 
-    // Creating another thread fails.
-    CHECK_ERROR(E_THR_MAX,
-                Thread::create(setFlag,
-                               &flags[0],
-                               Thread::TEST_PRI,
-                               Thread::TEST_POLICY,
-                               0,
-                               gThreads[0]));
-
-    // Wait for all threads to finish.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-    {
-        Result threadRes = -1;
-        CHECK_SUCCESS(Thread::await(gThreads[i], &threadRes));
-        CHECK_SUCCESS(threadRes);
-        // Flag was set by thread.
-        CHECK_TRUE(flags[i]);
-    }
-
-    // Clear flags.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-    {
-        flags[i] = false;
-    }
-
-    // Create max number of threads again to ensure the interface is reusable.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-    {
-        CHECK_SUCCESS(Thread::create(setFlag,
-                                     &flags[i],
-                                     Thread::TEST_PRI,
-                                     Thread::TEST_POLICY,
-                                     0,
-                                     gThreads[i]));
-    }
-
-    // Creating another thread fails.
-    CHECK_ERROR(E_THR_MAX,
-                Thread::create(setFlag,
-                               &flags[0],
-                               Thread::TEST_PRI,
-                               Thread::TEST_POLICY,
-                               0,
-                               gThreads[0]));
-
-    // Wait for all threads to finish.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
-    {
-        Result threadRes = -1;
-        CHECK_SUCCESS(Thread::await(gThreads[i], &threadRes));
-        CHECK_SUCCESS(threadRes);
-        // Flag was set by thread.
-        CHECK_TRUE(flags[i]);
-    }
+TEST(Thread, ReturnResult)
+{
+    Thread thread;
+    CHECK_SUCCESS(Thread::create(returnError,
+                                 nullptr,
+                                 Thread::TEST_PRI,
+                                 Thread::TEST_POLICY,
+                                 0,
+                                 thread));
+    Result threadRes = SUCCESS;
+    CHECK_SUCCESS(thread.await(&threadRes));
+    CHECK_EQUAL(E_NULLPTR, threadRes);
 }
 
 TEST(Thread, AffinityRange)
 {
     for (U32 i = 0; i < Thread::numCores(); ++i)
     {
+        Thread thread;
         CHECK_SUCCESS(Thread::create(checkCore,
                                      reinterpret_cast<void*>(i),
                                      Thread::TEST_PRI,
                                      Thread::TEST_POLICY,
                                      i,
-                                     gThreads[0]));
+                                     thread));
         Result threadRes = -1;
-        CHECK_SUCCESS(Thread::await(gThreads[0], &threadRes));
+        CHECK_SUCCESS(thread.await(&threadRes));
         CHECK_TEXT((threadRes == SUCCESS), "thread was on an unexpected core");
     }
 }
@@ -118,24 +80,24 @@ TEST(Thread, AffinityRange)
 TEST(Thread, AffinityAllCores)
 {
     // Array of flags to be set by threads.
-    bool flags[Thread::MAX_THREADS] = {};
+    bool flags[gTestMaxThreads] = {};
 
     // Create max number of threads.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
+    for (U32 i = 0; i < gTestMaxThreads; ++i)
     {
         CHECK_SUCCESS(Thread::create(setFlag,
                                      &flags[i],
                                      Thread::TEST_PRI,
                                      Thread::TEST_POLICY,
                                      Thread::ALL_CORES,
-                                     gThreads[i]));
+                                     gTestThreads[i]));
     }
 
     // Wait for all threads to finish.
-    for (U32 i = 0; i < Thread::MAX_THREADS; ++i)
+    for (U32 i = 0; i < gTestMaxThreads; ++i)
     {
         Result threadRes = -1;
-        CHECK_SUCCESS(Thread::await(gThreads[i], &threadRes));
+        CHECK_SUCCESS(gTestThreads[i].await(&threadRes));
         CHECK_SUCCESS(threadRes);
         // Flag was set by thread.
         CHECK_TRUE(flags[i]);
@@ -144,36 +106,39 @@ TEST(Thread, AffinityAllCores)
 
 TEST(Thread, ErrorNullFunction)
 {
+    Thread thread;
     CHECK_ERROR(E_THR_NULL,
                 Thread::create(nullptr,
                                nullptr,
                                Thread::TEST_PRI,
                                Thread::TEST_POLICY,
                                0,
-                               gThreads[0]));
-    CHECK_EQUAL(-1, gThreads[0]);
+                               thread));
+    CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 
 TEST(Thread, ErrorInvalidPolicy)
 {
+    Thread thread;
     CHECK_ERROR(E_THR_POL,
-                Thread::create(noop,
+                Thread::create(nop,
                                nullptr,
                                Thread::TEST_PRI,
                                static_cast<Thread::Policy>(0xFF),
                                0,
-                               gThreads[0]));
-    CHECK_EQUAL(-1, gThreads[0]);
+                               thread));
+    CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 
 TEST(Thread, ErrorInvalidAffinity)
 {
+    Thread thread;
     CHECK_ERROR(E_THR_AFF,
-                Thread::create(noop,
+                Thread::create(nop,
                                nullptr,
                                Thread::TEST_PRI,
                                Thread::TEST_POLICY,
                                Thread::numCores(),
-                               gThreads[0]));
-    CHECK_EQUAL(-1, gThreads[0]);
+                               thread));
+    CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }

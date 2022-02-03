@@ -1,29 +1,18 @@
 #include <sys/sysinfo.h>
 #include <sched.h>
 
-#include "ThreadPrivate.hpp"
-
-const U32 Thread::MAX_THREADS = MAX_THREADS_CONSTEXPR;
+#include "pal/Thread.hpp"
 
 const I32 Thread::TEST_PRI = Thread::FAIR_MIN_PRI;
 
 const Thread::Policy Thread::TEST_POLICY = Thread::FAIR;
-
-ThreadSlot gThreadSlots[MAX_THREADS_CONSTEXPR];
-
-void* pthreadWrapper(void* kArgs)
-{
-    PthreadWrapperArgs* wrapperArgs = (PthreadWrapperArgs*) kArgs;
-    const Result res = (*wrapperArgs->func)(wrapperArgs->args);
-    return reinterpret_cast<void*>(res);
-}
 
 Result Thread::create(const Function kFunc,
                       void* const kArgs,
                       const I32 kPriority,
                       const Policy kPolicy,
                       const U8 kAffinity,
-                      I32& kThread)
+                      Thread& kThread)
 {
     // Check that function is non-null.
     if (kFunc == nullptr)
@@ -35,26 +24,6 @@ Result Thread::create(const Function kFunc,
     if ((kAffinity != ALL_CORES) && (kAffinity >= numCores()))
     {
         return E_THR_AFF;
-    }
-
-    // Look for an empty slot to store the thread info.
-    pthread_t* pthread = nullptr;
-    U32 threadSlot = 0;
-    for (; threadSlot < MAX_THREADS; ++threadSlot)
-    {
-        if (gThreadSlots[threadSlot].used == false)
-        {
-            // Empty slot found. Will be marked used once we successfully create
-            // the thread without an error occurring.
-            pthread = &gThreadSlots[threadSlot].pthread;
-            break;
-        }
-    }
-
-    if (pthread == nullptr)
-    {
-        // No empty slot- maximum number of threads reached.
-        return E_THR_MAX;
     }
 
     // Initialize thread attributes.
@@ -129,24 +98,23 @@ Result Thread::create(const Function kFunc,
         }
     }
 
-    // Store thread wrapper arguments in thread slot where the thread can access
-    // them.
-    gThreadSlots[threadSlot].wrapperArgs.func = kFunc;
-    gThreadSlots[threadSlot].wrapperArgs.args = kArgs;
+    // Store thread wrapper arguments in thread object where the thread can
+    // access them.
+    kThread.mWrapperArgs.func = kFunc;
+    kThread.mWrapperArgs.args = kArgs;
 
     // Start the thread.
-    if (pthread_create(pthread,
+    if (pthread_create(&kThread.mPthread,
                        &attr,
                        pthreadWrapper,
-                       &gThreadSlots[threadSlot].wrapperArgs) != 0)
+                       &kThread.mWrapperArgs) != 0)
     {
         return E_THR_CREATE;
     }
 
-    // If we got this far, thread was successfully created- mark thread slot
-    // used and return thread descriptor.
-    gThreadSlots[threadSlot].used = true;
-    kThread = threadSlot;
+    // If we got this far, thread was successfully created- set thread as
+    // initialized so that its interface is usable.
+    kThread.mInit = true;
 
     // Destroy thread attributes since we're done with them. This should never
     // fail according to POSIX.
@@ -154,40 +122,6 @@ Result Thread::create(const Function kFunc,
     {
         return E_THR_DTRY_ATTR;
     }
-
-    return SUCCESS;
-}
-
-Result Thread::await(const I32 kThread, Result* const kThreadRes)
-{
-    // Check that thread descriptor is in range.
-    if ((kThread < 0) || (kThread >= MAX_THREADS))
-    {
-        return E_THR_RANGE;
-    }
-
-    // Check that thread slot is in use.
-    if (gThreadSlots[kThread].used == false)
-    {
-        return E_THR_EXIST;
-    }
-
-    // Join thread.
-    void* threadRet = nullptr;
-    if (pthread_join(gThreadSlots[kThread].pthread, &threadRet) != 0)
-    {
-        return E_THR_AWAIT;
-    }
-
-    if (kThreadRes != nullptr)
-    {
-        // Return thread result to caller.
-        static_assert(sizeof(threadRet) >= sizeof(kThreadRes));
-        *kThreadRes = *((Result*) &threadRet);
-    }
-
-    // Clear the thread slot.
-    gThreadSlots[kThread] = {};
 
     return SUCCESS;
 }
@@ -200,4 +134,42 @@ U8 Thread::numCores()
 U8 Thread::currentCore()
 {
     return static_cast<U8>(sched_getcpu());
+}
+
+Thread::Thread() : mInit(false), mWrapperArgs({})
+{
+}
+
+Result Thread::await(Result* const kThreadRes)
+{
+    if (mInit == false)
+    {
+        return E_THR_UNINIT;
+    }
+
+    // Join thread.
+    void* threadRet = nullptr;
+    if (pthread_join(mPthread, &threadRet) != 0)
+    {
+        return E_THR_AWAIT;
+    }
+
+    if (kThreadRes != nullptr)
+    {
+        // Return thread result to caller.
+        static_assert(sizeof(threadRet) >= sizeof(kThreadRes));
+        *kThreadRes = *((Result*) &threadRet);
+    }
+
+    // Clear the thread slot.
+    mInit = false;
+
+    return SUCCESS;
+}
+
+void* Thread::pthreadWrapper(void* kArgs)
+{
+    PthreadWrapperArgs* wrapperArgs = (PthreadWrapperArgs*) kArgs;
+    const Result res = (*wrapperArgs->func)(wrapperArgs->args);
+    return reinterpret_cast<void*>(res);
 }
