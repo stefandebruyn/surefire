@@ -54,6 +54,7 @@ typedef I32 Result;
 #define E_SOCK_CLOSE (262)
 #define E_SOCK_NULL (263)
 #define E_SOCK_SEL_NONE (264)
+#define E_SOCK_UNINIT (265)
 
 /////////////////////////////////// Thread /////////////////////////////////////
 

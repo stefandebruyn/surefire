@@ -9,7 +9,7 @@
 Result Socket::create(const char* const kIp,
                       const U16 kPort,
                       const Protocol kProto,
-                      I32& kSock)
+                      Socket& kSock)
 {
     // Verify IP is non-null.
     if (kIp == nullptr)
@@ -46,18 +46,97 @@ Result Socket::create(const char* const kIp,
         return E_SOCK_BIND;
     }
 
-    // If we got this far, socket is ready- return FD.
-    kSock = fd;
+    // If we got this far, socket is ready- set the FD so that its interface
+    // is usable.
+    kSock.mFd = fd;
+
     return SUCCESS;
 }
 
-Result Socket::send(const I32 kSock,
-                    const char* const kDestIp,
+Result Socket::select(Socket* const kSocks[],
+                      bool* const kReady,
+                      const U32 kNumSocks,
+                      U32& kTimeoutUs)
+{
+    // Verify arrays are non-null.
+    if ((kSocks == nullptr) || (kReady == nullptr))
+    {
+        return E_SOCK_NULL;
+    }
+
+    // Verify at least 1 socket was provided.
+    if (kNumSocks == 0)
+    {
+        return E_SOCK_SEL_NONE;
+    }
+
+    // Verify all sockets are initialized.
+    for (U32 i = 0; i < kNumSocks; ++i)
+    {
+        if (kSocks[i]->mFd == -1)
+        {
+            return E_SOCK_UNINIT;
+        }
+    }
+
+    // Make FD set.
+    fd_set fds;
+    FD_ZERO(&fds);
+    for (U32 i = 0; i < kNumSocks; ++i)
+    {
+        if (kReady[i] == false)
+        {
+            FD_SET(kSocks[i]->mFd, &fds);
+        }
+    }
+
+    // Make timeout.
+    timeval timeout = {};
+    timeout.tv_sec = (kTimeoutUs / Clock::US_IN_S);
+    timeout.tv_usec = (kTimeoutUs % Clock::US_IN_S);
+
+    // Do select.
+    const I32 selRet = ::select(FD_SETSIZE, &fds, nullptr, nullptr, &timeout);
+    if (selRet < 0)
+    {
+        // Select failed.
+        return E_SOCK_SEL;
+    }
+
+    if (selRet != 0)
+    {
+        // Set ready flags according to which sockets have data available.
+        for (U32 i = 0; i < kNumSocks; ++i)
+        {
+            if (FD_ISSET(kSocks[i]->mFd, &fds) != 0)
+            {
+                kReady[i] = true;
+            }
+        }
+    }
+
+    // Update timeout return parameter based on how much time remained.
+    kTimeoutUs = ((timeout.tv_sec * Clock::US_IN_S) + timeout.tv_usec);
+
+    return SUCCESS;
+}
+
+Socket::Socket() : mFd(-1)
+{
+}
+
+Result Socket::send(const char* const kDestIp,
                     const U16 kDestPort,
                     const void* const kBuf,
                     const U32 kNumBytes,
                     U32* const kNumBytesSent)
 {
+    // Verify socket is initialized.
+    if (mFd == -1)
+    {
+        return E_SOCK_UNINIT;
+    }
+
     // Verify destination IP and buffer are non-null.
     if ((kDestIp == nullptr) || (kBuf == nullptr))
     {
@@ -71,7 +150,7 @@ Result Socket::send(const I32 kSock,
     destAddr.sin_port = htons(kDestPort);
 
     // Send buffer.
-    const I32 bytesSent = sendto(kSock,
+    const I32 bytesSent = sendto(mFd,
                                  kBuf,
                                  kNumBytes,
                                  0,
@@ -92,11 +171,16 @@ Result Socket::send(const I32 kSock,
     return SUCCESS;
 }
 
-Result Socket::recv(const I32 kSock,
-                    void* const kBuf,
+Result Socket::recv(void* const kBuf,
                     const U32 kNumBytes,
                     U32* const kNumBytesRecvd)
 {
+    // Verify socket is initialized.
+    if (mFd == -1)
+    {
+        return E_SOCK_UNINIT;
+    }
+
     // Verify buffer is non-null.
     if (kBuf == nullptr)
     {
@@ -104,7 +188,7 @@ Result Socket::recv(const I32 kSock,
     }
 
     // Receive into buffer.
-    const I32 bytesRecvd = ::recv(kSock,
+    const I32 bytesRecvd = ::recv(mFd,
                                   const_cast<void*>(kBuf),
                                   kNumBytes,
                                   MSG_TRUNC);
@@ -123,71 +207,22 @@ Result Socket::recv(const I32 kSock,
     return SUCCESS;
 }
 
-Result Socket::select(const I32* const kSocks,
-                      bool* const kReady,
-                      const U32 kNumSocks,
-                      U32& kTimeoutUs)
+Result Socket::close()
 {
-    // Verify arrays are non-null.
-    if ((kSocks == nullptr) || (kReady == nullptr))
+    // Verify socket is initialized.
+    if (mFd == -1)
     {
-        return E_SOCK_NULL;
+        return E_SOCK_UNINIT;
     }
 
-    // Check that at least 1 socket was provided.
-    if (kNumSocks == 0)
-    {
-        return E_SOCK_SEL_NONE;
-    }
-
-    // Make FD set.
-    fd_set fds;
-    FD_ZERO(&fds);
-    for (U32 i = 0; i < kNumSocks; ++i)
-    {
-        if (kReady[i] == false)
-        {
-            FD_SET(kSocks[i], &fds);
-        }
-    }
-
-    // Make timeout.
-    timeval timeout = {};
-    timeout.tv_sec = (kTimeoutUs / Clock::US_IN_S);
-    timeout.tv_usec = (kTimeoutUs % Clock::US_IN_S);
-
-    // Do select.
-    const I32 selRet = select(FD_SETSIZE, &fds, nullptr, nullptr, &timeout);
-    if (selRet < 0)
-    {
-        // Select failed.
-        return E_SOCK_SEL;
-    }
-
-    if (selRet != 0)
-    {
-        // Set ready flags according to which sockets have data available.
-        for (U32 i = 0; i < kNumSocks; ++i)
-        {
-            if (FD_ISSET(kSocks[i], &fds) != 0)
-            {
-                kReady[i] = true;
-            }
-        }
-    }
-
-    // Update timeout return parameter based on how much time remained.
-    kTimeoutUs = ((timeout.tv_sec * Clock::US_IN_S) + timeout.tv_usec);
-
-    return SUCCESS;
-}
-
-Result Socket::close(const I32 kSock)
-{
-    if (::close(kSock) != 0)
+    // Close socket FD.
+    if (::close(mFd) != 0)
     {
         return E_SOCK_CLOSE;
     }
+
+    // Reset socket FD to uninitialize socket.
+    mFd = -1;
 
     return SUCCESS;
 }

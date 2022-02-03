@@ -10,9 +10,18 @@
 // Port used by all test sockets.
 #define TEST_PORT (7797)
 
-// Test socket descriptors.
-static I32 gSock1;
-static I32 gSock2;
+// Test sockets.
+static Socket gSock1;
+static Socket gSock2;
+
+inline void checkSocketUninitialized(Socket& kSock)
+{
+    U64 buf;
+    CHECK_ERROR(E_SOCK_UNINIT,
+                kSock.send(TEST_IP1, TEST_PORT, &buf, sizeof(buf), nullptr));
+    CHECK_ERROR(E_SOCK_UNINIT, kSock.recv(&buf, sizeof(buf), nullptr));
+    CHECK_ERROR(E_SOCK_UNINIT, kSock.close());
+}
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
@@ -20,24 +29,29 @@ TEST_GROUP(UdpSocket)
 {
     void setup()
     {
-        // Uninitialize test socket descriptors.
-        gSock1 = -1;
-        gSock2 = -1;
     }
 
     void teardown()
     {
         // Close test sockets.
-        Socket::close(gSock1);
-        Socket::close(gSock2);
+        gSock1.close();
+        gSock2.close();
     }
 };
 
-TEST(UdpSocket, CreateAndClose)
+TEST(UdpSocket, Uninitialized)
+{
+    Socket socket;
+    checkSocketUninitialized(socket);
+}
+
+TEST(UdpSocket, CreateSendAndClose)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
-    CHECK_TRUE(gSock1 >= 0);
-    CHECK_SUCCESS(Socket::close(gSock1));
+    U64 buf = 0;
+    CHECK_SUCCESS(gSock1.send(TEST_IP2, TEST_PORT, &buf, sizeof(buf), nullptr));
+    CHECK_SUCCESS(gSock1.close());
+    checkSocketUninitialized(gSock1);
 }
 
 TEST(UdpSocket, CreateInvalidProtocol)
@@ -47,7 +61,7 @@ TEST(UdpSocket, CreateInvalidProtocol)
                                TEST_PORT,
                                static_cast<Socket::Protocol>(0xFF),
                                gSock1));
-    CHECK_EQUAL(-1, gSock1);
+    checkSocketUninitialized(gSock1);
 }
 
 TEST(UdpSocket, CreateInvalidIp)
@@ -57,7 +71,7 @@ TEST(UdpSocket, CreateInvalidIp)
                                TEST_PORT,
                                Socket::UDP,
                                gSock1));
-    CHECK_EQUAL(-1, gSock1);
+    checkSocketUninitialized(gSock1);
 }
 
 TEST(UdpSocket, CreateNullIp)
@@ -67,7 +81,7 @@ TEST(UdpSocket, CreateNullIp)
                                TEST_PORT,
                                Socket::UDP,
                                gSock1));
-    CHECK_EQUAL(-1, gSock1);
+    checkSocketUninitialized(gSock1);
 }
 
 TEST(UdpSocket, CreatePortInUse)
@@ -78,7 +92,7 @@ TEST(UdpSocket, CreatePortInUse)
                                TEST_PORT,
                                Socket::UDP,
                                gSock2));
-    CHECK_EQUAL(-1, gSock2);
+    checkSocketUninitialized(gSock2);
 }
 
 TEST(UdpSocket, SmallSendAndRecv)
@@ -94,17 +108,16 @@ TEST(UdpSocket, SmallSendAndRecv)
 
     // Send `buf1` from socket 1 to socket 2.
     U32 bytesSent = 0;
-    CHECK_SUCCESS(Socket::send(gSock1,
-                               TEST_IP2,
-                               TEST_PORT,
-                               buf1,
-                               sizeof(buf1),
-                               &bytesSent));
+    CHECK_SUCCESS(gSock1.send(TEST_IP2,
+                              TEST_PORT,
+                              buf1,
+                              sizeof(buf1),
+                              &bytesSent));
     CHECK_EQUAL(sizeof(buf1), bytesSent);
 
     // Receive from socket 2 into `buf2`.
     U32 bytesRecvd = 0;
-    CHECK_SUCCESS(Socket::recv(gSock2, buf2, sizeof(buf2), &bytesRecvd));
+    CHECK_SUCCESS(gSock2.recv(buf2, sizeof(buf2), &bytesRecvd));
     CHECK_EQUAL(sizeof(buf2), bytesRecvd);
 
     // Buffers are equal.
@@ -129,17 +142,16 @@ TEST(UdpSocket, LargeSendAndRecv)
 
     // Send `buf1` from socket 1 to socket 2.
     U32 bytesSent = 0;
-    CHECK_SUCCESS(Socket::send(gSock1,
-                               TEST_IP2,
-                               TEST_PORT,
-                               buf1,
-                               sizeof(buf1),
-                               &bytesSent));
+    CHECK_SUCCESS(gSock1.send(TEST_IP2,
+                              TEST_PORT,
+                              buf1,
+                              sizeof(buf1),
+                              &bytesSent));
     CHECK_EQUAL(sizeof(buf1), bytesSent);
 
     // Receive from socket 2 into `buf2`.
     U32 bytesRecvd = 0;
-    CHECK_SUCCESS(Socket::recv(gSock2, buf2, sizeof(buf2), &bytesRecvd));
+    CHECK_SUCCESS(gSock2.recv(buf2, sizeof(buf2), &bytesRecvd));
     CHECK_EQUAL(sizeof(buf2), bytesRecvd);
 
     // Buffers are equal.
@@ -158,15 +170,14 @@ TEST(UdpSocket, SendAndRecvNullNumBytesPtr)
     U8 buf2[sizeof(buf1)] = {};
 
     // Send `buf1` from socket 1 to socket 2.
-    CHECK_SUCCESS(Socket::send(gSock1,
-                               TEST_IP2,
-                               TEST_PORT,
-                               buf1,
-                               sizeof(buf1),
-                               nullptr));
+    CHECK_SUCCESS(gSock1.send(TEST_IP2,
+                              TEST_PORT,
+                              buf1,
+                              sizeof(buf1),
+                              nullptr));
 
     // Receive from socket 2 into `buf2`.
-    CHECK_SUCCESS(Socket::recv(gSock2, buf2, sizeof(buf2), nullptr));
+    CHECK_SUCCESS(gSock2.recv(buf2, sizeof(buf2), nullptr));
 
     // Buffers are equal.
     MEMCMP_EQUAL(buf1, buf2, sizeof(buf1));
@@ -176,52 +187,25 @@ TEST(UdpSocket, SendNullIp)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
     U64 buf;
-    CHECK_ERROR(E_SOCK_NULL,
-                Socket::send(gSock1,
-                             nullptr,
-                             TEST_PORT,
-                             &buf,
-                             sizeof(buf),
-                             nullptr));
+    CHECK_ERROR(E_SOCK_NULL, gSock1.send(nullptr,
+                                         TEST_PORT,
+                                         &buf,
+                                         sizeof(buf),
+                                         nullptr));
 }
 
 TEST(UdpSocket, SendNullBuffer)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
-    CHECK_ERROR(E_SOCK_NULL,
-                Socket::send(gSock1,
-                             TEST_IP2,
-                             TEST_PORT,
-                             nullptr,
-                             8,
-                             nullptr));
-}
-
-TEST(UdpSocket, SendInvalidSocket)
-{
-    U64 buf;
-    CHECK_ERROR(E_SOCK_SEND,
-                Socket::send(-1,
-                             TEST_IP1,
-                             TEST_PORT,
-                             &buf,
-                             sizeof(buf),
-                             nullptr));
+    CHECK_ERROR(E_SOCK_NULL, gSock1.send(TEST_IP2,
+                                         TEST_PORT,
+                                         nullptr,
+                                         8,
+                                         nullptr));
 }
 
 TEST(UdpSocket, RecvNullBuffer)
 {
     CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));
-    CHECK_ERROR(E_SOCK_NULL, Socket::recv(gSock1, nullptr, 8, nullptr));
-}
-
-TEST(UdpSocket, RecvInvalidSocket)
-{
-    U64 buf;
-    CHECK_ERROR(E_SOCK_RECV, Socket::recv(-1, &buf, sizeof(buf), nullptr));
-}
-
-TEST(UdpSocket, CloseError)
-{
-    CHECK_ERROR(E_SOCK_CLOSE, Socket::close(-1));
+    CHECK_ERROR(E_SOCK_NULL, gSock1.recv(nullptr, 8, nullptr));
 }

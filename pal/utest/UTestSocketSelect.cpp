@@ -19,11 +19,11 @@
     CHECK_SUCCESS(Socket::create(TEST_IP3, TEST_PORT, Socket::UDP, gSock3));   \
     CHECK_SUCCESS(Socket::create(TEST_IP4, TEST_PORT, Socket::UDP, gSock4));
 
-// Test socket descriptors.
-static I32 gSock1;
-static I32 gSock2;
-static I32 gSock3;
-static I32 gSock4;
+// Test sockets.
+static Socket gSock1;
+static Socket gSock2;
+static Socket gSock3;
+static Socket gSock4;
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
@@ -32,10 +32,10 @@ TEST_GROUP(SocketSelect)
     void teardown()
     {
         // Close test sockets.
-        Socket::close(gSock1);
-        Socket::close(gSock2);
-        Socket::close(gSock3);
-        Socket::close(gSock4);
+        gSock1.close();
+        gSock2.close();
+        gSock3.close();
+        gSock4.close();
     }
 };
 
@@ -47,27 +47,24 @@ TEST(SocketSelect, AllSocketsImmediatelyReady)
     const U64 msg1 = 1;
     const U64 msg2 = 2;
     const U64 msg3 = 3;
-    CHECK_SUCCESS(Socket::send(gSock4,
-                               TEST_IP1,
-                               TEST_PORT,
-                               &msg1,
-                               sizeof(msg1),
-                               nullptr));
-    CHECK_SUCCESS(Socket::send(gSock4,
-                               TEST_IP2,
-                               TEST_PORT,
-                               &msg2,
-                               sizeof(msg2),
-                               nullptr));
-    CHECK_SUCCESS(Socket::send(gSock4,
-                                TEST_IP3,
-                                TEST_PORT,
-                                &msg3,
-                                sizeof(msg3),
-                                nullptr));
+    CHECK_SUCCESS(gSock4.send(TEST_IP1,
+                              TEST_PORT,
+                              &msg1,
+                              sizeof(msg1),
+                              nullptr));
+    CHECK_SUCCESS(gSock4.send(TEST_IP2,
+                              TEST_PORT,
+                              &msg2,
+                              sizeof(msg2),
+                              nullptr));
+    CHECK_SUCCESS(gSock4.send(TEST_IP3,
+                              TEST_PORT,
+                              &msg3,
+                              sizeof(msg3),
+                              nullptr));
 
     // Call `select` on sockets 1, 2, and 3.
-    const I32 socks[] = {gSock1, gSock2, gSock3};
+    Socket* const socks[] = {&gSock1, &gSock2, &gSock3};
     bool ready[] = {false, false, false};
     U32 oldTimeoutUs = 1000;
     U32 timeoutUs = oldTimeoutUs;
@@ -84,11 +81,11 @@ TEST(SocketSelect, AllSocketsImmediatelyReady)
 
     // Read messages from sockets.
     U64 buf = 0;
-    CHECK_SUCCESS(Socket::recv(gSock1, &buf, sizeof(buf), nullptr));
+    CHECK_SUCCESS(gSock1.recv(&buf, sizeof(buf), nullptr));
     CHECK_EQUAL(msg1, buf);
-    CHECK_SUCCESS(Socket::recv(gSock2, &buf, sizeof(buf), nullptr));
+    CHECK_SUCCESS(gSock2.recv(&buf, sizeof(buf), nullptr));
     CHECK_EQUAL(msg2, buf);
-    CHECK_SUCCESS(Socket::recv(gSock3, &buf, sizeof(buf), nullptr));
+    CHECK_SUCCESS(gSock3.recv(&buf, sizeof(buf), nullptr));
     CHECK_EQUAL(msg3, buf);
 }
 
@@ -98,15 +95,14 @@ TEST(SocketSelect, SocketsReadyOneAtATime)
 
     // Send message from socket 4 to socket 1.
     const U64 msg1 = 1;
-    CHECK_SUCCESS(Socket::send(gSock4,
-                               TEST_IP1,
-                               TEST_PORT,
-                               &msg1,
-                               sizeof(msg1),
-                               nullptr));
+    CHECK_SUCCESS(gSock4.send(TEST_IP1,
+                              TEST_PORT,
+                              &msg1,
+                              sizeof(msg1),
+                              nullptr));
 
     // Call select on sockets 1, 2, and 3.
-    const I32 socks[] = {gSock1, gSock2, gSock3};
+    Socket* const socks[] = {&gSock1, &gSock2, &gSock3};
     bool ready[] = {false, false, false};
     U32 oldTimeoutUs = 1000;
     U32 timeoutUs = oldTimeoutUs;
@@ -123,17 +119,16 @@ TEST(SocketSelect, SocketsReadyOneAtATime)
 
     // Read message from socket 1.
     U64 buf = 0;
-    CHECK_SUCCESS(Socket::recv(gSock1, &buf, sizeof(buf), nullptr));
+    CHECK_SUCCESS(gSock1.recv(&buf, sizeof(buf), nullptr));
     CHECK_EQUAL(msg1, buf);
 
     // Send message from socket 4 to socket 2.
     const U64 msg2 = 2;
-    CHECK_SUCCESS(Socket::send(gSock4,
-                               TEST_IP2,
-                               TEST_PORT,
-                               &msg2,
-                               sizeof(msg2),
-                               nullptr));
+    CHECK_SUCCESS(gSock4.send(TEST_IP2,
+                              TEST_PORT,
+                              &msg2,
+                              sizeof(msg2),
+                              nullptr));
 
     oldTimeoutUs = timeoutUs;
     CHECK_SUCCESS(Socket::select(socks, ready, 3, timeoutUs));
@@ -149,17 +144,16 @@ TEST(SocketSelect, SocketsReadyOneAtATime)
     CHECK_TRUE(timeoutUs > 0);
 
     // Read message from socket 2.
-    CHECK_SUCCESS(Socket::recv(gSock2, &buf, sizeof(buf), nullptr));
+    CHECK_SUCCESS(gSock2.recv(&buf, sizeof(buf), nullptr));
     CHECK_EQUAL(msg2, buf);
 
     // Send message from socket 4 to socket 3.
     const U64 msg3 = 3;
-    CHECK_SUCCESS(Socket::send(gSock4,
-                               TEST_IP3,
-                               TEST_PORT,
-                               &msg3,
-                               sizeof(msg3),
-                               nullptr));
+    CHECK_SUCCESS(gSock4.send(TEST_IP3,
+                              TEST_PORT,
+                              &msg3,
+                              sizeof(msg3),
+                              nullptr));
 
     oldTimeoutUs = timeoutUs;
     CHECK_SUCCESS(Socket::select(socks, ready, 3, timeoutUs));
@@ -175,7 +169,7 @@ TEST(SocketSelect, SocketsReadyOneAtATime)
     CHECK_TRUE(timeoutUs > 0);
 
     // Read message from socket 3.
-    CHECK_SUCCESS(Socket::recv(gSock3, &buf, sizeof(buf), nullptr));
+    CHECK_SUCCESS(gSock3.recv(&buf, sizeof(buf), nullptr));
     CHECK_EQUAL(msg3, buf);
 }
 
@@ -184,7 +178,7 @@ TEST(SocketSelect, Timeout)
     CREATE_SOCKETS;
 
     // Call select on sockets 1, 2, and 3 without sending them any messages.
-    const I32 socks[] = {gSock1, gSock2, gSock3};
+    Socket* const socks[] = {&gSock1, &gSock2, &gSock3};
     bool ready[] = {false, false, false};
     U32 timeoutUs = 1000;
     CHECK_SUCCESS(Socket::select(socks, ready, 3, timeoutUs));
@@ -198,19 +192,20 @@ TEST(SocketSelect, Timeout)
     CHECK_EQUAL(0, timeoutUs);
 }
 
-TEST(SocketSelect, ErrorInvalidIp)
+TEST(SocketSelect, ErrorUninitializedSocket)
 {
     CREATE_SOCKETS;
-    const I32 socks[] = {gSock1, gSock2, -1};
+    Socket uninitSocket;
+    Socket* const socks[] = {&gSock1, &gSock2, &uninitSocket};
     bool ready[] = {false, false, false};
     U32 timeoutUs = 1000;
-    CHECK_ERROR(E_SOCK_SEL, Socket::select(socks, ready, 3, timeoutUs));
+    CHECK_ERROR(E_SOCK_UNINIT, Socket::select(socks, ready, 3, timeoutUs));
 }
 
 TEST(SocketSelect, ErrorNoSockets)
 {
     CREATE_SOCKETS;
-    const I32 socks[] = {gSock1, gSock2, gSock3};
+    Socket* const socks[] = {&gSock1, &gSock2, &gSock3};
     bool ready[] = {false, false, false};
     U32 timeoutUs = 1000;
     CHECK_ERROR(E_SOCK_SEL_NONE, Socket::select(socks, ready, 0, timeoutUs));
