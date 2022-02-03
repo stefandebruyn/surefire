@@ -93,7 +93,7 @@ TEST(Thread, AffinityAllCores)
                                      gTestThreads[i]));
     }
 
-    // Wait for all threads to finish.
+    // Wait for threads to finish.
     for (U32 i = 0; i < gTestMaxThreads; ++i)
     {
         Result threadRes = -1;

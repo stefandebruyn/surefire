@@ -125,7 +125,7 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
                                  0,
                                  gTestThreads[2]));
 
-    // Wait for a relatively long time to avoid racing thread creation.
+    // Wait a relatively long time to avoid racing thread creation.
     Clock::spinWait(0.1 * Clock::NS_IN_S);
 
     // At this point no threads have run, so all return times are unset.
@@ -170,7 +170,7 @@ TEST(ThreadRealTime, RealTimeDifferentAffinity)
                                  1,
                                  gTestThreads[1]));
 
-    // Wait for a relatively long time to avoid racing thread creation.
+    // Wait a relatively long time to avoid racing thread creation.
     Clock::spinWait(0.1 * Clock::NS_IN_S);
 
     // At this point no threads have run, so all return times are unset.
