@@ -33,7 +33,7 @@
     else                                                                       \
     {                                                                          \
         /* Type match- narrow reference to element template instantiation. */  \
-        kElem = (Element<kTemplateType>*) elem;                                \
+        kElem = static_cast<Element<kTemplateType>*>(elem);                    \
     }                                                                          \
                                                                                \
     return SUCCESS;
@@ -191,7 +191,8 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
             // Advance through elements array until either the end of the array
             // or the bump pointer passes the end of the current region.
             while ((kConfig.elems[elemIdx].name != nullptr)
-                   && (((U64) bumpPtr - (U64) regionPtr) < regionSize))
+                   && ((reinterpret_cast<U64>(bumpPtr)
+                        - reinterpret_cast<U64>(regionPtr)) < regionSize))
             {
                 // Check that current element address is at the bump pointer.
                 if (bumpPtr != kConfig.elems[elemIdx].elem->addr())
@@ -207,7 +208,8 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
 
             // Check that bump pointer was bumped to exactly the end of the
             // region.
-            if (((U64) bumpPtr - (U64) regionPtr) != regionSize)
+            if ((reinterpret_cast<U64>(bumpPtr)
+                 - reinterpret_cast<U64>(regionPtr)) != regionSize)
             {
                 kRes = E_LAYOUT;
                 return;

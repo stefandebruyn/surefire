@@ -16,7 +16,7 @@ static StateMachine::StateConfig gStateConfigs[] =
 {
     {1, {}, {}, gRangeLabelConfigs, {}},
     {2, {}, {}, gRangeLabelConfigs, {}},
-    {0, nullptr}
+    {}
 };
 
 static U32 gElemStateBacking = 1;

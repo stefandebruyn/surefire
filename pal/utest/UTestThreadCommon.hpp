@@ -20,15 +20,8 @@ inline void threadTestTeardown()
     }
 }
 
-static Result nop(void* kArgs)
-{
-    return SUCCESS;
-}
+Result nop(void* kArgs);
 
-static Result setFlag(void* kArgs)
-{
-    *((bool*) kArgs) = true;
-    return SUCCESS;
-}
+Result setFlag(void* kArgs);
 
 #endif

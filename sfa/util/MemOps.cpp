@@ -33,8 +33,8 @@ I32 MemOps::strcmp(const char* kA, const char* kB)
 
 void* MemOps::memcpy(void* kDest, const void* const kSrc, const U32 kSizeBytes)
 {
-    char* const dest = static_cast<char* const>(kDest);
-    const char* const src = static_cast<const char* const>(kSrc);
+    char* const dest = static_cast<char*>(kDest);
+    const char* const src = static_cast<const char*>(kSrc);
 
     if ((dest != nullptr) && (src != nullptr))
     {

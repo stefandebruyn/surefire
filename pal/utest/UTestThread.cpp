@@ -8,7 +8,7 @@ Thread gTestThreads[gTestMaxThreads];
 
 static Result checkCore(void* kArgs)
 {
-    const U8 expectCore = *((U8*) &kArgs);
+    const U64 expectCore = reinterpret_cast<U64>(kArgs);
     return ((expectCore == Thread::currentCore()) ? SUCCESS : E_THR_AFF);
 }
 

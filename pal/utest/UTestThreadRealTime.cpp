@@ -18,7 +18,7 @@ static ThreadArgs gArgs3;
 
 static Result spinOnFlagAndRecordTime(void* kArgs)
 {
-    ThreadArgs* const args = (ThreadArgs*) kArgs;
+    ThreadArgs* const args = static_cast<ThreadArgs*>(kArgs);
     while (args->flag == false);
     args->tReturnNs = Clock::nanoTime();
     return SUCCESS;
@@ -26,7 +26,7 @@ static Result spinOnFlagAndRecordTime(void* kArgs)
 
 static Result spinAndRecordTime(void* kArgs)
 {
-    ThreadArgs* const args = (ThreadArgs*) kArgs;
+    ThreadArgs* const args = static_cast<ThreadArgs*>(kArgs);
     Clock::spinWait(args->waitNs);
     args->tReturnNs = Clock::nanoTime();
     return SUCCESS;

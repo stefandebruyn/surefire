@@ -13,7 +13,7 @@ struct ThreadArgs
 
 static Result atomicIncrement(void* kArgs)
 {
-    ThreadArgs* const args = (ThreadArgs* const) kArgs;
+    ThreadArgs* const args = static_cast<ThreadArgs*>(kArgs);
 
     for (U64 i = 0; i < args->increments; ++i)
     {

@@ -4,6 +4,15 @@ project(sfa)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# Make the compiler as pedantic as possible.
+add_compile_options(
+    -Wall
+    -Wextra
+    -Werror
+    -Wold-style-cast
+    -Wno-unused-parameter
+)
+
 ############################## Linux Unit Tests ################################
 
 file(GLOB utest-linux-src

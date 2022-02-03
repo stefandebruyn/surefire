@@ -41,7 +41,7 @@ Result Socket::create(const char* const kIp,
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr(kIp);
     addr.sin_port = htons(kPort);
-    if (bind(fd, (const sockaddr*) &addr, sizeof(addr)) != 0)
+    if (bind(fd, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) != 0)
     {
         return E_SOCK_BIND;
     }
@@ -159,7 +159,7 @@ Result Socket::send(const char* const kDestIp,
                                  kBuf,
                                  kNumBytes,
                                  0,
-                                 (const sockaddr*) &destAddr,
+                                 reinterpret_cast<const sockaddr*>(&destAddr),
                                  sizeof(destAddr));
     if (bytesSent < 0)
     {

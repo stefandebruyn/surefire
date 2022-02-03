@@ -77,22 +77,22 @@ TEST(ExpressionNode, OpAnd)
 {
     const ExpressionNode<bool> xAndY(OP_AND, &gX, &gY);
     bool ans = true;
-    CHECK_SUCCESS(xAndY.evaluate((bool&) ans));
+    CHECK_SUCCESS(xAndY.evaluate(static_cast<bool&>(ans)));
     CHECK_EQUAL(false, ans);
 
     ans = true;
     const ExpressionNode<bool> yAndX(OP_AND, &gY, &gX);
-    CHECK_SUCCESS(yAndX.evaluate((bool&) ans));
+    CHECK_SUCCESS(yAndX.evaluate(static_cast<bool&>(ans)));
     CHECK_EQUAL(false, ans);
 
     ans = true;
     const ExpressionNode<bool> yAndY(OP_AND, &gY, &gY);
-    CHECK_SUCCESS(yAndY.evaluate((bool&) ans));
+    CHECK_SUCCESS(yAndY.evaluate(static_cast<bool&>(ans)));
     CHECK_EQUAL(false, ans);
 
     ans = false;
     const ExpressionNode<bool> xAndX(OP_AND, &gX, &gX);
-    CHECK_SUCCESS(xAndX.evaluate((bool&) ans));
+    CHECK_SUCCESS(xAndX.evaluate(static_cast<bool&>(ans)));
     CHECK_EQUAL(true, ans);
 }
 
@@ -100,22 +100,22 @@ TEST(ExpressionNode, OpOr)
 {
     const ExpressionNode<bool> xOrY(OP_OR, &gX, &gY);
     bool ans = false;
-    CHECK_SUCCESS(xOrY.evaluate((bool&) ans));
+    CHECK_SUCCESS(xOrY.evaluate(static_cast<bool&>(ans)));
     CHECK_EQUAL(true, ans);
 
     ans = false;
     const ExpressionNode<bool> yOrX(OP_OR, &gY, &gX);
-    CHECK_SUCCESS(yOrX.evaluate((bool&) ans));
+    CHECK_SUCCESS(yOrX.evaluate(static_cast<bool&>(ans)));
     CHECK_EQUAL(true, ans);
 
     ans = true;
     const ExpressionNode<bool> yOrY(OP_OR, &gY, &gY);
-    CHECK_SUCCESS(yOrY.evaluate((bool&) ans));
+    CHECK_SUCCESS(yOrY.evaluate(static_cast<bool&>(ans)));
     CHECK_EQUAL(false, ans);
 
     ans = false;
     const ExpressionNode<bool> xOrX(OP_OR, &gX, &gX);
-    CHECK_SUCCESS(xOrX.evaluate((bool&) ans));
+    CHECK_SUCCESS(xOrX.evaluate(static_cast<bool&>(ans)));
     CHECK_EQUAL(true, ans);
 }
 

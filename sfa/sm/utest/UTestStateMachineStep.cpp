@@ -103,10 +103,10 @@ static StateMachine::LabelConfig gState1RangeLabels[] =
 static StateMachine::StateConfig gState1Config =
 {
     1,
-    {gState1EntryActs},
-    {gState1StepActs},
+    {gState1EntryActs, 0, 0},
+    {gState1StepActs, 0, 0},
     gState1RangeLabels,
-    {gState1ExitActs}
+    {gState1ExitActs, 0, 0}
 };
 
 /*
@@ -151,10 +151,10 @@ static IAction* gState2ExitActs[] =
 static StateMachine::StateConfig gState2Config =
 {
     2,
-    {gState2EntryActs},
-    {gState2StepActs},
+    {gState2EntryActs, 0, 0},
+    {gState2StepActs, 0, 0},
     nullptr,
-    {gState2ExitActs}
+    {gState2ExitActs, 0, 0}
 };
 
 /*
@@ -247,10 +247,10 @@ static StateMachine::LabelConfig gState3RangeLabels[] =
 static StateMachine::StateConfig gState3Config =
 {
     3,
-    {gState3EntryActs},
-    {gState3StepActs},
+    {gState3EntryActs, 0, 0},
+    {gState3StepActs, 0, 0},
     gState3RangeLabels,
-    {gState3ExitActs}
+    {gState3ExitActs, 0, 0}
 };
 
 // State configs.

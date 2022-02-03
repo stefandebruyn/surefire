@@ -15,7 +15,7 @@ public:
 
     constexpr IAction(const IExpressionNode<bool>* const kGuard,
                       const U32 kDestState) :
-        mGuard(kGuard), destinationState(kDestState)
+        destinationState(kDestState), mGuard(kGuard)
     {
     }
 

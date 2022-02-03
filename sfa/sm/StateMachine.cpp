@@ -16,7 +16,7 @@ Result StateMachine::create(const Config kConfig, StateMachine& kSm)
 }
 
 StateMachine::StateMachine() :
-    mConfig({nullptr, nullptr}),
+    mConfig({}),
     mTimeStateStart(mNoTime),
     mTimeLastStep(mNoTime),
     mCurrentState(nullptr)

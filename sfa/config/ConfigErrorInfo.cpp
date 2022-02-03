@@ -27,8 +27,8 @@ std::string ConfigErrorInfo::prettifyError() const
            << "  | " << lines[lineNum - 1] << "\n"
            << "  | ";
 
-        I32 i = 0;
-        for (; i < (colNum - 1); ++i)
+        U32 i = 0;
+        for (; i < static_cast<U32>(colNum - 1); ++i)
         {
             ss << " ";
         }

@@ -158,7 +158,7 @@ Result Thread::await(Result* const kThreadRes)
     {
         // Return thread result to caller.
         static_assert(sizeof(threadRet) >= sizeof(kThreadRes));
-        *kThreadRes = *((Result*) &threadRet);
+        *kThreadRes = *(reinterpret_cast<Result*>(&threadRet));
     }
 
     // Clear the thread slot.
@@ -169,7 +169,8 @@ Result Thread::await(Result* const kThreadRes)
 
 void* Thread::pthreadWrapper(void* kArgs)
 {
-    PthreadWrapperArgs* wrapperArgs = (PthreadWrapperArgs*) kArgs;
+    PthreadWrapperArgs* const wrapperArgs =
+        static_cast<PthreadWrapperArgs*>(kArgs);
     const Result res = (*wrapperArgs->func)(wrapperArgs->args);
     return reinterpret_cast<void*>(res);
 }

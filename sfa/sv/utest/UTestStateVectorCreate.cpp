@@ -159,6 +159,7 @@ TEST(StateVectorCreate, ErrorMisalignedElementLastInRegion)
     StateVector sv;
     const Result res = StateVector::create(gConfig, sv);
     gConfig.elems[1].elem = tmp;
+    CHECK_ERROR(E_LAYOUT, res);
 
     // State vector is uninitialized.
     checkStateVectorUninitialized(sv);
@@ -176,6 +177,7 @@ TEST(StateVectorCreate, ErrorMisalignedElementFirstInRegion)
     StateVector sv;
     const Result res = StateVector::create(gConfig, sv);
     gConfig.elems[2].elem = tmp;
+    CHECK_ERROR(E_LAYOUT, res);
 
     // State vector is uninitialized.
     checkStateVectorUninitialized(sv);

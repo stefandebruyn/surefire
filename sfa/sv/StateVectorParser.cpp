@@ -413,67 +413,67 @@ Result StateVectorParser::allocateElement(const ElementParse& kElem,
 
     if (kElem.tokType.str == "I8")
     {
-        I8& backing = *((I8*) kBumpPtr);
+        I8& backing = *reinterpret_cast<I8*>(kBumpPtr);
         kElemInfo.elem = static_cast<IElement*>(new Element<I8>(backing));
         kBumpPtr += sizeof(backing);
     }
     else if (kElem.tokType.str == "I16")
     {
-        I16& backing = *((I16*) kBumpPtr);
+        I16& backing = *reinterpret_cast<I16*>(kBumpPtr);
         kElemInfo.elem = static_cast<IElement*>(new Element<I16>(backing));
         kBumpPtr += sizeof(backing);
     }
     else if (kElem.tokType.str == "I32")
     {
-        I32& backing = *((I32*) kBumpPtr);
+        I32& backing = *reinterpret_cast<I32*>(kBumpPtr);
         kElemInfo.elem = static_cast<IElement*>(new Element<I32>(backing));
         kBumpPtr += sizeof(backing);
     }
     else if (kElem.tokType.str == "I64")
     {
-        I64& backing = *((I64*) kBumpPtr);
+        I64& backing = *reinterpret_cast<I64*>(kBumpPtr);
         kElemInfo.elem = static_cast<IElement*>(new Element<I64>(backing));
         kBumpPtr += sizeof(backing);
     }
     else if (kElem.tokType.str == "U8")
     {
-        U8& backing = *((U8*) kBumpPtr);
+        U8& backing = *reinterpret_cast<U8*>(kBumpPtr);
         kElemInfo.elem = static_cast<IElement*>(new Element<U8>(backing));
         kBumpPtr += sizeof(backing);
     }
     else if (kElem.tokType.str == "U16")
     {
-        U16& backing = *((U16*) kBumpPtr);
+        U16& backing = *reinterpret_cast<U16*>(kBumpPtr);
         kElemInfo.elem = static_cast<IElement*>(new Element<U16>(backing));
         kBumpPtr += sizeof(backing);
     }
     else if (kElem.tokType.str == "U32")
     {
-        U32& backing = *((U32*) kBumpPtr);
+        U32& backing = *reinterpret_cast<U32*>(kBumpPtr);
         kElemInfo.elem = static_cast<IElement*>(new Element<U32>(backing));
         kBumpPtr += sizeof(backing);
     }
     else if (kElem.tokType.str == "U64")
     {
-        U64& backing = *((U64*) kBumpPtr);
+        U64& backing = *reinterpret_cast<U64*>(kBumpPtr);
         kElemInfo.elem = static_cast<IElement*>(new Element<U64>(backing));
         kBumpPtr += sizeof(backing);
     }
     else if (kElem.tokType.str == "F32")
     {
-        F32& backing = *((F32*) kBumpPtr);
+        F32& backing = *reinterpret_cast<F32*>(kBumpPtr);
         kElemInfo.elem = static_cast<IElement*>(new Element<F32>(backing));
         kBumpPtr += sizeof(backing);
     }
     else if (kElem.tokType.str == "F64")
     {
-        F64& backing = *((F64*) kBumpPtr);
+        F64& backing = *reinterpret_cast<F64*>(kBumpPtr);
         kElemInfo.elem = static_cast<IElement*>(new Element<F64>(backing));
         kBumpPtr += sizeof(backing);
     }
     else if (kElem.tokType.str == "bool")
     {
-        bool& backing = *((bool*) kBumpPtr);
+        bool& backing = *reinterpret_cast<bool*>(kBumpPtr);
         kElemInfo.elem = static_cast<IElement*>(new Element<bool>(backing));
         kBumpPtr += sizeof(backing);
     }
@@ -567,7 +567,8 @@ Result StateVectorParser::makeConfig(const Parse& kParse,
         // above will have bumped the bump pointer to the end of the region,
         // we compute the region size as the difference between the bump pointer
         // and the region pointer we saved at the top of the loop.
-        const U64 regionSizeBytes = ((U64) bumpPtr - (U64) regionPtr);
+        const U64 regionSizeBytes =
+            (reinterpret_cast<U64>(bumpPtr) - reinterpret_cast<U64>(regionPtr));
 
         // Allocate region and put into config array.
         Region* region = new Region(regionPtr, regionSizeBytes);
