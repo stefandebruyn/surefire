@@ -202,6 +202,15 @@ TEST(SocketSelect, ErrorUninitializedSocket)
     CHECK_ERROR(E_SOCK_UNINIT, Socket::select(socks, ready, 3, timeoutUs));
 }
 
+TEST(SocketSelect, ErrorNullSocket)
+{
+    CREATE_SOCKETS;
+    Socket* const socks[] = {&gSock1, &gSock2, nullptr};
+    bool ready[] = {false, false, false};
+    U32 timeoutUs = 1000;
+    CHECK_ERROR(E_SOCK_NULL, Socket::select(socks, ready, 3, timeoutUs));
+}
+
 TEST(SocketSelect, ErrorNoSockets)
 {
     CREATE_SOCKETS;

@@ -70,9 +70,14 @@ Result Socket::select(Socket* const kSocks[],
         return E_SOCK_SEL_NONE;
     }
 
-    // Verify all sockets are initialized.
+    // Verify all sockets are non-null and initialized.
     for (U32 i = 0; i < kNumSocks; ++i)
     {
+        if (kSocks[i] == nullptr)
+        {
+            return E_SOCK_NULL;
+        }
+
         if (kSocks[i]->mFd == -1)
         {
             return E_SOCK_UNINIT;
