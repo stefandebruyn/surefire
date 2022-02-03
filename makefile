@@ -32,6 +32,7 @@ utest:
 	psl/linux/Console.cpp \
 	psl/linux/Thread.cpp \
 	psl/linux/ThreadPriorityRanges.cpp \
+	psl/linux/Spinlock.cpp \
 	pal/utest/UTestUdpSocket.cpp \
 	pal/utest/UTestClock.cpp \
 	pal/utest/UTestSocketSelect.cpp \
@@ -39,6 +40,7 @@ utest:
 	pal/utest/UTestThread.cpp \
 	pal/utest/UTestThreadFair.cpp \
 	pal/utest/UTestThreadRealTime.cpp \
+	pal/utest/UTestSpinlock.cpp \
 	-I. \
 	-Iutest \
 	-lCppUTest -lpthread

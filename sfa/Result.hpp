@@ -73,4 +73,11 @@ typedef I32 Result;
 #define E_THR_DTRY_ATTR (1025)
 #define E_THR_INH_PRI (1025)
 
+////////////////////////////////// Spinlock ////////////////////////////////////
+
+#define E_SLK_CREATE (1056)
+#define E_SLK_UNINIT (1057)
+#define E_SLK_ACQ (1058)
+#define E_SLK_REL (1059)
+
 #endif
