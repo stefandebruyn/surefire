@@ -1,7 +1,7 @@
 #include "sfa/BasicTypes.hpp"
 #include "sfa/cli/CliSv.hpp"
 
-inline const std::string gHelpMsg = "idk";
+static const std::string gHelpMsg = "idk";
 
 I32 main(I32 kArgc, char* kArgv[])
 {
