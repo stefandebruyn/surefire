@@ -2,6 +2,7 @@
 
 Result nop(void* kArgs)
 {
+    (void) kArgs;
     return SUCCESS;
 }
 

@@ -14,6 +14,7 @@ static Result checkCore(void* kArgs)
 
 static Result returnError(void* kArgs)
 {
+    (void) kArgs;
     return E_NULLPTR;
 }
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(sfa)
+project(sfa CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -10,7 +10,6 @@ add_compile_options(
     -Wextra
     -Werror
     -Wold-style-cast
-    -Wno-unused-parameter
 )
 
 ############################## Linux Unit Tests ################################
