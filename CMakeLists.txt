@@ -14,16 +14,24 @@ add_compile_options(
 
 ##################################### CLI ######################################
 
-file(GLOB cli-linux-src
+file(GLOB cli-src
     "sfa/cli/*.cpp"
     "sfa/sv/*.cpp"
     "sfa/sm/*.cpp"
     "sfa/config/*.cpp"
     "sfa/util/*.cpp"
-    "psl/linux/Console.cpp"
 )
-add_executable(cli-linux ${cli-linux-src})
-target_include_directories(cli-linux PRIVATE .)
+
+# Add `Console` implementation appropriate for the build host.
+if(UNIX AND NOT APPLE)
+    # Linux
+    list(APPEND cli-src "psl/linux/Console.cpp")
+else()
+    message(FATAL_ERROR "unsupported platform")
+endif()
+
+add_executable(cli ${cli-src})
+target_include_directories(cli PRIVATE .)
 
 ############################## Linux Unit Tests ################################
 
