@@ -68,7 +68,8 @@ Result ConfigTokenizer::tokenize(std::string kFilePath,
     {
         if (kConfigErr != nullptr)
         {
-            kConfigErr->msg = "failed to open file: " + kFilePath;
+            kConfigErr->text = "error";
+            kConfigErr->subtext = "failed to open file: " + kFilePath;
         }
         return E_FILE;
     }
@@ -199,7 +200,8 @@ Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
             {
                 kConfigErr->lineNum = kConfigErr->lines.size();
                 kConfigErr->colNum = (idx + 1);
-                kConfigErr->msg = "invalid token";
+                kConfigErr->text = "error";
+                kConfigErr->subtext = "invalid token";
             }
             return E_TOK_INVALID;
         }

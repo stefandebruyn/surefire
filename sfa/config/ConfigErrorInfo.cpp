@@ -1,6 +1,7 @@
 #include <sstream>
 #include <cctype>
 
+#include "pal/Console.hpp"
 #include "sfa/config/ConfigErrorInfo.hpp"
 
 ConfigErrorInfo::ConfigErrorInfo() : lineNum(-1), colNum(-1)
@@ -9,9 +10,14 @@ ConfigErrorInfo::ConfigErrorInfo() : lineNum(-1), colNum(-1)
 
 std::string ConfigErrorInfo::prettifyError() const
 {
-    if (msg.size() == 0)
+    if (text.size() == 0)
     {
-        return "`ConfigErrorInfo::msg` unset";
+        return "`ConfigErrorInfo::text` unset";
+    }
+
+    if (subtext.size() == 0)
+    {
+        return "`ConfigErrorInfo::subtext` unset";
     }
 
     if ((lineNum - 1) >= static_cast<I32>(lines.size()))
@@ -22,9 +28,9 @@ std::string ConfigErrorInfo::prettifyError() const
     if ((lineNum >= 0) && (colNum >= 0))
     {
         std::stringstream ss;
-        ss << "CONFIG ERROR @ " << filePath << ":" << lineNum
-           << ":" << colNum << ":\n"
-           << "  | " << lines[lineNum - 1] << "\n"
+        ss << Console::red << text << Console::reset << " @ " << filePath << ":"
+           << lineNum << ":" << colNum << ":\n" << Console::cyan << "  | "
+           << Console::reset << lines[lineNum - 1] << "\n" << Console::cyan
            << "  | ";
 
         U32 i = 0;
@@ -39,15 +45,16 @@ std::string ConfigErrorInfo::prettifyError() const
             ss << " ";
         }
 
-        ss << "^ " << msg << "\n";
+        ss << "^ " << subtext << Console::reset;
 
         return ss.str();
     }
 
     if (filePath.size() != 0)
     {
-        return ("CONFIG ERROR @ " + filePath + ": " + msg);
+        return (Console::red + text + Console::reset + " @ " + filePath + ": "
+                + subtext);
     }
 
-    return ("CONFIG ERROR: " + msg);
+    return (Console::red + text + Console::reset + ": " + subtext);
 }

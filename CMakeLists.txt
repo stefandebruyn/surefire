@@ -12,6 +12,21 @@ add_compile_options(
     -Wold-style-cast
 )
 
+##################################### CLI ######################################
+
+file(GLOB cli-linux-src
+    "sfa/cli/*.cpp"
+    "sfa/sv/*.cpp"
+    "sfa/sm/*.cpp"
+    "sfa/task/*.cpp"
+    "sfa/config/*.cpp"
+    "sfa/util/*.cpp"
+    "psl/linux/*.cpp"
+)
+add_executable(cli-linux ${cli-linux-src})
+target_link_libraries(cli-linux pthread)
+target_include_directories(cli-linux PRIVATE .)
+
 ############################## Linux Unit Tests ################################
 
 file(GLOB utest-linux-src

@@ -5,13 +5,18 @@
 
 #include "sfa/sv/StateVectorParser.hpp"
 
+/////////////////////////////////// Globals ////////////////////////////////////
+
+inline const char* const gErrText = "state vector config error";
+
 /////////////////////////////////// Public /////////////////////////////////////
 
 const std::vector<std::string> StateVectorParser::ALL_REGIONS;
 
 StateVectorParser::Config::Config(const StateVector::Config kSvConfig,
-                                  const char* const kSvBacking) :
-    mSvConfig(kSvConfig), mSvBacking(kSvBacking)
+                                  const char* const kSvBacking,
+                                  const Parse& kParse) :
+    mSvConfig(kSvConfig), mSvBacking(kSvBacking), mParse(kParse)
 {
 }
 
@@ -46,6 +51,11 @@ const StateVector::Config& StateVectorParser::Config::get() const
     return mSvConfig;
 }
 
+const StateVectorParser::Parse& StateVectorParser::Config::getParse() const
+{
+    return mParse;
+}
+
 Result StateVectorParser::parse(const std::string kFilePath,
                                 std::shared_ptr<Config>& kConfig,
                                 ConfigErrorInfo* kConfigErr,
@@ -56,7 +66,8 @@ Result StateVectorParser::parse(const std::string kFilePath,
     {
         if (kConfigErr != nullptr)
         {
-            kConfigErr->msg = "failed to open file: " + kFilePath;
+            kConfigErr->text = "error";
+            kConfigErr->subtext = "failed to open file `" + kFilePath + "`";
         }
         return E_FILE;
     }
@@ -160,7 +171,8 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                                    << regionParse.plainName
                                    << "` (previously used on line "
                                    << regionParse.tokName.lineNum << ")";
-                                kConfigErr->msg = ss.str();
+                                kConfigErr->text = gErrText;
+                                kConfigErr->subtext = ss.str();
                             }
                             return E_SVP_RGN_DUPE;
                         }
@@ -189,7 +201,8 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                     {
                         kConfigErr->lineNum = tok.lineNum;
                         kConfigErr->colNum = tok.colNum;
-                        kConfigErr->msg = "invalid section name";
+                        kConfigErr->text = gErrText;
+                        kConfigErr->subtext = "invalid section name";
                     }
                     return E_SVP_SEC_NAME;
                 }
@@ -207,7 +220,8 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                 {
                     kConfigErr->lineNum = tok.lineNum;
                     kConfigErr->colNum = tok.colNum;
-                    kConfigErr->msg = "expected a section";
+                    kConfigErr->text = gErrText;
+                    kConfigErr->subtext = "expected a section";
                 }
                 return E_SVP_TOK;
         }
@@ -231,7 +245,9 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
         {
             if (kConfigErr != nullptr)
             {
-                kConfigErr->msg = "no region by the name `" + regionName + "`";
+                kConfigErr->text = gErrText;
+                kConfigErr->subtext =
+                    "no region by the name `" + regionName + "`";
             }
             return E_SVP_RGN_NAME;
         }
@@ -242,7 +258,8 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
     {
         if (kConfigErr != nullptr)
         {
-            kConfigErr->msg = "no regions were parsed";
+            kConfigErr->text = gErrText;
+            kConfigErr->subtext = "no regions were parsed";
         }
         return E_SVP_NO_RGNS;
     }
@@ -293,7 +310,8 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                     // Populate config error info.
                     kConfigErr->lineNum = tok.lineNum;
                     kConfigErr->colNum = tok.colNum;
-                    kConfigErr->msg =
+                    kConfigErr->text = gErrText;
+                    kConfigErr->subtext =
                         "expected element or region, got "
                         + Token::names.at(tok.type);
                 }
@@ -323,7 +341,8 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
         {
             kConfigErr->lineNum = tokType.lineNum;
             kConfigErr->colNum = tokType.colNum;
-            kConfigErr->msg = "unknown type `" + tokType.str + "`";
+            kConfigErr->text = gErrText;
+            kConfigErr->subtext = "unknown type `" + tokType.str + "`";
         }
         return E_SVP_ELEM_TYPE;
     }
@@ -349,7 +368,8 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
                 // token.
                 kConfigErr->lineNum = tokType.lineNum;
                 kConfigErr->colNum = tokType.colNum;
-                kConfigErr->msg =
+                kConfigErr->text = gErrText;
+                kConfigErr->subtext =
                     "expected element name after type `" + tokType.str + "`";
             }
             else
@@ -359,7 +379,8 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
                 const Token& tokUnexpect = kToks[kIdx];
                 kConfigErr->lineNum = tokUnexpect.lineNum;
                 kConfigErr->colNum = tokUnexpect.colNum;
-                kConfigErr->msg =
+                kConfigErr->text = gErrText;
+                kConfigErr->subtext =
                     "expected element name after type `" + tokType.str
                     + "`, got " + Token::names.at(tokUnexpect.type);
             }
@@ -387,7 +408,8 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
                     ss << "reuse of element name `" << tokName.str + "`"
                        << " (previously used on line "
                        << elemParse.tokName.lineNum << ")";
-                    kConfigErr->msg = ss.str();
+                    kConfigErr->text = gErrText;
+                    kConfigErr->subtext = ss.str();
                 }
                 return E_SVP_ELEM_DUPE;
             }
@@ -503,7 +525,8 @@ Result StateVectorParser::makeConfig(const Parse& kParse,
             {
                 kConfigErr->lineNum = region.tokName.lineNum;
                 kConfigErr->colNum = region.tokName.colNum;
-                kConfigErr->msg = "region is empty";
+                kConfigErr->text = gErrText;
+                kConfigErr->subtext = "region is empty";
             }
             return E_SVP_RGN_EMPTY;
         }
@@ -579,7 +602,7 @@ Result StateVectorParser::makeConfig(const Parse& kParse,
     // shared pointer, which will handle deallocation of all the memory we just
     // allocated.
     StateVector::Config svConfig = {elemConfigs, regionConfigs};
-    kConfig.reset(new Config(svConfig, svBacking));
+    kConfig.reset(new Config(svConfig, svBacking, kParse));
 
     return SUCCESS;
 }
