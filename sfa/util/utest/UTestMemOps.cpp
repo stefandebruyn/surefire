@@ -23,7 +23,7 @@ TEST(MemOps, StrcmpEmptyStrings)
 {
     CHECK_EQUAL(0, MemOps::strcmp("", ""));
     CHECK_EQUAL('f', MemOps::strcmp("foo", ""));
-    CHECK_EQUAL((0 - 'f'), MemOps::strcmp("", "foo"))
+    CHECK_EQUAL((0 - 'f'), MemOps::strcmp("", "foo"));
 }
 
 TEST(MemOps, StrcmpNullStrings)

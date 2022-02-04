@@ -157,7 +157,6 @@ Result Thread::await(Result* const kThreadRes)
     if (kThreadRes != nullptr)
     {
         // Return thread result to caller.
-        static_assert(sizeof(threadRet) >= sizeof(kThreadRes));
         *kThreadRes = *(reinterpret_cast<Result*>(&threadRet));
     }
 

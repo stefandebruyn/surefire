@@ -25,7 +25,7 @@ const std::unordered_map<Token::Type, std::string, EnumHash> Token::names =
 const std::vector<std::pair<Token::Type, std::regex>> Token::regexes =
 {
     {Token::SECTION, std::regex("\\s*(\\[[a-zA-Z0-9_/]+\\])\\s*")},
-    {Token::LABEL, std::regex("\\s*(\\.[a-zA-Z][a-zA-Z0-9_\\-\\[\\]]+)\\s*")},
+    {Token::LABEL, std::regex("\\s*([.][a-zA-Z][a-zA-Z0-9_\\[\\]-]+)\\s*")},
     {Token::CONSTANT, std::regex("\\s*(true|false|[0-9]*\\.?[0-9]+)\\s*")},
     {Token::OPERATOR, std::regex(
         "\\s*(==|!=|=|<=|<|>=|>|->|and|or|\\+|\\-|\\*|/)\\s*")},
