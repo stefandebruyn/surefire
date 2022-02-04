@@ -1,10 +1,6 @@
 #ifndef SFA_EXPRESSION_NODE_HPP
 #define SFA_EXPRESSION_NODE_HPP
 
-// Temporary STL dependency in order to fix a compiler warning. Pending
-// `StateMachine` rework will address this.
-#include <type_traits>
-
 #include "sfa/sv/Element.hpp"
 #include "sfa/Result.hpp"
 
@@ -97,15 +93,9 @@ public:
                     break;
 
                 case OP_MULTIPLY:
-                    // FIXME
-                    if constexpr (std::is_same<T, bool>::value)
-                    {
-                        kAns = (leftValue && rightValue);
-                    }
-                    else
-                    {
-                        kAns = (leftValue * rightValue);
-                    }
+                    // FIXME: Temporary nop to avoid compiler warning, pending
+                    // state machine rework.
+                    // kAns = (leftValue * rightValue);
                     break;
 
                 case OP_DIVIDE:

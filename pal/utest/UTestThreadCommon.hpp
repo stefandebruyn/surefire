@@ -6,7 +6,7 @@
 
 /////////////////////////////////// Globals ////////////////////////////////////
 
-inline constexpr U32 gTestMaxThreads = 16;
+constexpr U32 gTestMaxThreads = 16;
 
 extern Thread gTestThreads[gTestMaxThreads];
 

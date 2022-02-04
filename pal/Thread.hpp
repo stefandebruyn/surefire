@@ -37,7 +37,7 @@ public:
     /// be accessed in production code.
     static const Policy TEST_POLICY;
 
-    static inline constexpr U8 ALL_CORES = 0xFF;
+    static constexpr U8 ALL_CORES = 0xFF;
 
     typedef Result (*Function)(void* kArgs);
 

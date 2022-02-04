@@ -181,7 +181,8 @@ TEST(ConfigTokenizer, InvalidToken)
     CHECK_EQUAL(5, err.colNum);
 
     // An error message was given.
-    CHECK_TRUE(err.msg.size() > 0);
+    CHECK_TRUE(err.text.size() > 0);
+    CHECK_TRUE(err.subtext.size() > 0);
 
     // Tokens vector was not populated.
     CHECK_EQUAL(0, toks.size());

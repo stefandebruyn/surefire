@@ -26,7 +26,8 @@ static void checkStateVectorParserError(
     CHECK_EQUAL(kColNum, err.colNum);
 
     // An error message was given.
-    CHECK_TRUE(err.msg.size() > 0);
+    CHECK_TRUE(err.text.size() > 0);
+    CHECK_TRUE(err.subtext.size() > 0);
 
     // Config pointer was not populated.
     POINTERS_EQUAL(nullptr, config.get());
