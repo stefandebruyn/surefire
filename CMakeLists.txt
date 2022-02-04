@@ -18,13 +18,11 @@ file(GLOB cli-linux-src
     "sfa/cli/*.cpp"
     "sfa/sv/*.cpp"
     "sfa/sm/*.cpp"
-    "sfa/task/*.cpp"
     "sfa/config/*.cpp"
     "sfa/util/*.cpp"
-    "psl/linux/*.cpp"
+    "psl/linux/Console.cpp"
 )
 add_executable(cli-linux ${cli-linux-src})
-target_link_libraries(cli-linux pthread)
 target_include_directories(cli-linux PRIVATE .)
 
 ############################## Linux Unit Tests ################################
