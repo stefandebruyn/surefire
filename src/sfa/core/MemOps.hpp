@@ -1,7 +1,7 @@
 #ifndef SFA_MEM_OPS_HPP
 #define SFA_MEM_OPS_HPP
 
-#include "sfa/BasicTypes.hpp"
+#include "sfa/core/BasicTypes.hpp"
 
 namespace MemOps
 {

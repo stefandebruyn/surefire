@@ -1,7 +1,7 @@
 #ifndef SFA_RESULT_HPP
 #define SFA_RESULT_HPP
 
-#include "sfa/BasicTypes.hpp"
+#include "sfa/core/BasicTypes.hpp"
 
 typedef I32 Result;
 

@@ -3,7 +3,7 @@
 
 #include "sfa/core/Element.hpp"
 #include "sfa/core/IAction.hpp"
-#include "sfa/Result.hpp"
+#include "sfa/core/Result.hpp"
 
 class StateMachine final
 {

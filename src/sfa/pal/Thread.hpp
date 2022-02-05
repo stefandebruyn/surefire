@@ -2,8 +2,8 @@
 #define SFA_THREAD_HPP
 
 #include "sfa/pal/Platform.hpp"
-#include "sfa/BasicTypes.hpp"
-#include "sfa/Result.hpp"
+#include "sfa/core/BasicTypes.hpp"
+#include "sfa/core/Result.hpp"
 
 #ifdef SFA_PLATFORM_LINUX
 #    include <pthread.h>

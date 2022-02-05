@@ -7,8 +7,8 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "sfa/BasicTypes.hpp"
-#include "sfa/Result.hpp"
+#include "sfa/core/BasicTypes.hpp"
+#include "sfa/core/Result.hpp"
 #include "sfa/sup/ConfigErrorInfo.hpp"
 #include "sfa/sup/EnumHash.hpp"
 

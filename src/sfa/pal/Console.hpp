@@ -1,7 +1,7 @@
 #ifndef SFA_CONSOLE_HPP
 #define SFA_CONSOLE_HPP
 
-#include "sfa/BasicTypes.hpp"
+#include "sfa/core/BasicTypes.hpp"
 
 namespace Console
 {

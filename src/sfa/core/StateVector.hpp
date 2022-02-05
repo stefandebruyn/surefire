@@ -3,8 +3,8 @@
 
 #include "sfa/core/Element.hpp"
 #include "sfa/core/Region.hpp"
-#include "sfa/BasicTypes.hpp"
-#include "sfa/Result.hpp"
+#include "sfa/core/BasicTypes.hpp"
+#include "sfa/core/Result.hpp"
 
 class StateVector final
 {

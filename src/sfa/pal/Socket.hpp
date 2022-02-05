@@ -2,8 +2,8 @@
 #define SFA_SOCKET_HPP
 
 #include "sfa/pal/Platform.hpp"
-#include "sfa/Result.hpp"
-#include "sfa/BasicTypes.hpp"
+#include "sfa/core/Result.hpp"
+#include "sfa/core/BasicTypes.hpp"
 
 class Socket final
 {

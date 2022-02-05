@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "sfa/BasicTypes.hpp"
+#include "sfa/core/BasicTypes.hpp"
 
 struct ConfigErrorInfo final
 {

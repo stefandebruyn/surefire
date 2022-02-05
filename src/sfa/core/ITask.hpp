@@ -3,7 +3,7 @@
 
 #include "sfa/core/StateVector.hpp"
 #include "sfa/core/Element.hpp"
-#include "sfa/Result.hpp"
+#include "sfa/core/Result.hpp"
 
 enum TaskMode : U8
 {

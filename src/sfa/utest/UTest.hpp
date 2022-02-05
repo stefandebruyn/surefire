@@ -12,7 +12,7 @@
 #    endif
 #endif
 
-#include "sfa/Result.hpp"
+#include "sfa/core/Result.hpp"
 #include "CppUTest/TestHarness.h"
 
 #define CHECK_SUCCESS(kExpr)                                                   \

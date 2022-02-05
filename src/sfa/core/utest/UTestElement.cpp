@@ -1,5 +1,5 @@
 #include "sfa/core/Element.hpp"
-#include "sfa/BasicTypes.hpp"
+#include "sfa/core/BasicTypes.hpp"
 #include "sfa/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////

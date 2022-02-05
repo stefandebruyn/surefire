@@ -1,7 +1,7 @@
 #ifndef SFA_ELEMENT_HPP
 #define SFA_ELEMENT_HPP
 
-#include "sfa/BasicTypes.hpp"
+#include "sfa/core/BasicTypes.hpp"
 
 enum ElementType : U32
 {

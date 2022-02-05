@@ -1,8 +1,8 @@
 #ifndef SFA_REGION_HPP
 #define SFA_REGION_HPP
 
-#include "sfa/BasicTypes.hpp"
-#include "sfa/Result.hpp"
+#include "sfa/core/BasicTypes.hpp"
+#include "sfa/core/Result.hpp"
 
 class Region final
 {

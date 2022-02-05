@@ -1,7 +1,7 @@
 #ifndef SFA_CLOCK_HPP
 #define SFA_CLOCK_HPP
 
-#include "sfa/BasicTypes.hpp"
+#include "sfa/core/BasicTypes.hpp"
 
 namespace Clock
 {

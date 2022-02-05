@@ -2,8 +2,8 @@
 #define SFA_IACTION_HPP
 
 #include "sfa/core/ExpressionNode.hpp"
-#include "sfa/BasicTypes.hpp"
-#include "sfa/Result.hpp"
+#include "sfa/core/BasicTypes.hpp"
+#include "sfa/core/Result.hpp"
 
 class IAction
 {

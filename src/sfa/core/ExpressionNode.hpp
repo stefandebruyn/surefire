@@ -2,7 +2,7 @@
 #define SFA_EXPRESSION_NODE_HPP
 
 #include "sfa/core/Element.hpp"
-#include "sfa/Result.hpp"
+#include "sfa/core/Result.hpp"
 
 enum ExpressionNodeOperator : U32
 {
