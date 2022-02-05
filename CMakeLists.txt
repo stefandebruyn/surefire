@@ -10,7 +10,7 @@ add_subdirectory(cpputest)
 
 ##################################### CLI ######################################
 
-# `make cli` builds the SFA CLI tool (for checking config files, running state
+# Target `cli` builds the SFA CLI tool (for checking config files, running state
 # machine tests, etc.).
 
 file(GLOB cli-src "src/sfa/cli/*.cpp")
@@ -28,8 +28,11 @@ target_compile_options(cli PRIVATE
 
 ################################## Unit Tests ##################################
 
-# `make utest` builds the full SFA unit test suite. This consists of unit tests
-# for the SFA core library, SFA support library, and PAL.
+# Target `utest` builds the full SFA unit test suite. This consists of unit
+# tests for the SFA core library, SFA support library, PAL, and PSL for the
+# target platform. Currently this means that the platform targeted by `utest`
+# must support the SFA support library (see target `sfasup`)- creating a more
+# granular unit test suite must be done manually.
 
 file(GLOB utest-src
     "src/sfa/core/utest/*.cpp"
@@ -39,11 +42,11 @@ file(GLOB utest-src
 )
 add_executable(utest ${utest-src})
 target_link_libraries(utest sfasup sfa CppUTest)
-target_include_directories(utest PRIVATE ./src ./src/sfa/utest)
+target_include_directories(utest PRIVATE ./src)
 
 ############################## SFA Core Library ################################
 
-# `make sfa` builds the SFA core static library. This includes the standalone
+# Target `sfa` builds the SFA core static library. This includes the standalone
 # SFA components (that don't need an OS, heap, etc.), the PAL, and a PSL for
 # the target platform.
 
@@ -65,7 +68,7 @@ target_compile_options(sfa PRIVATE
 
 ############################ SFA Support Library ###############################
 
-# `make sfasup` builds the SFA support static library. This includes support
+# Target `sfasup` builds the SFA support static library. This includes support
 # components like config parsers and autocoders. This library requires an STL
 # (GCC 4.9.2+) and a heap.
 

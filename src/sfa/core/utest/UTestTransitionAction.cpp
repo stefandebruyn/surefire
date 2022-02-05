@@ -1,5 +1,5 @@
 #include "sfa/core/TransitionAction.hpp"
-#include "UTest.hpp"
+#include "sfa/utest/UTest.hpp"
 
 TEST_GROUP(TransitionAction)
 {

@@ -2,7 +2,7 @@
 #define SFA_UTEST_THREAD_COMMON_HPP
 
 #include "sfa/pal/Thread.hpp"
-#include "UTest.hpp"
+#include "sfa/utest/UTest.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
 

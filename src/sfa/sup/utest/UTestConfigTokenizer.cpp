@@ -2,7 +2,7 @@
 #include <algorithm>
 
 #include "sfa/sup/ConfigTokenizer.hpp"
-#include "UTest.hpp"
+#include "sfa/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 

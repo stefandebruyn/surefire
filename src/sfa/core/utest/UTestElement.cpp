@@ -1,6 +1,6 @@
 #include "sfa/core/Element.hpp"
 #include "sfa/BasicTypes.hpp"
-#include "UTest.hpp"
+#include "sfa/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 

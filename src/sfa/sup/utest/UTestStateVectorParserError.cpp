@@ -1,7 +1,7 @@
 #include <sstream>
 
 #include "sfa/sup/StateVectorParser.hpp"
-#include "UTest.hpp"
+#include "sfa/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 

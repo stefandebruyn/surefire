@@ -1,5 +1,5 @@
 #include "sfa/core/ExpressionNode.hpp"
-#include "UTest.hpp"
+#include "sfa/utest/UTest.hpp"
 
 static const ExpressionNode<I32> gA(5);
 static const ExpressionNode<I32> gB(3);

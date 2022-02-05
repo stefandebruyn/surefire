@@ -1,7 +1,7 @@
 #include <cstring>
 
 #include "sfa/core/ITask.hpp"
-#include "UTest.hpp"
+#include "sfa/utest/UTest.hpp"
 
 /***************************** STATE VECTOR CONFIG ****************************/
 

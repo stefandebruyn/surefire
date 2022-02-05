@@ -4,7 +4,7 @@
 #include "sfa/core/TransitionAction.hpp"
 #include "sfa/core/AssignmentAction.hpp"
 #include "sfa/core/StateVector.hpp"
-#include "UTest.hpp"
+#include "sfa/utest/UTest.hpp"
 
 ///////////////////////////// State Vector Config //////////////////////////////
 
