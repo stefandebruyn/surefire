@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 project(sfa CXX)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 
 # Make the compiler as pedantic as possible.
 # FIXME: Add these back in for a non-utest library target.
