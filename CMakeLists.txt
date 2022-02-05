@@ -8,6 +8,19 @@ set(CMAKE_CXX_STANDARD 11)
 # `git submodule update --init --recursive`.
 add_subdirectory(cpputest)
 
+# Figure out which PSL components to use for the target platform.
+if(SFA_PLATFORM_NILRT)
+    # NILRT uses the regular Linux PSL. The NILRT toolchain file defines the
+    # symbol `SFA_PLATFORM_NILRT` which causes certain small code changes in
+    # the Linux PSL (via the preprocessor).
+    file(GLOB psl-src "src/sfa/psl/linux/*.cpp")
+elseif(UNIX AND NOT APPLE)
+    # Linux build host.
+    file(GLOB psl-src "src/sfa/psl/linux/*.cpp")
+else()
+    message(FATAL_ERROR "unsupported target platform")
+endif()
+
 ##################################### CLI ######################################
 
 # Target `cli` builds the SFA CLI tool (for checking config files, running state
@@ -33,6 +46,9 @@ target_compile_options(cli PRIVATE
 # target platform. Currently this means that the platform targeted by `utest`
 # must support the SFA support library (see target `sfasup`); creating a more
 # granular unit test suite must be done manually.
+#
+# Note: some unit tests may fail if the process does not have permission to
+# create real-time threads (mostly a concern on Linux; fix with `sudo`).
 
 file(GLOB utest-src
     "src/sfa/core/utest/*.cpp"
@@ -47,13 +63,14 @@ target_include_directories(utest PRIVATE ./src)
 ############################## SFA Core Library ################################
 
 # Target `sfa` builds the SFA core static library, the main API layer that SFA
-# applications rest on top of. This library also includes the PAL and PSL for
-# the target platform.
+# applications rest on top of. This library also includes the PSL for the target
+# platform.
 
-file(GLOB sfa-src
-    "src/sfa/core/*.cpp"
-    "src/sfa/psl/linux/*.cpp"
-)
+file(GLOB sfa-src "src/sfa/core/*.cpp")
+
+# Add in the PSL for the target platform.
+list(APPEND sfa-src ${psl-src})
+
 add_library(sfa ${sfa-src})
 target_link_libraries(sfa pthread)
 target_include_directories(sfa PRIVATE ./src)

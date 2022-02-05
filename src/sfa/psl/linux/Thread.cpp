@@ -4,6 +4,29 @@
 
 #include "sfa/pal/Thread.hpp"
 
+const I32 Thread::FAIR_MIN_PRI = 0;
+
+const I32 Thread::FAIR_MAX_PRI = 0;
+
+const I32 Thread::REALTIME_MIN_PRI =
+#ifdef SFA_PLATFORM_NILRT
+    // Priority just above the RCU kernel thread, which has priority 1 on NILRT.
+    2;
+#else
+    // Minimum real-time priority on Linux.
+    1;
+#endif
+
+const I32 Thread::REALTIME_MAX_PRI =
+#ifdef SFA_PLATFORM_NILRT
+    // Priority just below the software and hardware IRQ kernel threads, which
+    // have priorities 14 and 15, respectively, on NILRT.
+    13;
+#else
+    // Maximum real-time priority on Linux.
+    99;
+#endif
+
 const I32 Thread::TEST_PRI = Thread::FAIR_MIN_PRI;
 
 const Thread::Policy Thread::TEST_POLICY = Thread::FAIR;
