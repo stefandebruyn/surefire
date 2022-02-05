@@ -4,62 +4,81 @@ project(sfa CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 
-# Make the compiler as pedantic as possible.
-# FIXME: Add these back in for a non-utest library target.
-# add_compile_options(
-#     -Wall
-#     -Wextra
-#     -Werror
-#     -Wold-style-cast
-# )
-
+# Requires that the CppUTest submodule be initialized. If this errors out, run
+# `git submodule update --init --recursive`.
 add_subdirectory(cpputest)
 
 ##################################### CLI ######################################
 
-file(GLOB cli-src
-    "sfa/cli/*.cpp"
-    "sfa/sv/*.cpp"
-    "sfa/sm/*.cpp"
-    "sfa/config/*.cpp"
-    "sfa/util/*.cpp"
-)
+# `make cli` builds the SFA CLI tool (for checking config files, running state
+# machine tests, etc.).
 
-# Add `Console` implementation appropriate for the build host.
-if(UNIX AND NOT APPLE)
-    # Linux
-    list(APPEND cli-src "psl/linux/Console.cpp")
-else()
-    message(FATAL_ERROR "unsupported platform")
-endif()
-
+file(GLOB cli-src "src/sfa/cli/*.cpp")
 add_executable(cli ${cli-src})
-target_include_directories(cli PRIVATE .)
+target_link_libraries(cli sfasup sfa)
+target_include_directories(cli PRIVATE ./src)
+
+# Make the compiler as pedantic as possible.
+target_compile_options(cli PRIVATE
+    -Wall
+    -Wextra
+    -Werror
+    -Wold-style-cast
+)
 
 ################################## Unit Tests ##################################
 
+# `make utest` builds the full SFA unit test suite. This consists of unit tests
+# for the SFA core library, SFA support library, and PAL.
+
 file(GLOB utest-src
-    "sfa/sv/*.cpp"
-    "sfa/sv/utest/*.cpp"
-    "sfa/sm/*.cpp"
-    "sfa/sm/utest/*.cpp"
-    "sfa/task/*.cpp"
-    "sfa/task/utest/*.cpp"
-    "sfa/config/*.cpp"
-    "sfa/config/utest/*.cpp"
-    "sfa/util/*.cpp"
-    "sfa/util/utest/*.cpp"
-    "psl/linux/*.cpp"
-    "pal/utest/*.cpp"
-    "utest/*.cpp"
+    "src/sfa/core/utest/*.cpp"
+    "src/sfa/pal/utest/*.cpp"
+    "src/sfa/sup/utest/*.cpp"
+    "src/sfa/utest/*.cpp"
+)
+add_executable(utest ${utest-src})
+target_link_libraries(utest sfasup sfa CppUTest)
+target_include_directories(utest PRIVATE ./src ./src/sfa/utest)
+
+############################## SFA Core Library ################################
+
+# `make sfa` builds the SFA core static library. This includes the standalone
+# SFA components (that don't need an OS, heap, etc.), the PAL, and a PSL for
+# the target platform.
+
+file(GLOB sfa-src
+    "src/sfa/core/*.cpp"
+    "src/sfa/psl/linux/*.cpp"
+)
+add_library(sfa ${sfa-src})
+target_link_libraries(sfa pthread)
+target_include_directories(sfa PRIVATE ./src)
+
+# Make the compiler as pedantic as possible.
+target_compile_options(sfa PRIVATE
+    -Wall
+    -Wextra
+    -Werror
+    -Wold-style-cast
 )
 
-if(SFA_TARGET_PLATFORM_SBRIO9637)
-    # sbRIO-9637 uses different priority ranges for `Thread`.
-    list(FILTER utest-src EXCLUDE REGEX ".*ThreadPriorityRanges.cpp")
-    list(APPEND utest-src "psl/sbrio9637/ThreadPriorityRanges.cpp")
-endif()
+############################ SFA Support Library ###############################
 
-add_executable(utest ${utest-src})
-target_link_libraries(utest CppUTest pthread)
-target_include_directories(utest PRIVATE . utest)
+# `make sfasup` builds the SFA support static library. This includes support
+# components like config parsers and autocoders. This library requires an STL
+# (GCC 4.9.2+) and a heap.
+
+file(GLOB sfasup-src
+    "src/sfa/sup/*.cpp"
+)
+add_library(sfasup ${sfasup-src})
+target_include_directories(sfasup PRIVATE ./src)
+
+# Make the compiler as pedantic as possible.
+target_compile_options(sfasup PRIVATE
+    -Wall
+    -Wextra
+    -Werror
+    -Wold-style-cast
+)

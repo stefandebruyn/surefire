@@ -4,8 +4,6 @@ set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_C_COMPILER /usr/local/oecore-x86_64/sysroots/x86_64-nilrtsdk-linux/usr/bin/arm-nilrt-linux-gnueabi/arm-nilrt-linux-gnueabi-gcc)
 set(CMAKE_CXX_COMPILER /usr/local/oecore-x86_64/sysroots/x86_64-nilrtsdk-linux/usr/bin/arm-nilrt-linux-gnueabi/arm-nilrt-linux-gnueabi-g++)
 
-set(SFA_TARGET_PLATFORM_SBRIO9637 TRUE)
-
 add_compile_options(
     -O0
     -g3
