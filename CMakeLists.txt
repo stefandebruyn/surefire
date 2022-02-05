@@ -31,7 +31,7 @@ target_compile_options(cli PRIVATE
 # Target `utest` builds the full SFA unit test suite. This consists of unit
 # tests for the SFA core library, SFA support library, PAL, and PSL for the
 # target platform. Currently this means that the platform targeted by `utest`
-# must support the SFA support library (see target `sfasup`)- creating a more
+# must support the SFA support library (see target `sfasup`); creating a more
 # granular unit test suite must be done manually.
 
 file(GLOB utest-src
@@ -46,8 +46,8 @@ target_include_directories(utest PRIVATE ./src)
 
 ############################## SFA Core Library ################################
 
-# Target `sfa` builds the SFA core static library. This includes the standalone
-# SFA components (that don't need an OS, heap, etc.), the PAL, and a PSL for
+# Target `sfa` builds the SFA core static library, the main API layer that SFA
+# applications rest on top of. This library also includes the PAL and PSL for
 # the target platform.
 
 file(GLOB sfa-src
