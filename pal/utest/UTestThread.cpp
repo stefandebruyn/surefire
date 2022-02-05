@@ -63,7 +63,7 @@ TEST(Thread, ReturnResult)
 
 TEST(Thread, AffinityRange)
 {
-    for (U32 i = 0; i < Thread::numCores(); ++i)
+    for (U8 i = 0; i < Thread::numCores(); ++i)
     {
         Thread thread;
         CHECK_SUCCESS(Thread::create(checkCore,
@@ -142,4 +142,16 @@ TEST(Thread, ErrorInvalidAffinity)
                                Thread::numCores(),
                                thread));
     CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
+}
+
+TEST(Thread, SetCurrentThread)
+{
+    for (U8 i = 0; i < Thread::numCores(); ++i)
+    {
+        CHECK_SUCCESS(Thread::set(Thread::TEST_PRI, Thread::TEST_POLICY, 0));
+    }
+
+    CHECK_SUCCESS(Thread::set(Thread::TEST_PRI,
+                              Thread::TEST_POLICY,
+                              Thread::ALL_CORES));
 }

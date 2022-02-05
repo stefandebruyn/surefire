@@ -96,6 +96,10 @@ public:
 
     static U8 currentCore();
 
+    static Result set(const I32 kPriority,
+                      const Policy kPolicy,
+                      const U8 kAffinity);
+
     Thread();
 
     Result await(Result* const kThreadRes);
@@ -121,6 +125,10 @@ private:
     PthreadWrapperArgs mWrapperArgs;
 
     static void* pthreadWrapper(void* kArgs);
+
+    static Result getPthreadPolicy(const Policy kPolicy,
+                                   const I32 kPriority,
+                                   I32& kPthreadPolicy);
 #endif
 };
 

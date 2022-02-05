@@ -5,12 +5,15 @@ project(sfa CXX)
 set(CMAKE_CXX_STANDARD 14)
 
 # Make the compiler as pedantic as possible.
-add_compile_options(
-    -Wall
-    -Wextra
-    -Werror
-    -Wold-style-cast
-)
+# FIXME: Add these back in for a non-utest library target.
+# add_compile_options(
+#     -Wall
+#     -Wextra
+#     -Werror
+#     -Wold-style-cast
+# )
+
+add_subdirectory(cpputest)
 
 ##################################### CLI ######################################
 
@@ -33,9 +36,9 @@ endif()
 add_executable(cli ${cli-src})
 target_include_directories(cli PRIVATE .)
 
-############################## Linux Unit Tests ################################
+################################## Unit Tests ##################################
 
-file(GLOB utest-linux-src
+file(GLOB utest-src
     "sfa/sv/*.cpp"
     "sfa/sv/utest/*.cpp"
     "sfa/sm/*.cpp"
@@ -50,6 +53,13 @@ file(GLOB utest-linux-src
     "pal/utest/*.cpp"
     "utest/*.cpp"
 )
-add_executable(utest-linux ${utest-linux-src})
-target_link_libraries(utest-linux CppUTest pthread)
-target_include_directories(utest-linux PRIVATE . utest)
+
+if(SFA_TARGET_PLATFORM_SBRIO9637)
+    # sbRIO-9637 uses different priority ranges for `Thread`.
+    list(FILTER utest-src EXCLUDE REGEX ".*ThreadPriorityRanges.cpp")
+    list(APPEND utest-src "psl/sbrio9637/ThreadPriorityRanges.cpp")
+endif()
+
+add_executable(utest ${utest-src})
+target_link_libraries(utest CppUTest pthread)
+target_include_directories(utest PRIVATE . utest)

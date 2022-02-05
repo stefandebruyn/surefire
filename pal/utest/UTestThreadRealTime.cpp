@@ -1,6 +1,8 @@
 #include "pal/Clock.hpp"
 #include "UTestThreadCommon.hpp"
 
+#include <iostream>
+
 /////////////////////////////////// Globals ////////////////////////////////////
 
 struct ThreadArgs final
@@ -16,18 +18,19 @@ static ThreadArgs gArgs3;
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
-static Result spinOnFlagAndRecordTime(void* kArgs)
-{
-    ThreadArgs* const args = static_cast<ThreadArgs*>(kArgs);
-    while (args->flag == false);
-    args->tReturnNs = Clock::nanoTime();
-    return SUCCESS;
-}
-
 static Result spinAndRecordTime(void* kArgs)
 {
     ThreadArgs* const args = static_cast<ThreadArgs*>(kArgs);
     Clock::spinWait(args->waitNs);
+    args->tReturnNs = Clock::nanoTime();
+    return SUCCESS;
+}
+
+static Result spinOnFlagAndRecordTime(void* kArgs)
+{
+    ThreadArgs* const args = static_cast<ThreadArgs*>(kArgs);
+    volatile bool* const flag = &args->flag;
+    while (*flag == false);
     args->tReturnNs = Clock::nanoTime();
     return SUCCESS;
 }
@@ -98,14 +101,21 @@ TEST(ThreadRealTime, PriorityTooHigh)
 ///       priority.
 TEST(ThreadRealTime, RealTimeSameAffinity)
 {
+    // Make the current thread real-time, max priority, and run on core 0 for
+    // determinism.
+    CHECK_SUCCESS(Thread::set(Thread::REALTIME_MAX_PRI, Thread::REALTIME, 0));
+
     // Threads 2 and 3 will spin for 100 ms before returning.
     gArgs2.waitNs = (0.1 * Clock::NS_IN_S);
     gArgs3.waitNs = gArgs2.waitNs;
 
+    // Set flag so that thread 1 does not spinwait. It will still not run
+    // immediately since it has lower priority than the current thread.
+    gArgs1.flag = true;
+
     // Create 3 real-time threads with descending priorities on the same core.
-    // The first thread blocks the other 2 by spinwaiting until we set a flag.
-    // Threads will record the time of their return in the argument structs
-    // passed to them.
+    // All 3 threads are blocked until the current thread yields. Threads will
+    // record the time of their return in the argument structs passed to them.
     CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
                                  &gArgs1,
                                  (Thread::REALTIME_MIN_PRI + 2),
@@ -128,13 +138,10 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
     // Wait a relatively long time to avoid racing thread creation.
     Clock::spinWait(0.1 * Clock::NS_IN_S);
 
-    // At this point no threads have run, so all return times are unset.
+    // At this point no threads have returned, so all return times are unset.
     CHECK_EQUAL(0, gArgs1.tReturnNs);
     CHECK_EQUAL(0, gArgs2.tReturnNs);
     CHECK_EQUAL(0, gArgs3.tReturnNs);
-
-    // Release first thread from its spin.
-    gArgs1.flag = true;
 
     // Wait for threads in expected order of completion.
     CHECK_SUCCESS(gTestThreads[0].await(nullptr));
@@ -155,8 +162,11 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
 ///       platform.
 TEST(ThreadRealTime, RealTimeDifferentAffinity)
 {
+    // Make the current thread real-time, max priority, and run on core 0 for
+    // determinism.
+    CHECK_SUCCESS(Thread::set(Thread::REALTIME_MAX_PRI, Thread::REALTIME, 0));
+
     // Create 2 real-time threads with different priorities on different cores.
-    // Each thread spinwaits on a different flag.
     CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
                                  &gArgs1,
                                  Thread::REALTIME_MIN_PRI,
@@ -165,7 +175,7 @@ TEST(ThreadRealTime, RealTimeDifferentAffinity)
                                  gTestThreads[0]));
     CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
                                  &gArgs2,
-                                 Thread::REALTIME_MAX_PRI,
+                                 (Thread::REALTIME_MIN_PRI + 1),
                                  Thread::REALTIME,
                                  1,
                                  gTestThreads[1]));
@@ -173,7 +183,7 @@ TEST(ThreadRealTime, RealTimeDifferentAffinity)
     // Wait a relatively long time to avoid racing thread creation.
     Clock::spinWait(0.1 * Clock::NS_IN_S);
 
-    // At this point no threads have run, so all return times are unset.
+    // At this point no threads have returned, so all return times are unset.
     CHECK_EQUAL(0, gArgs1.tReturnNs);
     CHECK_EQUAL(0, gArgs2.tReturnNs);
 
@@ -190,4 +200,5 @@ TEST(ThreadRealTime, RealTimeDifferentAffinity)
     // Release and wait on higher priority thread.
     gArgs2.flag = true;
     CHECK_SUCCESS(gTestThreads[1].await(nullptr));
+    CHECK_TRUE(gArgs2.tReturnNs != 0);
 }

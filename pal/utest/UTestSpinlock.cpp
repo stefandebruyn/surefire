@@ -95,6 +95,15 @@ TEST(Spinlock, MutualExclusion)
 ///       either `Thread::TEST_POLICY` is fair or the platform is multicore.
 TEST(Spinlock, AtomicUpdates)
 {
+    // Make the current thread real-time, max priority, and run on any core.
+    // This usually makes the test run significantly faster on systems where
+    // `Thread::TEST_POLICY` is fair, since the unit test thread won't be
+    // constantly preempted by the fair threads it creates. Ignore any errors
+    // in case the current platform doesn't support real-time.
+    (void) Thread::set(Thread::REALTIME_MAX_PRI,
+                       Thread::REALTIME,
+                       Thread::ALL_CORES);
+
     // Each thread will increment the counter 1000000 times.
     ThreadArgs args = {};
     args.increments = 1000000;

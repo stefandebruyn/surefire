@@ -35,29 +35,10 @@ Result Thread::create(const Function kFunc,
 
     // Map scheduling policy onto pthread constant.
     I32 schedPolicy = -1;
-    switch (kPolicy)
+    const Result res = getPthreadPolicy(kPolicy, kPriority, schedPolicy);
+    if (res != SUCCESS)
     {
-        case FAIR:
-            // Check that priority is in range for this policy.
-            if ((kPriority < FAIR_MIN_PRI) || (kPriority > FAIR_MAX_PRI))
-            {
-                return E_THR_PRI;
-            }
-            schedPolicy = SCHED_OTHER;
-            break;
-
-        case REALTIME:
-            // Check that priority is in range for this policy.
-            if ((kPriority < REALTIME_MIN_PRI)
-                || (kPriority > REALTIME_MAX_PRI))
-            {
-                return E_THR_PRI;
-            }
-            schedPolicy = SCHED_FIFO;
-            break;
-
-        default:
-            return E_THR_POL;
+        return res;
     }
 
     // Set thread scheduling policy.
@@ -87,15 +68,22 @@ Result Thread::create(const Function kFunc,
     }
 
     // Set thread affinity.
-    if (kAffinity != ALL_CORES)
+    cpu_set_t cpuSet;
+    CPU_ZERO(&cpuSet);
+    if (kAffinity == ALL_CORES)
     {
-        cpu_set_t cpuSet;
-        CPU_ZERO(&cpuSet);
-        CPU_SET(kAffinity, &cpuSet);
-        if (pthread_attr_setaffinity_np(&attr, sizeof(cpuSet), &cpuSet) != 0)
+        for (U8 i = 0; i < numCores(); ++i)
         {
-            return E_THR_AFF;
+            CPU_SET(i, &cpuSet);
         }
+    }
+    else
+    {
+        CPU_SET(kAffinity, &cpuSet);
+    }
+    if (pthread_attr_setaffinity_np(&attr, sizeof(cpuSet), &cpuSet) != 0)
+    {
+        return E_THR_AFF;
     }
 
     // Store thread wrapper arguments in thread object where the thread can
@@ -136,6 +124,48 @@ U8 Thread::currentCore()
     return static_cast<U8>(sched_getcpu());
 }
 
+Result Thread::set(const I32 kPriority,
+                   const Policy kPolicy,
+                   const U8 kAffinity)
+{
+    pthread_t me = pthread_self();
+
+    // Map scheduling policy onto pthread constant.
+    I32 schedPolicy = -1;
+    const Result res = getPthreadPolicy(kPolicy, kPriority, schedPolicy);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    sched_param param = {};
+    param.__sched_priority = kPriority;
+    if (pthread_setschedparam(me, schedPolicy, &param) != 0)
+    {
+        return E_THR_PRI;
+    }
+
+    cpu_set_t cpuSet;
+    CPU_ZERO(&cpuSet);
+    if (kAffinity == ALL_CORES)
+    {
+        for (U8 i = 0; i < numCores(); ++i)
+        {
+            CPU_SET(i, &cpuSet);
+        }
+    }
+    else
+    {
+        CPU_SET(kAffinity, &cpuSet);
+    }
+    if (pthread_setaffinity_np(me, sizeof(cpuSet), &cpuSet) != 0)
+    {
+        return E_THR_AFF;
+    }
+
+    return SUCCESS;
+}
+
 Thread::Thread() : mInit(false), mWrapperArgs({})
 {
 }
@@ -172,4 +202,36 @@ void* Thread::pthreadWrapper(void* kArgs)
         static_cast<PthreadWrapperArgs*>(kArgs);
     const Result res = (*wrapperArgs->func)(wrapperArgs->args);
     return reinterpret_cast<void*>(res);
+}
+
+Result Thread::getPthreadPolicy(const Policy kPolicy,
+                                const I32 kPriority,
+                                I32& kPthreadPolicy)
+{
+    switch (kPolicy)
+    {
+        case FAIR:
+            // Check that priority is in range for this policy.
+            if ((kPriority < FAIR_MIN_PRI) || (kPriority > FAIR_MAX_PRI))
+            {
+                return E_THR_PRI;
+            }
+            kPthreadPolicy = SCHED_OTHER;
+            break;
+
+        case REALTIME:
+            // Check that priority is in range for this policy.
+            if ((kPriority < REALTIME_MIN_PRI)
+                || (kPriority > REALTIME_MAX_PRI))
+            {
+                return E_THR_PRI;
+            }
+            kPthreadPolicy = SCHED_FIFO;
+            break;
+
+        default:
+            return E_THR_POL;
+    }
+
+    return SUCCESS;
 }
