@@ -20,5 +20,8 @@ sfasup:
 	mkdir build
 	cd build && cmake .. && make sfasup
 
+cppcheck:
+	cppcheck src
+
 .PHONY: ci
-ci: utest sfa sfasup cloc deadline
+ci: cppcheck utest sfa sfasup cloc deadline
