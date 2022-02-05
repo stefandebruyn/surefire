@@ -9,17 +9,9 @@ set(CMAKE_CXX_STANDARD 11)
 add_subdirectory(cpputest)
 
 # Figure out which platform-specific code to use for the target platform.
-if(SFA_PLATFORM_NILRT)
-    # NILRT uses the regular Linux PSL. The NILRT toolchain file defines the
-    # symbol `SFA_PLATFORM_NILRT` which causes certain small code changes in
-    # the Linux PSL (via the preprocessor).
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    # Target platform is Linux, so use the Linux PSL.
     file(GLOB psl-src "src/sfa/psl/linux/*.cpp")
-    # Linux PSL needs pthread.
-    link_libraries(pthread)
-elseif(UNIX AND NOT APPLE)
-    # Some Linux platform, probably the build host. Use the Linux PSL.
-    file(GLOB psl-src "src/sfa/psl/linux/*.cpp")
-    # Linux PSL needs pthread.
     link_libraries(pthread)
 else()
     message(FATAL_ERROR "unsupported target platform")
@@ -90,8 +82,8 @@ target_compile_options(sfa PRIVATE
 
 # Target `sfasup` builds the SFA support static library. This includes support
 # components like config parsers and autocoders. This library requires an STL
-# (GCC 4.9.2+) and a heap. This library must be linked alongside libsfa (see
-# target `sfa`).
+# (GCC 4.9.2+) and a heap. This library must be linked alongside the SFA core
+# library (see target `sfa`).
 
 file(GLOB sfasup-src
     "src/sfa/sup/*.cpp"
