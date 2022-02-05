@@ -8,8 +8,8 @@
 static void checkStateVectorParserError(
     std::stringstream& kSs,
     const Result kRes,
-    const U32 kLineNum,
-    const U32 kColNum,
+    const I32 kLineNum,
+    const I32 kColNum,
     std::vector<std::string> kSelectRegions = StateVectorParser::ALL_REGIONS)
 {
     // Attempt to parse state vector config.

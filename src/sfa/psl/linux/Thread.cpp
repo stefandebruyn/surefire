@@ -76,7 +76,7 @@ Result Thread::create(const Function kFunc,
     if (kPolicy != FAIR)
     {
         // Set thread priority.
-        sched_param param = {};
+        sched_param param;
         param.__sched_priority = kPriority;
         if (pthread_attr_setschedparam(&attr, &param) != 0)
         {
@@ -162,7 +162,7 @@ Result Thread::set(const I32 kPriority,
         return res;
     }
 
-    sched_param param = {};
+    sched_param param;
     param.__sched_priority = kPriority;
     if (pthread_setschedparam(me, schedPolicy, &param) != 0)
     {
@@ -190,7 +190,7 @@ Result Thread::set(const I32 kPriority,
     return SUCCESS;
 }
 
-Thread::Thread() : mInit(false), mWrapperArgs({})
+Thread::Thread() : mInit(false), mWrapperArgs({nullptr, nullptr})
 {
 }
 

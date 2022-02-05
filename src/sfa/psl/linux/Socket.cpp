@@ -2,6 +2,7 @@
 #include <sys/select.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <cstring>
 
 #include "sfa/pal/Clock.hpp"
 #include "sfa/pal/Socket.hpp"
@@ -37,7 +38,8 @@ Result Socket::create(const char* const kIp,
     }
 
     // Bind socket to specified address.
-    sockaddr_in addr = {};
+    sockaddr_in addr;
+    (void) std::memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = inet_addr(kIp);
     addr.sin_port = htons(kPort);
@@ -96,7 +98,7 @@ Result Socket::select(Socket* const kSocks[],
     }
 
     // Make timeout.
-    timeval timeout = {};
+    timeval timeout = {0, 0};
     timeout.tv_sec = (kTimeoutUs / Clock::US_IN_S);
     timeout.tv_usec = (kTimeoutUs % Clock::US_IN_S);
 
@@ -149,7 +151,8 @@ Result Socket::send(const char* const kDestIp,
     }
 
     // Create destination address.
-    sockaddr_in destAddr = {};
+    sockaddr_in destAddr;
+    (void) std::memset(&destAddr, 0, sizeof(destAddr));
     destAddr.sin_family = AF_INET;
     destAddr.sin_addr.s_addr = inet_addr(kDestIp);
     destAddr.sin_port = htons(kDestPort);
