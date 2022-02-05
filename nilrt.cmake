@@ -6,6 +6,8 @@ set(CMAKE_C_COMPILER /usr/local/oecore-x86_64/sysroots/x86_64-nilrtsdk-linux/usr
 set(CMAKE_CXX_COMPILER /usr/local/oecore-x86_64/sysroots/x86_64-nilrtsdk-linux/usr/bin/arm-nilrt-linux-gnueabi/arm-nilrt-linux-gnueabi-g++)
 set(SFA_PLATFORM_NILRT true)
 
+# Note the `SFA_PLATFORM_NILRT` symbol: this will trigger small code changes in
+# the Linux PSL.
 add_compile_options(
     -DSFA_PLATFORM_NILRT
     -O0

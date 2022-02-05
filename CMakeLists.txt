@@ -8,11 +8,24 @@ set(CMAKE_CXX_STANDARD 11)
 # `git submodule update --init --recursive`.
 add_subdirectory(cpputest)
 
+# Collect the PAL unit tests for testing the PSL.
+file(GLOB psl-utest-src "src/sfa/pal/utest/*.cpp")
+
 # Figure out which platform-specific code to use for the target platform.
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     # Target platform is Linux, so use the Linux PSL.
     file(GLOB psl-src "src/sfa/psl/linux/*.cpp")
     link_libraries(pthread)
+    # Add in distro-specific unit tests.
+    if(SFA_PLATFORM_NILRT)
+        # NILRT
+        file(GLOB nilrt-utest-src "src/sfa/psl/nilrt/utest/*.cpp")
+        list(APPEND psl-utest-src ${nilrt-utest-src})
+    else()
+        # Some other Linux, probably the build host.
+        file(GLOB linux-utest-src "src/sfa/psl/linux/utest/*.cpp")
+        list(APPEND psl-utest-src ${linux-utest-src})
+    endif()
 else()
     message(FATAL_ERROR "unsupported target platform")
 endif()
@@ -48,10 +61,13 @@ target_compile_options(cli PRIVATE
 
 file(GLOB utest-src
     "src/sfa/core/utest/*.cpp"
-    "src/sfa/pal/utest/*.cpp"
     "src/sfa/sup/utest/*.cpp"
     "src/sfa/utest/*.cpp"
 )
+
+# Add in PSL unit tests for the target platform.
+list(APPEND utest-src ${psl-utest-src})
+
 add_executable(utest ${utest-src})
 target_link_libraries(utest sfasup sfa CppUTest)
 target_include_directories(utest PRIVATE ./src)
