@@ -1,5 +1,6 @@
 #include <sys/sysinfo.h>
 #include <sched.h>
+#include <cstring>
 
 #include "pal/Thread.hpp"
 
@@ -178,8 +179,8 @@ Result Thread::await(Result* const kThreadRes)
     }
 
     // Join thread.
-    void* threadRet = nullptr;
-    if (pthread_join(mPthread, &threadRet) != 0)
+    void* threadRes = nullptr;
+    if (pthread_join(mPthread, &threadRes) != 0)
     {
         return E_THR_AWAIT;
     }
@@ -187,7 +188,7 @@ Result Thread::await(Result* const kThreadRes)
     if (kThreadRes != nullptr)
     {
         // Return thread result to caller.
-        *kThreadRes = *(reinterpret_cast<Result*>(&threadRet));
+        (void) std::memcpy(kThreadRes, &threadRes, sizeof(*kThreadRes));
     }
 
     // Clear the thread slot.
