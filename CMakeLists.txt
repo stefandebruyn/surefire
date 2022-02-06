@@ -4,19 +4,23 @@ project(sfa CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 
+include_directories(./src)
+
 # Requires that the CppUTest submodule be initialized. If this errors out, run
 # `git submodule update --init --recursive`.
 add_subdirectory(cpputest)
+
+add_subdirectory(examples)
 
 # Collect the PAL unit tests for testing the PSL.
 file(GLOB psl-utest-src "src/sfa/pal/utest/*.cpp")
 
 # Figure out which platform-specific code to use for the target platform.
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-    # Target platform is Linux, so use the Linux PSL.
+    # Use the Linux PSL.
     file(GLOB psl-src "src/sfa/psl/linux/*.cpp")
     link_libraries(pthread)
-    # Add in distro-specific unit tests.
+    # Add in distro-specific code.
     if(SFA_PLATFORM_NILRT)
         # NILRT
         file(GLOB nilrt-utest-src "src/sfa/psl/nilrt/utest/*.cpp")
@@ -26,6 +30,9 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         file(GLOB linux-utest-src "src/sfa/psl/linux/utest/*.cpp")
         list(APPEND psl-utest-src ${linux-utest-src})
     endif()
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Arduino")
+    # Use the Arduino PSL.
+    # TODO
 else()
     message(FATAL_ERROR "unsupported target platform")
 endif()
@@ -37,9 +44,7 @@ endif()
 
 file(GLOB cli-src "src/sfa/cli/*.cpp")
 add_executable(cli ${cli-src})
-target_link_libraries(cli sfasup sfa)
-target_include_directories(cli PRIVATE ./src)
-
+target_link_libraries(cli PRIVATE sfasup sfa)
 # Make the compiler as pedantic as possible.
 target_compile_options(cli PRIVATE
     -Wall
@@ -64,13 +69,10 @@ file(GLOB utest-src
     "src/sfa/sup/utest/*.cpp"
     "src/sfa/utest/*.cpp"
 )
-
 # Add in PSL unit tests for the target platform.
 list(APPEND utest-src ${psl-utest-src})
-
 add_executable(utest ${utest-src})
-target_link_libraries(utest sfasup sfa CppUTest)
-target_include_directories(utest PRIVATE ./src)
+target_link_libraries(utest PRIVATE sfasup sfa CppUTest)
 
 ############################## SFA Core Library ################################
 
@@ -79,13 +81,9 @@ target_include_directories(utest PRIVATE ./src)
 # platform. This library can stand alone (no other linkages necessary).
 
 file(GLOB sfa-src "src/sfa/core/*.cpp")
-
 # Add in the PSL for the target platform.
 list(APPEND sfa-src ${psl-src})
-
 add_library(sfa ${sfa-src})
-target_include_directories(sfa PRIVATE ./src)
-
 # Make the compiler as pedantic as possible.
 target_compile_options(sfa PRIVATE
     -Wall
@@ -101,12 +99,8 @@ target_compile_options(sfa PRIVATE
 # (GCC 4.9.2+) and a heap. This library must be linked alongside the SFA core
 # library (see target `sfa`).
 
-file(GLOB sfasup-src
-    "src/sfa/sup/*.cpp"
-)
+file(GLOB sfasup-src "src/sfa/sup/*.cpp")
 add_library(sfasup ${sfasup-src})
-target_include_directories(sfasup PRIVATE ./src)
-
 # Make the compiler as pedantic as possible.
 target_compile_options(sfasup PRIVATE
     -Wall
