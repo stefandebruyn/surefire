@@ -110,12 +110,14 @@ Result StateVector::getElement<F32>(const char* const kName,
     GET_ELEMENT_IMPL(F32, ElementType::FLOAT32);
 }
 
+#ifndef SFA_NO_F64
 template<>
 Result StateVector::getElement<F64>(const char* const kName,
                                     Element<F64>*& kElem)
 {
     GET_ELEMENT_IMPL(F64, ElementType::FLOAT64);
 }
+#endif
 
 template<>
 Result StateVector::getElement<bool>(const char* const kName,

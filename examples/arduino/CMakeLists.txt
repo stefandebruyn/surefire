@@ -4,16 +4,14 @@ project(arduino-example CXX)
 
 add_executable(arduino-example "main.cpp")
 
-# Link SFA core library.
-target_link_libraries(arduino-example PRIVATE sfa)
-
 # Link Arduino libraries needed by the SFA Arduino PSL (along with any other
 # Arduino libraries you want; if using 3rd party libraries like for sensors,
 # see example CMake project in the Arduino CMake Toolchain repo for linking 3rd
 # party libraries).
-target_link_arduino_libraries(arduino-example PRIVATE core)
-target_link_arduino_libraries(arduino-example PRIVATE SPI)
-target_link_arduino_libraries(arduino-example PRIVATE Ethernet)
+target_link_arduino_libraries(arduino-example PRIVATE core Ethernet)
+
+# Link SFA core library.
+target_link_libraries(arduino-example PRIVATE sfa)
 
 # Automatically adds a target `upload-<target name>` (in this case
 # `upload-arduino-example`) for uploading to the target board.

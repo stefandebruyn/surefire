@@ -6,12 +6,6 @@ set(CMAKE_CXX_STANDARD 11)
 
 include_directories(./src)
 
-# Requires that the CppUTest submodule be initialized. If this errors out, run
-# `git submodule update --init --recursive`.
-add_subdirectory(cpputest)
-
-add_subdirectory(examples)
-
 # Collect the PAL unit tests for testing the PSL.
 file(GLOB psl-utest-src "src/sfa/pal/utest/*.cpp")
 
@@ -32,10 +26,18 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     endif()
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Arduino")
     # Use the Arduino PSL.
-    # TODO
+    file(GLOB psl-src "src/sfa/psl/arduino/*.cpp")
+    # Disable `F64` type since `long double` is 4 bytes on Arduino.
+    add_compile_options(-DSFA_NO_F64 -DSFA_PLATFORM_ARDUINO)
 else()
     message(FATAL_ERROR "unsupported target platform")
 endif()
+
+# Requires that the CppUTest submodule be initialized. If this errors out, run
+# `git submodule update --init --recursive`.
+add_subdirectory(cpputest)
+
+add_subdirectory(examples)
 
 ##################################### CLI ######################################
 
@@ -91,6 +93,17 @@ target_compile_options(sfa PRIVATE
     -Werror
     -Wold-style-cast
 )
+
+# When cross-compiling to Arduino, link libraries needed by the Arduino PSL. If
+# using sockets, the user should provide the Arduino's MAC address in the form
+# of a 6-byte hex constant (e.g., 0xAABBCCDDEEFF) via a CMake variable named
+# `SFA_ARDUINO_MAC_ADDR`.
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Arduino")
+    target_link_arduino_libraries(sfa PRIVATE core Ethernet)
+    target_compile_options(sfa PRIVATE
+        -DSFA_ARDUINO_MAC_ADDR=${SFA_ARDUINO_MAC_ADDR}
+    )
+endif()
 
 ############################ SFA Support Library ###############################
 

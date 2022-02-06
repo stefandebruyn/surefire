@@ -1,9 +1,21 @@
 #ifndef SFA_SOCKET_HPP
 #define SFA_SOCKET_HPP
 
+#ifdef SFA_PLATFORM_ARDUINO
+#    include <EthernetUdp.h>
+#endif
+
 #include "sfa/pal/Platform.hpp"
 #include "sfa/core/Result.hpp"
 #include "sfa/core/BasicTypes.hpp"
+
+struct IPv4Address
+{
+    U8 oct1;
+    U8 oct2;
+    U8 oct3;
+    U8 oct4;
+};
 
 class Socket final
 {
@@ -14,7 +26,7 @@ public:
         UDP
     };
 
-    static Result create(const char* const kIp,
+    static Result create(const IPv4Address kIp,
                          const U16 kPort,
                          const Protocol kProto,
                          Socket& kSock);
@@ -26,7 +38,7 @@ public:
 
     Socket();
 
-    Result send(const char* const kDestIp,
+    Result send(const IPv4Address kDestIp,
                 const U16 kDestPort,
                 const void* const kBuf,
                 const U32 kNumBytes,
@@ -47,6 +59,10 @@ private:
 
 #ifdef SFA_PLATFORM_LINUX
     I32 mFd;
+#elif defined(SFA_PLATFORM_ARDUINO)
+    bool mInit;
+
+    EthernetUDP mUdp;
 #endif
 };
 

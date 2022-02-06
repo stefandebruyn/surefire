@@ -54,11 +54,13 @@ ElementType Element<F32>::type() const
     return ElementType::FLOAT32;
 }
 
+#ifndef SFA_NO_F64
 template<>
 ElementType Element<F64>::type() const
 {
     return ElementType::FLOAT64;
 }
+#endif
 
 template<>
 ElementType Element<bool>::type() const

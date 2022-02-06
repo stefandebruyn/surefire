@@ -1,39 +1,34 @@
 #include <Arduino.h>
-#include <SPI.h>
-#include <Ethernet.h>
-#include <EthernetUdp.h>
 
-#include "sfa/core/BasicTypes.hpp"
-#include "sfa/core/Element.hpp"
+#include "sfa/pal/Console.hpp"
+#include "sfa/pal/Socket.hpp"
 
-U8 mac[] = {0xa8, 0x61, 0x0a, 0xae, 0x75, 0x9c};
-IPAddress ip(10, 0, 0, 21);
-U16 port = 8000;
-EthernetUDP udp;
-
-I32 y;
-Element<I32> x(y);
+const IPv4Address gMyAddr = {10, 0, 0, 21};
+const IPv4Address gTheirAddr = {10, 0, 0, 20};
+const U16 gPort = 8000;
+Socket gSock;
 
 void setup()
 {
-    x.write(100);
     Serial.begin(9600);
-    Ethernet.begin(mac, ip);
-    udp.begin(port);
+
+    if (Socket::create(gMyAddr, 8000, Socket::UDP, gSock) != SUCCESS)
+    {
+        Console::printf("failed to create socket\n");
+        while (true);
+    }
 }
 
 void loop()
 {
-    delay(1000);
-    if (Ethernet.linkStatus() == LinkON)
+    if (gSock.send(gTheirAddr, gPort, "hello friend", 12, nullptr) != SUCCESS)
     {
-        udp.beginPacket(IPAddress(10, 0, 0, 20), port);
-        udp.write("hello friend", 12);
-        udp.endPacket();
-        Serial.println("sent packet");
+        Console::printf("failed to send packet\n");
     }
     else
     {
-        Serial.println("link off");
+        Console::printf("packet sent\n");
     }
+
+    delay(1000);
 }

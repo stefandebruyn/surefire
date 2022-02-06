@@ -4,7 +4,7 @@
 #if __linux__
 #    define SFA_PLATFORM_LINUX
 #else
-#    error unable to determine platform
+// #    error unable to determine platform
 #endif
 
 #endif
