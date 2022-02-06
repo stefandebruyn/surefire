@@ -2,7 +2,7 @@
 
 This example uses [Arduino CMake Toolchain](https://github.com/a9183756-gh/Arduino-CMake-Toolchain) (included in the repo root as a submodule) to cross-compile for Arduino.
 
-To build:
+After installing the Arduino SDK, this example can be built with:
 
 ```bash
 cd sfa
@@ -15,7 +15,7 @@ Note the two CMake variables. The first variable specifies the Arduino toolchain
 
 If all goes well, the last command **will fail** because we have not told the toolchain which Arduino board to build for. It will generate a file `BoardOptions.cmake`: find your Arduino board in this file and uncomment that line (e.g., for the Mega 2560, uncomment the line `set(ARDUINO_BOARD "Arduino Mega...`).
 
-Now, rerun the `cmake` command and build the target:
+Now, rerun the CMake command and build the target:
 
 ```bash
 cmake .. -DCMAKE_TOOLCHAIN_FILE=../Arduino-CMake-Toolchain/Arduino-toolchain.cmake -DSFA_ARDUINO_MAC_ADDR=0xA8610AAE759C
