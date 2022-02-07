@@ -27,7 +27,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Arduino")
     # Use the Arduino PSL.
     file(GLOB psl-src "src/sfa/psl/arduino/*.cpp")
-    # Disable `F64` type since `long double` is 4 bytes on Arduino.
+    # Disable `F64` type since `long` is 4 bytes on Arduino.
     add_compile_options(-DSFA_NO_F64 -DSFA_PLATFORM_ARDUINO)
 else()
     message(FATAL_ERROR "unsupported target platform")
