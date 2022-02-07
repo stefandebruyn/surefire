@@ -4,26 +4,29 @@
 /////////////////////////////////// Globals ////////////////////////////////////
 
 // IPs used by test sockets.
-#define TEST_IP1 ("127.0.0.1")
-#define TEST_IP2 ("127.0.0.2")
-#define TEST_IP3 ("127.0.0.3")
-#define TEST_IP4 ("127.0.0.4")
+static const IPv4Address gTestIp1 = {127, 0, 0, 1};
+static const IPv4Address gTestIp2 = {127, 0, 0, 2};
+static const IPv4Address gTestIp3 = {127, 0, 0, 3};
+static const IPv4Address gTestIp4 = {127, 0, 0, 4};
 
 // Port used by all test sockets.
-#define TEST_PORT (7797)
-
-// Creates all test sockets.
-#define CREATE_SOCKETS                                                         \
-    CHECK_SUCCESS(Socket::create(TEST_IP1, TEST_PORT, Socket::UDP, gSock1));   \
-    CHECK_SUCCESS(Socket::create(TEST_IP2, TEST_PORT, Socket::UDP, gSock2));   \
-    CHECK_SUCCESS(Socket::create(TEST_IP3, TEST_PORT, Socket::UDP, gSock3));   \
-    CHECK_SUCCESS(Socket::create(TEST_IP4, TEST_PORT, Socket::UDP, gSock4));
+static const U16 gTestPort = 7797;
 
 // Test sockets.
 static Socket gSock1;
 static Socket gSock2;
 static Socket gSock3;
 static Socket gSock4;
+
+/////////////////////////////////// Helpers ////////////////////////////////////
+
+static void createSockets()
+{
+    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::create(gTestIp2, gTestPort, Socket::UDP, gSock2));
+    CHECK_SUCCESS(Socket::create(gTestIp3, gTestPort, Socket::UDP, gSock3));
+    CHECK_SUCCESS(Socket::create(gTestIp4, gTestPort, Socket::UDP, gSock4));
+}
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
@@ -41,24 +44,24 @@ TEST_GROUP(SocketSelect)
 
 TEST(SocketSelect, AllSocketsImmediatelyReady)
 {
-    CREATE_SOCKETS;
+    createSockets();
 
     // Send messages from socket 4 to sockets 1, 2, and 3.
     const U64 msg1 = 1;
     const U64 msg2 = 2;
     const U64 msg3 = 3;
-    CHECK_SUCCESS(gSock4.send(TEST_IP1,
-                              TEST_PORT,
+    CHECK_SUCCESS(gSock4.send(gTestIp1,
+                              gTestPort,
                               &msg1,
                               sizeof(msg1),
                               nullptr));
-    CHECK_SUCCESS(gSock4.send(TEST_IP2,
-                              TEST_PORT,
+    CHECK_SUCCESS(gSock4.send(gTestIp2,
+                              gTestPort,
                               &msg2,
                               sizeof(msg2),
                               nullptr));
-    CHECK_SUCCESS(gSock4.send(TEST_IP3,
-                              TEST_PORT,
+    CHECK_SUCCESS(gSock4.send(gTestIp3,
+                              gTestPort,
                               &msg3,
                               sizeof(msg3),
                               nullptr));
@@ -91,12 +94,12 @@ TEST(SocketSelect, AllSocketsImmediatelyReady)
 
 TEST(SocketSelect, SocketsReadyOneAtATime)
 {
-    CREATE_SOCKETS;
+    createSockets();
 
     // Send message from socket 4 to socket 1.
     const U64 msg1 = 1;
-    CHECK_SUCCESS(gSock4.send(TEST_IP1,
-                              TEST_PORT,
+    CHECK_SUCCESS(gSock4.send(gTestIp1,
+                              gTestPort,
                               &msg1,
                               sizeof(msg1),
                               nullptr));
@@ -124,8 +127,8 @@ TEST(SocketSelect, SocketsReadyOneAtATime)
 
     // Send message from socket 4 to socket 2.
     const U64 msg2 = 2;
-    CHECK_SUCCESS(gSock4.send(TEST_IP2,
-                              TEST_PORT,
+    CHECK_SUCCESS(gSock4.send(gTestIp2,
+                              gTestPort,
                               &msg2,
                               sizeof(msg2),
                               nullptr));
@@ -149,8 +152,8 @@ TEST(SocketSelect, SocketsReadyOneAtATime)
 
     // Send message from socket 4 to socket 3.
     const U64 msg3 = 3;
-    CHECK_SUCCESS(gSock4.send(TEST_IP3,
-                              TEST_PORT,
+    CHECK_SUCCESS(gSock4.send(gTestIp3,
+                              gTestPort,
                               &msg3,
                               sizeof(msg3),
                               nullptr));
@@ -175,7 +178,7 @@ TEST(SocketSelect, SocketsReadyOneAtATime)
 
 TEST(SocketSelect, Timeout)
 {
-    CREATE_SOCKETS;
+    createSockets();
 
     // Call select on sockets 1, 2, and 3 without sending them any messages.
     Socket* const socks[] = {&gSock1, &gSock2, &gSock3};
@@ -194,7 +197,7 @@ TEST(SocketSelect, Timeout)
 
 TEST(SocketSelect, ErrorUninitializedSocket)
 {
-    CREATE_SOCKETS;
+    createSockets();
     Socket uninitSocket;
     Socket* const socks[] = {&gSock1, &gSock2, &uninitSocket};
     bool ready[] = {false, false, false};
@@ -204,7 +207,7 @@ TEST(SocketSelect, ErrorUninitializedSocket)
 
 TEST(SocketSelect, ErrorNullSocket)
 {
-    CREATE_SOCKETS;
+    createSockets();
     Socket* const socks[] = {&gSock1, &gSock2, nullptr};
     bool ready[] = {false, false, false};
     U32 timeoutUs = 1000;
@@ -213,7 +216,7 @@ TEST(SocketSelect, ErrorNullSocket)
 
 TEST(SocketSelect, ErrorNoSockets)
 {
-    CREATE_SOCKETS;
+    createSockets();
     Socket* const socks[] = {&gSock1, &gSock2, &gSock3};
     bool ready[] = {false, false, false};
     U32 timeoutUs = 1000;

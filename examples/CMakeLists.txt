@@ -1,3 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-add_subdirectory(arduino)
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Arduino")
+    add_subdirectory(arduino)
+endif()

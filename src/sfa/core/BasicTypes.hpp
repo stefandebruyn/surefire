@@ -32,10 +32,10 @@ static_assert(sizeof(U64) == 8, "U64 is not 8 bytes");
 typedef float F32;
 static_assert(sizeof(F32) == 4, "F32 is not 4 bytes");
 
-// `SFA_NO_F64` should be defined for targets without support for
+// `SFA_NO_F64` should be defined for platforms without support for
 // double-precision floating point numbers.
 #ifndef SFA_NO_F64
-typedef long double F64;
+typedef double F64;
 static_assert(sizeof(F64) == 8, "F64 is not 8 bytes");
 #endif
 
