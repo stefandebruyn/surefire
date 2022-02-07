@@ -4,5 +4,5 @@
 
 U64 Clock::nanoTime()
 {
-    return (micros() * 1000);
+    return (micros() * static_cast<U64>(1000));
 }
