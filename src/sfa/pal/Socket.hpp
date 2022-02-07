@@ -5,7 +5,6 @@
 #    include <EthernetUdp.h>
 #endif
 
-#include "sfa/pal/Platform.hpp"
 #include "sfa/core/Result.hpp"
 #include "sfa/core/BasicTypes.hpp"
 

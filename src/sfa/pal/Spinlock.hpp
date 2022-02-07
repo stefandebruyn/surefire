@@ -1,7 +1,6 @@
 #ifndef SFA_SPINLOCK_HPP
 #define SFA_SPINLOCK_HPP
 
-#include "sfa/pal/Platform.hpp"
 #include "sfa/core/Result.hpp"
 
 #ifdef SFA_PLATFORM_LINUX

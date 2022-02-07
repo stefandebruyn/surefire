@@ -11,6 +11,7 @@ file(GLOB psl-utest-src "src/sfa/pal/utest/*.cpp")
 
 # Figure out which platform-specific code to use for the target platform.
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    add_compile_options(-DSFA_PLATFORM_LINUX)
     # Use the Linux PSL.
     file(GLOB psl-src "src/sfa/psl/linux/*.cpp")
     link_libraries(pthread)
@@ -27,7 +28,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Arduino")
     # Use the Arduino PSL.
     file(GLOB psl-src "src/sfa/psl/arduino/*.cpp")
-    # Disable `F64` type since `long` is 4 bytes on Arduino.
+    # Disable `F64` type since Arduino has no double-precision float.
     add_compile_options(-DSFA_NO_F64 -DSFA_PLATFORM_ARDUINO)
 else()
     message(FATAL_ERROR "unsupported target platform")

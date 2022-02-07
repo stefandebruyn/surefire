@@ -1,7 +1,6 @@
 #ifndef SFA_THREAD_HPP
 #define SFA_THREAD_HPP
 
-#include "sfa/pal/Platform.hpp"
 #include "sfa/core/BasicTypes.hpp"
 #include "sfa/core/Result.hpp"
 
