@@ -45,17 +45,17 @@ typedef I32 Result;
 
 /////////////////////////////////// Socket /////////////////////////////////////
 
-#define E_SOCK_PROTO (256)
-#define E_SOCK_OPEN (257)
-#define E_SOCK_BIND (258)
-#define E_SOCK_SEND (259)
-#define E_SOCK_RECV (260)
-#define E_SOCK_SEL (261)
-#define E_SOCK_CLOSE (262)
-#define E_SOCK_NULL (263)
-#define E_SOCK_SEL_NONE (264)
-#define E_SOCK_UNINIT (265)
-#define E_SOCK_REINIT (266)
+#define E_SOK_PROTO (256)
+#define E_SOK_OPEN (257)
+#define E_SOK_BIND (258)
+#define E_SOK_SEND (259)
+#define E_SOK_RECV (260)
+#define E_SOK_SEL (261)
+#define E_SOK_CLOSE (262)
+#define E_SOK_NULL (263)
+#define E_SOK_SEL_NONE (264)
+#define E_SOK_UNINIT (265)
+#define E_SOK_REINIT (266)
 
 /////////////////////////////////// Thread /////////////////////////////////////
 

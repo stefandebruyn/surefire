@@ -202,7 +202,7 @@ TEST(SocketSelect, ErrorUninitializedSocket)
     Socket* const socks[] = {&gSock1, &gSock2, &uninitSocket};
     bool ready[] = {false, false, false};
     U32 timeoutUs = 1000;
-    CHECK_ERROR(E_SOCK_UNINIT, Socket::select(socks, ready, 3, timeoutUs));
+    CHECK_ERROR(E_SOK_UNINIT, Socket::select(socks, ready, 3, timeoutUs));
 }
 
 TEST(SocketSelect, ErrorNullSocket)
@@ -211,7 +211,7 @@ TEST(SocketSelect, ErrorNullSocket)
     Socket* const socks[] = {&gSock1, &gSock2, nullptr};
     bool ready[] = {false, false, false};
     U32 timeoutUs = 1000;
-    CHECK_ERROR(E_SOCK_NULL, Socket::select(socks, ready, 3, timeoutUs));
+    CHECK_ERROR(E_SOK_NULL, Socket::select(socks, ready, 3, timeoutUs));
 }
 
 TEST(SocketSelect, ErrorNoSockets)
@@ -220,5 +220,5 @@ TEST(SocketSelect, ErrorNoSockets)
     Socket* const socks[] = {&gSock1, &gSock2, &gSock3};
     bool ready[] = {false, false, false};
     U32 timeoutUs = 1000;
-    CHECK_ERROR(E_SOCK_SEL_NONE, Socket::select(socks, ready, 0, timeoutUs));
+    CHECK_ERROR(E_SOK_SEL_NONE, Socket::select(socks, ready, 0, timeoutUs));
 }

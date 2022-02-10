@@ -10,7 +10,7 @@ Result Socket::create(const IPv4Address kIp,
     // Currently only supporting UDP.
     if (kProto != UDP)
     {
-        return E_SOCK_PROTO;
+        return E_SOK_PROTO;
     }
 
     // Initialize Ethernet component on the first call to this function.
@@ -26,7 +26,7 @@ Result Socket::create(const IPv4Address kIp,
     // Open socket.
     if (kSock.mUdp.begin(kPort) != 1)
     {
-        return E_SOCK_OPEN;
+        return E_SOK_OPEN;
     }
 
     kSock.mInit = true;
@@ -52,13 +52,13 @@ Result Socket::send(const IPv4Address kDestIp,
     // Verify socket is initialized.
     if (mInit == false)
     {
-        return E_SOCK_UNINIT;
+        return E_SOK_UNINIT;
     }
 
     // Verify buffer is non-null.
     if (kBuf == nullptr)
     {
-        return E_SOCK_NULL;
+        return E_SOK_NULL;
     }
 
     // Address packet.
@@ -66,7 +66,7 @@ Result Socket::send(const IPv4Address kDestIp,
     if (mUdp.beginPacket(destIp, kDestPort) != 1)
     {
         // "Problem resolving the hostname or port" according to Arduino docs.
-        return E_SOCK_SEND;
+        return E_SOK_SEND;
     }
 
     // Write packet payload.
@@ -82,7 +82,7 @@ Result Socket::send(const IPv4Address kDestIp,
     if (mUdp.endPacket() != 1)
     {
         // Unable to send packet.
-        return E_SOCK_SEND;
+        return E_SOK_SEND;
     }
 
     return SUCCESS;
@@ -95,13 +95,13 @@ Result Socket::recv(void* const kBuf,
     // Verify socket is initialized.
     if (mInit == false)
     {
-        return E_SOCK_UNINIT;
+        return E_SOK_UNINIT;
     }
 
     // Verify buffer is non-null.
     if (kBuf == nullptr)
     {
-        return E_SOCK_NULL;
+        return E_SOK_NULL;
     }
 
     // Wait for a packet to be available.

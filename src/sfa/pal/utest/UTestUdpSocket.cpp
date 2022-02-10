@@ -17,10 +17,10 @@ static Socket gSock2;
 inline void checkSocketUninitialized(Socket& kSock)
 {
     U64 buf;
-    CHECK_ERROR(E_SOCK_UNINIT,
+    CHECK_ERROR(E_SOK_UNINIT,
                 kSock.send(gTestIp1, gTestPort, &buf, sizeof(buf), nullptr));
-    CHECK_ERROR(E_SOCK_UNINIT, kSock.recv(&buf, sizeof(buf), nullptr));
-    CHECK_ERROR(E_SOCK_UNINIT, kSock.close());
+    CHECK_ERROR(E_SOK_UNINIT, kSock.recv(&buf, sizeof(buf), nullptr));
+    CHECK_ERROR(E_SOK_UNINIT, kSock.close());
 }
 
 //////////////////////////////////// Tests /////////////////////////////////////
@@ -63,7 +63,7 @@ TEST(UdpSocket, CreateReuse)
 
 TEST(UdpSocket, ErrorCreateInvalidProtocol)
 {
-    CHECK_ERROR(E_SOCK_PROTO,
+    CHECK_ERROR(E_SOK_PROTO,
                 Socket::create(gTestIp1,
                                gTestPort,
                                static_cast<Socket::Protocol>(0xFF),
@@ -74,7 +74,7 @@ TEST(UdpSocket, ErrorCreateInvalidProtocol)
 TEST(UdpSocket, ErrorCreateInvalidIp)
 {
     const IPv4Address invalidIp = {123, 123, 123, 123};
-    CHECK_ERROR(E_SOCK_BIND,
+    CHECK_ERROR(E_SOK_BIND,
                 Socket::create(invalidIp, gTestPort, Socket::UDP, gSock1));
     checkSocketUninitialized(gSock1);
 }
@@ -82,7 +82,7 @@ TEST(UdpSocket, ErrorCreateInvalidIp)
 TEST(UdpSocket, ErrorCreatePortInUse)
 {
     CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
-    CHECK_ERROR(E_SOCK_BIND,
+    CHECK_ERROR(E_SOK_BIND,
                 Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock2));
     checkSocketUninitialized(gSock2);
 }
@@ -90,7 +90,7 @@ TEST(UdpSocket, ErrorCreatePortInUse)
 TEST(UdpSocket, ErrorCreateReinitialize)
 {
     CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
-    CHECK_ERROR(E_SOCK_REINIT,
+    CHECK_ERROR(E_SOK_REINIT,
                 Socket::create(gTestIp2, gTestPort, Socket::UDP, gSock1));
 }
 
@@ -201,7 +201,7 @@ TEST(UdpSocket, SendAndRecvNullNumBytesPtr)
 TEST(UdpSocket, ErrorSendNullBuffer)
 {
     CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
-    CHECK_ERROR(E_SOCK_NULL, gSock1.send(gTestIp2,
+    CHECK_ERROR(E_SOK_NULL, gSock1.send(gTestIp2,
                                          gTestPort,
                                          nullptr,
                                          8,
@@ -211,5 +211,5 @@ TEST(UdpSocket, ErrorSendNullBuffer)
 TEST(UdpSocket, ErrorRecvNullBuffer)
 {
     CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
-    CHECK_ERROR(E_SOCK_NULL, gSock1.recv(nullptr, 8, nullptr));
+    CHECK_ERROR(E_SOK_NULL, gSock1.recv(nullptr, 8, nullptr));
 }

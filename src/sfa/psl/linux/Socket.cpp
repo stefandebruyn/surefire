@@ -15,7 +15,7 @@ Result Socket::create(const IPv4Address kIp,
     // Verify socket is not already initialized.
     if (kSock.mFd != -1)
     {
-        return E_SOCK_REINIT;
+        return E_SOK_REINIT;
     }
 
     // Map protocol onto corresponding UNIX constant.
@@ -27,14 +27,14 @@ Result Socket::create(const IPv4Address kIp,
             break;
 
         default:
-            return E_SOCK_PROTO;
+            return E_SOK_PROTO;
     }
 
     // Open socket.
     const I32 fd = socket(AF_INET, sockType, 0);
     if (fd < 0)
     {
-        return E_SOCK_OPEN;
+        return E_SOK_OPEN;
     }
 
     // Bind socket to specified address.
@@ -49,7 +49,7 @@ Result Socket::create(const IPv4Address kIp,
     addr.sin_port = htons(kPort);
     if (bind(fd, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) != 0)
     {
-        return E_SOCK_BIND;
+        return E_SOK_BIND;
     }
 
     // If we got this far, socket is ready- set the FD so that its interface
@@ -67,13 +67,13 @@ Result Socket::select(Socket* const kSocks[],
     // Verify arrays are non-null.
     if ((kSocks == nullptr) || (kReady == nullptr))
     {
-        return E_SOCK_NULL;
+        return E_SOK_NULL;
     }
 
     // Verify at least 1 socket was provided.
     if (kNumSocks == 0)
     {
-        return E_SOCK_SEL_NONE;
+        return E_SOK_SEL_NONE;
     }
 
     // Verify all sockets are non-null and initialized.
@@ -81,12 +81,12 @@ Result Socket::select(Socket* const kSocks[],
     {
         if (kSocks[i] == nullptr)
         {
-            return E_SOCK_NULL;
+            return E_SOK_NULL;
         }
 
         if (kSocks[i]->mFd == -1)
         {
-            return E_SOCK_UNINIT;
+            return E_SOK_UNINIT;
         }
     }
 
@@ -111,7 +111,7 @@ Result Socket::select(Socket* const kSocks[],
     if (selRet < 0)
     {
         // Select failed.
-        return E_SOCK_SEL;
+        return E_SOK_SEL;
     }
 
     if (selRet != 0)
@@ -150,13 +150,13 @@ Result Socket::send(const IPv4Address kDestIp,
     // Verify socket is initialized.
     if (mFd == -1)
     {
-        return E_SOCK_UNINIT;
+        return E_SOK_UNINIT;
     }
 
     // Verify buffer is non-null.
     if (kBuf == nullptr)
     {
-        return E_SOCK_NULL;
+        return E_SOK_NULL;
     }
 
     // Create destination address.
@@ -180,7 +180,7 @@ Result Socket::send(const IPv4Address kDestIp,
     if (bytesSent < 0)
     {
         // Send failed.
-        return E_SOCK_SEND;
+        return E_SOK_SEND;
     }
 
     // Return number of bytes sent if caller provided a pointer to do so.
@@ -199,13 +199,13 @@ Result Socket::recv(void* const kBuf,
     // Verify socket is initialized.
     if (mFd == -1)
     {
-        return E_SOCK_UNINIT;
+        return E_SOK_UNINIT;
     }
 
     // Verify buffer is non-null.
     if (kBuf == nullptr)
     {
-        return E_SOCK_NULL;
+        return E_SOK_NULL;
     }
 
     // Receive into buffer.
@@ -216,7 +216,7 @@ Result Socket::recv(void* const kBuf,
     if (bytesRecvd < 0)
     {
         // Receive failed.
-        return E_SOCK_RECV;
+        return E_SOK_RECV;
     }
 
     // Return number of bytes received if caller provided a pointer to do so.
@@ -233,13 +233,13 @@ Result Socket::close()
     // Verify socket is initialized.
     if (mFd == -1)
     {
-        return E_SOCK_UNINIT;
+        return E_SOK_UNINIT;
     }
 
     // Close socket FD.
     if (::close(mFd) != 0)
     {
-        return E_SOCK_CLOSE;
+        return E_SOK_CLOSE;
     }
 
     // Reset socket FD to uninitialize socket.
