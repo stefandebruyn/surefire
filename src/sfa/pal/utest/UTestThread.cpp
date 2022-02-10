@@ -47,6 +47,23 @@ TEST(Thread, UninitializedAfterAwait)
     CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 
+TEST(Thread, Reuse)
+{
+    CHECK_SUCCESS(Thread::create(nop,
+                                 nullptr,
+                                 Thread::TEST_PRI,
+                                 Thread::TEST_POLICY,
+                                 0,
+                                 gTestThreads[0]));
+    CHECK_SUCCESS(gTestThreads[0].await(nullptr));
+    CHECK_SUCCESS(Thread::create(nop,
+                                 nullptr,
+                                 Thread::TEST_PRI,
+                                 Thread::TEST_POLICY,
+                                 0,
+                                 gTestThreads[0]));
+}
+
 TEST(Thread, ReturnResult)
 {
     Thread thread;
@@ -105,22 +122,24 @@ TEST(Thread, AffinityAllCores)
     }
 }
 
-TEST(Thread, DestructUninitialized)
-{
-    Thread* thread = new Thread();
-    delete thread;
-}
-
 TEST(Thread, DestructInitialized)
 {
-    Thread* thread = new Thread();
-    CHECK_SUCCESS(Thread::create(nop,
-                                 nullptr,
-                                 Thread::TEST_PRI,
-                                 Thread::TEST_POLICY,
-                                 0,
-                                 *thread));
-    delete thread;
+    {
+        Thread thread;
+        CHECK_SUCCESS(Thread::create(nop,
+                                    nullptr,
+                                    Thread::TEST_PRI,
+                                    Thread::TEST_POLICY,
+                                    0,
+                                    thread));
+    }
+}
+
+TEST(Thread, DestructUninitialized)
+{
+    {
+        Thread thread;
+    }
 }
 
 TEST(Thread, ErrorReinitialize)

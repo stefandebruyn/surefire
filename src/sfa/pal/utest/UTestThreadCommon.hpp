@@ -16,7 +16,7 @@ inline void threadTestTeardown()
 {
     for (U32 i = 0; i < gTestMaxThreads; ++i)
     {
-        gTestThreads[i].await(nullptr);
+        (void) gTestThreads[i].await(nullptr);
     }
 }
 

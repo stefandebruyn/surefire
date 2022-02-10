@@ -35,6 +35,12 @@ Result Socket::create(const IPv4Address kIp,
 
 Socket::Socket() : mInit(false)
 {
+
+}
+
+Socket::~Socket()
+{
+    (void) this->close();
 }
 
 Result Socket::send(const IPv4Address kDestIp,
@@ -110,5 +116,12 @@ Result Socket::recv(void* const kBuf,
         *kNumBytesRecvd = bytesRecvd;
     }
 
+    return SUCCESS;
+}
+
+Result Socket::close()
+{
+    mUdp.stop();
+    mInit = false;
     return SUCCESS;
 }

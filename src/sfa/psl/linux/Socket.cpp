@@ -12,6 +12,12 @@ Result Socket::create(const IPv4Address kIp,
                       const Protocol kProto,
                       Socket& kSock)
 {
+    // Verify socket is not already initialized.
+    if (kSock.mFd != -1)
+    {
+        return E_SOCK_REINIT;
+    }
+
     // Map protocol onto corresponding UNIX constant.
     I32 sockType = -1;
     switch (kProto)
@@ -128,6 +134,11 @@ Result Socket::select(Socket* const kSocks[],
 
 Socket::Socket() : mFd(-1)
 {
+}
+
+Socket::~Socket()
+{
+    (void) this->close();
 }
 
 Result Socket::send(const IPv4Address kDestIp,

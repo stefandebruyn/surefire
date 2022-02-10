@@ -37,6 +37,8 @@ public:
 
     Socket();
 
+    ~Socket();
+
     Result send(const IPv4Address kDestIp,
                 const U16 kDestPort,
                 const void* const kBuf,
