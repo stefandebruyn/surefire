@@ -10,8 +10,8 @@ I32 Console::printf(const char* const kFmt, ...)
     static char buf[gPrintBufSize];
     va_list args;
     va_start(args, kFmt);
-    const I32 ret = vsnprintf(buf, sizeof(buf), kFmt, args);
-    Serial.print(buf);
+    vsnprintf(buf, sizeof(buf), kFmt, args);
+    const I32 ret = Serial.print(buf);
     va_end(args);
     return ret;
 }
