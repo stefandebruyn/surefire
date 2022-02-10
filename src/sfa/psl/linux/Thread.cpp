@@ -38,6 +38,12 @@ Result Thread::create(const Function kFunc,
                       const U8 kAffinity,
                       Thread& kThread)
 {
+    // Verify thread is not already initialized.
+    if (kThread.mInit == true)
+    {
+        return E_THR_REINIT;
+    }
+
     // Check that function is non-null.
     if (kFunc == nullptr)
     {
@@ -192,6 +198,15 @@ Result Thread::set(const I32 kPriority,
 
 Thread::Thread() : mInit(false), mWrapperArgs({nullptr, nullptr})
 {
+}
+
+Thread::~Thread()
+{
+    if (mInit == true)
+    {
+        (void) pthread_cancel(mPthread);
+        (void) this->await(nullptr);
+    }
 }
 
 Result Thread::await(Result* const kThreadRes)

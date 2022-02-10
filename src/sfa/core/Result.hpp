@@ -67,6 +67,7 @@ typedef I32 Result;
 #define E_THR_AWAIT (294)
 #define E_THR_RANGE (295)
 #define E_THR_NULL (296)
+#define E_THR_REINIT (297)
 
 ///////////////////////////////// Linux Thread /////////////////////////////////
 

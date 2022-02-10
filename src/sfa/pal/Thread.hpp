@@ -51,6 +51,8 @@ public:
 
     Thread();
 
+    ~Thread();
+
     Result await(Result* const kThreadRes);
 
     Thread(const Thread&) = delete;

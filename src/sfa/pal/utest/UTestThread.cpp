@@ -105,6 +105,45 @@ TEST(Thread, AffinityAllCores)
     }
 }
 
+TEST(Thread, DestructUninitialized)
+{
+    Thread* thread = new Thread();
+    delete thread;
+}
+
+TEST(Thread, DestructInitialized)
+{
+    Thread* thread = new Thread();
+    CHECK_SUCCESS(Thread::create(nop,
+                                 nullptr,
+                                 Thread::TEST_PRI,
+                                 Thread::TEST_POLICY,
+                                 0,
+                                 *thread));
+    delete thread;
+}
+
+TEST(Thread, ErrorReinitialize)
+{
+    bool flags[2] = {};
+    CHECK_SUCCESS(Thread::create(setFlag,
+                                 &flags[0],
+                                 Thread::TEST_PRI,
+                                 Thread::TEST_POLICY,
+                                 0,
+                                 gTestThreads[0]));
+    CHECK_ERROR(E_THR_REINIT,
+                Thread::create(setFlag,
+                               &flags[1],
+                               Thread::TEST_PRI,
+                               Thread::TEST_POLICY,
+                               0,
+                               gTestThreads[0]));
+    CHECK_SUCCESS(gTestThreads[0].await(nullptr));
+    CHECK_TRUE(flags[0]);
+    CHECK_TRUE(!flags[1]);
+}
+
 TEST(Thread, ErrorNullFunction)
 {
     Thread thread;
