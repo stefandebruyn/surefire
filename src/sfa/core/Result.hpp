@@ -81,4 +81,10 @@ typedef I32 Result;
 #define E_SLK_ACQ (1058)
 #define E_SLK_REL (1059)
 
+///////////////////////////////////// DIO //////////////////////////////////////
+
+#define E_DIO_UNINIT (1088)
+#define E_DIO_REINIT (1089)
+#define E_DIO_MODE (1090)
+
 #endif
