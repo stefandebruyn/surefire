@@ -211,7 +211,7 @@ Result Thread::await(Result* const kThreadRes)
     if (kThreadRes != nullptr)
     {
         // Return thread result to caller.
-        (void) std::memcpy(kThreadRes, &threadRes, sizeof(*kThreadRes));
+        std::memcpy(kThreadRes, &threadRes, sizeof(*kThreadRes));
     }
 
     // Clear the thread slot.

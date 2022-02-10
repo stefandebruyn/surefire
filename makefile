@@ -23,11 +23,19 @@ sfasup:
 	mkdir build
 	cd build && cmake .. && make sfasup
 
+cli:
+	rm -rf build
+	mkdir build
+	cd build && cmake .. && make cli
+
 cppcheck:
 	cppcheck src
 
 black:
 	black -l 80 ./
+
+get-sudo:
+	sudo echo
 
 arduino-example:
 	rm -rf build
@@ -37,4 +45,4 @@ arduino-example:
 	cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=../Arduino-CMake-Toolchain/Arduino-toolchain.cmake -DSFA_ARDUINO_MAC_ADDR=0xA8610AAE759C && make arduino-example
 
 .PHONY: ci
-ci: cppcheck black utest sfa sfasup arduino-example clean cloc deadline
+ci: get-sudo cppcheck black utest sfa sfasup cli arduino-example clean cloc deadline

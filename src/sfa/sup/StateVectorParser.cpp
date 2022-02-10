@@ -89,6 +89,12 @@ Result StateVectorParser::parse(std::istream& kIs,
     Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
     if (res != SUCCESS)
     {
+        if (kConfigErr != nullptr)
+        {
+            // Overwrite error text set by tokenizer for consistent error
+            // messages from the state vector parser.
+            kConfigErr->text = gErrText;
+        }
         return res;
     }
 
@@ -356,7 +362,7 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
         ++kIdx;
     }
 
-    if (kIdx == kToks.size() || (kToks[kIdx].type != Token::IDENTIFIER))
+    if ((kIdx == kToks.size()) || (kToks[kIdx].type != Token::IDENTIFIER))
     {
         // Expected element name but got end of token stream or non-identifier
         // token.

@@ -33,13 +33,13 @@ Result Socket::create(const IPv4Address kIp,
 
     // Bind socket to specified address.
     sockaddr_in addr;
-    (void) std::memset(&addr, 0, sizeof(addr));
+    std::memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
-    const U32 u32IpNo = ((kIp.oct4 << 24) |
-                         (kIp.oct3 << 16) |
-                         (kIp.oct2 <<  8) |
-                         (kIp.oct1 <<  0));
-    addr.sin_addr.s_addr = u32IpNo;
+    const U32 ipNetOrder = ((kIp.oct4 << 24) |
+                            (kIp.oct3 << 16) |
+                            (kIp.oct2 <<  8) |
+                            (kIp.oct1 <<  0));
+    addr.sin_addr.s_addr = ipNetOrder;
     addr.sin_port = htons(kPort);
     if (bind(fd, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) != 0)
     {
@@ -150,13 +150,13 @@ Result Socket::send(const IPv4Address kDestIp,
 
     // Create destination address.
     sockaddr_in destAddr;
-    (void) std::memset(&destAddr, 0, sizeof(destAddr));
+    std::memset(&destAddr, 0, sizeof(destAddr));
     destAddr.sin_family = AF_INET;
-    const U32 u32IpNo = ((kDestIp.oct4 << 24) |
-                         (kDestIp.oct3 << 16) |
-                         (kDestIp.oct2 <<  8) |
-                         (kDestIp.oct1 <<  0));
-    destAddr.sin_addr.s_addr = u32IpNo;
+    const U32 ipNetOrder = ((kDestIp.oct4 << 24) |
+                            (kDestIp.oct3 << 16) |
+                            (kDestIp.oct2 <<  8) |
+                            (kDestIp.oct1 <<  0));
+    destAddr.sin_addr.s_addr = ipNetOrder;
     destAddr.sin_port = htons(kDestPort);
 
     // Send buffer.
