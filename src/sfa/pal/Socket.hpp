@@ -10,10 +10,10 @@
 
 struct IPv4Address
 {
-    U32 oct1;
-    U32 oct2;
-    U32 oct3;
-    U32 oct4;
+    U8 oct1;
+    U8 oct2;
+    U8 oct3;
+    U8 oct4;
 };
 
 class Socket final
