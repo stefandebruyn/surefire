@@ -1,3 +1,4 @@
+#include "sfa/pal/Clock.hpp"
 #include "UTestThreadCommon.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
@@ -16,6 +17,12 @@ static Result returnError(void* kArgs)
 {
     (void) kArgs;
     return E_NULLPTR;
+}
+
+static Result spinSetFlag(void* kArgs)
+{
+    Clock::spinWait(0.1 * Clock::NS_IN_S);
+    return setFlag(kArgs);
 }
 
 //////////////////////////////////// Tests /////////////////////////////////////
@@ -124,15 +131,17 @@ TEST(Thread, AffinityAllCores)
 
 TEST(Thread, DestructInitialized)
 {
+    bool flag = false;
     {
         Thread thread;
-        CHECK_SUCCESS(Thread::create(nop,
-                                    nullptr,
-                                    Thread::TEST_PRI,
-                                    Thread::TEST_POLICY,
-                                    0,
-                                    thread));
+        CHECK_SUCCESS(Thread::create(spinSetFlag,
+                                     &flag,
+                                     Thread::TEST_PRI,
+                                     Thread::TEST_POLICY,
+                                     0,
+                                     thread));
     }
+    CHECK_TRUE(flag);
 }
 
 TEST(Thread, DestructUninitialized)

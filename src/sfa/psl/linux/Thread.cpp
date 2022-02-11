@@ -202,11 +202,7 @@ Thread::Thread() : mInit(false), mWrapperArgs({nullptr, nullptr})
 
 Thread::~Thread()
 {
-    if (mInit == true)
-    {
-        (void) pthread_cancel(mPthread);
-        (void) this->await(nullptr);
-    }
+    (void) this->await(nullptr);
 }
 
 Result Thread::await(Result* const kThreadRes)
