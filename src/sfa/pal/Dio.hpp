@@ -31,6 +31,14 @@ public:
 private:
 
     bool mInit;
+
+#ifdef SFA_PLATFORM_ARDUINO
+    /// Bit vector of pin output values. The rightmost bit stores the last value
+    /// written to pin 0, the 2nd rightmost stores pin 1, and so on. This is
+    /// used to lower all pins raised by the DIO object when the object is
+    /// closed/destructed.
+    U64 mOutBitVec;
+#endif
 };
 
 #endif

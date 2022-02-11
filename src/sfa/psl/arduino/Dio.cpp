@@ -67,13 +67,15 @@ Result Dio::write(const U32 kPin, const bool kVal)
         return E_DIO_UNINIT;
     }
 
-    if (kVal == false)
+    if (kVal == true)
     {
-        digitalWrite(kPin, LOW);
+        digitalWrite(kPin, HIGH);
+        mOutBitVec |= (static_cast<U64>(1) << kPin);
     }
     else
     {
-        digitalWrite(kPin, HIGH);
+        digitalWrite(kPin, LOW);
+        mOutBitVec &= ~(static_cast<U64>(1) << kPin);
     }
 
     return SUCCESS;
@@ -81,6 +83,26 @@ Result Dio::write(const U32 kPin, const bool kVal)
 
 Result Dio::close()
 {
+    if (mInit == false)
+    {
+        return E_DIO_UNINIT;
+    }
+
+    Result res = SUCCESS;
+    for (U32 i = 0; i < sizeof(mOutBitVec); ++i)
+    {
+        if (((mOutBitVec >> i) & 0x1) == 1)
+        {
+            const Result writeRes = this->write(i, false);
+            if ((writeRes != SUCCESS) && (res == SUCCESS))
+            {
+                res = writeRes;
+            }
+        }
+    }
+
+    mOutBitVec = 0;
     mInit = false;
-    return SUCCESS;
+
+    return res;
 }
