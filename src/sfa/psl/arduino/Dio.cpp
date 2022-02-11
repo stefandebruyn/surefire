@@ -1,28 +1,28 @@
 #include <Arduino.h>
 
-#include "sfa/pal/Dio.hpp"
+#include "sfa/pal/DigitalIo.hpp"
 
-Result Dio::create(Dio& kDio)
+Result DigitalIo::create(DigitalIo& kDigitalIo)
 {
-    if (kDio.mInit == true)
+    if (kDigitalIo.mInit == true)
     {
         return E_DIO_REINIT;
     }
 
-    kDio.mInit = true;
+    kDigitalIo.mInit = true;
     return SUCCESS;
 }
 
-Dio::Dio() : mInit(false)
+DigitalIo::DigitalIo() : mInit(false)
 {
 }
 
-Dio::~Dio()
+DigitalIo::~DigitalIo()
 {
     (void) this->close();
 }
 
-Result Dio::setMode(const U32 kPin, const Mode kMode)
+Result DigitalIo::setMode(const U32 kPin, const Mode kMode)
 {
     // Verify DIO is initialized.
     if (mInit == false)
@@ -32,11 +32,11 @@ Result Dio::setMode(const U32 kPin, const Mode kMode)
 
     switch (kMode)
     {
-        case MODE_INPUT:
+        case IN:
             pinMode(kPin, INPUT);
             break;
 
-        case MODE_OUTPUT:
+        case OUT:
             pinMode(kPin, OUTPUT);
             break;
 
@@ -47,7 +47,7 @@ Result Dio::setMode(const U32 kPin, const Mode kMode)
     return SUCCESS;
 }
 
-Result Dio::read(const U32 kPin, bool& kVal)
+Result DigitalIo::read(const U32 kPin, bool& kVal)
 {
     // Verify DIO is initialized.
     if (mInit == false)
@@ -59,7 +59,7 @@ Result Dio::read(const U32 kPin, bool& kVal)
     return SUCCESS;
 }
 
-Result Dio::write(const U32 kPin, const bool kVal)
+Result DigitalIo::write(const U32 kPin, const bool kVal)
 {
     // Verify DIO is initialized.
     if (mInit == false)
@@ -81,7 +81,7 @@ Result Dio::write(const U32 kPin, const bool kVal)
     return SUCCESS;
 }
 
-Result Dio::close()
+Result DigitalIo::close()
 {
     if (mInit == false)
     {

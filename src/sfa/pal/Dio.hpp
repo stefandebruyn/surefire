@@ -4,21 +4,21 @@
 #include "sfa/core/BasicTypes.hpp"
 #include "sfa/core/Result.hpp"
 
-class Dio final
+class DigitalIo final
 {
 public:
 
     enum Mode : U8
     {
-        MODE_INPUT,
-        MODE_OUTPUT
+        IN,
+        OUT
     };
 
-    static Result create(Dio& kDio);
+    static Result create(DigitalIo& kDigitalIo);
 
-    Dio();
+    DigitalIo();
 
-    ~Dio();
+    ~DigitalIo();
 
     Result setMode(const U32 kPin, const Mode kMode);
 
