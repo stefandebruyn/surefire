@@ -89,7 +89,7 @@ Result DigitalIo::close()
     }
 
     Result res = SUCCESS;
-    for (U32 i = 0; i < sizeof(mOutBitVec); ++i)
+    for (U32 i = 0; i < (sizeof(mOutBitVec) * 8); ++i)
     {
         if (((mOutBitVec >> i) & 0x1) == 1)
         {
