@@ -69,12 +69,9 @@ typedef I32 Result;
 #define E_THR_RANGE (295)
 #define E_THR_NULL (296)
 #define E_THR_REINIT (297)
-
-///////////////////////////////// Linux Thread /////////////////////////////////
-
-#define E_THR_INIT_ATTR (1024)
-#define E_THR_DTRY_ATTR (1025)
-#define E_THR_INH_PRI (1025)
+#define E_THR_INIT_ATTR (298)
+#define E_THR_DTRY_ATTR (299)
+#define E_THR_INH_PRI (300)
 
 ////////////////////////////////// Spinlock ////////////////////////////////////
 
@@ -83,10 +80,18 @@ typedef I32 Result;
 #define E_SLK_ACQ (1058)
 #define E_SLK_REL (1059)
 
-///////////////////////////////////// DIO //////////////////////////////////////
+////////////////////////////////// Digital IO //////////////////////////////////
 
 #define E_DIO_UNINIT (1088)
 #define E_DIO_REINIT (1089)
-#define E_DIO_MODE (1090)
+#define E_DIO_PIN (1090)
+#define E_DIO_MODE (1091)
+
+////////////////////////////////// Analog IO ///////////////////////////////////
+
+#define E_AIO_UNINIT (1120)
+#define E_AIO_REINIT (1121)
+#define E_AIO_PIN (1122)
+#define E_AIO_RANGE (1123)
 
 #endif
