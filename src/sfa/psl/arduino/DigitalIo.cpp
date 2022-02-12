@@ -2,14 +2,14 @@
 
 #include "sfa/pal/DigitalIo.hpp"
 
-Result DigitalIo::create(DigitalIo& kDigitalIo)
+Result DigitalIo::create(DigitalIo& kDio)
 {
-    if (kDigitalIo.mInit == true)
+    if (kDio.mInit == true)
     {
         return E_DIO_REINIT;
     }
 
-    kDigitalIo.mInit = true;
+    kDio.mInit = true;
     return SUCCESS;
 }
 

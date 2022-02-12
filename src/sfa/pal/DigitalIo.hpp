@@ -1,5 +1,5 @@
-#ifndef SFA_DIO_HPP
-#define SFA_DIO_HPP
+#ifndef SFA_DIGITAL_IO_HPP
+#define SFA_DIGITAL_IO_HPP
 
 #include "sfa/core/BasicTypes.hpp"
 #include "sfa/core/Result.hpp"
@@ -14,7 +14,7 @@ public:
         OUT
     };
 
-    static Result create(DigitalIo& kDigitalIo);
+    static Result create(DigitalIo& kDio);
 
     DigitalIo();
 
