@@ -17,9 +17,17 @@ Result Socket::create(const IPv4Address kIp,
     static bool ethInit = false;
     if (ethInit == false)
     {
-        const U64 macAddr = SFA_ARDUINO_MAC_ADDR;
-        IPAddress ipAddr(kIp.oct1, kIp.oct2, kIp.oct3, kIp.oct4);
-        Ethernet.begin(reinterpret_cast<const byte*>(&macAddr), ipAddr);
+        const byte macAddr[] =
+        {
+            ((SFA_ARDUINO_MAC_ADDR >> 40) & 0xFF),
+            ((SFA_ARDUINO_MAC_ADDR >> 32) & 0xFF),
+            ((SFA_ARDUINO_MAC_ADDR >> 24) & 0xFF),
+            ((SFA_ARDUINO_MAC_ADDR >> 16) & 0xFF),
+            ((SFA_ARDUINO_MAC_ADDR >>  8) & 0xFF),
+            ((SFA_ARDUINO_MAC_ADDR >>  0) & 0xFF)
+        };
+        const IPAddress ipAddr(kIp.oct1, kIp.oct2, kIp.oct3, kIp.oct4);
+        Ethernet.begin(macAddr, ipAddr);
         ethInit = true;
     }
 
