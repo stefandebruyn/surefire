@@ -1,43 +1,6 @@
 #include "sfa/core/StateVector.hpp"
 #include "sfa/core/MemOps.hpp"
 
-#define GET_ELEMENT_IMPL(kTemplateType, kElementType)                          \
-    /* Check that the state vector is initialized. */                          \
-    if (mConfig.elems == nullptr)                                              \
-    {                                                                          \
-        return E_SV_UNINIT;                                                    \
-    }                                                                          \
-                                                                               \
-    /* Look up index of specified element. */                                  \
-    ElementConfig* elemConfig = nullptr;                                       \
-    const Result res = this->getElementConfig(kName, elemConfig);              \
-    if (res != SUCCESS)                                                        \
-    {                                                                          \
-        /* Lookup failed. */                                                   \
-        return res;                                                            \
-    }                                                                          \
-                                                                               \
-    /* Check that type of element matches template parameter. */               \
-    IElement* elem = elemConfig->elem;                                         \
-    if (elem == nullptr)                                                       \
-    {                                                                          \
-        /* This should never happen assuming the state vector config was       \
-           validated correctly. */                                             \
-        return E_SV_NULL;                                                      \
-    }                                                                          \
-    if (elem->type() != kElementType)                                          \
-    {                                                                          \
-        /* Type mismatch. */                                                   \
-        return E_SV_TYPE;                                                      \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-        /* Type match- narrow reference to element template instantiation. */  \
-        kElem = static_cast<Element<kTemplateType>*>(elem);                    \
-    }                                                                          \
-                                                                               \
-    return SUCCESS;
-
 Result StateVector::create(const Config kConfig, StateVector& kSv)
 {
     Result res = -1;
@@ -52,62 +15,62 @@ StateVector::StateVector() : mConfig({nullptr, nullptr})
 template<>
 Result StateVector::getElement<I8>(const char* const kName, Element<I8>*& kElem)
 {
-    GET_ELEMENT_IMPL(I8, ElementType::INT8);
+    return this->getElementImpl<I8>(kName, kElem, ElementType::INT8);
 }
 
 template<>
 Result StateVector::getElement<I16>(const char* const kName,
                                     Element<I16>*& kElem)
 {
-    GET_ELEMENT_IMPL(I16, ElementType::INT16);
+    return this->getElementImpl<I16>(kName, kElem, ElementType::INT16);
 }
 
 template<>
 Result StateVector::getElement<I32>(const char* const kName,
                                     Element<I32>*& kElem)
 {
-    GET_ELEMENT_IMPL(I32, ElementType::INT32);
+    return this->getElementImpl<I32>(kName, kElem, ElementType::INT32);
 }
 
 template<>
 Result StateVector::getElement<I64>(const char* const kName,
                                     Element<I64>*& kElem)
 {
-    GET_ELEMENT_IMPL(I64, ElementType::INT64);
+    return this->getElementImpl<I64>(kName, kElem, ElementType::INT64);
 }
 
 template<>
 Result StateVector::getElement<U8>(const char* const kName, Element<U8>*& kElem)
 {
-    GET_ELEMENT_IMPL(U8, ElementType::UINT8);
+    return this->getElementImpl<U8>(kName, kElem, ElementType::UINT8);
 }
 
 template<>
 Result StateVector::getElement<U16>(const char* const kName,
                                     Element<U16>*& kElem)
 {
-    GET_ELEMENT_IMPL(U16, ElementType::UINT16);
+    return this->getElementImpl<U16>(kName, kElem, ElementType::UINT16);
 }
 
 template<>
 Result StateVector::getElement<U32>(const char* const kName,
                                     Element<U32>*& kElem)
 {
-    GET_ELEMENT_IMPL(U32, ElementType::UINT32);
+    return this->getElementImpl<U32>(kName, kElem, ElementType::UINT32);
 }
 
 template<>
 Result StateVector::getElement<U64>(const char* const kName,
                                     Element<U64>*& kElem)
 {
-    GET_ELEMENT_IMPL(U64, ElementType::UINT64);
+    return this->getElementImpl<U64>(kName, kElem, ElementType::UINT64);
 }
 
 template<>
 Result StateVector::getElement<F32>(const char* const kName,
                                     Element<F32>*& kElem)
 {
-    GET_ELEMENT_IMPL(F32, ElementType::FLOAT32);
+    return this->getElementImpl<F32>(kName, kElem, ElementType::FLOAT32);
 }
 
 #ifndef SFA_NO_F64
@@ -115,7 +78,7 @@ template<>
 Result StateVector::getElement<F64>(const char* const kName,
                                     Element<F64>*& kElem)
 {
-    GET_ELEMENT_IMPL(F64, ElementType::FLOAT64);
+    return this->getElementImpl<F64>(kName, kElem, ElementType::FLOAT64);
 }
 #endif
 
@@ -123,7 +86,7 @@ template<>
 Result StateVector::getElement<bool>(const char* const kName,
                                      Element<bool>*& kElem)
 {
-    GET_ELEMENT_IMPL(bool, ElementType::BOOL);
+    return this->getElementImpl<bool>(kName, kElem, ElementType::BOOL);
 }
 
 Result StateVector::getRegion(const char* const kName, Region*& kRegion)
@@ -138,7 +101,7 @@ Result StateVector::getRegion(const char* const kName, Region*& kRegion)
         return E_SV_EMPTY;
     }
 
-    RegionConfig* regionConfig = nullptr;
+    const RegionConfig* regionConfig = nullptr;
     Result res = this->getRegionConfig(kName, regionConfig);
     if (res != SUCCESS)
     {
@@ -225,7 +188,7 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
 }
 
 Result StateVector::getElementConfig(const char* const kName,
-                                     ElementConfig*& kElemConfig) const
+                                     const ElementConfig*& kElemConfig) const
 {
     // Look up element config by name.
     for (U32 i = 0; mConfig.elems[i].name != nullptr; ++i)
@@ -242,7 +205,7 @@ Result StateVector::getElementConfig(const char* const kName,
 }
 
 Result StateVector::getRegionConfig(const char* const kName,
-                                    RegionConfig*& kRegionConfig) const
+                                    const RegionConfig*& kRegionConfig) const
 {
     // Look up region config by name.
     for (U32 i = 0; mConfig.regions[i].name != nullptr; ++i)

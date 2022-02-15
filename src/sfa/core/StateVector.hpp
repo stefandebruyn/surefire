@@ -50,10 +50,42 @@ private:
     StateVector& operator=(StateVector&&) = default;
 
     Result getElementConfig(const char* const kName,
-                            ElementConfig*& kElemConfig) const;
+                            const ElementConfig*& kElemConfig) const;
 
     Result getRegionConfig(const char* const kName,
-                           RegionConfig*& kRegionConfig) const;
+                           const RegionConfig*& kRegionConfig) const;
+
+    template<typename T>
+    Result getElementImpl(const char* const kName,
+                          Element<T>*& kElem,
+                          const ElementType kElemType)
+    {
+        if (mConfig.elems == nullptr)
+        {
+            return E_SV_UNINIT;
+        }
+
+        const ElementConfig* elemConfig = nullptr;
+        const Result res = this->getElementConfig(kName, elemConfig);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+
+        IElement* const elem = elemConfig->elem;
+        if (elem == nullptr)
+        {
+            return E_SV_NULL;
+        }
+
+        if (elem->type() != kElemType)
+        {
+            return E_SV_TYPE;
+        }
+
+        kElem = static_cast<Element<T>*>(elem);
+        return SUCCESS;
+    }
 };
 
 #endif
