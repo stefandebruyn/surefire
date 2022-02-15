@@ -9,104 +9,10 @@
 
 static const char* const gErrText = "state vector config error";
 
-/////////////////////////////////// Public /////////////////////////////////////
-
-const std::vector<std::string> StateVectorParser::ALL_REGIONS;
-
-StateVectorParser::Config::Config(const StateVector::Config kSvConfig,
-                                  const char* const kSvBacking,
-                                  const Parse& kParse) :
-    mSvConfig(kSvConfig), mSvBacking(kSvBacking), mParse(kParse)
-{
-}
-
-StateVectorParser::Config::~Config()
-{
-    // Delete name string and object for each element.
-    for (U32 i = 0; mSvConfig.elems[i].name != nullptr; ++i)
-    {
-        delete[] mSvConfig.elems[i].name;
-        delete mSvConfig.elems[i].elem;
-    }
-
-    // Delete name string and object for each region.
-    for (U32 i = 0; mSvConfig.regions[i].name != nullptr; ++i)
-    {
-        delete[] mSvConfig.regions[i].name;
-        delete mSvConfig.regions[i].region;
-    }
-
-    // Delete element config array.
-    delete[] mSvConfig.elems;
-
-    // Delete region config array.
-    delete[] mSvConfig.regions;
-
-    // Delete state vector backing storage.
-    delete[] mSvBacking;
-}
-
-const StateVector::Config& StateVectorParser::Config::get() const
-{
-    return mSvConfig;
-}
-
-const StateVectorParser::Parse& StateVectorParser::Config::getParse() const
-{
-    return mParse;
-}
-
-Result StateVectorParser::parse(const std::string kFilePath,
-                                std::shared_ptr<Config>& kConfig,
-                                ConfigErrorInfo* kConfigErr,
-                                const std::vector<std::string> kRegions)
-{
-    std::ifstream ifs(kFilePath);
-    if (ifs.is_open() == false)
-    {
-        if (kConfigErr != nullptr)
-        {
-            kConfigErr->text = "error";
-            kConfigErr->subtext = "failed to open file `" + kFilePath + "`";
-        }
-        return E_FILE;
-    }
-
-    if (kConfigErr != nullptr)
-    {
-        kConfigErr->filePath = kFilePath;
-    }
-
-    return StateVectorParser::parse(ifs, kConfig, kConfigErr, kRegions);
-}
-
-Result StateVectorParser::parse(std::istream& kIs,
-                                std::shared_ptr<Config>& kConfig,
-                                ConfigErrorInfo* kConfigErr,
-                                const std::vector<std::string> kRegions)
-{
-    std::vector<Token> toks;
-    Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
-    if (res != SUCCESS)
-    {
-        if (kConfigErr != nullptr)
-        {
-            // Overwrite error text set by tokenizer for consistent error
-            // messages from the state vector parser.
-            kConfigErr->text = gErrText;
-        }
-        return res;
-    }
-
-    return StateVectorParser::parseImpl(toks, kConfig, kConfigErr, kRegions);
-}
-
-/////////////////////////////////// Private ////////////////////////////////////
-
-const std::regex StateVectorParser::mRegionSectionRegex(
+static const std::regex gRegionSectionRegex(
     "\\[REGION/([a-zA-Z][a-zA-Z0-9_]*)\\]");
 
-const std::unordered_map<std::string, U32> StateVectorParser::mElemTypeSize =
+static const std::unordered_map<std::string, U32> gElemTypeSize =
 {
     {"I8", 1},
     {"I16", 2},
@@ -120,6 +26,36 @@ const std::unordered_map<std::string, U32> StateVectorParser::mElemTypeSize =
     {"F64", 8},
     {"bool", 1}
 };
+
+/////////////////////////////////// Private ////////////////////////////////////
+
+namespace StateVectorParser
+{
+    Result parseImpl(const std::vector<Token>& kToks,
+                     std::shared_ptr<Config>& kConfig,
+                     ConfigErrorInfo* kConfigErr,
+                     const std::vector<std::string>& kRegions);
+
+    Result parseRegion(const std::vector<Token>& kToks,
+                       U32& kIdx,
+                       const Parse& kParse,
+                       RegionParse& kRegion,
+                       ConfigErrorInfo* kConfigErr);
+
+    Result parseElement(const std::vector<Token>& kToks,
+                        U32& kIdx,
+                        const Parse& kParse,
+                        ElementParse& kElem,
+                        ConfigErrorInfo* kConfigErr);
+
+    Result allocateElement(const ElementParse& kElem,
+                           StateVector::ElementConfig& kElemInfo,
+                           char*& kBumpPtr);
+
+    Result makeConfig(const Parse& kParse,
+                      ConfigErrorInfo* kConfigErr,
+                      std::shared_ptr<Config>& kConfig);
+}
 
 Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                                     std::shared_ptr<Config>& kConfig,
@@ -143,7 +79,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                 // Parse section.
                 std::smatch match;
                 if (std::regex_match(
-                    tok.str, match, mRegionSectionRegex) == true)
+                    tok.str, match, gRegionSectionRegex) == true)
                 {
                     // If the caller provided a list of regions to parse and
                     // this isn't one of them, skip to the next region section
@@ -193,7 +129,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
                     regionParse.tokName = tok;
                     regionParse.plainName = regionPlainName;
 
-                    const Result res = StateVectorParser::parseRegion(
+                    const Result res = parseRegion(
                         kToks, idx, parse, regionParse, kConfigErr);
                     if (res != SUCCESS)
                     {
@@ -272,7 +208,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
 
     // At this point we have a potentially valid state vector parsing- now we
     // try compiling it into an actual state vector config.
-    return StateVectorParser::makeConfig(parse, kConfigErr, kConfig);
+    return makeConfig(parse, kConfigErr, kConfig);
 }
 
 Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
@@ -291,7 +227,7 @@ Result StateVectorParser::parseRegion(const std::vector<Token>& kToks,
                 // Element token indicates start of element declaration.
                 kRegion.elems.push_back(ElementParse());
                 ElementParse& elemParse = kRegion.elems.back();
-                Result res = StateVectorParser::parseElement(
+                Result res = parseElement(
                     kToks, kIdx, kParse, elemParse, kConfigErr);
                 if (res != SUCCESS)
                 {
@@ -339,8 +275,8 @@ Result StateVectorParser::parseElement(const std::vector<Token>& kToks,
     kElem.tokType = tokType;
 
     // Check that type is valid.
-    auto iter = mElemTypeSize.find(tokType.str);
-    if (iter == mElemTypeSize.end())
+    auto iter = gElemTypeSize.find(tokType.str);
+    if (iter == gElemTypeSize.end())
     {
         // Unknown element type.
         if (kConfigErr != nullptr)
@@ -573,7 +509,7 @@ Result StateVectorParser::makeConfig(const Parse& kParse,
         // Allocate elements and populate element config array.
         for (const ElementParse& elemParse : regionParse.elems)
         {
-            Result res = StateVectorParser::allocateElement(
+            Result res = allocateElement(
                 elemParse, elemConfigs[elemIdx], bumpPtr);
             if (res != SUCCESS)
             {
@@ -611,4 +547,96 @@ Result StateVectorParser::makeConfig(const Parse& kParse,
     kConfig.reset(new Config(svConfig, svBacking, kParse));
 
     return SUCCESS;
+}
+
+/////////////////////////////////// Public /////////////////////////////////////
+
+const std::vector<std::string> StateVectorParser::ALL_REGIONS;
+
+StateVectorParser::Config::Config(const StateVector::Config kSvConfig,
+                                  const char* const kSvBacking,
+                                  const Parse& kParse) :
+    mSvConfig(kSvConfig), mSvBacking(kSvBacking), mParse(kParse)
+{
+}
+
+StateVectorParser::Config::~Config()
+{
+    // Delete name string and object for each element.
+    for (U32 i = 0; mSvConfig.elems[i].name != nullptr; ++i)
+    {
+        delete[] mSvConfig.elems[i].name;
+        delete mSvConfig.elems[i].elem;
+    }
+
+    // Delete name string and object for each region.
+    for (U32 i = 0; mSvConfig.regions[i].name != nullptr; ++i)
+    {
+        delete[] mSvConfig.regions[i].name;
+        delete mSvConfig.regions[i].region;
+    }
+
+    // Delete element config array.
+    delete[] mSvConfig.elems;
+
+    // Delete region config array.
+    delete[] mSvConfig.regions;
+
+    // Delete state vector backing storage.
+    delete[] mSvBacking;
+}
+
+const StateVector::Config& StateVectorParser::Config::get() const
+{
+    return mSvConfig;
+}
+
+const StateVectorParser::Parse& StateVectorParser::Config::getParse() const
+{
+    return mParse;
+}
+
+Result StateVectorParser::parse(const std::string kFilePath,
+                                std::shared_ptr<Config>& kConfig,
+                                ConfigErrorInfo* kConfigErr,
+                                const std::vector<std::string> kRegions)
+{
+    std::ifstream ifs(kFilePath);
+    if (ifs.is_open() == false)
+    {
+        if (kConfigErr != nullptr)
+        {
+            kConfigErr->text = "error";
+            kConfigErr->subtext = "failed to open file `" + kFilePath + "`";
+        }
+        return E_FILE;
+    }
+
+    if (kConfigErr != nullptr)
+    {
+        kConfigErr->filePath = kFilePath;
+    }
+
+    return StateVectorParser::parse(ifs, kConfig, kConfigErr, kRegions);
+}
+
+Result StateVectorParser::parse(std::istream& kIs,
+                                std::shared_ptr<Config>& kConfig,
+                                ConfigErrorInfo* kConfigErr,
+                                const std::vector<std::string> kRegions)
+{
+    std::vector<Token> toks;
+    Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
+    if (res != SUCCESS)
+    {
+        if (kConfigErr != nullptr)
+        {
+            // Overwrite error text set by tokenizer for consistent error
+            // messages from the state vector parser.
+            kConfigErr->text = gErrText;
+        }
+        return res;
+    }
+
+    return parseImpl(toks, kConfig, kConfigErr, kRegions);
 }

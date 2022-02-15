@@ -47,26 +47,15 @@ struct Token final
     friend std::ostream& operator<<(std::ostream& kOs, const Token& kTok);
 };
 
-class ConfigTokenizer final
+namespace ConfigTokenizer
 {
-public:
+    Result tokenize(std::string kFilePath,
+                    std::vector<Token>& kToks,
+                    ConfigErrorInfo* kConfigErr);
 
-    static Result tokenize(std::string kFilePath,
-                           std::vector<Token>& kToks,
-                           ConfigErrorInfo* kConfigErr);
-
-    static Result tokenize(std::istream& kIs,
-                           std::vector<Token>& kToks,
-                           ConfigErrorInfo* kConfigErr);
-
-    ConfigTokenizer() = delete;
-
-private:
-
-    static Result tokenizeLine(const std::string& kLine,
-                               const U32 kLineNum,
-                               std::vector<Token>& kToks,
-                               ConfigErrorInfo* kConfigErr);
-};
+    Result tokenize(std::istream& kIs,
+                    std::vector<Token>& kToks,
+                    ConfigErrorInfo* kConfigErr);
+}
 
 #endif

@@ -187,3 +187,15 @@ TEST(ConfigTokenizer, InvalidToken)
     // Tokens vector was not populated.
     CHECK_EQUAL(0, toks.size());
 }
+
+TEST(ConfigTokenizer, NonexistentInputFile)
+{
+    // Tokenizer returns error on nonexistent input file.
+    std::vector<Token> toks;
+    ConfigErrorInfo err;
+    CHECK_ERROR(E_FILE, ConfigTokenizer::tokenize("foo.bar", toks, &err));
+
+    // An error message was given.
+    CHECK_TRUE(err.text.size() > 0);
+    CHECK_TRUE(err.subtext.size() > 0);
+}

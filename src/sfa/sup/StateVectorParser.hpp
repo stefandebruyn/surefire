@@ -12,11 +12,9 @@
 #include "sfa/sup/ConfigTokenizer.hpp"
 #include "sfa/sup/ConfigErrorInfo.hpp"
 
-class StateVectorParser final
+namespace StateVectorParser
 {
-public:
-
-    static const std::vector<std::string> ALL_REGIONS;
+    extern const std::vector<std::string> ALL_REGIONS;
 
     struct ElementParse final
     {
@@ -60,49 +58,15 @@ public:
         const Parse mParse;
     };
 
-    static Result parse(const std::string kFilePath,
-                        std::shared_ptr<Config>& kConfig,
-                        ConfigErrorInfo* kConfigErr,
-                        const std::vector<std::string> kRegions = ALL_REGIONS);
+    Result parse(const std::string kFilePath,
+                 std::shared_ptr<Config>& kConfig,
+                 ConfigErrorInfo* kConfigErr,
+                 const std::vector<std::string> kRegions = ALL_REGIONS);
 
-    static Result parse(std::istream& kIs,
-                        std::shared_ptr<Config>& kConfig,
-                        ConfigErrorInfo* kConfigErr,
-                        const std::vector<std::string> kRegions = ALL_REGIONS);
-
-    StateVectorParser() = delete;
-
-private:
-
-    static const std::regex mRegionSectionRegex;
-
-    static const std::unordered_map<std::string, U32> mElemTypeSize;
-
-    static Result parseImpl(const std::vector<Token>& kToks,
-                            std::shared_ptr<Config>& kConfig,
-                            ConfigErrorInfo* kConfigErr,
-                            const std::vector<std::string>& kRegions);
-
-    static Result parseRegion(const std::vector<Token>& kToks,
-                              U32& kIdx,
-                              const Parse& kParse,
-                              RegionParse& kRegion,
-                              ConfigErrorInfo* kConfigErr);
-
-    static Result parseElement(const std::vector<Token>& kToks,
-                               U32& kIdx,
-                               const Parse& kParse,
-                               ElementParse& kElem,
-                               ConfigErrorInfo* kConfigErr);
-
-    static Result allocateElement(const ElementParse& kElem,
-                                  StateVector::ElementConfig& kElemInfo,
-                                  char*& kBumpPtr);
-
-    static Result makeConfig(const Parse& kParse,
-                             ConfigErrorInfo* kConfigErr,
-                             std::shared_ptr<Config>& kConfig);
-
-};
+    Result parse(std::istream& kIs,
+                 std::shared_ptr<Config>& kConfig,
+                 ConfigErrorInfo* kConfigErr,
+                 const std::vector<std::string> kRegions = ALL_REGIONS);
+}
 
 #endif
