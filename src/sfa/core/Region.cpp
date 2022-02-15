@@ -5,7 +5,7 @@ Result Region::write(const void* const kBuf, const U32 kBufSizeBytes)
 {
     if (kBufSizeBytes != mSizeBytes)
     {
-        return E_SIZE;
+        return E_RGN_SIZE;
     }
 
     MemOps::memcpy(mAddr, kBuf, mSizeBytes);
@@ -16,7 +16,7 @@ Result Region::read(void* const kBuf, const U32 kBufSizeBytes) const
 {
     if (kBufSizeBytes != mSizeBytes)
     {
-        return E_SIZE;
+        return E_RGN_SIZE;
     }
 
     MemOps::memcpy(kBuf, mAddr, mSizeBytes);

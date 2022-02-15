@@ -193,7 +193,7 @@ TEST(ConfigTokenizer, NonexistentInputFile)
     // Tokenizer returns error on nonexistent input file.
     std::vector<Token> toks;
     ConfigErrorInfo err;
-    CHECK_ERROR(E_FILE, ConfigTokenizer::tokenize("foo.bar", toks, &err));
+    CHECK_ERROR(E_TOK_FILE, ConfigTokenizer::tokenize("foo.bar", toks, &err));
 
     // An error message was given.
     CHECK_TRUE(err.text.size() > 0);

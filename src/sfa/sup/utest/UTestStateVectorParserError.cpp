@@ -165,7 +165,7 @@ TEST(StateVectorParserError, NonexistentInputFile)
     // Parser returns error on nonexistent input file.
     std::shared_ptr<StateVectorParser::Config> config = nullptr;
     ConfigErrorInfo err;
-    CHECK_ERROR(E_FILE, StateVectorParser::parse("foo.bar", config, &err));
+    CHECK_ERROR(E_SVP_FILE, StateVectorParser::parse("foo.bar", config, &err));
 
     // An error message was given.
     CHECK_TRUE(err.text.size() > 0);

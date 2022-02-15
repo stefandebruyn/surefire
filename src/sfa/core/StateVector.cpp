@@ -5,7 +5,7 @@
     /* Check that the state vector is initialized. */                          \
     if (mConfig.elems == nullptr)                                              \
     {                                                                          \
-        return E_UNINITIALIZED;                                                \
+        return E_SV_UNINIT;                                                    \
     }                                                                          \
                                                                                \
     /* Look up index of specified element. */                                  \
@@ -23,12 +23,12 @@
     {                                                                          \
         /* This should never happen assuming the state vector config was       \
            validated correctly. */                                             \
-        return E_NULLPTR;                                                      \
+        return E_SV_NULL;                                                      \
     }                                                                          \
     if (elem->type() != kElementType)                                          \
     {                                                                          \
         /* Type mismatch. */                                                   \
-        return E_TYPE;                                                         \
+        return E_SV_TYPE;                                                      \
     }                                                                          \
     else                                                                       \
     {                                                                          \
@@ -40,7 +40,7 @@
 
 Result StateVector::create(const Config kConfig, StateVector& kSv)
 {
-    Result res = E_UNREACHABLE;
+    Result res = -1;
     kSv = StateVector(kConfig, res);
     return res;
 }
@@ -130,12 +130,12 @@ Result StateVector::getRegion(const char* const kName, Region*& kRegion)
 {
     if (mConfig.elems == nullptr)
     {
-        return E_UNINITIALIZED;
+        return E_SV_UNINIT;
     }
 
     if (mConfig.regions == nullptr)
     {
-        return E_EMPTY;
+        return E_SV_EMPTY;
     }
 
     RegionConfig* regionConfig = nullptr;
@@ -156,7 +156,7 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
     // Check that elements array is non-null.
     if (kConfig.elems == nullptr)
     {
-        kRes = E_NULLPTR;
+        kRes = E_SV_NULL;
         return;
     }
 
@@ -165,7 +165,7 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
     {
         if (kConfig.elems[i].elem == nullptr)
         {
-            kRes = E_NULLPTR;
+            kRes = E_SV_NULL;
             return;
         }
     }
@@ -177,7 +177,7 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
         {
             if (kConfig.regions[i].region == nullptr)
             {
-                kRes = E_NULLPTR;
+                kRes = E_SV_NULL;
                 return;
             }
         }
@@ -199,7 +199,7 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
                 // Check that current element address is at the bump pointer.
                 if (bumpPtr != kConfig.elems[elemIdx].elem->addr())
                 {
-                    kRes = E_LAYOUT;
+                    kRes = E_SV_LAYOUT;
                     return;
                 }
 
@@ -213,7 +213,7 @@ StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
             if ((reinterpret_cast<U64>(bumpPtr)
                  - reinterpret_cast<U64>(regionPtr)) != regionSize)
             {
-                kRes = E_LAYOUT;
+                kRes = E_SV_LAYOUT;
                 return;
             }
         }
@@ -238,7 +238,7 @@ Result StateVector::getElementConfig(const char* const kName,
     }
 
     // If we get this far, the element wasn't found.
-    return E_KEY;
+    return E_SV_KEY;
 }
 
 Result StateVector::getRegionConfig(const char* const kName,
@@ -255,5 +255,5 @@ Result StateVector::getRegionConfig(const char* const kName,
     }
 
     // If we get this far, the region wasn't found.
-    return E_KEY;
+    return E_SV_KEY;
 }

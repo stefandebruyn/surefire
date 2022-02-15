@@ -165,7 +165,7 @@ Result ConfigTokenizer::tokenize(std::string kFilePath,
             kConfigErr->text = "error";
             kConfigErr->subtext = "failed to open file: " + kFilePath;
         }
-        return E_FILE;
+        return E_TOK_FILE;
     }
 
     if (kConfigErr != nullptr)

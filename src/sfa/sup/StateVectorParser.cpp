@@ -444,7 +444,7 @@ Result StateVectorParser::allocateElement(const ElementParse& kElem,
     else
     {
         delete[] kElemInfo.name;
-        return E_UNREACHABLE;
+        return E_SVP_ELEM_TYPE;
     }
 
     return SUCCESS;
@@ -609,7 +609,7 @@ Result StateVectorParser::parse(const std::string kFilePath,
             kConfigErr->text = "error";
             kConfigErr->subtext = "failed to open file `" + kFilePath + "`";
         }
-        return E_FILE;
+        return E_SVP_FILE;
     }
 
     if (kConfigErr != nullptr)

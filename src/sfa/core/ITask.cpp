@@ -15,7 +15,7 @@ Result ITask::step()
     // Check that the task initialized successfully.
     if (mInitialized != true)
     {
-        return E_UNINITIALIZED;
+        return E_TSK_UNINIT;
     }
 
     // If a mode element was not provided, step in enabled mode.
@@ -40,7 +40,7 @@ Result ITask::step()
 
         default:
             // Invalid mode.
-            return E_ENUM;
+            return E_TSK_MODE;
     }
 }
 

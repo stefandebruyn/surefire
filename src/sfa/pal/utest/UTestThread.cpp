@@ -16,7 +16,7 @@ static Result checkCore(void* kArgs)
 static Result returnError(void* kArgs)
 {
     (void) kArgs;
-    return E_NULLPTR;
+    return E_THR_NULL;
 }
 
 static Result spinSetFlag(void* kArgs)
@@ -82,7 +82,7 @@ TEST(Thread, ReturnResult)
                                  thread));
     Result threadRes = SUCCESS;
     CHECK_SUCCESS(thread.await(&threadRes));
-    CHECK_EQUAL(E_NULLPTR, threadRes);
+    CHECK_EQUAL(E_THR_NULL, threadRes);
 }
 
 TEST(Thread, AffinityRange)

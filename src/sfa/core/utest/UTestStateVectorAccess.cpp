@@ -116,5 +116,5 @@ TEST(StateVectorAccess, GetRegion)
     POINTERS_EQUAL(region, &gRegionFoo);
     CHECK_SUCCESS(sv.getRegion("bar", region));
     POINTERS_EQUAL(region, &gRegionBar);
-    CHECK_ERROR(E_KEY, sv.getRegion("baz", region));
+    CHECK_ERROR(E_SV_KEY, sv.getRegion("baz", region));
 }

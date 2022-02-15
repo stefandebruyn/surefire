@@ -5,93 +5,93 @@
 
 typedef I32 Result;
 
-#define SUCCESS (0)
-#define E_FILE (1)
-#define E_EMPTY (2)
-#define E_TYPE (3)
-#define E_NULLPTR (4)
-#define E_TOKENIZE (5)
-#define E_UNREACHABLE (6)
-#define E_PARSE (7)
-#define E_KEY (8)
-#define E_SIZE (9)
-#define E_STATE (10)
-#define E_ENUM (11)
-#define E_DUPLICATE (12)
-#define E_RANGE (13)
-#define E_RESERVED (14)
-#define E_UNINITIALIZED (15)
-#define E_TIME (16)
-#define E_TRANSITION (17)
-#define E_LAYOUT (18)
-#define E_REINIT (19)
+enum : Result
+{
+    SUCCESS = 0,
 
-/////////////////////////////// ConfigTokenizer ////////////////////////////////
+/////////////////////// Core Library Error Codes (1-255) ///////////////////////
 
-#define E_TOK_INVALID (32)
+    // Region
+    E_RGN_SIZE = 32,
 
-////////////////////////////// StateVectorParser ///////////////////////////////
+    // StateVector
+    E_SV_UNINIT = 64,
+    E_SV_EMPTY = 65,
+    E_SV_TYPE = 66,
+    E_SV_NULL = 67,
+    E_SV_KEY = 68,
+    E_SV_LAYOUT = 69,
 
-#define E_SVP_RGN_DUPE (64)
-#define E_SVP_RGN_NAME (65)
-#define E_SVP_RGN_EMPTY (66)
-#define E_SVP_NO_RGNS (67)
-#define E_SVP_ELEM_DUPE (68)
-#define E_SVP_ELEM_NAME (69)
-#define E_SVP_ELEM_TYPE (70)
-#define E_SVP_SEC_NAME (71)
-#define E_SVP_TOK (72)
-#define E_SVP_RGN_TOK (73)
+    // Task
+    E_TSK_MODE = 128,
+    E_TSK_UNINIT = 129,
 
-/////////////////////////////////// Socket /////////////////////////////////////
+///////////////////// Support Library Error Codes (256-511) ////////////////////
 
-#define E_SOK_PROTO (256)
-#define E_SOK_OPEN (257)
-#define E_SOK_BIND (258)
-#define E_SOK_SEND (259)
-#define E_SOK_RECV (260)
-#define E_SOK_SEL (261)
-#define E_SOK_CLOSE (262)
-#define E_SOK_NULL (263)
-#define E_SOK_SEL_NONE (264)
-#define E_SOK_UNINIT (265)
-#define E_SOK_REINIT (266)
+    // ConfigTokenizer
+    E_TOK_INVALID = 256,
+    E_TOK_FILE = 257,
 
-/////////////////////////////////// Thread /////////////////////////////////////
+    // StateVectorParser
+    E_SVP_RGN_DUPE = 288,
+    E_SVP_RGN_NAME = 289,
+    E_SVP_RGN_EMPTY = 290,
+    E_SVP_NO_RGNS = 291,
+    E_SVP_ELEM_DUPE = 292,
+    E_SVP_ELEM_NAME = 293,
+    E_SVP_ELEM_TYPE = 294,
+    E_SVP_SEC_NAME = 295,
+    E_SVP_TOK = 296,
+    E_SVP_RGN_TOK = 297,
+    E_SVP_FILE = 298,
 
-#define E_THR_UNINIT (288)
-#define E_THR_POL (289)
-#define E_THR_PRI (290)
-#define E_THR_CREATE (291)
-#define E_THR_AFF (292)
-#define E_THR_EXIST (293)
-#define E_THR_AWAIT (294)
-#define E_THR_RANGE (295)
-#define E_THR_NULL (296)
-#define E_THR_REINIT (297)
-#define E_THR_INIT_ATTR (298)
-#define E_THR_DTRY_ATTR (299)
-#define E_THR_INH_PRI (300)
+////////////////////////// PSL Error Codes (512-767) ///////////////////////////
 
-////////////////////////////////// Spinlock ////////////////////////////////////
+    // Socket
+    E_SOK_PROTO = 512,
+    E_SOK_OPEN = 513,
+    E_SOK_BIND = 514,
+    E_SOK_SEND = 515,
+    E_SOK_RECV = 516,
+    E_SOK_SEL = 517,
+    E_SOK_CLOSE = 518,
+    E_SOK_NULL = 519,
+    E_SOK_SEL_NONE = 520,
+    E_SOK_UNINIT = 521,
+    E_SOK_REINIT = 522,
 
-#define E_SLK_CREATE (1056)
-#define E_SLK_UNINIT (1057)
-#define E_SLK_ACQ (1058)
-#define E_SLK_REL (1059)
+    // Thread
+    E_THR_UNINIT = 544,
+    E_THR_POL = 545,
+    E_THR_PRI = 546,
+    E_THR_CREATE = 547,
+    E_THR_AFF = 548,
+    E_THR_EXIST = 549,
+    E_THR_AWAIT = 550,
+    E_THR_RANGE = 551,
+    E_THR_NULL = 552,
+    E_THR_REINIT = 553,
+    E_THR_INIT_ATTR = 554,
+    E_THR_DTRY_ATTR = 555,
+    E_THR_INH_PRI = 556,
 
-////////////////////////////////// Digital IO //////////////////////////////////
+    // Spinlock
+    E_SLK_CREATE = 576,
+    E_SLK_UNINIT = 577,
+    E_SLK_ACQ = 578,
+    E_SLK_REL = 579,
 
-#define E_DIO_UNINIT (1088)
-#define E_DIO_REINIT (1089)
-#define E_DIO_PIN (1090)
-#define E_DIO_MODE (1091)
+    // DigitalIo
+    E_DIO_UNINIT = 608,
+    E_DIO_REINIT = 609,
+    E_DIO_PIN = 610,
+    E_DIO_MODE = 611,
 
-////////////////////////////////// Analog IO ///////////////////////////////////
-
-#define E_AIO_UNINIT (1120)
-#define E_AIO_REINIT (1121)
-#define E_AIO_PIN (1122)
-#define E_AIO_RANGE (1123)
+    // AnalogIo
+    E_AIO_UNINIT = 640,
+    E_AIO_REINIT = 641,
+    E_AIO_PIN = 642,
+    E_AIO_RANGE = 643,
+};
 
 #endif

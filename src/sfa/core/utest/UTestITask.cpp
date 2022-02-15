@@ -3,7 +3,7 @@
 #include "sfa/core/ITask.hpp"
 #include "sfa/utest/UTest.hpp"
 
-/***************************** STATE VECTOR CONFIG ****************************/
+/////////////////////////////////// Globals ////////////////////////////////////
 
 #pragma pack(push, 1)
 static struct
@@ -31,7 +31,7 @@ static StateVector::Config gSvConfig = {gElemConfigs, nullptr};
 static StateVector::ElementConfig gEmptyElemConfigs[] = {{}};
 static StateVector::Config gEmptySvConfig = {gEmptyElemConfigs, nullptr};
 
-/********************************* TEST TASK **********************************/
+////////////////////////////////// Test Task ///////////////////////////////////
 
 class TestTask final : public ITask
 {
@@ -62,7 +62,7 @@ private:
     {
         if (mBar->read() == false)
         {
-            return E_STATE;
+            return -1;
         }
 
         mFoo->write(mFoo->read() - 1);
@@ -73,7 +73,7 @@ private:
     {
         if (mBar->read() == false)
         {
-            return E_ENUM;
+            return -2;
         }
 
         mFoo->write(mFoo->read() + 1);
@@ -81,7 +81,7 @@ private:
     }
 };
 
-/*********************************** TESTS ************************************/
+//////////////////////////////////// Tests /////////////////////////////////////
 
 TEST_GROUP(ITask)
 {
@@ -99,7 +99,7 @@ TEST(ITask, Uninitialized)
     TestTask task(sv, &gElemMode);
 
     // Stepping uninitialized task fails. `foo` element is unchanged.
-    CHECK_ERROR(E_UNINITIALIZED, task.step());
+    CHECK_ERROR(E_TSK_UNINIT, task.step());
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
@@ -110,8 +110,8 @@ TEST(ITask, InitializeFail)
     TestTask task(sv, nullptr);
 
     // Task initialization fails. Task cannot step. `foo` element is unchanged.
-    CHECK_ERROR(E_KEY, task.initialize());
-    CHECK_ERROR(E_UNINITIALIZED, task.step());
+    CHECK_ERROR(E_SV_KEY, task.initialize());
+    CHECK_ERROR(E_TSK_UNINIT, task.step());
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
@@ -124,7 +124,7 @@ TEST(ITask, InvalidMode)
 
     // Stepping in invalid mode fails. `foo` element is unchanged.
     gElemMode.write(3);
-    CHECK_ERROR(E_ENUM, task.step());
+    CHECK_ERROR(E_TSK_MODE, task.step());
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
@@ -175,9 +175,9 @@ TEST(ITask, StepSafeSurfaceError)
     TestTask task(sv, &gElemMode);
     CHECK_SUCCESS(task.initialize());
 
-    // With element `bar` false, stepping in safe mode returns `E_STATE`.
+    // With element `bar` false, stepping in safe mode returns -1.
     gElemMode.write(MODE_SAFE);
-    CHECK_ERROR(E_STATE, task.step());
+    CHECK_ERROR(-1, task.step());
 }
 
 TEST(ITask, StepEnableSurfaceError)
@@ -187,7 +187,7 @@ TEST(ITask, StepEnableSurfaceError)
     TestTask task(sv, &gElemMode);
     CHECK_SUCCESS(task.initialize());
 
-    // With element `bar` false, stepping in enabled mode returns `E_ENUM`.
+    // With element `bar` false, stepping in enabled mode returns -2.
     gElemMode.write(MODE_ENABLE);
-    CHECK_ERROR(E_ENUM, task.step());
+    CHECK_ERROR(-2, task.step());
 }
