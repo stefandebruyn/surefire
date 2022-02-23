@@ -9,7 +9,7 @@ enum : Result
 {
     SUCCESS = 0,
 
-/////////////////////// Core Library Error Codes (1-255) ///////////////////////
+/////////////////////////// Core Library Error Codes ///////////////////////////
 
     // Region
     E_RGN_SIZE = 32,
@@ -26,7 +26,13 @@ enum : Result
     E_TSK_MODE = 128,
     E_TSK_UNINIT = 129,
 
-///////////////////// Support Library Error Codes (256-511) ////////////////////
+    // StateMachine
+    E_SM_UNINIT = 160,
+    E_SM_REINIT = 161,
+    E_SM_STATE = 162,
+    E_SM_NULL = 163,
+
+////////////////////////// Support Library Error Codes /////////////////////////
 
     // ConfigTokenizer
     E_TOK_INVALID = 256,
@@ -45,7 +51,7 @@ enum : Result
     E_SVP_RGN_TOK = 297,
     E_SVP_FILE = 298,
 
-////////////////////////// PSL Error Codes (512-767) ///////////////////////////
+/////////////////////////////// PSL Error Codes ////////////////////////////////
 
     // Socket
     E_SOK_PROTO = 512,

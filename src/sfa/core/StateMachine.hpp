@@ -5,6 +5,7 @@
 #include "sfa/core/Result.hpp"
 #include "sfa/core/Expression.hpp"
 #include "sfa/core/Element.hpp"
+#include "sfa/core/Action.hpp"
 
 class StateMachine final
 {
@@ -17,6 +18,8 @@ public:
         Block* elseBlock;
         IAction* action;
         Block* next;
+
+        U32 execute();
     };
 
     struct StateConfig final
@@ -29,13 +32,27 @@ public:
 
     struct Config final
     {
-        Element<U32>& elemState;
-        Element<U64>& elemStateTime;
-        Element<U64>& elemGlobalTime;
+        Element<U32>* elemState;
+        Element<U64>* elemStateTime;
+        Element<U64>* elemGlobalTime;
         StateConfig* states;
     };
 
+    static Result create(const Config kConfig, StateMachine& kSm);
+
+    StateMachine();
+
+    Result step();
+
 private:
+
+    static constexpr U64 NO_TIME = 0xFFFFFFFFFFFFFFFF;
+
+    Config mConfig;
+
+    StateConfig* mStateCur;
+
+    U64 mTimeStateStart;
 };
 
 #endif

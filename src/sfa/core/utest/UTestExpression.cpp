@@ -1,15 +1,6 @@
 #include "sfa/core/Expression.hpp"
 #include "sfa/utest/UTest.hpp"
 
-template<typename T, typename TLhs = T, typename TRhs = TLhs>
-struct Multiply final
-{
-    T operator() (const TLhs kLhs, const TRhs kRhs) const
-    {
-        return (kLhs * kRhs);
-    }
-};
-
 TEST_GROUP(Expression)
 {
 };
@@ -24,6 +15,13 @@ TEST(Expression, BinOpExpr)
 {
     const ConstExpr<I32> five(5);
     const ConstExpr<I32> ten(10);
-    const BinOpExpr<Multiply<I32>, I32> fiveTimesTen(five, ten);
+    const BinOpExpr<I32> fiveTimesTen(multiply<I32>, five, ten);
     CHECK_EQUAL(50, fiveTimesTen.evaluate());
+}
+
+TEST(Expression, UnaryOpExpr)
+{
+    const ConstExpr<bool> t(true);
+    UnaryOpExpr<bool> notT(bang<bool>, t);
+    CHECK_EQUAL(false, notT.evaluate());
 }
