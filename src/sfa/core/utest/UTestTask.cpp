@@ -1,6 +1,6 @@
 #include <cstring>
 
-#include "sfa/core/ITask.hpp"
+#include "sfa/core/Task.hpp"
 #include "sfa/utest/UTest.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
