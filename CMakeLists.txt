@@ -34,6 +34,11 @@ else()
     message(FATAL_ERROR "unsupported target platform")
 endif()
 
+# Enable framework asserts if specified.
+if(${SFA_ENABLE_ASSERTS})
+    add_compile_options(-DSFA_ENABLE_ASSERTS)
+endif()
+
 # Requires that the CppUTest submodule be initialized. If this errors out, run
 # `git submodule update --init --recursive`.
 add_subdirectory(cpputest)

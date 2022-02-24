@@ -11,7 +11,7 @@ clean:
 utest:
 	rm -rf build
 	mkdir build
-	cd build && cmake .. && make utest && sudo ./utest -v
+	cd build && cmake .. -DSFA_ENABLE_ASSERTS=true && make utest && sudo ./utest -v
 
 sfa:
 	rm -rf build
