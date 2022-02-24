@@ -30,26 +30,28 @@ TEST(StateMachineBlock, BlockExecuteAction)
 
 TEST(StateMachineBlock, BlockExecuteLink)
 {
-    // Expression `foo + 1`
-    I32 foo = 0;
+    // Action `foo = foo + 1`
+    I32 foo = 1;
     Element<I32> elemFoo(foo);
     ElementExpr<I32> exprFoo(elemFoo);
     ConstExpr<I32> expr1(1);
     BinOpExpr<I32> fooPlus1(add<I32>, exprFoo, expr1);
-
-    // Action `foo = foo + 1`
     AssignmentAction<I32> fooGetsFooPlus1(elemFoo, fooPlus1);
 
+    // Action `foo = -foo`
+    UnaryOpExpr<I32> negateFoo(negate<I32>, exprFoo);
+    AssignmentAction<I32> fooGetsBangFoo(elemFoo, negateFoo);
+
     // foo = foo + 1
-    // foo = foo + 1
+    // foo = -foo
     StateMachine::Block block1 =
-        {nullptr, nullptr, nullptr, &fooGetsFooPlus1, nullptr};
+        {nullptr, nullptr, nullptr, &fooGetsBangFoo, nullptr};
     StateMachine::Block block0 =
         {nullptr, nullptr, nullptr, &fooGetsFooPlus1, &block1};
 
     // Execute block. No transition, actions execute.
     CHECK_EQUAL(0, block0.execute());
-    CHECK_EQUAL(2, elemFoo.read());
+    CHECK_EQUAL(-2, elemFoo.read());
 }
 
 TEST(StateMachineBlock, BlockGuard)
