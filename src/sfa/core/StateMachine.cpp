@@ -1,4 +1,5 @@
 #include "sfa/core/StateMachine.hpp"
+#include "sfa/pal/Clock.hpp"
 
 U32 StateMachine::Block::execute()
 {
@@ -86,7 +87,7 @@ Result StateMachine::create(const Config kConfig, StateMachine& kSm)
 StateMachine::StateMachine() :
     mConfig({nullptr, nullptr, nullptr, nullptr}),
     mStateCur(nullptr),
-    mTimeStateStart(NO_TIME)
+    mTimeStateStart(Clock::NO_TIME)
 {
 }
 
@@ -100,7 +101,7 @@ Result StateMachine::step()
 
     // Compute time elapsed in current state.
     const U64 tCur = mConfig.elemGlobalTime->read();
-    if (mTimeStateStart == NO_TIME)
+    if (mTimeStateStart == Clock::NO_TIME)
     {
         mConfig.elemState->write(mStateCur->id);
         mTimeStateStart = tCur;
@@ -139,7 +140,7 @@ Result StateMachine::step()
             if (state->id == destState)
             {
                 mStateCur = state;
-                mTimeStateStart = NO_TIME;
+                mTimeStateStart = Clock::NO_TIME;
                 break;
             }
         }

@@ -46,8 +46,6 @@ public:
 
 private:
 
-    static constexpr U64 NO_TIME = 0xFFFFFFFFFFFFFFFF;
-
     Config mConfig;
 
     StateConfig* mStateCur;
