@@ -49,7 +49,7 @@ TEST(StateMachineBlock, BlockExecuteLink)
     StateMachine::Block block0 =
         {nullptr, nullptr, nullptr, &fooGetsFooPlus1, &block1};
 
-    // Execute block. No transition, actions execute.
+    // Execute block. No transition, actions execute in the expected order.
     CHECK_EQUAL(0, block0.execute());
     CHECK_EQUAL(-2, elemFoo.read());
 }

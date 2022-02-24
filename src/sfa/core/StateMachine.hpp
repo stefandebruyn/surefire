@@ -11,6 +11,8 @@ class StateMachine final
 {
 public:
 
+    static constexpr U32 NO_STATE = 0;
+
     struct Block final
     {
         IExpr<bool>* guard;
@@ -51,6 +53,8 @@ private:
     StateConfig* mStateCur;
 
     U64 mTimeStateStart;
+
+    U64 mTimeLastStep;
 };
 
 #endif

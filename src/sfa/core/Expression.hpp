@@ -11,6 +11,15 @@ class IExpr
 public:
 
     virtual T evaluate() const = 0;
+
+    IExpr() = default;
+
+    virtual ~IExpr() = default;
+
+    IExpr(const IExpr<T>&) = delete;
+    IExpr(IExpr<T>&&) = delete;
+    IExpr<T>& operator=(const IExpr<T>&) = delete;
+    IExpr<T>& operator=(IExpr<T>&&) = delete;
 };
 
 template<typename T>
@@ -133,6 +142,12 @@ template<typename TLhs, typename TRhs = TLhs>
 bool equals(const TLhs kLhs, const TRhs kRhs)
 {
     return (kLhs == kRhs);
+}
+
+template<typename TLhs, typename TRhs = TLhs>
+bool notEquals(const TLhs kLhs, const TRhs kRhs)
+{
+    return (kLhs != kRhs);
 }
 
 /////////////////////////////// Unary Operators ////////////////////////////////

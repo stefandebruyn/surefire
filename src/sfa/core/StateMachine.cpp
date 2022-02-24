@@ -1,3 +1,4 @@
+#include "sfa/core/Assert.hpp"
 #include "sfa/core/StateMachine.hpp"
 #include "sfa/pal/Clock.hpp"
 
@@ -47,7 +48,7 @@ U32 StateMachine::Block::execute()
         return next->execute();
     }
 
-    return 0;
+    return NO_STATE;
 }
 
 Result StateMachine::create(const Config kConfig, StateMachine& kSm)
@@ -66,7 +67,7 @@ Result StateMachine::create(const Config kConfig, StateMachine& kSm)
     }
 
     const U32 stateInit = kConfig.elemState->read();
-    for (StateConfig* state = kConfig.states; state != nullptr; ++state)
+    for (StateConfig* state = kConfig.states; state->id != NO_STATE; ++state)
     {
         if (state->id == stateInit)
         {
@@ -87,7 +88,8 @@ Result StateMachine::create(const Config kConfig, StateMachine& kSm)
 StateMachine::StateMachine() :
     mConfig({nullptr, nullptr, nullptr, nullptr}),
     mStateCur(nullptr),
-    mTimeStateStart(Clock::NO_TIME)
+    mTimeStateStart(Clock::NO_TIME),
+    mTimeLastStep(Clock::NO_TIME)
 {
 }
 
@@ -99,8 +101,22 @@ Result StateMachine::step()
         return E_SM_UNINIT;
     }
 
-    // Compute time elapsed in current state.
+    // Assert that all the pointers dereferenced in this method are non-null.
+    // This should have been verified in the factory method.
+    SFA_ASSERT(mConfig.elemState != nullptr);
+    SFA_ASSERT(mConfig.elemStateTime != nullptr);
+    SFA_ASSERT(mConfig.elemGlobalTime != nullptr);
+    SFA_ASSERT(mConfig.states != nullptr);
+
+    // Check that the global time is valid and monotonic.
     const U64 tCur = mConfig.elemGlobalTime->read();
+    if ((tCur == Clock::NO_TIME)
+        || ((mTimeLastStep != Clock::NO_TIME) && (tCur <= mTimeLastStep)))
+    {
+        return E_SM_TIME;
+    }
+
+    // Compute time elapsed in current state.
     if (mTimeStateStart == Clock::NO_TIME)
     {
         mConfig.elemState->write(mStateCur->id);
@@ -110,7 +126,7 @@ Result StateMachine::step()
     mConfig.elemStateTime->write(tStateElapsed);
 
     // Execute current state entry label.
-    U32 destState = 0;
+    U32 destState = NO_STATE;
     if (tStateElapsed == 0)
     {
         if (mStateCur->entry != nullptr)
@@ -120,13 +136,13 @@ Result StateMachine::step()
     }
 
     // Execute current state step label if entry label did not transition.
-    if ((destState != 0) && (mStateCur->step != nullptr))
+    if ((destState == NO_STATE) && (mStateCur->step != nullptr))
     {
         destState = mStateCur->step->execute();
     }
 
-    // If transitioning, do end-of-state logic.
-    if (destState != 0)
+    // If transitioning, do end of state logic.
+    if (destState != NO_STATE)
     {
         // Execute current state exit label.
         if (mStateCur->exit != nullptr)
@@ -135,7 +151,8 @@ Result StateMachine::step()
         }
 
         // Transition to new state.
-        for (StateConfig* state = mConfig.states; state != nullptr; ++state)
+        for (StateConfig* state = mConfig.states; state->id != NO_STATE;
+             ++state)
         {
             if (state->id == destState)
             {
@@ -144,7 +161,14 @@ Result StateMachine::step()
                 break;
             }
         }
+
+        // Assert that the destination state was found. This should have been
+        // verified in the factory method.
+        SFA_ASSERT(mStateCur->id == destState);
     }
+
+    // Update last step time.
+    mTimeLastStep = tCur;
 
     return SUCCESS;
 }

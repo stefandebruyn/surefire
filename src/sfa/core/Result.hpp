@@ -31,6 +31,7 @@ enum : Result
     E_SM_REINIT = 161,
     E_SM_STATE = 162,
     E_SM_NULL = 163,
+    E_SM_TIME = 164,
 
 ////////////////////////// Support Library Error Codes /////////////////////////
 
