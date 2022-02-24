@@ -51,13 +51,104 @@ U32 StateMachine::Block::execute()
     return NO_STATE;
 }
 
+static Result checkBlockTransitions(const StateMachine::Config kConfig,
+                                    const StateMachine::Block* const kBlock,
+                                    const bool kExit)
+{
+    // Base case: block is null.
+    if (kBlock == nullptr)
+    {
+        return SUCCESS;
+    }
+
+    if ((kBlock->action != nullptr)
+        && (kBlock->action->destState != StateMachine::NO_STATE))
+    {
+        // Block contains a transition action.
+
+        if (kExit == true)
+        {
+            // Transitioning in an exit label is illegal.
+            return E_SM_EXIT;
+        }
+
+        // Find config of transition destination state.
+        const StateMachine::StateConfig* state = kConfig.states;
+        for (; state->id != StateMachine::NO_STATE; ++state)
+        {
+            if (state->id == kBlock->action->destState)
+            {
+                break;
+            }
+        }
+
+        if (state->id == StateMachine::NO_STATE)
+        {
+            // Destination state not found.
+            return E_SM_TRANS;
+        }
+    }
+
+    // Recurse into linked blocks.
+    Result res = checkBlockTransitions(kConfig, kBlock->ifBlock, kExit);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+    res = checkBlockTransitions(kConfig, kBlock->elseBlock, kExit);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+    res = checkBlockTransitions(kConfig, kBlock->next, kExit);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    return SUCCESS;
+}
+
+static Result checkTransitions(const StateMachine::Config kConfig)
+{
+    for (StateMachine::StateConfig* state = kConfig.states;
+         state->id != StateMachine::NO_STATE;
+         ++state)
+    {
+        // Check transitions in entry label.
+        Result res = checkBlockTransitions(kConfig, state->entry, false);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+
+        // Check transitions in step label.
+        res = checkBlockTransitions(kConfig, state->step, false);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+
+        // Check transitions in exit label.
+        res = checkBlockTransitions(kConfig, state->exit, true);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+    }
+
+    return SUCCESS;
+}
+
 Result StateMachine::create(const Config kConfig, StateMachine& kSm)
 {
+    // Check that state machine is not already initialized.
     if (kSm.mStateCur != nullptr)
     {
         return E_SM_REINIT;
     }
 
+    // Check that none of the pointers are null.
     if ((kConfig.elemState == nullptr)
         || (kConfig.elemStateTime == nullptr)
         || (kConfig.elemGlobalTime == nullptr)
@@ -66,22 +157,46 @@ Result StateMachine::create(const Config kConfig, StateMachine& kSm)
         return E_SM_NULL;
     }
 
-    const U32 stateInit = kConfig.elemState->read();
+    // Check that config contains at least 1 state. This also serves to iterate
+    // over the full state config array and partially verify it is well-formed.
+    U32 numStates = 0;
     for (StateConfig* state = kConfig.states; state->id != NO_STATE; ++state)
     {
-        if (state->id == stateInit)
+        ++numStates;
+    }
+    if (numStates == 0)
+    {
+        return E_SM_EMPTY;
+    }
+
+    // Find initial state based on state element.
+    const U32 stateInit = kConfig.elemState->read();
+    StateConfig* stateInitConfig = kConfig.states;
+    for (; stateInitConfig->id != NO_STATE; ++stateInitConfig)
+    {
+        if (stateInitConfig->id == stateInit)
         {
-            kSm.mStateCur = state;
             break;
         }
     }
-
-    if (kSm.mStateCur == nullptr)
+    if (stateInitConfig->id == NO_STATE)
     {
+        // Initial state not found.
         return E_SM_STATE;
     }
 
+    // Check that all transitions are valid.
+    const Result res = checkTransitions(kConfig);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    // Config is valid- assign state machine members so that the interface is
+    // usable.
     kSm.mConfig = kConfig;
+    kSm.mStateCur = stateInitConfig;
+
     return SUCCESS;
 }
 

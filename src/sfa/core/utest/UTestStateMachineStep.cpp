@@ -58,7 +58,7 @@ static TransitionAction gTransToState2(2);
 // foo = 0
 static AssignmentAction<I32> gFooGets0(gElemFoo, g0);
 
-// State 1
+// State 1 blocks
 static StateMachine::Block gState1EntryBlock =
     {nullptr, nullptr, nullptr, &gFooGets100, nullptr};
 
@@ -73,13 +73,6 @@ static StateMachine::Block gState1StepBlock =
 
 static StateMachine::Block gState1ExitBlock =
     {nullptr, nullptr, nullptr, &gFooGets0, nullptr};
-
-static StateMachine::StateConfig gState1Config =
-    {1, &gState1EntryBlock, &gState1StepBlock, &gState1ExitBlock};
-
-// State 2
-static StateMachine::StateConfig gState2Config =
-    {2, nullptr, nullptr, nullptr};
 
 // State machine config
 static StateMachine::StateConfig gStates[] =

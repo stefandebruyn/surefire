@@ -32,6 +32,9 @@ enum : Result
     E_SM_STATE = 162,
     E_SM_NULL = 163,
     E_SM_TIME = 164,
+    E_SM_TRANS = 165,
+    E_SM_EXIT = 166,
+    E_SM_EMPTY = 167,
 
 ////////////////////////// Support Library Error Codes /////////////////////////
 
