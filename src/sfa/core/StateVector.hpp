@@ -45,8 +45,6 @@ private:
 
     Config mConfig;
 
-    StateVector(const Config kConfig, Result& kRes);
-
     StateVector& operator=(StateVector&&) = default;
 
     Result getElementConfig(const char* const kName,

@@ -2,60 +2,7 @@
 #include "sfa/core/StateMachine.hpp"
 #include "sfa/pal/Clock.hpp"
 
-U32 StateMachine::Block::execute()
-{
-    // Assert that guard blocks don't have actions.
-    SFA_ASSERT(((guard == nullptr) && (action == nullptr))
-               || ((guard == nullptr) ^ (action == nullptr)));
-    // Assert that an else block requires an if block.
-    SFA_ASSERT((elseBlock == nullptr) || (ifBlock != nullptr));
-
-    // Evaluate guard.
-    if (guard != nullptr)
-    {
-        if (guard->evaluate() == true)
-        {
-            // Take if branch.
-            if (ifBlock != nullptr)
-            {
-                const U32 ret = ifBlock->execute();
-                if (ret != 0)
-                {
-                    return ret;
-                }
-            }
-        }
-        else
-        {
-            // Take else branch.
-            if (elseBlock != nullptr)
-            {
-                const U32 ret = elseBlock->execute();
-                if (ret != 0)
-                {
-                    return ret;
-                }
-            }
-        }
-    }
-    // Execute action for this block.
-    else if (action != nullptr)
-    {
-        const bool trans = action->execute();
-        if (trans == true)
-        {
-            return action->destState;
-        }
-    }
-
-    // Move to next block.
-    if (next != nullptr)
-    {
-        return next->execute();
-    }
-
-    return NO_STATE;
-}
+/////////////////////////////////// Private ////////////////////////////////////
 
 static Result checkBlockTransitions(const StateMachine::Config kConfig,
                                     const StateMachine::Block* const kBlock,
@@ -144,6 +91,63 @@ static Result checkTransitions(const StateMachine::Config kConfig)
     }
 
     return SUCCESS;
+}
+
+/////////////////////////////////// Public /////////////////////////////////////
+
+U32 StateMachine::Block::execute()
+{
+    // Assert that guard blocks don't have actions.
+    SFA_ASSERT(((guard == nullptr) && (action == nullptr))
+               || ((guard == nullptr) ^ (action == nullptr)));
+    // Assert that an else block requires an if block.
+    SFA_ASSERT((elseBlock == nullptr) || (ifBlock != nullptr));
+
+    // Evaluate guard.
+    if (guard != nullptr)
+    {
+        if (guard->evaluate() == true)
+        {
+            // Take if branch.
+            if (ifBlock != nullptr)
+            {
+                const U32 ret = ifBlock->execute();
+                if (ret != 0)
+                {
+                    return ret;
+                }
+            }
+        }
+        else
+        {
+            // Take else branch.
+            if (elseBlock != nullptr)
+            {
+                const U32 ret = elseBlock->execute();
+                if (ret != 0)
+                {
+                    return ret;
+                }
+            }
+        }
+    }
+    // Execute action for this block.
+    else if (action != nullptr)
+    {
+        const bool trans = action->execute();
+        if (trans == true)
+        {
+            return action->destState;
+        }
+    }
+
+    // Move to next block.
+    if (next != nullptr)
+    {
+        return next->execute();
+    }
+
+    return NO_STATE;
 }
 
 Result StateMachine::create(const Config kConfig, StateMachine& kSm)

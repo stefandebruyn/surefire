@@ -81,6 +81,19 @@ TEST(StateVectorCreate, Success)
     CHECK_SUCCESS(StateVector::create(gConfig, sv));
 }
 
+TEST(StateVectorCreate, Uninitialized)
+{
+    StateVector sv;
+    checkStateVectorUninitialized(sv);
+}
+
+TEST(StateVectorCreate, ErrorReinitialize)
+{
+    StateVector sv;
+    CHECK_SUCCESS(StateVector::create(gConfig, sv));
+    CHECK_ERROR(E_SV_REINIT, StateVector::create(gConfig, sv));
+}
+
 TEST(StateVectorCreate, ErrorNullElementArray)
 {
     // Replace element array with nullptr.

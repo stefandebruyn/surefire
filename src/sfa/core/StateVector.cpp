@@ -3,9 +3,77 @@
 
 Result StateVector::create(const Config kConfig, StateVector& kSv)
 {
-    Result res = -1;
-    kSv = StateVector(kConfig, res);
-    return res;
+    // Check that state vector is not already initialized.
+    if (kSv.mConfig.elems != nullptr)
+    {
+        return E_SV_REINIT;
+    }
+
+    // Check that elements array is non-null.
+    if (kConfig.elems == nullptr)
+    {
+        return E_SV_NULL;
+    }
+
+    // Check that each element config element pointer is non-null.
+    for (U32 i = 0; kConfig.elems[i].name != nullptr; ++i)
+    {
+        if (kConfig.elems[i].elem == nullptr)
+        {
+            return E_SV_NULL;
+        }
+    }
+
+    if (kConfig.regions != nullptr)
+    {
+        // Check that each region config region pointer is non-null.
+        for (U32 i = 0; kConfig.regions[i].name != nullptr; ++i)
+        {
+            if (kConfig.regions[i].region == nullptr)
+            {
+                return E_SV_NULL;
+            }
+        }
+
+        // Check that element memory exactly spans regions memory.
+        U32 elemIdx = 0;
+        for (U32 i = 0; kConfig.regions[i].name != nullptr; ++i)
+        {
+            const U32 regionSize = kConfig.regions[i].region->size();
+            const void* regionPtr = kConfig.regions[i].region->addr();
+            const char* bumpPtr = static_cast<const char*>(regionPtr);
+
+            // Advance through elements array until either the end of the array
+            // or the bump pointer passes the end of the current region.
+            while ((kConfig.elems[elemIdx].name != nullptr)
+                   && ((reinterpret_cast<U64>(bumpPtr)
+                        - reinterpret_cast<U64>(regionPtr)) < regionSize))
+            {
+                // Check that current element address is at the bump pointer.
+                if (bumpPtr != kConfig.elems[elemIdx].elem->addr())
+                {
+                    return E_SV_LAYOUT;
+                }
+
+                // Bump pointer by size of element.
+                bumpPtr += kConfig.elems[elemIdx].elem->size();
+                ++elemIdx;
+            }
+
+            // Check that bump pointer was bumped to exactly the end of the
+            // region.
+            if ((reinterpret_cast<U64>(bumpPtr)
+                 - reinterpret_cast<U64>(regionPtr)) != regionSize)
+            {
+                return E_SV_LAYOUT;
+            }
+        }
+    }
+
+    // If we got this far, the config is valid- set `mConfig` so that the state
+    // vector is usable.
+    kSv.mConfig = kConfig;
+    return SUCCESS;
 }
 
 StateVector::StateVector() : mConfig({nullptr, nullptr})
@@ -110,81 +178,6 @@ Result StateVector::getRegion(const char* const kName, Region*& kRegion)
 
     kRegion = regionConfig->region;
     return SUCCESS;
-}
-
-StateVector::StateVector(const Config kConfig, Result& kRes) : StateVector()
-{
-    kRes = SUCCESS;
-
-    // Check that elements array is non-null.
-    if (kConfig.elems == nullptr)
-    {
-        kRes = E_SV_NULL;
-        return;
-    }
-
-    // Check that each element config element pointer is non-null.
-    for (U32 i = 0; kConfig.elems[i].name != nullptr; ++i)
-    {
-        if (kConfig.elems[i].elem == nullptr)
-        {
-            kRes = E_SV_NULL;
-            return;
-        }
-    }
-
-    if (kConfig.regions != nullptr)
-    {
-        // Check that each region config region pointer is non-null.
-        for (U32 i = 0; kConfig.regions[i].name != nullptr; ++i)
-        {
-            if (kConfig.regions[i].region == nullptr)
-            {
-                kRes = E_SV_NULL;
-                return;
-            }
-        }
-
-        // Check that element memory exactly spans regions memory.
-        U32 elemIdx = 0;
-        for (U32 i = 0; kConfig.regions[i].name != nullptr; ++i)
-        {
-            const U32 regionSize = kConfig.regions[i].region->size();
-            const void* regionPtr = kConfig.regions[i].region->addr();
-            const char* bumpPtr = static_cast<const char*>(regionPtr);
-
-            // Advance through elements array until either the end of the array
-            // or the bump pointer passes the end of the current region.
-            while ((kConfig.elems[elemIdx].name != nullptr)
-                   && ((reinterpret_cast<U64>(bumpPtr)
-                        - reinterpret_cast<U64>(regionPtr)) < regionSize))
-            {
-                // Check that current element address is at the bump pointer.
-                if (bumpPtr != kConfig.elems[elemIdx].elem->addr())
-                {
-                    kRes = E_SV_LAYOUT;
-                    return;
-                }
-
-                // Bump pointer by size of element.
-                bumpPtr += kConfig.elems[elemIdx].elem->size();
-                ++elemIdx;
-            }
-
-            // Check that bump pointer was bumped to exactly the end of the
-            // region.
-            if ((reinterpret_cast<U64>(bumpPtr)
-                 - reinterpret_cast<U64>(regionPtr)) != regionSize)
-            {
-                kRes = E_SV_LAYOUT;
-                return;
-            }
-        }
-    }
-
-    // If we got this far, the config is valid- set `mConfig` so that the state
-    // vector is usable.
-    mConfig = kConfig;
 }
 
 Result StateVector::getElementConfig(const char* const kName,

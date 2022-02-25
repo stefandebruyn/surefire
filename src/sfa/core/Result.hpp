@@ -16,11 +16,12 @@ enum : Result
 
     // StateVector
     E_SV_UNINIT = 64,
-    E_SV_EMPTY = 65,
-    E_SV_TYPE = 66,
-    E_SV_NULL = 67,
-    E_SV_KEY = 68,
-    E_SV_LAYOUT = 69,
+    E_SV_REINIT = 65,
+    E_SV_EMPTY = 66,
+    E_SV_TYPE = 67,
+    E_SV_NULL = 68,
+    E_SV_KEY = 69,
+    E_SV_LAYOUT = 70,
 
     // Task
     E_TSK_MODE = 128,
