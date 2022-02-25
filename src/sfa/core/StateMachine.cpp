@@ -4,6 +4,12 @@
 
 U32 StateMachine::Block::execute()
 {
+    // Assert that guard blocks don't have actions.
+    SFA_ASSERT(((guard == nullptr) && (action == nullptr))
+               || ((guard == nullptr) ^ (action == nullptr)));
+    // Assert that an else block requires an if block.
+    SFA_ASSERT((elseBlock == nullptr) || (ifBlock != nullptr));
+
     // Evaluate guard.
     if (guard != nullptr)
     {
@@ -217,7 +223,6 @@ Result StateMachine::step()
     }
 
     // Assert that all the pointers dereferenced in this method are non-null.
-    // This should have been verified in the factory method.
     SFA_ASSERT(mConfig.elemState != nullptr);
     SFA_ASSERT(mConfig.elemStateTime != nullptr);
     SFA_ASSERT(mConfig.elemGlobalTime != nullptr);
@@ -277,8 +282,7 @@ Result StateMachine::step()
             }
         }
 
-        // Assert that the destination state was found. This should have been
-        // verified in the factory method.
+        // Assert that the destination state was found.
         SFA_ASSERT(mStateCur->id == destState);
     }
 
