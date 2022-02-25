@@ -19,7 +19,9 @@ bool baz
                 -> State2
             }
         }
+        ELSE: -> State2
     }
+    -> State2
 .EXIT
 
 [State2]
@@ -63,11 +65,23 @@ static StateMachine::Block gState1StepTransBlock =
 static StateMachine::Block gState1StepBazBlock =
     {&gExprBaz, &gState1StepTransBlock, nullptr, nullptr, nullptr};
 
+static StateMachine::Block gState1StepBarElseBlock =
+    {nullptr, nullptr, nullptr, &gTransToState2, nullptr};
+
 static StateMachine::Block gState1StepBarBlock =
-    {&gExprBar, &gState1StepBazBlock, nullptr, nullptr, nullptr};
+{
+    &gExprBar,
+    &gState1StepBazBlock,
+    &gState1StepBarElseBlock,
+    nullptr,
+    nullptr
+};
+
+static StateMachine::Block gState1StepNextBlock =
+    {nullptr, nullptr, nullptr, &gTransToState2, nullptr};
 
 static StateMachine::Block gState1StepBlock =
-    {&gExprFoo, &gState1StepBarBlock, nullptr, nullptr, nullptr};
+    {&gExprFoo, &gState1StepBarBlock, nullptr, nullptr, &gState1StepNextBlock};
 
 static StateMachine::Block gState1ExitBlock =
     {nullptr, nullptr, nullptr, nullptr, nullptr};
@@ -213,7 +227,7 @@ TEST(StateMachineCreate, ErrorInvalidTransitionInEntryLabel)
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }
 
-TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabel)
+TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelIfBlock)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -224,6 +238,38 @@ TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabel)
     gState1StepTransBlock.action = &badTrans;
     const Result res = StateMachine::create(gConfig, sm);
     gState1StepTransBlock.action = stash;
+
+    CHECK_ERROR(E_SM_TRANS, res);
+    CHECK_ERROR(E_SM_UNINIT, sm.step());
+}
+
+TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelElseBlock)
+{
+    StateMachine sm;
+    gElemState.write(1);
+
+    TransitionAction badTrans(3);
+
+    auto stash = gState1StepBarElseBlock.action;
+    gState1StepBarElseBlock.action = &badTrans;
+    const Result res = StateMachine::create(gConfig, sm);
+    gState1StepBarElseBlock.action = stash;
+
+    CHECK_ERROR(E_SM_TRANS, res);
+    CHECK_ERROR(E_SM_UNINIT, sm.step());
+}
+
+TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelNextBlock)
+{
+    StateMachine sm;
+    gElemState.write(1);
+
+    TransitionAction badTrans(3);
+
+    auto stash = gState1StepNextBlock.action;
+    gState1StepNextBlock.action = &badTrans;
+    const Result res = StateMachine::create(gConfig, sm);
+    gState1StepNextBlock.action = stash;
 
     CHECK_ERROR(E_SM_TRANS, res);
     CHECK_ERROR(E_SM_UNINIT, sm.step());
