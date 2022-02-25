@@ -14,8 +14,9 @@
 
 struct Token final
 {
-    enum Type : U32
+    enum Type : I32
     {
+        NONE = -1,
         SECTION = 0,
         LABEL = 1,
         IDENTIFIER = 2,
