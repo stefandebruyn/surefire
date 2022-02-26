@@ -56,6 +56,9 @@ enum : Result
     E_SVP_RGN_TOK = 297,
     E_SVP_FILE = 298,
 
+    // StateMachineParser
+    E_SMP_SEC = 320,
+
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 
     // Socket

@@ -121,13 +121,13 @@ const std::vector<std::pair<Token::Type, std::regex>> Token::regexes =
     {Token::SECTION, std::regex("\\s*(\\[[a-zA-Z0-9_/]+\\])\\s*")},
     {Token::LABEL, std::regex("\\s*([.][a-zA-Z][a-zA-Z0-9_\\[\\]-]+)\\s*")},
     {Token::CONSTANT, std::regex("\\s*(true|false|[0-9]*\\.?[0-9]+)\\s*")},
+    {Token::ANNOTATION, std::regex("\\s*(@[a-zA-Z][a-zA-Z0-9_=]*)\\s*")},
     {Token::OPERATOR, std::regex(
         "\\s*(==|!=|=|<=|<|>=|>|->|and|or|\\+|\\-|\\*|/)\\s*")},
     {Token::IDENTIFIER, std::regex("\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*")},
     {Token::COLON, std::regex("\\s*(:)\\s*")},
     {Token::LPAREN, std::regex("\\s*(\\()\\s*")},
     {Token::RPAREN, std::regex("\\s*(\\))\\s*")},
-    {Token::ANNOTATION, std::regex("\\s*(@[a-zA-Z][a-zA-Z0-9_]*)\\s*")},
     {Token::COMMENT, std::regex("\\s*(#.*)\\s*")},
     {Token::LBRACE, std::regex("\\s*(\\{)\\s*")},
     {Token::RBRACE, std::regex("\\s*(\\})\\s*")}

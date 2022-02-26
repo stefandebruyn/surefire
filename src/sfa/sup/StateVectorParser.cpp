@@ -2,6 +2,7 @@
 #include <cstring>
 #include <sstream>
 #include <algorithm>
+#include <regex>
 
 #include "sfa/sup/StateVectorParser.hpp"
 
@@ -626,7 +627,7 @@ Result StateVectorParser::parse(std::istream& kIs,
                                 const std::vector<std::string> kRegions)
 {
     std::vector<Token> toks;
-    Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
+    const Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
     if (res != SUCCESS)
     {
         if (kConfigErr != nullptr)

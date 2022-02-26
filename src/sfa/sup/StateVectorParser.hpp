@@ -4,7 +4,6 @@
 #include <string>
 #include <istream>
 #include <vector>
-#include <regex>
 #include <memory>
 #include <unordered_map>
 
