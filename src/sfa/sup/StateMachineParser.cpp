@@ -117,7 +117,6 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
                                              Parse& kParse,
                                              ConfigErrorInfo* kConfigErr)
 {
-
     // Check that a local section has not already been parsed.
     if (kParse.hasLocalSection == true)
     {

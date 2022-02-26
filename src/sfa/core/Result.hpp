@@ -66,7 +66,7 @@ enum : Result
     E_SMP_LOC_OP = 326,
     E_SMP_LOC_ANN = 327,
     E_SMP_LOC_VAL = 328,
-    E_SMP_RO_RED = 328,
+    E_SMP_RO_RED = 329,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 
