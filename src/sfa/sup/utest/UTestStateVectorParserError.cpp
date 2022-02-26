@@ -19,7 +19,7 @@ static void checkStateVectorParserError(
         StateVectorParser::parse(kSs, config, &err, kSelectRegions);
 
     // Got expected return code.
-    CHECK_EQUAL(kRes, res);
+    CHECK_ERROR(kRes, res);
 
     // Line and column numbers of offending token are correctly identified.
     CHECK_EQUAL(kLineNum, err.lineNum);
