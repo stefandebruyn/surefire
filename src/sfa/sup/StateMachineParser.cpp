@@ -1,4 +1,5 @@
 #include <regex>
+#include <iostream> // rm later
 
 #include "sfa/core/Assert.hpp"
 #include "sfa/sup/StateMachineParser.hpp"
@@ -552,7 +553,8 @@ StateMachineParser::LocalElementParse::LocalElementParse() : readOnly(false)
 {
 }
 
-StateMachineParser::Parse::Parse() : hasLocalSection(false)
+StateMachineParser::Parse::Parse() :
+    hasLocalSection(false), hasStateVectorSection(false)
 {
 }
 
