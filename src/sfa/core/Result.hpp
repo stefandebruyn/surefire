@@ -58,15 +58,19 @@ enum : Result
 
     // StateMachineParser
     E_SMP_SEC = 320,
-    E_SMP_MULT_LOC = 321,
-    E_SMP_LOC_NAME = 322,
-    E_SMP_LOC_TYPE = 323,
-    E_SMP_LOC_RSVD = 324,
-    E_SMP_LOC_DUPE = 325,
-    E_SMP_LOC_OP = 326,
-    E_SMP_LOC_ANN = 327,
-    E_SMP_LOC_VAL = 328,
-    E_SMP_RO_RED = 329,
+    E_SMP_ELEM_TYPE = 321,
+    E_SMP_ELEM_NAME = 322,
+    E_SMP_NAME_RSVD = 324,
+    E_SMP_NAME_DUPE = 325,
+    E_SMP_ANNOT = 325,
+    E_SMP_RO_MULT = 326,
+    E_SMP_AL_MULT = 327,
+    E_SMP_LOC_MULT = 328,
+    E_SMP_LOC_OP = 329,
+    E_SMP_LOC_VAL = 330,
+    E_SMP_SV_MULT = 331,
+    E_SMP_SV_NAME = 332,
+    E_SMP_SV_TYPE = 333,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 

@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "sfa/core/StateMachine.hpp"
+#include "sfa/core/StateVector.hpp"
 #include "sfa/sup/ConfigTokenizer.hpp"
 #include "sfa/sup/ConfigErrorInfo.hpp"
 #include "sfa/sup/TokenIterator.hpp"
@@ -72,6 +73,7 @@ namespace StateMachineParser
         std::vector<LocalElementParse> localElems;
         std::vector<StateParse> states;
         bool hasLocalSection;
+        bool hasStateVectorSection;
     };
 
     class Config final
@@ -80,14 +82,20 @@ namespace StateMachineParser
     };
 
     Result parse(std::istream& kIs,
+                 StateVector& kSv,
                  std::shared_ptr<Config>& kConfig,
                  ConfigErrorInfo* kConfigErr);
 
-    /// @note This function is public for testing purposes only. It should not
-    /// be called by the user.
+    /// @note PUBLIC FOR TESTING PURPOSES ONLY.
     Result parseLocalSection(TokenIterator& kIt,
                              Parse& kParse,
                              ConfigErrorInfo* kConfigErr);
+
+    /// @note PUBLIC FOR TESTING PURPOSES ONLY.
+    Result parseStateVectorSection(TokenIterator& kIt,
+                                   const StateVector& kSv,
+                                   Parse& kParse,
+                                   ConfigErrorInfo* kConfigErr);
 }
 
 #endif

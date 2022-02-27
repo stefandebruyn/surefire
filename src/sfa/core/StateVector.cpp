@@ -157,6 +157,20 @@ Result StateVector::getElement<bool>(const char* const kName,
     return this->getElementImpl<bool>(kName, kElem, ElementType::BOOL);
 }
 
+Result StateVector::getIElement(const char* const kName,
+                                const IElement*& kElem) const
+{
+    const ElementConfig* elemConfig = nullptr;
+    const Result res = this->getElementConfig(kName, elemConfig);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    kElem = elemConfig->elem;
+    return SUCCESS;
+}
+
 Result StateVector::getRegion(const char* const kName, Region*& kRegion)
 {
     if (mConfig.elems == nullptr)

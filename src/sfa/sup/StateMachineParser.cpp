@@ -15,6 +15,7 @@ namespace StateMachineParser
     const std::regex aliasRegex("@ALIAS=([a-zA-Z][a-zA-Z0-9_]*)");
 
     Result parseImpl(const std::vector<Token>& kToks,
+                     StateVector& kSv,
                      std::shared_ptr<Config>& kConfig,
                      ConfigErrorInfo* kConfigErr);
 
@@ -24,9 +25,11 @@ namespace StateMachineParser
 }
 
 Result StateMachineParser::parseImpl(const std::vector<Token>& kToks,
+                                     StateVector& kSv,
                                      std::shared_ptr<Config>& kConfig,
                                      ConfigErrorInfo* kConfigErr)
 {
+    (void) kSv;
     (void) kConfig; // rm later
     TokenIterator it(kToks.begin(), kToks.end());
     Parse parse;
@@ -127,7 +130,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
             kConfigErr->text = gErrText;
             kConfigErr->subtext = "more than one local section";
         }
-        return E_SMP_MULT_LOC;
+        return E_SMP_LOC_MULT;
     }
     kParse.hasLocalSection = true;
 
@@ -153,9 +156,10 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
                 kConfigErr->text = gErrText;
                 kConfigErr->subtext = "expected element type";
             }
-            return E_SMP_LOC_TYPE;
+            return E_SMP_ELEM_TYPE;
         }
-        else if (ConfigUtil::isElementType(kIt.str()) == false)
+        else if (ConfigUtil::typeInfoFromName.find(kIt.str())
+                 == ConfigUtil::typeInfoFromName.end())
         {
             // Element type is invalid.
             if (kConfigErr != nullptr)
@@ -165,7 +169,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
                 kConfigErr->text = gErrText;
                 kConfigErr->subtext = "unknown type `" + kIt.str() + "`";
             }
-            return E_SMP_LOC_TYPE;
+            return E_SMP_ELEM_TYPE;
         }
         elemParse.tokType = kIt.take();
 
@@ -183,7 +187,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
                 kConfigErr->text = gErrText;
                 kConfigErr->subtext = "expected element name after type";
             }
-            return E_SMP_LOC_NAME;
+            return E_SMP_ELEM_NAME;
         }
         else if (ConfigUtil::isReserved(kIt.str()) == true)
         {
@@ -195,7 +199,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
                 kConfigErr->text = gErrText;
                 kConfigErr->subtext = "`" + kIt.str() + "` is a reserved name";
             }
-            return E_SMP_LOC_RSVD;
+            return E_SMP_NAME_RSVD;
         }
         else if (isNameUnique(kIt.str(), kParse, tokErr) == false)
         {
@@ -210,7 +214,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
                    << " (previously used on line " << tokErr.lineNum << ")";
                 kConfigErr->subtext = ss.str();
             }
-            return E_SMP_LOC_DUPE;
+            return E_SMP_NAME_DUPE;
         }
         elemParse.tokName = kIt.take();
 
@@ -264,12 +268,13 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
         // Take annotations.
         while (kIt.type() == Token::ANNOTATION)
         {
-            std::smatch match;
             if (kIt.str() == "@READ_ONLY")
             {
+                // Read-only annotation.
+
+                // Check that element is not already marked read-only.
                 if (elemParse.readOnly == true)
                 {
-                    // Element was already marked read-only.
                     if (kConfigErr != nullptr)
                     {
                         kConfigErr->lineNum = kIt.tok().lineNum;
@@ -277,9 +282,9 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
                         kConfigErr->text = gErrText;
                         kConfigErr->subtext = "redundant read-only annotation";
                     }
-                    return E_SMP_RO_RED;
+                    return E_SMP_RO_MULT;
                 }
-                // Read-only annotation.
+
                 elemParse.readOnly = true;
                 kIt.take();
             }
@@ -293,12 +298,244 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
                     kConfigErr->text = gErrText;
                     kConfigErr->subtext = "unknown annotation";
                 }
-                return E_SMP_LOC_ANN;
+                return E_SMP_ANNOT;
             }
         }
 
         // Add element to parse.
         kParse.localElems.push_back(elemParse);
+    }
+
+    return SUCCESS;
+}
+
+Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
+                                                   const StateVector& kSv,
+                                                   Parse& kParse,
+                                                   ConfigErrorInfo* kConfigErr)
+{
+    // Check that a local section has not already been parsed.
+    if (kParse.hasStateVectorSection == true)
+    {
+        if (kConfigErr != nullptr)
+        {
+            kConfigErr->lineNum = kIt.tok().lineNum;
+            kConfigErr->colNum = kIt.tok().colNum;
+            kConfigErr->text = gErrText;
+            kConfigErr->subtext = "more than one state vector section";
+        }
+        return E_SMP_SV_MULT;
+    }
+    kParse.hasStateVectorSection = true;
+
+    // Assert that iterator is currently positioned at the state vector section.
+    SFA_ASSERT((kIt.type() == Token::SECTION)
+               && (kIt.str() == "[STATE_VECTOR]"));
+    // Take section token.
+    kIt.take();
+
+    // Loop until end of token stream or another section.
+    while ((kIt.eof() == false) && (kIt.type() != Token::SECTION))
+    {
+        kIt.eat();
+        StateVectorElementParse elemParse;
+
+        // Check that current token, which should be the element type, is an
+        // identifier.
+        if (kIt.type() != Token::IDENTIFIER)
+        {
+            if (kConfigErr != nullptr)
+            {
+                kConfigErr->lineNum = kIt.tok().lineNum;
+                kConfigErr->colNum = kIt.tok().colNum;
+                kConfigErr->text = gErrText;
+                kConfigErr->subtext = "expected element type";
+            }
+            return E_SMP_ELEM_TYPE;
+        }
+
+        // Check that element type is valid.
+        auto typeInfoIt = ConfigUtil::typeInfoFromName.find(kIt.str());
+        if (typeInfoIt == ConfigUtil::typeInfoFromName.end())
+        {
+            if (kConfigErr != nullptr)
+            {
+                kConfigErr->lineNum = kIt.tok().lineNum;
+                kConfigErr->colNum = kIt.tok().colNum;
+                kConfigErr->text = gErrText;
+                kConfigErr->subtext = "unknown type `" + kIt.str() + "`";
+            }
+            return E_SMP_ELEM_NAME;
+        }
+
+        // Take element type.
+        elemParse.tokType = kIt.take();
+
+        // Check that current token, which should be the element name, is an
+        // identifier.
+        if (kIt.type() != Token::IDENTIFIER)
+        {
+            if (kConfigErr != nullptr)
+            {
+                // Error message points to element type token since the iterator
+                // may have reached end of file.
+                kConfigErr->lineNum = elemParse.tokType.lineNum;
+                kConfigErr->colNum = elemParse.tokType.colNum;
+                kConfigErr->text = gErrText;
+                kConfigErr->subtext = "expected element name after type";
+            }
+            return E_SMP_ELEM_NAME;
+        }
+
+        // Check that element name is not reserved.
+        if (ConfigUtil::isReserved(kIt.str()) == true)
+        {
+            if (kConfigErr != nullptr)
+            {
+                kConfigErr->lineNum = kIt.tok().lineNum;
+                kConfigErr->colNum = kIt.tok().colNum;
+                kConfigErr->text = gErrText;
+                kConfigErr->subtext = "`" + kIt.str() + "` is a reserved name";
+            }
+            return E_SMP_NAME_RSVD;
+        }
+
+        // Check that element name is unique.
+        Token tokErr;
+        if (isNameUnique(kIt.str(), kParse, tokErr) == false)
+        {
+            if (kConfigErr != nullptr)
+            {
+                kConfigErr->lineNum = kIt.tok().lineNum;
+                kConfigErr->colNum = kIt.tok().colNum;
+                kConfigErr->text = gErrText;
+                std::stringstream ss;
+                ss << "reuse of name `" << kIt.str() << "`"
+                   << " (previously used on line " << tokErr.lineNum << ")";
+                kConfigErr->subtext = ss.str();
+            }
+            return E_SMP_NAME_DUPE;
+        }
+
+        // Check that element exists in the state vector config.
+        const IElement* elemObj = nullptr;
+        if (kSv.getIElement(kIt.str().c_str(), elemObj) != SUCCESS)
+        {
+            if (kConfigErr != nullptr)
+            {
+                kConfigErr->lineNum = kIt.tok().lineNum;
+                kConfigErr->colNum = kIt.tok().colNum;
+                kConfigErr->text = gErrText;
+                kConfigErr->subtext = "state vector does not contain an element"
+                    " named `" + kIt.str() + "`";
+            }
+            return E_SMP_SV_NAME;
+        }
+
+        // Check that element has the same type in the state vector config.
+        const ConfigUtil::ElementTypeInfo& elemTypeInfo = (*typeInfoIt).second;
+        if (elemTypeInfo.enumVal != elemObj->type())
+        {
+            if (kConfigErr != nullptr)
+            {
+                kConfigErr->lineNum = kIt.tok().lineNum;
+                kConfigErr->colNum = kIt.tok().colNum;
+                kConfigErr->text = gErrText;
+                auto it = ConfigUtil::typeInfoFromEnum.find(elemObj->type());
+                SFA_ASSERT(it != ConfigUtil::typeInfoFromEnum.end());
+                const std::string actualType = (*it).second.name;
+                std::stringstream ss;
+                ss << "element `" << kIt.str() << "` is type `" << actualType
+                   << "` in the state vector config but `"
+                   << elemParse.tokType.str << "` here";
+                kConfigErr->subtext = ss.str();
+            }
+            return E_SMP_SV_TYPE;
+        }
+
+        // Take element name.
+        elemParse.tokName = kIt.take();
+
+        // Take annotations.
+        while (kIt.type() == Token::ANNOTATION)
+        {
+            std::smatch match;
+            if (kIt.str() == "@READ_ONLY")
+            {
+                // Read-only annotation.
+
+                // Check that element is not already marked read-only.
+                if (elemParse.readOnly == true)
+                {
+                    if (kConfigErr != nullptr)
+                    {
+                        kConfigErr->lineNum = kIt.tok().lineNum;
+                        kConfigErr->colNum = kIt.tok().colNum;
+                        kConfigErr->text = gErrText;
+                        kConfigErr->subtext = "redundant read-only annotation";
+                    }
+                    return E_SMP_RO_MULT;
+                }
+
+                elemParse.readOnly = true;
+                kIt.take();
+            }
+            else if (std::regex_match(kIt.str(), match, aliasRegex) == true)
+            {
+                // Alias annotation.
+
+                // Check that element is not already aliased.
+                if (elemParse.alias.size() > 0)
+                {
+                    if (kConfigErr != nullptr)
+                    {
+                        kConfigErr->lineNum = kIt.tok().lineNum;
+                        kConfigErr->colNum = kIt.tok().colNum;
+                        kConfigErr->text = gErrText;
+                        kConfigErr->subtext =
+                            "an element may only have one alias";
+                    }
+                    return E_SMP_AL_MULT;
+                }
+
+                // Check that alias is a unique name.
+                Token tokErr;
+                if (isNameUnique(match[1].str(), kParse, tokErr) == false)
+                {
+                    if (kConfigErr != nullptr)
+                    {
+                        kConfigErr->lineNum = kIt.tok().lineNum;
+                        kConfigErr->colNum = kIt.tok().colNum;
+                        kConfigErr->text = gErrText;
+                        std::stringstream ss;
+                        ss << "reuse of name `" << kIt.str() << "`"
+                           << " (previously used on line " << tokErr.lineNum
+                           << ")";
+                        kConfigErr->subtext = ss.str();
+                    }
+                    return E_SMP_NAME_DUPE;
+                }
+
+                // Take alias.
+                elemParse.tokAlias = kIt.take();
+                elemParse.alias = match[1].str();
+            }
+            else
+            {
+                // Unknown annotation.
+                if (kConfigErr != nullptr)
+                {
+                    kConfigErr->lineNum = kIt.tok().lineNum;
+                    kConfigErr->colNum = kIt.tok().colNum;
+                    kConfigErr->text = gErrText;
+                    kConfigErr->subtext = "unknown annotation";
+                }
+                return E_SMP_ANNOT;
+            }
+        }
+
+        // Add element to parse.
+        kParse.svElems.push_back(elemParse);
     }
 
     return SUCCESS;
@@ -320,6 +557,7 @@ StateMachineParser::Parse::Parse() : hasLocalSection(false)
 }
 
 Result StateMachineParser::parse(std::istream& kIs,
+                                 StateVector& kSv,
                                  std::shared_ptr<Config>& kConfig,
                                  ConfigErrorInfo* kConfigErr)
 {
@@ -336,5 +574,5 @@ Result StateMachineParser::parse(std::istream& kIs,
         return res;
     }
 
-    return parseImpl(toks, kConfig, kConfigErr);
+    return parseImpl(toks, kSv, kConfig, kConfigErr);
 }
