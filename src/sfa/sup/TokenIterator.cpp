@@ -80,7 +80,7 @@ U32 TokenIterator::next(const std::unordered_set<Token::Type> kTypes) const
     while (i != mEnd)
     {
         const Token& tok = *i;
-        if (std::find(kTypes.begin(), kTypes.end(), tok.type) != kTypes.end())
+        if (kTypes.find(tok.type) != kTypes.end())
         {
             break;
         }

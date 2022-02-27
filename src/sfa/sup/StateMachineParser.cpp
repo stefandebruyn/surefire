@@ -190,7 +190,8 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
             }
             return E_SMP_ELEM_NAME;
         }
-        else if (ConfigUtil::isReserved(kIt.str()) == true)
+        else if (ConfigUtil::reserved.find(kIt.str())
+                 != ConfigUtil::reserved.end())
         {
             // Element name is reserved.
             if (kConfigErr != nullptr)
@@ -389,7 +390,8 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
         }
 
         // Check that element name is not reserved.
-        if (ConfigUtil::isReserved(kIt.str()) == true)
+        if (ConfigUtil::reserved.find(kIt.str())
+            != ConfigUtil::reserved.end())
         {
             if (kConfigErr != nullptr)
             {

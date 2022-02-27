@@ -28,8 +28,6 @@ namespace ConfigUtil
         typeInfoFromEnum;
 
     extern const std::unordered_set<std::string> reserved;
-
-    bool isReserved(const std::string kStr);
 }
 
 #endif

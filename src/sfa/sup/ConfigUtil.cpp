@@ -51,7 +51,8 @@ const std::unordered_map<std::string, ConfigUtil::ElementTypeInfo>
     {u64Info.name, u64Info},
     {f32Info.name, f32Info},
     {f64Info.name, f64Info},
-    {boolInfo.name, boolInfo}
+    {boolInfo.name, boolInfo},
+    {"BOOL", boolInfo}
 };
 
 const std::unordered_map<ElementType, ConfigUtil::ElementTypeInfo, EnumHash>
@@ -84,9 +85,3 @@ const std::unordered_set<std::string> ConfigUtil::reserved =
     "G",
     "S"
 };
-
-bool ConfigUtil::isReserved(const std::string kStr)
-{
-    return (std::find(reserved.begin(), reserved.end(), kStr)
-            != reserved.end());
-}
