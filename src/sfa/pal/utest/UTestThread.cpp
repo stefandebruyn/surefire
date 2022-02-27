@@ -82,7 +82,7 @@ TEST(Thread, ReturnResult)
                                  thread));
     Result threadRes = SUCCESS;
     CHECK_SUCCESS(thread.await(&threadRes));
-    CHECK_EQUAL(E_THR_NULL, threadRes);
+    CHECK_ERROR(E_THR_NULL, threadRes);
 }
 
 TEST(Thread, AffinityRange)
