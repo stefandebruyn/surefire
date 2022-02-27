@@ -39,11 +39,10 @@ Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
             // Try to match token at the current position.
             std::string substr = kLine.substr(idx);
             std::smatch match;
-            if (std::regex_search(
-                substr,
-                match,
-                tokType.second,
-                std::regex_constants::match_continuous) == true)
+            if (std::regex_search(substr,
+                                  match,
+                                  tokType.second,
+                                  std::regex_constants::match_continuous))
             {
                 // Compute the index of the first non-whitespace character in
                 // the matched string so we can attach a column number to the
@@ -78,7 +77,7 @@ Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
             }
         }
 
-        if (matched == false)
+        if (!matched)
         {
             // Failed to match a token at the current index, so the input is
             // invalid.
@@ -158,7 +157,7 @@ Result ConfigTokenizer::tokenize(std::string kFilePath,
                                  ConfigErrorInfo* kConfigErr)
 {
     std::ifstream ifs(kFilePath);
-    if (ifs.is_open() == false)
+    if (!ifs.is_open())
     {
         if (kConfigErr != nullptr)
         {
@@ -200,7 +199,7 @@ Result ConfigTokenizer::tokenize(std::istream& kIs,
 
         // If the line was terminated by a newline, then add a newline token to
         // the token stream so that parsers can use them as delimiters.
-        if ((kIs.eof() == false) && (kIs.fail() == false))
+        if (!kIs.eof() && !kIs.fail())
         {
             const Token newlineTok =
             {

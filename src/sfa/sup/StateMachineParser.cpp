@@ -35,7 +35,7 @@ Result StateMachineParser::parseImpl(const std::vector<Token>& kToks,
     TokenIterator it(kToks.begin(), kToks.end());
     Parse parse;
 
-    while (it.eof() == false)
+    while (!it.eof())
     {
         Result res = SUCCESS;
 
@@ -122,7 +122,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
                                              ConfigErrorInfo* kConfigErr)
 {
     // Check that a local section has not already been parsed.
-    if (kParse.hasLocalSection == true)
+    if (kParse.hasLocalSection)
     {
         ConfigUtil::setError(kConfigErr, kIt.tok(), gErrText,
                              "more than one local section");
@@ -136,7 +136,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
     kIt.take();
 
     // Loop until end of token stream or another section.
-    while ((kIt.eof() == false) && (kIt.type() != Token::SECTION))
+    while (!kIt.eof() && (kIt.type() != Token::SECTION))
     {
         LocalElementParse elemParse;
 
@@ -162,8 +162,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
         elemParse.tokType = kIt.take();
 
         // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, elemParse.tokType, gErrText, kConfigErr)
-            == true)
+        if (ConfigUtil::checkEof(kIt, elemParse.tokType, gErrText, kConfigErr))
         {
             return E_SMP_EOF;
         }
@@ -187,7 +186,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
 
         // Check that element name is unique.
         Token tokErr;
-        if (isNameUnique(kIt.str(), kParse, tokErr) == false)
+        if (!isNameUnique(kIt.str(), kParse, tokErr))
         {
             std::stringstream ss;
             ss << "reuse of name `" << kIt.str()
@@ -200,8 +199,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
         elemParse.tokName = kIt.take();
 
         // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, elemParse.tokName, gErrText, kConfigErr)
-            == true)
+        if (ConfigUtil::checkEof(kIt, elemParse.tokName, gErrText, kConfigErr))
         {
             return E_SMP_EOF;
         }
@@ -243,7 +241,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
                 // Read-only annotation.
 
                 // Check that element is not already marked read-only.
-                if (elemParse.readOnly == true)
+                if (elemParse.readOnly)
                 {
                     ConfigUtil::setError(kConfigErr, kIt.tok(), gErrText,
                                          "redundant read-only annotation");
@@ -275,7 +273,7 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
                                                    ConfigErrorInfo* kConfigErr)
 {
     // Check that a local section has not already been parsed.
-    if (kParse.hasStateVectorSection == true)
+    if (kParse.hasStateVectorSection)
     {
         ConfigUtil::setError(kConfigErr, kIt.tok(), gErrText,
                              "more than one state vector section");
@@ -290,7 +288,7 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
     kIt.take();
 
     // Loop until end of token stream or another section.
-    while ((kIt.eof() == false) && (kIt.type() != Token::SECTION))
+    while (!kIt.eof() && (kIt.type() != Token::SECTION))
     {
         StateVectorElementParse elemParse;
 
@@ -340,7 +338,7 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
 
         // Check that element name is unique.
         Token tokErr;
-        if (isNameUnique(kIt.str(), kParse, tokErr) == false)
+        if (!isNameUnique(kIt.str(), kParse, tokErr))
         {
             std::stringstream ss;
             ss << "reuse of name `" << kIt.str() << "`"
@@ -385,7 +383,7 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
                 // Read-only annotation.
 
                 // Check that element is not already marked read-only.
-                if (elemParse.readOnly == true)
+                if (elemParse.readOnly)
                 {
                     ConfigUtil::setError(kConfigErr, kIt.tok(), gErrText,
                                          "redundant read-only annotation");
@@ -396,7 +394,7 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
                 elemParse.readOnly = true;
                 kIt.take();
             }
-            else if (std::regex_match(kIt.str(), match, aliasRegex) == true)
+            else if (std::regex_match(kIt.str(), match, aliasRegex))
             {
                 // Alias annotation.
 
@@ -410,7 +408,7 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
 
                 // Check that alias is a unique name.
                 Token tokErr;
-                if (isNameUnique(match[1].str(), kParse, tokErr) == false)
+                if (!isNameUnique(match[1].str(), kParse, tokErr))
                 {
                     std::stringstream ss;
                     ss << "reuse of name `" << kIt.str()

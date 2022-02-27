@@ -60,7 +60,7 @@ private:
 
     Result stepSafe() final override
     {
-        if (mBar->read() == false)
+        if (!mBar->read())
         {
             return -1;
         }
@@ -71,7 +71,7 @@ private:
 
     Result stepEnable() final override
     {
-        if (mBar->read() == false)
+        if (!mBar->read())
         {
             return -2;
         }

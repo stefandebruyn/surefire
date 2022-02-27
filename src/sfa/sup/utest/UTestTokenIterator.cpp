@@ -63,7 +63,7 @@ TEST(TokenIterator, Take)
 {
     TokenIterator it(gToks.begin(), gToks.end());
     U32 takes = 0;
-    while (it.eof() == false)
+    while (!it.eof())
     {
         CHECK_EQUAL(takes, it.idx());
         CHECK_TRUE(it.take() == gToks[takes++]);
@@ -86,7 +86,7 @@ TEST(TokenIterator, TakeNewlines)
 TEST(TokenIterator, TypeAndStr)
 {
     TokenIterator it(gToks.begin(), gToks.end());
-    while (it.eof() == false)
+    while (!it.eof())
     {
         CHECK_EQUAL(gToks[it.idx()].type, it.type());
         CHECK_EQUAL(gToks[it.idx()].str, it.str());

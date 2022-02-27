@@ -105,7 +105,7 @@ bool ConfigUtil::checkEof(const TokenIterator& kIt,
                           const std::string kErrText,
                           ConfigErrorInfo* const kConfigErr)
 {
-    if (kIt.eof() == true)
+    if (kIt.eof())
     {
         if (kConfigErr != nullptr)
         {

@@ -79,8 +79,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
 
                 // Parse section.
                 std::smatch match;
-                if (std::regex_match(
-                    tok.str, match, gRegionSectionRegex) == true)
+                if (std::regex_match(tok.str, match, gRegionSectionRegex))
                 {
                     // If the caller provided a list of regions to parse and
                     // this isn't one of them, skip to the next region section
@@ -184,7 +183,7 @@ Result StateVectorParser::parseImpl(const std::vector<Token>& kToks,
             }
         }
 
-        if (found == false)
+        if (!found)
         {
             if (kConfigErr != nullptr)
             {
@@ -603,7 +602,7 @@ Result StateVectorParser::parse(const std::string kFilePath,
                                 const std::vector<std::string> kRegions)
 {
     std::ifstream ifs(kFilePath);
-    if (ifs.is_open() == false)
+    if (!ifs.is_open())
     {
         if (kConfigErr != nullptr)
         {

@@ -38,7 +38,7 @@ bool TokenIterator::eof() const
 
 const Token& TokenIterator::tok() const
 {
-    if (this->eof() == true)
+    if (this->eof())
     {
         return NONE;
     }
@@ -48,7 +48,7 @@ const Token& TokenIterator::tok() const
 const Token& TokenIterator::take()
 {
     const Token& ret = this->tok();
-    if (this->eof() == false)
+    if (!this->eof())
     {
         ++mPos;
     }
@@ -68,7 +68,7 @@ const std::string& TokenIterator::str() const
 
 void TokenIterator::eat()
 {
-    while ((this->eof() == false) && (this->type() == Token::NEWLINE))
+    while (!this->eof() && (this->type() == Token::NEWLINE))
     {
         ++mPos;
     }

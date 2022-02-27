@@ -95,7 +95,7 @@ Result Socket::select(Socket* const kSocks[],
     FD_ZERO(&fds);
     for (U32 i = 0; i < kNumSocks; ++i)
     {
-        if (kReady[i] == false)
+        if (!kReady[i])
         {
             FD_SET(kSocks[i]->mFd, &fds);
         }

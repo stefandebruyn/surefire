@@ -22,7 +22,7 @@ Spinlock::~Spinlock()
 
 Result Spinlock::acquire()
 {
-    if (mInit == false)
+    if (!mInit)
     {
         return E_SLK_UNINIT;
     }
@@ -37,7 +37,7 @@ Result Spinlock::acquire()
 
 Result Spinlock::release()
 {
-    if (mInit == false)
+    if (!mInit)
     {
         return E_SLK_UNINIT;
     }

@@ -19,7 +19,7 @@ static Result checkBlockTransitions(const StateMachine::Config kConfig,
     {
         // Block contains a transition action.
 
-        if (kExit == true)
+        if (kExit)
         {
             // Transitioning in an exit label is illegal.
             return E_SM_EXIT;
@@ -106,7 +106,7 @@ U32 StateMachine::Block::execute()
     // Evaluate guard.
     if (guard != nullptr)
     {
-        if (guard->evaluate() == true)
+        if (guard->evaluate())
         {
             // Take if branch.
             if (ifBlock != nullptr)
@@ -135,7 +135,7 @@ U32 StateMachine::Block::execute()
     else if (action != nullptr)
     {
         const bool trans = action->execute();
-        if (trans == true)
+        if (trans)
         {
             return action->destState;
         }

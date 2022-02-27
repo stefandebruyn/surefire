@@ -30,7 +30,7 @@ static Result spinOnFlagAndRecordTime(void* kArgs)
 {
     ThreadArgs* const args = static_cast<ThreadArgs*>(kArgs);
     volatile const bool* const flag = &args->flag;
-    while (*flag == false);
+    while (!(*flag));
     args->tReturnNs = Clock::nanoTime();
     return SUCCESS;
 }

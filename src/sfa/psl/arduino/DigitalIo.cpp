@@ -5,7 +5,7 @@
 
 Result DigitalIo::create(DigitalIo& kDio)
 {
-    if (kDio.mInit == true)
+    if (kDio.mInit)
     {
         return E_DIO_REINIT;
     }
@@ -26,7 +26,7 @@ DigitalIo::~DigitalIo()
 Result DigitalIo::setMode(const U32 kPin, const Mode kMode)
 {
     // Verify DIO is initialized.
-    if (mInit == false)
+    if (!mInit)
     {
         return E_DIO_UNINIT;
     }
@@ -51,7 +51,7 @@ Result DigitalIo::setMode(const U32 kPin, const Mode kMode)
 Result DigitalIo::read(const U32 kPin, bool& kVal)
 {
     // Verify DIO is initialized.
-    if (mInit == false)
+    if (!mInit)
     {
         return E_DIO_UNINIT;
     }
@@ -63,12 +63,12 @@ Result DigitalIo::read(const U32 kPin, bool& kVal)
 Result DigitalIo::write(const U32 kPin, const bool kVal)
 {
     // Verify DIO is initialized.
-    if (mInit == false)
+    if (!mInit)
     {
         return E_DIO_UNINIT;
     }
 
-    if (kVal == true)
+    if (kVal)
     {
         digitalWrite(kPin, HIGH);
         mOutBitVec |= (static_cast<U64>(1) << kPin);
@@ -84,7 +84,7 @@ Result DigitalIo::write(const U32 kPin, const bool kVal)
 
 Result DigitalIo::close()
 {
-    if (mInit == false)
+    if (!mInit)
     {
         return E_DIO_UNINIT;
     }

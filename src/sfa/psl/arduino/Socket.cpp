@@ -15,7 +15,7 @@ Result Socket::create(const IPv4Address kIp,
 
     // Initialize Ethernet component on the first call to this function.
     static bool ethInit = false;
-    if (ethInit == false)
+    if (!ethInit)
     {
         const byte macAddr[] =
         {
@@ -58,7 +58,7 @@ Result Socket::send(const IPv4Address kDestIp,
                     U32* const kNumBytesSent)
 {
     // Verify socket is initialized.
-    if (mInit == false)
+    if (!mInit)
     {
         return E_SOK_UNINIT;
     }
@@ -101,7 +101,7 @@ Result Socket::recv(void* const kBuf,
                     U32* const kNumBytesRecvd)
 {
     // Verify socket is initialized.
-    if (mInit == false)
+    if (!mInit)
     {
         return E_SOK_UNINIT;
     }

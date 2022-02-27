@@ -39,7 +39,7 @@ Result Thread::create(const Function kFunc,
                       Thread& kThread)
 {
     // Verify thread is not already initialized.
-    if (kThread.mInit == true)
+    if (kThread.mInit)
     {
         return E_THR_REINIT;
     }
@@ -207,7 +207,7 @@ Thread::~Thread()
 
 Result Thread::await(Result* const kThreadRes)
 {
-    if (mInit == false)
+    if (!mInit)
     {
         return E_THR_UNINIT;
     }
