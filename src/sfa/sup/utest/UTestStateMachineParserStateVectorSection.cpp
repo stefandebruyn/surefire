@@ -52,7 +52,7 @@ TEST_GROUP(StateMachineParserStateVectorSection)
 TEST(StateMachineParserStateVectorSection, Empty)
 {
     TOKENIZE("[STATE_VECTOR]");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     StateVector sv;
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
@@ -64,7 +64,7 @@ TEST(StateMachineParserStateVectorSection, Empty)
 TEST(StateMachineParserStateVectorSection, EmptyWithNewlines)
 {
     TOKENIZE("[STATE_VECTOR]\n\n\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     StateVector sv;
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
@@ -81,7 +81,7 @@ TEST(StateMachineParserStateVectorSection, OneElement)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
 
@@ -102,7 +102,7 @@ TEST(StateMachineParserStateVectorSection, ReadOnlyAnnotation)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @READ_ONLY\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
 
@@ -123,7 +123,7 @@ TEST(StateMachineParserStateVectorSection, AliasAnnotation)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @ALIAS=bar\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
 
@@ -145,7 +145,7 @@ TEST(StateMachineParserStateVectorSection, MultipleAnnotations)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @ALIAS=bar @READ_ONLY\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
 
@@ -171,7 +171,7 @@ TEST(StateMachineParserStateVectorSection, MultipleElements)
         "I32 foo\n"
         "F64 bar\n"
         "bool baz\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
 
@@ -222,7 +222,7 @@ TEST(StateMachineParserStateVectorSection, AllElementTypes)
         "F32 i\n"
         "F64 j\n"
         "bool k\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
 
@@ -297,7 +297,7 @@ TEST(StateMachineParserStateVectorSection, MultipleElementsWithAnnotations)
         "I32 foo\n"
         "F64 bar @READ_ONLY\n"
         "bool baz @ALIAS=qux\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
 
@@ -329,7 +329,7 @@ TEST(StateMachineParserStateVectorSection, ErrorRedundantReadOnlyAnnotation)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @READ_ONLY @READ_ONLY\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_RO_MULT, 2, 20);
 }
 
@@ -341,7 +341,7 @@ TEST(StateMachineParserStateVectorSection, ErrorMultipleAliasAnnotations)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @ALIAS=bar @ALIAS=baz\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_AL_MULT, 2, 20);
 }
 
@@ -355,7 +355,7 @@ TEST(StateMachineParserStateVectorSection, ErrorReuseElementNameAsAlias)
         "[STATE_VECTOR]\n"
         "I32 foo\n"
         "F64 bar @ALIAS=foo\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_NAME_DUPE, 3, 9);
 }
 
@@ -369,7 +369,7 @@ TEST(StateMachineParserStateVectorSection, ErrorReuseAlias)
         "[STATE_VECTOR]\n"
         "I32 foo @ALIAS=baz\n"
         "F64 bar @ALIAS=baz\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_NAME_DUPE, 3, 9);
 }
 
@@ -381,7 +381,7 @@ TEST(StateMachineParserStateVectorSection, ErrorExpectedElementType)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "@I32 foo\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_ELEM_TYPE, 2, 1);
 }
 
@@ -393,7 +393,7 @@ TEST(StateMachineParserStateVectorSection, ErrorInvalidElementType)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I33 foo\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_ELEM_TYPE, 2, 1);
 }
 
@@ -405,7 +405,7 @@ TEST(StateMachineParserStateVectorSection, ErrorEofAfterElementType)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_EOF, 2, 4);
 }
 
@@ -417,7 +417,7 @@ TEST(StateMachineParserStateVectorSection, ErrorUnexpectedTokenAfterElementType)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 @foo\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_ELEM_NAME, 2, 5);
 }
 
@@ -429,7 +429,7 @@ TEST(StateMachineParserStateVectorSection, ErrorReservedElementName)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 LOCAL\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_NAME_RSVD, 2, 5);
 }
 
@@ -442,7 +442,7 @@ TEST(StateMachineParserStateVectorSection, ErrorReuseElementName)
         "[STATE_VECTOR]\n"
         "I32 foo\n"
         "F64 foo\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_NAME_DUPE, 3, 5);
 }
 
@@ -454,7 +454,7 @@ TEST(StateMachineParserStateVectorSection, ErrorElementNotInStateVector)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 bar\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_SV_NAME, 2, 5);
 }
 
@@ -466,7 +466,7 @@ TEST(StateMachineParserStateVectorSection, ErrorElementTypeMismatch)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "F64 foo\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_SV_TYPE, 2, 5);
 }
 
@@ -478,6 +478,6 @@ TEST(StateMachineParserStateVectorSection, ErrorUnknownAnnotation)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @FOO\n");
-    StateMachineParser::Parse parse;
+    StateMachineParser::Parse parse = {};
     checkParseError(it, sv, parse, E_SMP_ANNOT, 2, 9);
 }

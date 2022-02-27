@@ -33,7 +33,7 @@ Result StateMachineParser::parseImpl(const std::vector<Token>& kToks,
     (void) kSv;
     (void) kConfig; // rm later
     TokenIterator it(kToks.begin(), kToks.end());
-    Parse parse;
+    Parse parse = {};
 
     while (!it.eof())
     {
@@ -138,7 +138,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
     // Loop until end of token stream or another section.
     while (!kIt.eof() && (kIt.type() != Token::SECTION))
     {
-        LocalElementParse elemParse;
+        LocalElementParse elemParse = {};
 
         // Check that current token, which should be an element type, is an
         // identifier.
@@ -290,7 +290,7 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
     // Loop until end of token stream or another section.
     while (!kIt.eof() && (kIt.type() != Token::SECTION))
     {
-        StateVectorElementParse elemParse;
+        StateVectorElementParse elemParse = {};
 
         // Check that current token, which should be the element type, is an
         // identifier.
@@ -440,20 +440,6 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
 }
 
 /////////////////////////////////// Public /////////////////////////////////////
-
-StateMachineParser::StateVectorElementParse::StateVectorElementParse() :
-    readOnly(false)
-{
-}
-
-StateMachineParser::LocalElementParse::LocalElementParse() : readOnly(false)
-{
-}
-
-StateMachineParser::Parse::Parse() :
-    hasLocalSection(false), hasStateVectorSection(false)
-{
-}
 
 Result StateMachineParser::parse(std::istream& kIs,
                                  StateVector& kSv,

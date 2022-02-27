@@ -15,8 +15,8 @@ namespace StateMachineParser
     struct ExpressionParse final
     {
         Token tokData;
-        std::shared_ptr<ExpressionParse> left;
-        std::shared_ptr<ExpressionParse> right;
+        ExpressionParse* left;
+        ExpressionParse* right;
         bool func;
     };
 
@@ -29,25 +29,23 @@ namespace StateMachineParser
 
     struct BlockParse final
     {
-        std::shared_ptr<ExpressionParse> guard;
-        std::shared_ptr<ActionParse> action;
-        std::shared_ptr<BlockParse> ifBlock;
-        std::shared_ptr<BlockParse> elseBlock;
-        std::shared_ptr<BlockParse> next;
+        ExpressionParse* guard;
+        ActionParse* action;
+        BlockParse* ifBlock;
+        BlockParse* elseBlock;
+        BlockParse* next;
     };
 
     struct StateParse final
     {
         Token tokName;
-        std::shared_ptr<BlockParse> entry;
-        std::shared_ptr<BlockParse> step;
-        std::shared_ptr<BlockParse> exit;
+        BlockParse* entry;
+        BlockParse* step;
+        BlockParse* exit;
     };
 
     struct StateVectorElementParse final
     {
-        StateVectorElementParse();
-
         Token tokType;
         Token tokName;
         Token tokAlias;
@@ -57,8 +55,6 @@ namespace StateMachineParser
 
     struct LocalElementParse final
     {
-        LocalElementParse();
-
         Token tokType;
         Token tokName;
         Token tokInitVal;
@@ -67,8 +63,6 @@ namespace StateMachineParser
 
     struct Parse final
     {
-        Parse();
-
         std::vector<StateVectorElementParse> svElems;
         std::vector<LocalElementParse> localElems;
         std::vector<StateParse> states;
