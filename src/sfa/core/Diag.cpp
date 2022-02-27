@@ -1,5 +1,6 @@
 #include "sfa/core/Diag.hpp"
 #include "sfa/pal/Console.hpp"
+#include "sfa/pal/System.hpp"
 
 void Diag::printOnError(const Result kRes, const char* const kMsg)
 {
@@ -15,6 +16,6 @@ void Diag::haltOnError(const Result kRes, const char* const kMsg)
     {
         printOnError(kRes, kMsg);
         Console::printf("Halting...\n");
-        while (true);
+        System::exit(1);
     }
 }
