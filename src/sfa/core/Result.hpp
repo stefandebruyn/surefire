@@ -71,6 +71,7 @@ enum : Result
     E_SMP_SV_MULT = 331,
     E_SMP_SV_NAME = 332,
     E_SMP_SV_TYPE = 333,
+    E_SMP_EOF = 334,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 

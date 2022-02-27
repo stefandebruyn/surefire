@@ -13,7 +13,7 @@
     StateVector sv;                                                            \
     CHECK_SUCCESS(StateVector::create(svConfig->get(), sv));                   \
 
-#define TOKENIZE(kSrc)                                                      \
+#define TOKENIZE(kSrc)                                                         \
     std::stringstream smSs(kSrc);                                              \
     std::vector<Token> toks;                                                   \
     CHECK_SUCCESS(ConfigTokenizer::tokenize(smSs, toks, nullptr));             \
@@ -52,6 +52,18 @@ TEST_GROUP(StateMachineParserStateVectorSection)
 TEST(StateMachineParserStateVectorSection, Empty)
 {
     TOKENIZE("[STATE_VECTOR]");
+    StateMachineParser::Parse parse;
+    StateVector sv;
+    CHECK_SUCCESS(
+        StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
+
+    CHECK_EQUAL(0, parse.svElems.size());
+    CHECK_EQUAL(toks.size(), it.idx());
+}
+
+TEST(StateMachineParserStateVectorSection, EmptyWithNewlines)
+{
+    TOKENIZE("[STATE_VECTOR]\n\n\n");
     StateMachineParser::Parse parse;
     StateVector sv;
     CHECK_SUCCESS(
@@ -385,7 +397,7 @@ TEST(StateMachineParserStateVectorSection, ErrorInvalidElementType)
     checkParseError(it, sv, parse, E_SMP_ELEM_TYPE, 2, 1);
 }
 
-TEST(StateMachineParserStateVectorSection, ErrorMissingElementNameEndOfFile)
+TEST(StateMachineParserStateVectorSection, ErrorEofAfterElementType)
 {
     INIT_SV(
         "[REGION/Foo]\n"
@@ -394,10 +406,10 @@ TEST(StateMachineParserStateVectorSection, ErrorMissingElementNameEndOfFile)
         "[STATE_VECTOR]\n"
         "I32\n");
     StateMachineParser::Parse parse;
-    checkParseError(it, sv, parse, E_SMP_ELEM_NAME, 2, 1);
+    checkParseError(it, sv, parse, E_SMP_EOF, 2, 4);
 }
 
-TEST(StateMachineParserStateVectorSection, ErrorMissingElementNameInvalidToken)
+TEST(StateMachineParserStateVectorSection, ErrorUnexpectedTokenAfterElementType)
 {
     INIT_SV(
         "[REGION/Foo]\n"
@@ -406,7 +418,7 @@ TEST(StateMachineParserStateVectorSection, ErrorMissingElementNameInvalidToken)
         "[STATE_VECTOR]\n"
         "I32 @foo\n");
     StateMachineParser::Parse parse;
-    checkParseError(it, sv, parse, E_SMP_ELEM_NAME, 2, 1);
+    checkParseError(it, sv, parse, E_SMP_ELEM_NAME, 2, 5);
 }
 
 TEST(StateMachineParserStateVectorSection, ErrorReservedElementName)

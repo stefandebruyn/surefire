@@ -85,3 +85,37 @@ const std::unordered_set<std::string> ConfigUtil::reserved =
     "G",
     "S"
 };
+
+void ConfigUtil::setError(ConfigErrorInfo* const kConfigErr,
+                          const Token& kTokErr,
+                          const std::string kText,
+                          const std::string kSubtext)
+{
+    if (kConfigErr != nullptr)
+    {
+        kConfigErr->lineNum = kTokErr.lineNum;
+        kConfigErr->colNum = kTokErr.colNum;
+        kConfigErr->text = kText;
+        kConfigErr->subtext = kSubtext;
+    }
+}
+
+bool ConfigUtil::checkEof(const TokenIterator& kIt,
+                          const Token& kTokLast,
+                          const std::string kErrText,
+                          ConfigErrorInfo* const kConfigErr)
+{
+    if (kIt.eof() == true)
+    {
+        if (kConfigErr != nullptr)
+        {
+            kConfigErr->lineNum = kTokLast.lineNum;
+            kConfigErr->colNum = (kTokLast.colNum + kTokLast.str.size());
+            kConfigErr->text = kErrText;
+            kConfigErr->subtext = "unexpected end of file";
+        }
+        return true;
+    }
+
+    return false;
+}

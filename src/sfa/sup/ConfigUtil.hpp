@@ -7,6 +7,8 @@
 
 #include "sfa/core/Element.hpp"
 #include "sfa/sup/EnumHash.hpp"
+#include "sfa/sup/TokenIterator.hpp"
+#include "sfa/sup/ConfigTokenizer.hpp"
 
 namespace ConfigUtil
 {
@@ -28,6 +30,16 @@ namespace ConfigUtil
         typeInfoFromEnum;
 
     extern const std::unordered_set<std::string> reserved;
+
+    void setError(ConfigErrorInfo* const kConfigErr,
+                  const Token& kTokErr,
+                  const std::string kText,
+                  const std::string kSubtext);
+
+    bool checkEof(const TokenIterator& kIt,
+                  const Token& kTokLast,
+                  const std::string kErrText,
+                  ConfigErrorInfo* const kConfigErr);
 }
 
 #endif
