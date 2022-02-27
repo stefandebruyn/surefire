@@ -367,7 +367,7 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
                 kConfigErr->text = gErrText;
                 kConfigErr->subtext = "unknown type `" + kIt.str() + "`";
             }
-            return E_SMP_ELEM_NAME;
+            return E_SMP_ELEM_TYPE;
         }
 
         // Take element type.
