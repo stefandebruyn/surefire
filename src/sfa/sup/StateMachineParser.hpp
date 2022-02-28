@@ -9,27 +9,20 @@
 #include "sfa/sup/ConfigTokenizer.hpp"
 #include "sfa/sup/ConfigErrorInfo.hpp"
 #include "sfa/sup/TokenIterator.hpp"
+#include "sfa/sup/ExpressionParser.hpp"
 
 namespace StateMachineParser
 {
-    struct ExpressionParse final
-    {
-        Token tokData;
-        ExpressionParse* left;
-        ExpressionParse* right;
-        bool func;
-    };
-
     struct ActionParse
     {
         Token tokRhs;
-        ExpressionParse tokLhs;
+        ExpressionParser::Parse tokLhs;
         Token destState;
     };
 
     struct BlockParse final
     {
-        ExpressionParse* guard;
+        ExpressionParser::Parse* guard;
         ActionParse* action;
         BlockParse* ifBlock;
         BlockParse* elseBlock;

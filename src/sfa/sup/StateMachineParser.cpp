@@ -150,8 +150,8 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
         }
 
         // Check that element type is valid.
-        if (ConfigUtil::typeInfoFromName.find(kIt.str())
-            == ConfigUtil::typeInfoFromName.end())
+        if (ElementTypeInfo::fromName.find(kIt.str())
+            == ElementTypeInfo::fromName.end())
         {
             ConfigUtil::setError(kConfigErr, kIt.tok(), gErrText,
                                  "unknown type `" + kIt.str() + "`");
@@ -302,8 +302,8 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
         }
 
         // Check that element type is valid.
-        auto typeInfoIt = ConfigUtil::typeInfoFromName.find(kIt.str());
-        if (typeInfoIt == ConfigUtil::typeInfoFromName.end())
+        auto typeInfoIt = ElementTypeInfo::fromName.find(kIt.str());
+        if (typeInfoIt == ElementTypeInfo::fromName.end())
         {
             ConfigUtil::setError(kConfigErr, kIt.tok(), gErrText,
                                  "unknown type `" + kIt.str() + "`");
@@ -358,11 +358,11 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
         }
 
         // Check that element has the same type in the state vector config.
-        const ConfigUtil::ElementTypeInfo& elemTypeInfo = (*typeInfoIt).second;
+        const ElementTypeInfo& elemTypeInfo = (*typeInfoIt).second;
         if (elemTypeInfo.enumVal != elemObj->type())
         {
-            auto it = ConfigUtil::typeInfoFromEnum.find(elemObj->type());
-            SFA_ASSERT(it != ConfigUtil::typeInfoFromEnum.end());
+            auto it = ElementTypeInfo::fromEnum.find(elemObj->type());
+            SFA_ASSERT(it != ElementTypeInfo::fromEnum.end());
             std::stringstream ss;
             ss << "element `" << kIt.str() << "` is type `" << (*it).second.name
                << "` in the state vector config but `" << elemParse.tokType.str
@@ -453,7 +453,7 @@ Result StateMachineParser::parse(std::istream& kIs,
         if (kConfigErr != nullptr)
         {
             // Overwrite error text set by tokenizer for consistent error
-            // messages from the state vector parser.
+            // messages from the state machine parser.
             kConfigErr->text = gErrText;
         }
         return res;

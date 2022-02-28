@@ -2,73 +2,96 @@
 
 #include "sfa/sup/ConfigUtil.hpp"
 
-namespace ConfigUtil
+const ElementTypeInfo ElementTypeInfo::i8 =
+    {ElementType::INT8, "I8", 1, true, false, true};
+const ElementTypeInfo ElementTypeInfo::i16 =
+    {ElementType::INT16, "I16", 2, true, false, true};
+const ElementTypeInfo ElementTypeInfo::i32 =
+    {ElementType::INT32, "I32", 4, true, false, true};
+const ElementTypeInfo ElementTypeInfo::i64 =
+    {ElementType::INT64, "I64", 8, true, false, true};
+const ElementTypeInfo ElementTypeInfo::u8 =
+    {ElementType::UINT8, "U8", 1, true, false, false};
+const ElementTypeInfo ElementTypeInfo::u16 =
+    {ElementType::UINT16, "U16", 2, true, false, false};
+const ElementTypeInfo ElementTypeInfo::u32 =
+    {ElementType::UINT32, "U32", 4, true, false, false};
+const ElementTypeInfo ElementTypeInfo::u64 =
+    {ElementType::UINT64, "U64", 8, true, false, false};
+const ElementTypeInfo ElementTypeInfo::f32 =
+    {ElementType::FLOAT32, "F32", 4, true, true, true};
+const ElementTypeInfo ElementTypeInfo::f64 =
+    {ElementType::FLOAT64, "F64", 8, true, true, true};
+const ElementTypeInfo ElementTypeInfo::boolean =
+    {ElementType::BOOL, "bool", 1, false, false, false};
+
+const std::unordered_map<std::string, ElementTypeInfo>
+    ElementTypeInfo::fromName =
 {
-    const ElementTypeInfo i8Info =
-        {ElementType::INT8, "I8", {}, 1, true, false, true};
-
-    const ElementTypeInfo i16Info =
-        {ElementType::INT16, "I16", {}, 2, true, false, true};
-
-    const ElementTypeInfo i32Info =
-        {ElementType::INT32, "I32", {}, 4, true, false, true};
-
-    const ElementTypeInfo i64Info =
-        {ElementType::INT64, "I64", {}, 8, true, false, true};
-
-    const ElementTypeInfo u8Info =
-        {ElementType::UINT8, "U8", {}, 1, true, false, false};
-
-    const ElementTypeInfo u16Info =
-        {ElementType::UINT16, "U16", {}, 2, true, false, false};
-
-    const ElementTypeInfo u32Info =
-        {ElementType::UINT32, "U32", {}, 4, true, false, false};
-
-    const ElementTypeInfo u64Info =
-        {ElementType::UINT64, "U64", {}, 8, true, false, false};
-
-    const ElementTypeInfo f32Info =
-        {ElementType::FLOAT32, "F32", {}, 4, true, true, true};
-
-    const ElementTypeInfo f64Info =
-        {ElementType::FLOAT64, "F64", {}, 8, true, true, true};
-
-    const ElementTypeInfo boolInfo =
-        {ElementType::BOOL, "bool", {"BOOL"}, 1, false, false, false};
-}
-
-const std::unordered_map<std::string, ConfigUtil::ElementTypeInfo>
-    ConfigUtil::typeInfoFromName =
-{
-    {i8Info.name, i8Info},
-    {i16Info.name, i16Info},
-    {i32Info.name, i32Info},
-    {i64Info.name, i64Info},
-    {u8Info.name, u8Info},
-    {u16Info.name, u16Info},
-    {u32Info.name, u32Info},
-    {u64Info.name, u64Info},
-    {f32Info.name, f32Info},
-    {f64Info.name, f64Info},
-    {boolInfo.name, boolInfo},
-    {"BOOL", boolInfo}
+    {i8.name, i8},
+    {i16.name, i16},
+    {i32.name, i32},
+    {i64.name, i64},
+    {u8.name, u8},
+    {u16.name, u16},
+    {u32.name, u32},
+    {u64.name, u64},
+    {f32.name, f32},
+    {f64.name, f64},
+    {boolean.name, boolean},
+    {"BOOL", boolean} // Alias for `bool`
 };
 
-const std::unordered_map<ElementType, ConfigUtil::ElementTypeInfo, EnumHash>
-    ConfigUtil::typeInfoFromEnum =
+const std::unordered_map<ElementType, ElementTypeInfo, EnumHash>
+    ElementTypeInfo::fromEnum =
 {
-    {i8Info.enumVal, i8Info},
-    {i16Info.enumVal, i16Info},
-    {i32Info.enumVal, i32Info},
-    {i64Info.enumVal, i64Info},
-    {u8Info.enumVal, u8Info},
-    {u16Info.enumVal, u16Info},
-    {u32Info.enumVal, u32Info},
-    {u64Info.enumVal, u64Info},
-    {f32Info.enumVal, f32Info},
-    {f64Info.enumVal, f64Info},
-    {boolInfo.enumVal, boolInfo}
+    {i8.enumVal, i8},
+    {i16.enumVal, i16},
+    {i32.enumVal, i32},
+    {i64.enumVal, i64},
+    {u8.enumVal, u8},
+    {u16.enumVal, u16},
+    {u32.enumVal, u32},
+    {u64.enumVal, u64},
+    {f32.enumVal, f32},
+    {f64.enumVal, f64},
+    {boolean.enumVal, boolean}
+};
+
+const OperatorInfo OperatorInfo::lnot = {OP_NOT, "NOT", 11, true};
+const OperatorInfo OperatorInfo::neg = {OP_NEG, "-", 11, true};
+const OperatorInfo OperatorInfo::mult = {OP_MULT, "*", 10, false};
+const OperatorInfo OperatorInfo::divide = {OP_DIV, "/", 10, false};
+const OperatorInfo OperatorInfo::mod = {OP_MOD, "%", 10, false};
+const OperatorInfo OperatorInfo::add = {OP_ADD, "+", 9, false};
+const OperatorInfo OperatorInfo::sub = {OP_SUB, "-", 9, false};
+const OperatorInfo OperatorInfo::lt = {OP_LT, "<", 8, false};
+const OperatorInfo OperatorInfo::lte = {OP_LTE, "<=", 8, false};
+const OperatorInfo OperatorInfo::gt = {OP_GT, ">", 8, false};
+const OperatorInfo OperatorInfo::gte = {OP_GTE, ">=", 8, false};
+const OperatorInfo OperatorInfo::eq = {OP_EQ, "==", 7, false};
+const OperatorInfo OperatorInfo::neq = {OP_NEQ, "!=", 7, false};
+const OperatorInfo OperatorInfo::land = {OP_AND, "AND", 6, false};
+const OperatorInfo OperatorInfo::lor = {OP_OR, "OR", 5, false};
+
+const std::unordered_map<std::string, OperatorInfo> OperatorInfo::fromStr =
+{
+    {lnot.str, lnot},
+    {"!", lnot}, // Alias for `NOT`
+    {neg.str, neg},
+    {mult.str, mult},
+    {divide.str, divide},
+    {mod.str, mod},
+    {add.str, add},
+    {sub.str, sub},
+    {lt.str, lt},
+    {lte.str, lte},
+    {gt.str, gt},
+    {gte.str, gte},
+    {eq.str, eq},
+    {neq.str, neq},
+    {land.str, land},
+    {lor.str, lor}
 };
 
 const std::unordered_set<std::string> ConfigUtil::reserved =
@@ -77,7 +100,6 @@ const std::unordered_set<std::string> ConfigUtil::reserved =
     "LOCAL",
     "IF",
     "ELSE",
-    "NOT",
     "ENTRY",
     "STEP",
     "EXIT",

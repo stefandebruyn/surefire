@@ -73,6 +73,11 @@ enum : Result
     E_SMP_SV_TYPE = 333,
     E_SMP_EOF = 334,
 
+    // ExpressionParser
+    E_EXP_OP = 384,
+    E_EXP_SYNTAX = 385,
+    E_EXP_TOK = 386,
+
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 
     // Socket
