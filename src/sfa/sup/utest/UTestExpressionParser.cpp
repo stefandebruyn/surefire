@@ -25,28 +25,103 @@ static void deleteExpressionParse(ExpressionParser::Parse* const kParse)
 
 TEST_GROUP(ExpressionParser)
 {
+    void setup()
+    {
+        gParse = {};
+    }
+
     void teardown()
     {
         deleteExpressionParse(&gParse);
     }
 };
 
-TEST(ExpressionParser, Doop)
+TEST(ExpressionParser, OneConstant)
 {
-    TOKENIZE("10 + 10");
+    TOKENIZE("10");
+    CHECK_SUCCESS(ExpressionParser::parse(it, gParse, nullptr));
+    CHECK_TRUE(gParse.data == toks[0]);
+    POINTERS_EQUAL(nullptr, gParse.left);
+    POINTERS_EQUAL(nullptr, gParse.right);
+}
+
+TEST(ExpressionParser, OneVariable)
+{
+    TOKENIZE("foo");
+    CHECK_SUCCESS(ExpressionParser::parse(it, gParse, nullptr));
+    CHECK_TRUE(gParse.data == toks[0]);
+    POINTERS_EQUAL(nullptr, gParse.left);
+    POINTERS_EQUAL(nullptr, gParse.right);
+}
+
+TEST(ExpressionParser, SimplePrecedence)
+{
+    //   +
+    //  / \
+    // 1   *
+    //    / \
+    //   2   3
+    TOKENIZE("1 + 2 * 3");
     CHECK_SUCCESS(ExpressionParser::parse(it, gParse, nullptr));
 
-    CHECK_TRUE(gParse.data == toks[1]);
-    CHECK_TRUE(gParse.left != nullptr);
-    CHECK_TRUE(gParse.right != nullptr);
+    const ExpressionParser::Parse* node = nullptr;
 
-    const ExpressionParser::Parse* node = gParse.left;
+    // 1 + ...
+    node = gParse.left;
     CHECK_TRUE(node->data == toks[0]);
     POINTERS_EQUAL(nullptr, node->left);
     POINTERS_EQUAL(nullptr, node->right);
 
-    node = gParse.right;
+    node = &gParse;
+    CHECK_TRUE(node->data == toks[1]);
+
+    // 2 * 3
+    node = gParse.right->left;
     CHECK_TRUE(node->data == toks[2]);
+    POINTERS_EQUAL(nullptr, node->left);
+    POINTERS_EQUAL(nullptr, node->right);
+
+    node = gParse.right;
+    CHECK_TRUE(node->data == toks[3]);
+
+    node = gParse.right->right;
+    CHECK_TRUE(node->data == toks[4]);
+    POINTERS_EQUAL(nullptr, node->left);
+    POINTERS_EQUAL(nullptr, node->right);
+}
+
+TEST(ExpressionParser, SimplePrecedenceWithParens)
+{
+    //     *
+    //    / \
+    //   +   3
+    //  / \
+    // 1   2
+    TOKENIZE("(1 + 2) * 3");
+    CHECK_SUCCESS(ExpressionParser::parse(it, gParse, nullptr));
+
+    const ExpressionParser::Parse* node = nullptr;
+
+    // 1 + 2
+    node = gParse.left->left;
+    CHECK_TRUE(node->data == toks[1]);
+    POINTERS_EQUAL(nullptr, node->left);
+    POINTERS_EQUAL(nullptr, node->right);
+
+    node = gParse.left;
+    CHECK_TRUE(node->data == toks[2]);
+
+    node = gParse.left->right;
+    CHECK_TRUE(node->data == toks[3]);
+    POINTERS_EQUAL(nullptr, node->left);
+    POINTERS_EQUAL(nullptr, node->right);
+
+    // ... * 3
+    node = &gParse;
+    CHECK_TRUE(node->data == toks[5]);
+
+    node = gParse.right;
+    CHECK_TRUE(node->data == toks[6]);
     POINTERS_EQUAL(nullptr, node->left);
     POINTERS_EQUAL(nullptr, node->right);
 }

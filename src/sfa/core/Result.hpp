@@ -77,6 +77,8 @@ enum : Result
     E_EXP_OP = 384,
     E_EXP_SYNTAX = 385,
     E_EXP_TOK = 386,
+    E_EXP_EMPTY = 387,
+    E_EXP_PAREN = 388,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 
