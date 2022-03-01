@@ -59,10 +59,8 @@ const std::unordered_map<ElementType, ElementTypeInfo, EnumHash>
 };
 
 const OperatorInfo OperatorInfo::lnot = {OP_NOT, "NOT", 11, true};
-const OperatorInfo OperatorInfo::neg = {OP_NEG, "-", 11, true};
 const OperatorInfo OperatorInfo::mult = {OP_MULT, "*", 10, false};
 const OperatorInfo OperatorInfo::divide = {OP_DIV, "/", 10, false};
-const OperatorInfo OperatorInfo::mod = {OP_MOD, "%", 10, false};
 const OperatorInfo OperatorInfo::add = {OP_ADD, "+", 9, false};
 const OperatorInfo OperatorInfo::sub = {OP_SUB, "-", 9, false};
 const OperatorInfo OperatorInfo::lt = {OP_LT, "<", 8, false};
@@ -78,10 +76,8 @@ const std::unordered_map<std::string, OperatorInfo> OperatorInfo::fromStr =
 {
     {lnot.str, lnot},
     {"!", lnot}, // Alias for `NOT`
-    {neg.str, neg},
     {mult.str, mult},
     {divide.str, divide},
-    {mod.str, mod},
     {add.str, add},
     {sub.str, sub},
     {lt.str, lt},

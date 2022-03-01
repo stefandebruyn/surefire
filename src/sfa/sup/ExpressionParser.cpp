@@ -4,61 +4,26 @@
 #include "sfa/core/Assert.hpp"
 #include "sfa/sup/ConfigUtil.hpp"
 
-static const char* const gErrText = "expression error";
+/////////////////////////////////// Private ////////////////////////////////////
 
-Result ExpressionParser::parse(TokenIterator& kIt,
-                               Parse& kParse,
-                               ConfigErrorInfo* kConfigErr)
+namespace ExpressionParser
 {
-    (void) kConfigErr; // rm later
+    const char* const errText = "expression error";
 
-    // Check that token sequence is not empty.
-    if (kIt.size() == 0)
-    {
-        return E_EXP_EMPTY;
-    }
+    Result parseImpl(TokenIterator& kIt,
+                     std::shared_ptr<Parse>& kParse,
+                     ConfigErrorInfo* kConfigErr);
+}
 
-    // Check that parentheses are balanced.
-    TokenIterator itCpy = kIt;
-    I32 lvl = 0;
-    const Token* tokLastParen = nullptr;
-    while (!itCpy.eof())
-    {
-        if (itCpy.type() == Token::LPAREN)
-        {
-            // Save parenthese token in case we need it for an error message.
-            tokLastParen = &itCpy.tok();
-            ++lvl;
-        }
-        else if (itCpy.type() == Token::RPAREN)
-        {
-            // Save parenthese token in case we need it for an error message.
-            tokLastParen = &itCpy.tok();
-            --lvl;
-
-            if (lvl < 0)
-            {
-                // Unbalanced parentheses.
-                ConfigUtil::setError(kConfigErr, itCpy.tok(), gErrText,
-                                     "unbalanced parenthese");
-                return E_EXP_PAREN;
-            }
-        }
-
-        itCpy.take();
-    }
-    if (lvl != 0)
-    {
-        // Unbalanced parentheses.
-        SFA_ASSERT(tokLastParen != nullptr);
-        ConfigUtil::setError(kConfigErr, *tokLastParen, gErrText,
-                             "unbalanced parenthese");
-        return E_EXP_PAREN;
-    }
-
+Result ExpressionParser::parseImpl(TokenIterator& kIt,
+                                   std::shared_ptr<Parse>& kParse,
+                                   ConfigErrorInfo* kConfigErr)
+{
     // Copy token sequence, minus newlines, into a vector of tokens enclosed in
-    // parentheses.
+    // parentheses. Adding this extra pair of parentheses simplifies the
+    // algorithm.
     std::vector<Token> toks = {{Token::LPAREN, "(", -1, -1}};
+    kIt.seek(0);
     while (!kIt.eof())
     {
         toks.push_back(kIt.take());
@@ -66,7 +31,7 @@ Result ExpressionParser::parse(TokenIterator& kIt,
     toks.push_back({Token::RPAREN, ")", -1, -1});
 
     // Stack of expression nodes yet to be installed in the binary tree.
-    std::stack<Parse*> nodes;
+    std::stack<std::shared_ptr<Parse>> nodes;
 
     // Operator and operand stack.
     std::stack<Token> stack;
@@ -94,19 +59,14 @@ Result ExpressionParser::parse(TokenIterator& kIt,
             else
             {
                 // Token is a variable or constant.
-                nodes.push(new Parse{tok, nullptr, nullptr});
+                nodes.push(
+                    std::shared_ptr<Parse>(new Parse{tok, nullptr, nullptr}));
             }
         }
         else if (tok.type == Token::OPERATOR)
         {
             // Look up operator info.
             auto opInfoIt = OperatorInfo::fromStr.find(tok.str);
-            if (opInfoIt == OperatorInfo::fromStr.end())
-            {
-                // Unknown operator. This would indicate a missing key in
-                // `OperatorInfo::fromStr`, so provide no config error message.
-                return E_EXP_OP;
-            }
             const OperatorInfo& opInfo = (*opInfoIt).second;
 
             while (!stack.empty())
@@ -119,13 +79,6 @@ Result ExpressionParser::parse(TokenIterator& kIt,
                     break;
                 }
                 auto lastOpInfoIt = OperatorInfo::fromStr.find(tokLast.str);
-                if (lastOpInfoIt == OperatorInfo::fromStr.end())
-                {
-                    // Unknown operator. This would indicate a missing key in
-                    // `OperatorInfo::fromStr`, so provide no config error
-                    // message.
-                    return E_EXP_OP;
-                }
                 const OperatorInfo& lastOpInfo = (*lastOpInfoIt).second;
 
                 if (lastOpInfo.precedence >= opInfo.precedence)
@@ -141,21 +94,21 @@ Result ExpressionParser::parse(TokenIterator& kIt,
                     if (nodes.empty())
                     {
                         // Expected an RHS.
-                        ConfigUtil::setError(kConfigErr, op, gErrText,
+                        ConfigUtil::setError(kConfigErr, op, errText,
                                              "invalid syntax");
                         return E_EXP_SYNTAX;
                     }
-                    Parse* const right = nodes.top();
+                    const std::shared_ptr<Parse> right = nodes.top();
                     nodes.pop();
 
-                    Parse* left = nullptr;
+                    std::shared_ptr<Parse> left;
                     if (!opInfo.unary)
                     {
                         // Pop LHS off stack.
                         if (nodes.empty())
                         {
                             // Expected an LHS.
-                            ConfigUtil::setError(kConfigErr, op, gErrText,
+                            ConfigUtil::setError(kConfigErr, op, errText,
                                                  "invalid syntax");
                             return E_EXP_SYNTAX;
                         }
@@ -164,7 +117,8 @@ Result ExpressionParser::parse(TokenIterator& kIt,
                     }
 
                     // Push operation onto expression.
-                    nodes.push(new Parse{op, left, right});
+                    nodes.push(
+                        std::shared_ptr<Parse>(new Parse{op, left, right}));
                 }
                 else
                 {
@@ -176,8 +130,12 @@ Result ExpressionParser::parse(TokenIterator& kIt,
 
             stack.push(tok);
         }
-        else if (tok.type == Token::RPAREN)
+        else
         {
+            // Token is a right parenthese, indicating the end of a
+            // subexpression.
+
+            // Process subexpression on stack.
             while (!stack.empty() && (stack.top().type != Token::LPAREN))
             {
                 // Pop operator off stack.
@@ -186,41 +144,45 @@ Result ExpressionParser::parse(TokenIterator& kIt,
                 if (op.type != Token::OPERATOR)
                 {
                     // Expected an operator.
-                    ConfigUtil::setError(kConfigErr, op, gErrText,
+                    ConfigUtil::setError(kConfigErr, op, errText,
                                          "invalid syntax");
                     return E_EXP_SYNTAX;
                 }
 
                 // Look up operator info.
                 auto opInfoIt = OperatorInfo::fromStr.find(op.str);
-                if (opInfoIt == OperatorInfo::fromStr.end())
-                {
-                    // Unknown operator. This would indicate a missing key in
-                    // `OperatorInfo::fromStr`, so provide no config error
-                    // message.
-                    return E_EXP_OP;
-                }
                 const OperatorInfo& opInfo = (*opInfoIt).second;
 
                 // Pop RHS from stack.
                 if (nodes.empty())
                 {
                     // Expected an RHS.
-                    ConfigUtil::setError(kConfigErr, op, gErrText,
+                    ConfigUtil::setError(kConfigErr, op, errText,
                                          "invalid syntax");
                     return E_EXP_SYNTAX;
                 }
-                Parse* const right = nodes.top();
+                const std::shared_ptr<Parse> right = nodes.top();
                 nodes.pop();
 
-                Parse* left = nullptr;
+                // Check that RHS comes before the operator in the expression.
+                if ((right->data.lineNum < op.lineNum)
+                    || (right->data.colNum < op.colNum))
+                {
+                    // "RHS" is actually to the left of the operator. This
+                    // usually indicates a syntax error with a unary operator.
+                    ConfigUtil::setError(kConfigErr, op, errText,
+                                         "invalid syntax");
+                    return E_EXP_SYNTAX;
+                }
+
+                std::shared_ptr<Parse> left;
                 if (!opInfo.unary)
                 {
                     // Pop LHS from stack.
                     if (nodes.empty())
                     {
                         // Expected an LHS.
-                        ConfigUtil::setError(kConfigErr, op, gErrText,
+                        ConfigUtil::setError(kConfigErr, op, errText,
                                              "invalid syntax");
                         return E_EXP_SYNTAX;
                     }
@@ -229,7 +191,7 @@ Result ExpressionParser::parse(TokenIterator& kIt,
                 }
 
                 // Push operation onto expression.
-                nodes.push(new Parse{op, left, right});
+                nodes.push(std::shared_ptr<Parse>(new Parse{op, left, right}));
             }
 
             if (!stack.empty())
@@ -237,30 +199,132 @@ Result ExpressionParser::parse(TokenIterator& kIt,
                 stack.pop();
             }
         }
-        else
+    }
+
+    // Check that stack is empty.
+    if (stack.size() != 0)
+    {
+        ConfigUtil::setError(kConfigErr, stack.top(), errText,
+                             "invalid expression");
+        return E_EXP_SYNTAX;
+    }
+
+    // Check that expression tree contains at least 1 node.
+    if (nodes.size() == 0)
+    {
+        ConfigUtil::setError(kConfigErr, kIt[0], errText, "invalid expression");
+        return E_EXP_EMPTY;
+    }
+
+    // Check that there is exactly 1 node on the stack (root node).
+    if (nodes.size() != 1)
+    {
+        // Expression contains some kind of invalid syntax, probably a missing
+        // operator.
+        ConfigUtil::setError(kConfigErr, nodes.top()->data, errText,
+                             "invalid syntax");
+        return E_EXP_SYNTAX;
+    }
+
+    // If we got this far, successfully parsed the expression. Move root node
+    // into return pointer.
+    kParse = nodes.top();
+
+    return SUCCESS;
+}
+
+/////////////////////////////////// Public /////////////////////////////////////
+
+Result ExpressionParser::parse(TokenIterator& kIt,
+                               std::shared_ptr<Parse>& kParse,
+                               ConfigErrorInfo* kConfigErr)
+{
+    // Assert that the iterator is at index zero.
+    SFA_ASSERT(kIt.idx() == 0);
+
+    // Check that token sequence is not empty.
+    if (kIt.size() == 0)
+    {
+        return E_EXP_EMPTY;
+    }
+
+    // Check that parentheses are balanced.
+    I32 lvl = 0;
+    const Token* tokLastParen = nullptr;
+    while (!kIt.eof())
+    {
+        const Token& tok = kIt.take();
+        if (tok.type == Token::LPAREN)
+        {
+            // Save parenthese token in case we need it for an error message.
+            tokLastParen = &tok;
+            ++lvl;
+        }
+        else if (tok.type == Token::RPAREN)
+        {
+            // Save parenthese token in case we need it for an error message.
+            tokLastParen = &tok;
+            --lvl;
+
+            if (lvl < 0)
+            {
+                // Unbalanced parentheses.
+                ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
+                                     "unbalanced parenthese");
+                return E_EXP_PAREN;
+            }
+        }
+    }
+
+    if (lvl != 0)
+    {
+        // Unbalanced parentheses.
+        SFA_ASSERT(tokLastParen != nullptr);
+        ConfigUtil::setError(kConfigErr, *tokLastParen, errText,
+                             "unbalanced parenthese");
+        return E_EXP_PAREN;
+    }
+
+    // Check that all operator tokens have operator info available.
+    kIt.seek(0);
+    while (!kIt.eof())
+    {
+        const Token& tok = kIt.take();
+        if (tok.type == Token::OPERATOR)
+        {
+            auto opInfoIt = OperatorInfo::fromStr.find(tok.str);
+            if (opInfoIt == OperatorInfo::fromStr.end())
+            {
+                // No info for operator. This would indicate a bug in the
+                // framework and not an error on the user's part, so provide
+                // no config error message.
+                return E_EXP_OP;
+            }
+        }
+    }
+
+    // Check that expression contains only identifier, constant, operator,
+    // and parenthese tokens.
+    kIt.seek(0);
+    while (!kIt.eof())
+    {
+        const Token& tok = kIt.take();
+        if ((tok.type != Token::IDENTIFIER)
+            && (tok.type != Token::CONSTANT)
+            && (tok.type != Token::OPERATOR)
+            && (tok.type != Token::LPAREN)
+            && (tok.type != Token::RPAREN))
         {
             // Unexpected token in expression.
-            ConfigUtil::setError(kConfigErr, tok, gErrText,
+            ConfigUtil::setError(kConfigErr, tok, errText,
                                  "unexpected token in expression");
             return E_EXP_TOK;
         }
     }
 
-    if (nodes.size() == 0)
-    {
-        // Expression contains no terms.
-        ConfigUtil::setError(kConfigErr, kIt[0], gErrText,
-                             "invalid expression");
-        return E_EXP_EMPTY;
-    }
+    // At this point we know that the expression has balanced parentheses,
+    // contains only known operators, and contains no unexpected token types.
+    // So, the only errors to check for herein are syntax errors.
 
-    // Assert that there's exactly one node on the node stack. This is the root
-    // node of the expression binary tree.
-    SFA_ASSERT(nodes.size() == 1);
-
-    // Manually move root node into the caller-provided node.
-    kParse = *nodes.top();
-    delete nodes.top();
-
-    return SUCCESS;
+    return parseImpl(kIt, kParse, kConfigErr);
 }

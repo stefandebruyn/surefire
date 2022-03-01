@@ -59,10 +59,8 @@ struct OperatorInfo final
     };
     
     static const OperatorInfo lnot;
-    static const OperatorInfo neg;
     static const OperatorInfo mult;
     static const OperatorInfo divide;
-    static const OperatorInfo mod;
     static const OperatorInfo add;
     static const OperatorInfo sub;
     static const OperatorInfo lt;
