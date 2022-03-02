@@ -74,6 +74,8 @@ struct OperatorInfo final
 
     static const std::unordered_map<std::string, OperatorInfo> fromStr;
 
+    static const std::unordered_set<std::string> relOps;
+
     Type enumVal;
     std::string str;
     U32 precedence;

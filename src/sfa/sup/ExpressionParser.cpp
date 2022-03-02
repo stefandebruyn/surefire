@@ -14,6 +14,8 @@ namespace ExpressionParser
                             std::stack<std::shared_ptr<Parse>>& kNodes,
                             ConfigErrorInfo* kConfigErr);
 
+    void expandDoubleInequalities(std::shared_ptr<Parse> kParse);
+
     Result parseImpl(TokenIterator& kIt,
                      std::shared_ptr<Parse>& kParse,
                      ConfigErrorInfo* kConfigErr);
@@ -73,11 +75,46 @@ Result ExpressionParser::popSubexpression(
     }
 
     // Push operation onto expression.
-    kNodes.push(std::shared_ptr<Parse>(new Parse{op, left, right}));
+    kNodes.push(std::shared_ptr<Parse>(new Parse{op, left, right, false}));
 
     return SUCCESS;
 }
 
+void ExpressionParser::expandDoubleInequalities(std::shared_ptr<Parse> kNode)
+{
+    // Base case: we've fallen off the expression tree.
+    if (kNode == nullptr)
+    {
+        return;
+    }
+
+    if ((kNode->left != nullptr) && (kNode->right != nullptr))
+    {
+        if (OperatorInfo::relOps.find(kNode->data.str)
+            != OperatorInfo::relOps.end())
+        {
+            // If this node contains a relational operator and the left node
+            // does as well, this is a double inequality. It's impossible for
+            // the right node to contain a relational operator since the ones
+            // used in double inequalities have the same precedence and are
+            // right-associative.
+            if (OperatorInfo::relOps.find(kNode->left->data.str)
+                != OperatorInfo::relOps.end())
+            {
+                // Node is the right operator in a double inequality.
+                kNode->right.reset(new Parse{kNode->data,
+                                             kNode->left->right,
+                                             kNode->right,
+                                             false});
+                kNode->data = {Token::OPERATOR, "AND", -1, -1};
+            }
+        }
+    }
+
+    // Recurse into left and right subtrees.
+    expandDoubleInequalities(kNode->left);
+    expandDoubleInequalities(kNode->right);
+}
 
 Result ExpressionParser::parseImpl(TokenIterator& kIt,
                                    std::shared_ptr<Parse>& kParse,
@@ -123,8 +160,8 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
             else
             {
                 // Token is a variable or constant.
-                nodes.push(
-                    std::shared_ptr<Parse>(new Parse{tok, nullptr, nullptr}));
+                nodes.push(std::shared_ptr<Parse>(
+                    new Parse{tok, nullptr, nullptr, false}));
             }
         }
         else if (tok.type == Token::OPERATOR)
@@ -145,7 +182,17 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
                 auto lastOpInfoIt = OperatorInfo::fromStr.find(tokLast.str);
                 const OperatorInfo& lastOpInfo = (*lastOpInfoIt).second;
 
-                if (lastOpInfo.precedence >= opInfo.precedence)
+                // Determine whether to process the subexpression currently on
+                // the stack based on the precedence and associativity of this
+                // operator and the last. Unary operators are left-associative,
+                // and all others are right-associative.
+                const bool leftAssoc = (lastOpInfo.unary && opInfo.unary);
+                const bool pop =
+                    (leftAssoc
+                     ? (lastOpInfo.precedence > opInfo.precedence)
+                     : (lastOpInfo.precedence >= opInfo.precedence));
+
+                if (pop)
                 {
                     // This operator is lower precedence than the last one; add
                     // last operator subexpression onto the expression tree.
@@ -174,7 +221,7 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
             // subexpression.
 
             // Process subexpression on stack.
-            while (!stack.empty() && (stack.top().type != Token::LPAREN))
+            while (stack.top().type != Token::LPAREN)
             {
                 const Result res = popSubexpression(stack, nodes, kConfigErr);
                 if (res != SUCCESS)
@@ -183,12 +230,9 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
                 }
             }
 
-            if (!stack.empty())
-            {
-                // Pop left parenthese.
-                SFA_ASSERT(stack.top().type == Token::LPAREN);
-                stack.pop();
-            }
+            // Pop left parenthese.
+            SFA_ASSERT(stack.top().type == Token::LPAREN);
+            stack.pop();
         }
     }
 
@@ -220,6 +264,9 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
     // If we got this far, successfully parsed the expression. Move root node
     // into return pointer.
     kParse = nodes.top();
+
+    // Expand any double inequalities in the expression.
+    expandDoubleInequalities(kParse);
 
     return SUCCESS;
 }

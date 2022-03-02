@@ -1,11 +1,47 @@
 #include "sfa/sup/ExpressionParser.hpp"
 #include "sfa/utest/UTest.hpp"
 
+// rm later
+#include <iostream>
+void printExpr(std::shared_ptr<ExpressionParser::Parse> k, int lvl)
+{
+    if (k == nullptr)
+    {
+        return;
+    }
+
+    for (int i = 0; i < lvl; ++i)
+    {
+        std::cout << "    ";
+    }
+
+    std::cout << k->data.str << std::endl;
+    printExpr(k->left, lvl + 1);
+    printExpr(k->right, lvl + 1);
+}
+
 #define TOKENIZE(kSrc)                                                         \
     std::stringstream ss(kSrc);                                                \
     std::vector<Token> toks;                                                   \
     CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toks, nullptr));               \
     TokenIterator it(toks.begin(), toks.end());
+
+void checkParsesEqual(const std::shared_ptr<ExpressionParser::Parse> kNodeA,
+                      const std::shared_ptr<ExpressionParser::Parse> kNodeB)
+{
+    CHECK_EQUAL((kNodeA == nullptr), (kNodeB == nullptr));
+
+    if (kNodeA == nullptr)
+    {
+        return;
+    }
+
+    CHECK_EQUAL(kNodeA->data.type, kNodeB->data.type);
+    CHECK_EQUAL(kNodeA->data.str, kNodeB->data.str);
+
+    checkParsesEqual(kNodeA->left, kNodeB->left);
+    checkParsesEqual(kNodeA->right, kNodeB->right);
+}
 
 TEST_GROUP(ExpressionParser)
 {
@@ -105,7 +141,7 @@ TEST(ExpressionParser, SimplePrecedenceWithParens)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, EqualPrecedence)
+TEST(ExpressionParser, BinaryOperatorLeftAssociativity)
 {
     //       +
     //      / \
@@ -474,6 +510,169 @@ TEST(ExpressionParser, ExtraParenthesesOnOneTerm)
     CHECK_TRUE(parse->data == toks[3]);
     CHECK_TRUE(parse->left == nullptr);
     CHECK_TRUE(parse->right == nullptr);
+}
+
+TEST(ExpressionParser, UnaryOperatorRightAssociativity)
+{
+    // NOT
+    //  \
+    //   NOT
+    //    \
+    //     a
+    TOKENIZE("NOT NOT a");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // NOT
+    node = parse;
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->left == nullptr);
+
+    // NOT a
+    node = parse->right;
+    CHECK_TRUE(node->data == toks[1]);
+    CHECK_TRUE(node->left == nullptr);
+
+    node = parse->right->right;
+    CHECK_TRUE(node->data == toks[2]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, ParenthesesAfterBinaryOperator)
+{
+    //   +
+    //  / \
+    // 1   +
+    //    / \
+    //   2   3
+    TOKENIZE("1 + (2 + 3)");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // 1 +
+    node = parse->left;
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    node = parse;
+    CHECK_TRUE(node->data == toks[1]);
+
+    // 2 + 3
+    node = parse->right->left;
+    CHECK_TRUE(node->data == toks[3]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    node = parse->right;
+    CHECK_TRUE(node->data == toks[4]);
+
+    node = parse->right->right;
+    CHECK_TRUE(node->data == toks[5]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, ParenthesesAfterUnaryOperator)
+{
+    // NOT
+    //  \
+    //   AND
+    //  / \
+    // a   b
+    TOKENIZE("NOT (a AND b)");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // NOT
+    node = parse;
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->left == nullptr);
+
+    // a AND b
+    node = parse->right->left;
+    CHECK_TRUE(node->data == toks[2]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    node = parse->right;
+    CHECK_TRUE(node->data == toks[3]);
+
+    node = parse->right->right;
+    CHECK_TRUE(node->data == toks[4]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, ExpandDoubleInequalityLtLte)
+{
+    TOKENIZE("a < b <= c");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> parseExpect;
+    {
+        TOKENIZE("a < b AND b <= c");
+        parseExpect = parse;
+    }
+
+    checkParsesEqual(parseExpect, parse);
+}
+
+TEST(ExpressionParser, ExpandDoubleInequalityGtGte)
+{
+    TOKENIZE("a > b >= c");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> parseExpect;
+    {
+        TOKENIZE("a > b AND b >= c");
+        parseExpect = parse;
+    }
+
+    checkParsesEqual(parseExpect, parse);
+}
+
+TEST(ExpressionParser, ExpandTripleInequality)
+{
+    TOKENIZE("a < b < c < d");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> parseExpect;
+    {
+        TOKENIZE("a < b AND b < c AND c < d");
+        std::shared_ptr<ExpressionParser::Parse> parse;
+        CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+        parseExpect = parse;
+    }
+
+    checkParsesEqual(parseExpect, parse);
+}
+
+TEST(ExpressionParser, ExpandDoubleInequalityNestedExpression)
+{
+    TOKENIZE("a + b < c + d < e + f");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> parseExpect;
+    {
+        TOKENIZE("a + b < c + d AND c + d < e + f");
+        std::shared_ptr<ExpressionParser::Parse> parse;
+        CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+        parseExpect = parse;
+    }
+
+    checkParsesEqual(parseExpect, parse);
 }
 
 TEST(ExpressionParser, ErrorNoTokens)

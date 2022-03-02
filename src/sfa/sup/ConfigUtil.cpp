@@ -90,6 +90,9 @@ const std::unordered_map<std::string, OperatorInfo> OperatorInfo::fromStr =
     {lor.str, lor}
 };
 
+const std::unordered_set<std::string> OperatorInfo::relOps =
+    {lt.str, lte.str, gt.str, gte.str};
+
 const std::unordered_set<std::string> ConfigUtil::reserved =
 {
     "STATE_VECTOR",

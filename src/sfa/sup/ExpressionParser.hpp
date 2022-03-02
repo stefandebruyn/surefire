@@ -14,6 +14,7 @@ namespace ExpressionParser
         Token data;
         std::shared_ptr<Parse> left;
         std::shared_ptr<Parse> right;
+        bool func;
     };
 
     Result parse(TokenIterator& kIt,
