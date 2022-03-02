@@ -481,6 +481,7 @@ TEST(ExpressionParser, ErrorNoTokens)
     TOKENIZE("");
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_EMPTY, ExpressionParser::parse(it, parse, nullptr));
+    CHECK_TRUE(parse.get() == nullptr);
 }
 
 TEST(ExpressionParser, ErrorTooManyLeftParentheses)
@@ -488,6 +489,7 @@ TEST(ExpressionParser, ErrorTooManyLeftParentheses)
     TOKENIZE("((a + b) * c");
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_PAREN, ExpressionParser::parse(it, parse, nullptr));
+    CHECK_TRUE(parse.get() == nullptr);
 }
 
 TEST(ExpressionParser, ErrorTooManyRightParentheses)
@@ -495,6 +497,7 @@ TEST(ExpressionParser, ErrorTooManyRightParentheses)
     TOKENIZE("(a + b) * c)");
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_PAREN, ExpressionParser::parse(it, parse, nullptr));
+    CHECK_TRUE(parse.get() == nullptr);
 }
 
 TEST(ExpressionParser, ErrorUnknownOperator)
@@ -503,6 +506,7 @@ TEST(ExpressionParser, ErrorUnknownOperator)
     toks[1].str = "foo";
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_OP, ExpressionParser::parse(it, parse, nullptr));
+    CHECK_TRUE(parse.get() == nullptr);
 }
 
 TEST(ExpressionParser, ErrorUnexpectedToken)
@@ -510,6 +514,7 @@ TEST(ExpressionParser, ErrorUnexpectedToken)
     TOKENIZE("a + b @foo");
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_TOK, ExpressionParser::parse(it, parse, nullptr));
+    CHECK_TRUE(parse.get() == nullptr);
 }
 
 TEST(ExpressionParser, ErrorNoTermsInExpression)
@@ -517,6 +522,7 @@ TEST(ExpressionParser, ErrorNoTermsInExpression)
     TOKENIZE("()");
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_EMPTY, ExpressionParser::parse(it, parse, nullptr));
+    CHECK_TRUE(parse.get() == nullptr);
 }
 
 TEST(ExpressionParser, ErrorSyntaxMissingOperator)
@@ -524,6 +530,7 @@ TEST(ExpressionParser, ErrorSyntaxMissingOperator)
     TOKENIZE("a b");
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_SYNTAX, ExpressionParser::parse(it, parse, nullptr));
+    CHECK_TRUE(parse.get() == nullptr);
 }
 
 TEST(ExpressionParser, ErrorSyntaxBinaryOperatorMissingLhs)
@@ -531,6 +538,7 @@ TEST(ExpressionParser, ErrorSyntaxBinaryOperatorMissingLhs)
     TOKENIZE("+ a");
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_SYNTAX, ExpressionParser::parse(it, parse, nullptr));
+    CHECK_TRUE(parse.get() == nullptr);
 }
 
 TEST(ExpressionParser, ErrorSyntaxBinaryOperatorMissingRhs)
@@ -538,6 +546,7 @@ TEST(ExpressionParser, ErrorSyntaxBinaryOperatorMissingRhs)
     TOKENIZE("a +");
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_SYNTAX, ExpressionParser::parse(it, parse, nullptr));
+    CHECK_TRUE(parse.get() == nullptr);
 }
 
 TEST(ExpressionParser, ErrorSyntaxUnaryOperatorMissingRhs)
@@ -545,6 +554,7 @@ TEST(ExpressionParser, ErrorSyntaxUnaryOperatorMissingRhs)
     TOKENIZE("a NOT");
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_SYNTAX, ExpressionParser::parse(it, parse, nullptr));
+    CHECK_TRUE(parse.get() == nullptr);
 }
 
 TEST(ExpressionParser, ErrorSyntaxAdjacentBinaryOperators)
@@ -552,4 +562,5 @@ TEST(ExpressionParser, ErrorSyntaxAdjacentBinaryOperators)
     TOKENIZE("a + + b");
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_SYNTAX, ExpressionParser::parse(it, parse, nullptr));
+    CHECK_TRUE(parse.get() == nullptr);
 }

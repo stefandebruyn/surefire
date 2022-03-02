@@ -10,10 +10,74 @@ namespace ExpressionParser
 {
     const char* const errText = "expression error";
 
+    Result popSubexpression(std::stack<Token>& kStack,
+                            std::stack<std::shared_ptr<Parse>>& kNodes,
+                            ConfigErrorInfo* kConfigErr);
+
     Result parseImpl(TokenIterator& kIt,
                      std::shared_ptr<Parse>& kParse,
                      ConfigErrorInfo* kConfigErr);
 }
+
+Result ExpressionParser::popSubexpression(
+    std::stack<Token>& kStack,
+    std::stack<std::shared_ptr<Parse>>& kNodes,
+    ConfigErrorInfo* kConfigErr)
+{
+    // Pop operator off stack.
+    const Token& op = kStack.top();
+    kStack.pop();
+    if (op.type != Token::OPERATOR)
+    {
+        // Expected an operator.
+        ConfigUtil::setError(kConfigErr, op, errText, "invalid syntax");
+        return E_EXP_SYNTAX;
+    }
+
+    // Look up operator info.
+    auto opInfoIt = OperatorInfo::fromStr.find(op.str);
+    SFA_ASSERT(opInfoIt != OperatorInfo::fromStr.end());
+    const OperatorInfo& opInfo = (*opInfoIt).second;
+
+    // Pop RHS from stack.
+    if (kNodes.empty())
+    {
+        // Expected an RHS.
+        ConfigUtil::setError(kConfigErr, op, errText, "invalid syntax");
+        return E_EXP_SYNTAX;
+    }
+    const std::shared_ptr<Parse> right = kNodes.top();
+    kNodes.pop();
+
+    // Check that RHS comes before the operator in the expression.
+    if ((right->data.lineNum < op.lineNum) || (right->data.colNum < op.colNum))
+    {
+        // "RHS" is actually to the left of the operator. This
+        // usually indicates a syntax error with a unary operator.
+        ConfigUtil::setError(kConfigErr, op, errText, "invalid syntax");
+        return E_EXP_SYNTAX;
+    }
+
+    std::shared_ptr<Parse> left;
+    if (!opInfo.unary)
+    {
+        // Pop LHS from stack.
+        if (kNodes.empty())
+        {
+            // Expected an LHS.
+            ConfigUtil::setError(kConfigErr, op, errText, "invalid syntax");
+            return E_EXP_SYNTAX;
+        }
+        left = kNodes.top();
+        kNodes.pop();
+    }
+
+    // Push operation onto expression.
+    kNodes.push(std::shared_ptr<Parse>(new Parse{op, left, right}));
+
+    return SUCCESS;
+}
+
 
 Result ExpressionParser::parseImpl(TokenIterator& kIt,
                                    std::shared_ptr<Parse>& kParse,
@@ -84,41 +148,14 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
                 if (lastOpInfo.precedence >= opInfo.precedence)
                 {
                     // This operator is lower precedence than the last one; add
-                    // last one onto the expression tree.
-
-                    // Pop operator off stack.
-                    const Token& op = stack.top();
-                    stack.pop();
-
-                    // Pop RHS off stack.
-                    if (nodes.empty())
+                    // last operator subexpression onto the expression tree.
+                    const Result res = popSubexpression(stack,
+                                                        nodes,
+                                                        kConfigErr);
+                    if (res != SUCCESS)
                     {
-                        // Expected an RHS.
-                        ConfigUtil::setError(kConfigErr, op, errText,
-                                             "invalid syntax");
-                        return E_EXP_SYNTAX;
+                        return res;
                     }
-                    const std::shared_ptr<Parse> right = nodes.top();
-                    nodes.pop();
-
-                    std::shared_ptr<Parse> left;
-                    if (!opInfo.unary)
-                    {
-                        // Pop LHS off stack.
-                        if (nodes.empty())
-                        {
-                            // Expected an LHS.
-                            ConfigUtil::setError(kConfigErr, op, errText,
-                                                 "invalid syntax");
-                            return E_EXP_SYNTAX;
-                        }
-                        left = nodes.top();
-                        nodes.pop();
-                    }
-
-                    // Push operation onto expression.
-                    nodes.push(
-                        std::shared_ptr<Parse>(new Parse{op, left, right}));
                 }
                 else
                 {
@@ -128,6 +165,7 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
                 }
             }
 
+            // Push operator onto stack.
             stack.push(tok);
         }
         else
@@ -138,64 +176,17 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
             // Process subexpression on stack.
             while (!stack.empty() && (stack.top().type != Token::LPAREN))
             {
-                // Pop operator off stack.
-                const Token& op = stack.top();
-                stack.pop();
-                if (op.type != Token::OPERATOR)
+                const Result res = popSubexpression(stack, nodes, kConfigErr);
+                if (res != SUCCESS)
                 {
-                    // Expected an operator.
-                    ConfigUtil::setError(kConfigErr, op, errText,
-                                         "invalid syntax");
-                    return E_EXP_SYNTAX;
+                    return res;
                 }
-
-                // Look up operator info.
-                auto opInfoIt = OperatorInfo::fromStr.find(op.str);
-                const OperatorInfo& opInfo = (*opInfoIt).second;
-
-                // Pop RHS from stack.
-                if (nodes.empty())
-                {
-                    // Expected an RHS.
-                    ConfigUtil::setError(kConfigErr, op, errText,
-                                         "invalid syntax");
-                    return E_EXP_SYNTAX;
-                }
-                const std::shared_ptr<Parse> right = nodes.top();
-                nodes.pop();
-
-                // Check that RHS comes before the operator in the expression.
-                if ((right->data.lineNum < op.lineNum)
-                    || (right->data.colNum < op.colNum))
-                {
-                    // "RHS" is actually to the left of the operator. This
-                    // usually indicates a syntax error with a unary operator.
-                    ConfigUtil::setError(kConfigErr, op, errText,
-                                         "invalid syntax");
-                    return E_EXP_SYNTAX;
-                }
-
-                std::shared_ptr<Parse> left;
-                if (!opInfo.unary)
-                {
-                    // Pop LHS from stack.
-                    if (nodes.empty())
-                    {
-                        // Expected an LHS.
-                        ConfigUtil::setError(kConfigErr, op, errText,
-                                             "invalid syntax");
-                        return E_EXP_SYNTAX;
-                    }
-                    left = nodes.top();
-                    nodes.pop();
-                }
-
-                // Push operation onto expression.
-                nodes.push(std::shared_ptr<Parse>(new Parse{op, left, right}));
             }
 
             if (!stack.empty())
             {
+                // Pop left parenthese.
+                SFA_ASSERT(stack.top().type == Token::LPAREN);
                 stack.pop();
             }
         }

@@ -104,7 +104,7 @@ TEST(StateMachineParserLocalSection, MultipleElements)
         "[LOCAL]\n"
         "I32 foo = 10\n"
         "F64 bar = 0.0\n"
-        "bool baz = false\n");
+        "BOOL baz = FALSE\n");
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseLocalSection(it, parse, nullptr));
@@ -134,7 +134,7 @@ TEST(StateMachineParserLocalSection, MultipleElementsWithAnnotations)
         "[LOCAL]\n"
         "I32 foo = 10\n"
         "F64 bar = 0.0 @READ_ONLY\n"
-        "bool baz = false @READ_ONLY\n");
+        "BOOL baz = FALSE @READ_ONLY\n");
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseLocalSection(it, parse, nullptr));
@@ -172,7 +172,7 @@ TEST(StateMachineParserLocalSection, AllElementTypes)
         "U64 h = 0\n"
         "F32 i = 0.0\n"
         "F64 j = 0.0\n"
-        "bool k = false\n");
+        "BOOL k = FALSE\n");
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseLocalSection(it, parse, nullptr));
