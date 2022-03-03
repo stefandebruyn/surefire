@@ -6,13 +6,18 @@
 
 /////////////////////////////////// Private ////////////////////////////////////
 
+// Private namespace members.
 namespace ExpressionParser
 {
-    const char* const errText = "expression error";
+    const char* const errText = "error";
 
     Result popSubexpression(std::stack<Token>& kStack,
                             std::stack<std::shared_ptr<Parse>>& kNodes,
                             ConfigErrorInfo* kConfigErr);
+
+    Result parseFunctionCall(TokenIterator kIt,
+                             std::shared_ptr<Parse>& kParse,
+                             ConfigErrorInfo* kConfigErr);
 
     void expandDoubleInequalities(std::shared_ptr<Parse> kParse);
 
@@ -80,9 +85,91 @@ Result ExpressionParser::popSubexpression(
     return SUCCESS;
 }
 
+Result ExpressionParser::parseFunctionCall(TokenIterator kIt,
+                                           std::shared_ptr<Parse>& kParse,
+                                           ConfigErrorInfo* kConfigErr)
+{
+    // Assert that token sequence is an identifier followed by an open
+    // parenthese and ending with a close parenthese.
+    SFA_ASSERT(kIt.size() >= 3);
+    SFA_ASSERT(kIt[0].type == Token::IDENTIFIER);
+    SFA_ASSERT(kIt[1].type == Token::LPAREN);
+    SFA_ASSERT(kIt[kIt.size() - 1].type == Token::RPAREN);
+
+    // Stores iterators for each argument expression in the function call.
+    std::vector<TokenIterator> argExprs;
+    // Parenthese level.
+    U32 lvl = 0;
+    // Start parsing at index 2, the first token after the open parenthese.
+    U32 idxArgStart = 2;
+    kIt.seek(idxArgStart);
+
+    while (!kIt.eof())
+    {
+        if (kIt.type() == Token::LPAREN)
+        {
+            ++lvl;
+        }
+        else if ((kIt.idx() != (kIt.size() - 1))
+                 && (kIt.type() == Token::RPAREN))
+        {
+            --lvl;
+        }
+
+        // If the parenthese level is 0 and the current token is a comma or the
+        // function call closing parenthese, we found the end of an argument
+        // expression.
+        if ((lvl == 0)
+            && ((kIt.type() == Token::COMMA) || (kIt.idx() == kIt.size() - 1)))
+        {
+            // If the function call has arguments and the argument expression
+            // contains 0 tokens, that's a syntax error (e.g., `foo(,)`);
+            const bool emptyArg = ((kIt.idx() - idxArgStart) == 0);
+            if (((idxArgStart != 2) || (kIt.idx() != (kIt.size() - 1)))
+                && emptyArg)
+            {
+                ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
+                                     "invalid syntax");
+                return E_EXP_SYNTAX;
+            }
+
+            if (!emptyArg)
+            {
+                // Slice iterator for parsing the argument expression later.
+                argExprs.push_back(kIt.slice(idxArgStart, kIt.idx()));
+                // Bump starting index of next argument expression to after the
+                // comma.
+                idxArgStart = (kIt.idx() + 1);
+            }
+        }
+
+        kIt.take();
+    }
+
+    // First token in the function call tree contains the function name.
+    kParse.reset(new Parse{kIt[0], nullptr, nullptr, true});
+
+    // Parse argument expressions and chain them down the left subtree of
+    // the function call node. The left child of each argument node is the next
+    // argument, and the right child is the argument expression.
+    std::shared_ptr<Parse> node = kParse;
+    for (TokenIterator& argIt : argExprs)
+    {
+        node->left.reset(new Parse{{}, nullptr, nullptr, false});
+        const Result res = parseImpl(argIt, node->left->right, kConfigErr);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+        node = node->left;
+    }
+
+    return SUCCESS;
+}
+
 void ExpressionParser::expandDoubleInequalities(std::shared_ptr<Parse> kNode)
 {
-    // Base case: we've fallen off the expression tree.
+    // Recursion base case.
     if (kNode == nullptr)
     {
         return;
@@ -93,15 +180,14 @@ void ExpressionParser::expandDoubleInequalities(std::shared_ptr<Parse> kNode)
         if (OperatorInfo::relOps.find(kNode->data.str)
             != OperatorInfo::relOps.end())
         {
-            // If this node contains a relational operator and the left node
-            // does as well, this is a double inequality. It's impossible for
-            // the right node to contain a relational operator since the ones
-            // used in double inequalities have the same precedence and are
+            // If this node and the left node contain a relational operator,
+            // this is a double inequality. It's impossible for the right node
+            // to contain a relational operator since all operators used in
+            // double inequalities have the same precedence and are
             // right-associative.
             if (OperatorInfo::relOps.find(kNode->left->data.str)
                 != OperatorInfo::relOps.end())
             {
-                // Node is the right operator in a double inequality.
                 kNode->right.reset(new Parse{kNode->data,
                                              kNode->left->right,
                                              kNode->right,
@@ -137,7 +223,8 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
     // Operator and operand stack.
     std::stack<Token> stack;
 
-    for (std::size_t i = 0; i < toks.size(); ++i)
+    U32 i = 0;
+    while (i < toks.size())
     {
         const Token& tok = toks[i];
 
@@ -155,7 +242,42 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
                 && (toks[i + 1].type == Token::LPAREN))
             {
                 // Token is a function call.
-                SFA_ASSERT(false);
+
+                // Find index of function closing parenthese.
+                U32 lvl = 0;
+                U32 j = i;
+                for (; j < toks.size(); ++j)
+                {
+                    if (toks[j].type == Token::LPAREN)
+                    {
+                        ++lvl;
+                    }
+                    else if (toks[j].type == Token::RPAREN)
+                    {
+                        --lvl;
+                        if (lvl == 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                // Parse function and push onto tree.
+                std::shared_ptr<Parse> funcNode;
+                TokenIterator funcIt((toks.begin() + i),
+                                     (toks.begin() + j + 1));
+                const Result res = parseFunctionCall(funcIt,
+                                                     funcNode,
+                                                     kConfigErr);
+                if (res != SUCCESS)
+                {
+                    return res;
+                }
+                nodes.push(funcNode);
+
+                // Jump past the function call.
+                i = (j + 1);
+                continue;
             }
             else
             {
@@ -234,6 +356,8 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
             SFA_ASSERT(stack.top().type == Token::LPAREN);
             stack.pop();
         }
+
+        ++i;
     }
 
     // Check that stack is empty.
@@ -254,8 +378,6 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
     // Check that there is exactly 1 node on the stack (root node).
     if (nodes.size() != 1)
     {
-        // Expression contains some kind of invalid syntax, probably a missing
-        // operator.
         ConfigUtil::setError(kConfigErr, nodes.top()->data, errText,
                              "invalid syntax");
         return E_EXP_SYNTAX;
@@ -288,26 +410,28 @@ Result ExpressionParser::parse(TokenIterator& kIt,
 
     // Check that parentheses are balanced.
     I32 lvl = 0;
-    const Token* tokLastParen = nullptr;
+    const Token* tokLastLvl0Paren = nullptr;
     while (!kIt.eof())
     {
         const Token& tok = kIt.take();
         if (tok.type == Token::LPAREN)
         {
-            // Save parenthese token in case we need it for an error message.
-            tokLastParen = &tok;
+            if (lvl == 0)
+            {
+                // Save parenthese token in case we need it for an error
+                // message.
+                tokLastLvl0Paren = &tok;
+            }
             ++lvl;
         }
         else if (tok.type == Token::RPAREN)
         {
-            // Save parenthese token in case we need it for an error message.
-            tokLastParen = &tok;
             --lvl;
 
             if (lvl < 0)
             {
                 // Unbalanced parentheses.
-                ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
+                ConfigUtil::setError(kConfigErr, tok, errText,
                                      "unbalanced parenthese");
                 return E_EXP_PAREN;
             }
@@ -317,8 +441,8 @@ Result ExpressionParser::parse(TokenIterator& kIt,
     if (lvl != 0)
     {
         // Unbalanced parentheses.
-        SFA_ASSERT(tokLastParen != nullptr);
-        ConfigUtil::setError(kConfigErr, *tokLastParen, errText,
+        SFA_ASSERT(tokLastLvl0Paren != nullptr);
+        ConfigUtil::setError(kConfigErr, *tokLastLvl0Paren, errText,
                              "unbalanced parenthese");
         return E_EXP_PAREN;
     }
@@ -342,7 +466,7 @@ Result ExpressionParser::parse(TokenIterator& kIt,
     }
 
     // Check that expression contains only identifier, constant, operator,
-    // and parenthese tokens.
+    // parenthese, and comma tokens.
     kIt.seek(0);
     while (!kIt.eof())
     {
@@ -351,7 +475,8 @@ Result ExpressionParser::parse(TokenIterator& kIt,
             && (tok.type != Token::CONSTANT)
             && (tok.type != Token::OPERATOR)
             && (tok.type != Token::LPAREN)
-            && (tok.type != Token::RPAREN))
+            && (tok.type != Token::RPAREN)
+            && (tok.type != Token::COMMA))
         {
             // Unexpected token in expression.
             ConfigUtil::setError(kConfigErr, tok, errText,

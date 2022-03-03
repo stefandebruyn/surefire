@@ -29,7 +29,8 @@ struct Token final
         ANNOTATION = 9,
         COMMENT = 10,
         LBRACE = 11,
-        RBRACE = 12
+        RBRACE = 12,
+        COMMA = 13
     };
 
     static const std::unordered_map<Type, std::string, EnumHash> names;

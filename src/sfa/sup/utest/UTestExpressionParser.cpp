@@ -1,24 +1,7 @@
 #include "sfa/sup/ExpressionParser.hpp"
 #include "sfa/utest/UTest.hpp"
 
-// rm later
-#include <iostream>
-void printExpr(std::shared_ptr<ExpressionParser::Parse> k, int lvl)
-{
-    if (k == nullptr)
-    {
-        return;
-    }
-
-    for (int i = 0; i < lvl; ++i)
-    {
-        std::cout << "    ";
-    }
-
-    std::cout << k->data.str << std::endl;
-    printExpr(k->left, lvl + 1);
-    printExpr(k->right, lvl + 1);
-}
+/////////////////////////////////// Helpers ////////////////////////////////////
 
 #define TOKENIZE(kSrc)                                                         \
     std::stringstream ss(kSrc);                                                \
@@ -26,8 +9,21 @@ void printExpr(std::shared_ptr<ExpressionParser::Parse> k, int lvl)
     CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toks, nullptr));               \
     TokenIterator it(toks.begin(), toks.end());
 
-void checkParsesEqual(const std::shared_ptr<ExpressionParser::Parse> kNodeA,
-                      const std::shared_ptr<ExpressionParser::Parse> kNodeB)
+#define CHECK_ARG_CNT(kFuncNode, kExpectCnt)                                   \
+{                                                                              \
+    U32 cnt = 0;                                                               \
+    std::shared_ptr<ExpressionParser::Parse> _node = kFuncNode;                \
+    while (_node->left)                                                        \
+    {                                                                          \
+        ++cnt;                                                                 \
+        _node = _node->left;                                                   \
+    }                                                                          \
+    CHECK_EQUAL(kExpectCnt, cnt);                                              \
+}
+
+static void checkParsesEqual(
+    const std::shared_ptr<ExpressionParser::Parse> kNodeA,
+    const std::shared_ptr<ExpressionParser::Parse> kNodeB)
 {
     CHECK_EQUAL((kNodeA == nullptr), (kNodeB == nullptr));
 
@@ -42,6 +38,30 @@ void checkParsesEqual(const std::shared_ptr<ExpressionParser::Parse> kNodeA,
     checkParsesEqual(kNodeA->left, kNodeB->left);
     checkParsesEqual(kNodeA->right, kNodeB->right);
 }
+
+static void checkParseError(TokenIterator& kIt,
+                            const Result kRes,
+                            const I32 kLineNum,
+                            const I32 kColNum)
+{
+    // Got expected return code.
+    ConfigErrorInfo err;
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_ERROR(kRes, ExpressionParser::parse(kIt, parse, &err));
+
+    // Line and column numbers of offending token are correctly identified.
+    CHECK_EQUAL(kLineNum, err.lineNum);
+    CHECK_EQUAL(kColNum, err.colNum);
+
+    // An error message was given.
+    CHECK_TRUE(err.text.size() > 0);
+    CHECK_TRUE(err.subtext.size() > 0);
+
+    // Parse was not populated.
+    CHECK_TRUE(parse == nullptr);
+}
+
+//////////////////////////////////// Tests /////////////////////////////////////
 
 TEST_GROUP(ExpressionParser)
 {
@@ -675,28 +695,461 @@ TEST(ExpressionParser, ExpandDoubleInequalityNestedExpression)
     checkParsesEqual(parseExpect, parse);
 }
 
+TEST(ExpressionParser, FunctionCallNoArgs)
+{
+    TOKENIZE("foo()");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // foo
+    node = parse;
+    CHECK_ARG_CNT(node, 0);
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+}
+
+TEST(ExpressionParser, FunctionCallOneArg)
+{
+    //   foo
+    //  /
+    // arg1
+    //  \
+    //   a
+    TOKENIZE("foo(a)");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // foo
+    node = parse;
+    CHECK_ARG_CNT(node, 1);
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // a
+    node = parse->left->right;
+    CHECK_TRUE(node->data == toks[2]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, FunctionCallTwoArgs)
+{
+    //      foo
+    //     /
+    //    arg1
+    //   / \
+    //  /   a
+    // arg2
+    //  \
+    //   b
+    TOKENIZE("foo(a, b)");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // foo
+    node = parse;
+    CHECK_ARG_CNT(node, 2);
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // a
+    node = parse->left->right;
+    CHECK_TRUE(node->data == toks[2]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // b
+    node = parse->left->left->right;
+    CHECK_TRUE(node->data == toks[4]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, FunctionCallThreeArgs)
+{
+    //         foo
+    //        /
+    //       arg1
+    //      / \
+    //     /   a
+    //    arg2
+    //   / \
+    //  /   b
+    // arg3
+    //  \
+    //   c
+    TOKENIZE("foo(a, b, c)");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // foo
+    node = parse;
+    CHECK_ARG_CNT(node, 3);
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // a
+    node = parse->left->right;
+    CHECK_TRUE(node->data == toks[2]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // b
+    node = parse->left->left->right;
+    CHECK_TRUE(node->data == toks[4]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // c
+    node = parse->left->left->left->right;
+    CHECK_TRUE(node->data == toks[6]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, FunctionCallExpressionArg)
+{
+    //   foo
+    //  /
+    // arg1
+    //  \
+    //   +
+    //  / \
+    // a   b
+    TOKENIZE("foo(a + b)");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // foo
+    node = parse;
+    CHECK_ARG_CNT(node, 1);
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // a + b
+    node = parse->left->right->left;
+    CHECK_TRUE(node->data == toks[2]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    node = parse->left->right;
+    CHECK_TRUE(node->data == toks[3]);
+
+    node = parse->left->right->right;
+    CHECK_TRUE(node->data == toks[4]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, FunctionCallTwoExpressionArgs)
+{
+    //        foo
+    //       /
+    //      arg1
+    //     / \
+    //    /   +
+    //   /   / \
+    //  /   a   b
+    // arg2
+    //  \
+    //   OR
+    //  / \
+    // c   d
+    TOKENIZE("foo(a + b, c OR d)");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // foo
+    node = parse;
+    CHECK_ARG_CNT(node, 2);
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // a + b
+    node = parse->left->right->left;
+    CHECK_TRUE(node->data == toks[2]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    node = parse->left->right;
+    CHECK_TRUE(node->data == toks[3]);
+
+    node = parse->left->right->right;
+    CHECK_TRUE(node->data == toks[4]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // c OR d
+    node = parse->left->left->right->left;
+    CHECK_TRUE(node->data == toks[6]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    node = parse->left->left->right;
+    CHECK_TRUE(node->data == toks[7]);
+
+    node = parse->left->left->right->right;
+    CHECK_TRUE(node->data == toks[8]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, FunctionCallParenthesizedExpressionArg)
+{
+    //   foo
+    //  /
+    // arg1
+    //  \
+    //   +
+    //  / \
+    // a   b
+    TOKENIZE("foo((a + b))");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // foo
+    node = parse;
+    CHECK_ARG_CNT(node, 1);
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // a + b
+    node = parse->left->right->left;
+    CHECK_TRUE(node->data == toks[3]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    node = parse->left->right;
+    CHECK_TRUE(node->data == toks[4]);
+
+    node = parse->left->right->right;
+    CHECK_TRUE(node->data == toks[5]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, FunctionCallMultipleParenthesizedExpressionArgs)
+{
+    //        foo
+    //       /
+    //      arg1
+    //     / \
+    //    /   +
+    //   /   / \
+    //  /   a   b
+    // arg2
+    //  \
+    //   OR
+    //  / \
+    // c   d
+    TOKENIZE("foo((a + b), (c OR d))");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // foo
+    node = parse;
+    CHECK_ARG_CNT(node, 2);
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // a + b
+    node = parse->left->right->left;
+    CHECK_TRUE(node->data == toks[3]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    node = parse->left->right;
+    CHECK_TRUE(node->data == toks[4]);
+
+    node = parse->left->right->right;
+    CHECK_TRUE(node->data == toks[5]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // c OR d
+    node = parse->left->left->right->left;
+    CHECK_TRUE(node->data == toks[9]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    node = parse->left->left->right;
+    CHECK_TRUE(node->data == toks[10]);
+
+    node = parse->left->left->right->right;
+    CHECK_TRUE(node->data == toks[11]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, NestedFunctionCall)
+{
+    //   foo
+    //  /
+    // foo-arg1
+    //  \
+    //   bar
+    //  /
+    // bar-arg1
+    //  \
+    //   a
+    TOKENIZE("foo(bar(a))");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // foo
+    node = parse;
+    CHECK_ARG_CNT(node, 1);
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // bar
+    node = parse->left->right;
+    CHECK_ARG_CNT(node, 1);
+    CHECK_TRUE(node->data == toks[2]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // a
+    node = parse->left->right->left->right;
+    CHECK_TRUE(node->data == toks[4]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, MultipleNestedFunctionCalls)
+{
+    //           foo
+    //          /
+    //         foo-arg1
+    //        / \
+    //       /   bar
+    //      /   /
+    //     /   bar-arg1
+    //    /     \
+    //   /       a
+    //  foo-arg2
+    //   \
+    //    baz
+    //   /
+    //  baz-arg1
+    //   \
+    //    b
+    TOKENIZE("foo(bar(a), baz(b))");
+    std::shared_ptr<ExpressionParser::Parse> parse;
+    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+
+    std::shared_ptr<ExpressionParser::Parse> node;
+
+    // foo
+    node = parse;
+    CHECK_ARG_CNT(node, 2);
+    CHECK_TRUE(node->data == toks[0]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // bar
+    node = parse->left->right;
+    CHECK_ARG_CNT(node, 1);
+    CHECK_TRUE(node->data == toks[2]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // a
+    node = parse->left->right->left->right;
+    CHECK_TRUE(node->data == toks[4]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // baz
+    node = parse->left->left->right;
+    CHECK_ARG_CNT(node, 1);
+    CHECK_TRUE(node->data == toks[7]);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(node->func);
+
+    // b
+    node = parse->left->left->right->left->right;
+    CHECK_TRUE(node->data == toks[9]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(ExpressionParser, ErrorFunctionCallLoneComma)
+{
+    TOKENIZE("foo(,)");
+    checkParseError(it, E_EXP_SYNTAX, 1, 5);
+}
+
+TEST(ExpressionParser, ErrorFunctionCallTrailingComma)
+{
+    TOKENIZE("foo(a,)");
+    checkParseError(it, E_EXP_SYNTAX, 1, 7);
+}
+
+TEST(ExpressionParser, ErrorFunctionCallLeadingComma)
+{
+    TOKENIZE("foo(,a)");
+    checkParseError(it, E_EXP_SYNTAX, 1, 5);
+}
+
+TEST(ExpressionParser, ErrorFunctionCallSequentialCommas)
+{
+    TOKENIZE("foo(,,)");
+    checkParseError(it, E_EXP_SYNTAX, 1, 5);
+}
+
+TEST(ExpressionParser, ErrorSyntaxErrorInFunctionCallArgument)
+{
+    TOKENIZE("foo(a +)");
+    checkParseError(it, E_EXP_SYNTAX, 1, 7);
+}
+
 TEST(ExpressionParser, ErrorNoTokens)
 {
     TOKENIZE("");
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_EMPTY, ExpressionParser::parse(it, parse, nullptr));
-    CHECK_TRUE(parse.get() == nullptr);
+    CHECK_TRUE(parse == nullptr);
 }
 
 TEST(ExpressionParser, ErrorTooManyLeftParentheses)
 {
     TOKENIZE("((a + b) * c");
-    std::shared_ptr<ExpressionParser::Parse> parse;
-    CHECK_ERROR(E_EXP_PAREN, ExpressionParser::parse(it, parse, nullptr));
-    CHECK_TRUE(parse.get() == nullptr);
+    checkParseError(it, E_EXP_PAREN, 1, 1);
 }
 
 TEST(ExpressionParser, ErrorTooManyRightParentheses)
 {
     TOKENIZE("(a + b) * c)");
-    std::shared_ptr<ExpressionParser::Parse> parse;
-    CHECK_ERROR(E_EXP_PAREN, ExpressionParser::parse(it, parse, nullptr));
-    CHECK_TRUE(parse.get() == nullptr);
+    checkParseError(it, E_EXP_PAREN, 1, 12);
 }
 
 TEST(ExpressionParser, ErrorUnknownOperator)
@@ -705,61 +1158,47 @@ TEST(ExpressionParser, ErrorUnknownOperator)
     toks[1].str = "foo";
     std::shared_ptr<ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_OP, ExpressionParser::parse(it, parse, nullptr));
-    CHECK_TRUE(parse.get() == nullptr);
+    CHECK_TRUE(parse == nullptr);
 }
 
 TEST(ExpressionParser, ErrorUnexpectedToken)
 {
     TOKENIZE("a + b @foo");
-    std::shared_ptr<ExpressionParser::Parse> parse;
-    CHECK_ERROR(E_EXP_TOK, ExpressionParser::parse(it, parse, nullptr));
-    CHECK_TRUE(parse.get() == nullptr);
+    checkParseError(it, E_EXP_TOK, 1, 7);
 }
 
 TEST(ExpressionParser, ErrorNoTermsInExpression)
 {
     TOKENIZE("()");
-    std::shared_ptr<ExpressionParser::Parse> parse;
-    CHECK_ERROR(E_EXP_EMPTY, ExpressionParser::parse(it, parse, nullptr));
-    CHECK_TRUE(parse.get() == nullptr);
+    checkParseError(it, E_EXP_EMPTY, 1, 1);
 }
 
 TEST(ExpressionParser, ErrorSyntaxMissingOperator)
 {
     TOKENIZE("a b");
-    std::shared_ptr<ExpressionParser::Parse> parse;
-    CHECK_ERROR(E_EXP_SYNTAX, ExpressionParser::parse(it, parse, nullptr));
-    CHECK_TRUE(parse.get() == nullptr);
+    checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
 TEST(ExpressionParser, ErrorSyntaxBinaryOperatorMissingLhs)
 {
     TOKENIZE("+ a");
-    std::shared_ptr<ExpressionParser::Parse> parse;
-    CHECK_ERROR(E_EXP_SYNTAX, ExpressionParser::parse(it, parse, nullptr));
-    CHECK_TRUE(parse.get() == nullptr);
+    checkParseError(it, E_EXP_SYNTAX, 1, 1);
 }
 
 TEST(ExpressionParser, ErrorSyntaxBinaryOperatorMissingRhs)
 {
     TOKENIZE("a +");
-    std::shared_ptr<ExpressionParser::Parse> parse;
-    CHECK_ERROR(E_EXP_SYNTAX, ExpressionParser::parse(it, parse, nullptr));
-    CHECK_TRUE(parse.get() == nullptr);
+    checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
 TEST(ExpressionParser, ErrorSyntaxUnaryOperatorMissingRhs)
 {
     TOKENIZE("a NOT");
-    std::shared_ptr<ExpressionParser::Parse> parse;
-    CHECK_ERROR(E_EXP_SYNTAX, ExpressionParser::parse(it, parse, nullptr));
-    CHECK_TRUE(parse.get() == nullptr);
+    checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
 TEST(ExpressionParser, ErrorSyntaxAdjacentBinaryOperators)
 {
     TOKENIZE("a + + b");
-    std::shared_ptr<ExpressionParser::Parse> parse;
-    CHECK_ERROR(E_EXP_SYNTAX, ExpressionParser::parse(it, parse, nullptr));
-    CHECK_TRUE(parse.get() == nullptr);
+    checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }

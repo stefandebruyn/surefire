@@ -112,7 +112,8 @@ const std::unordered_map<Token::Type, std::string, EnumHash> Token::names =
     {Token::ANNOTATION, "annotation"},
     {Token::COMMENT, "comment"},
     {Token::LBRACE, "left brace"},
-    {Token::RBRACE, "right brace"}
+    {Token::RBRACE, "right brace"},
+    {Token::COMMA, "comma"}
 };
 
 const std::vector<std::pair<Token::Type, std::regex>> Token::regexes =
@@ -129,7 +130,8 @@ const std::vector<std::pair<Token::Type, std::regex>> Token::regexes =
     {Token::RPAREN, std::regex("\\s*(\\))\\s*")},
     {Token::COMMENT, std::regex("\\s*(#.*)\\s*")},
     {Token::LBRACE, std::regex("\\s*(\\{)\\s*")},
-    {Token::RBRACE, std::regex("\\s*(\\})\\s*")}
+    {Token::RBRACE, std::regex("\\s*(\\})\\s*")},
+    {Token::COMMA, std::regex("\\s*(,)\\s*")}
 };
 
 bool Token::operator==(const Token& kOther) const

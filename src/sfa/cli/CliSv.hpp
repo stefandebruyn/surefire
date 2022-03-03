@@ -6,8 +6,6 @@
 #include <string>
 #include <iostream>
 
-#include "sfa/sup/StateVectorParser.hpp"
-
 namespace Cli
 {
     extern const std::string svHelpMsg;
