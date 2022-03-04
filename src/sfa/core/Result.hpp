@@ -72,6 +72,18 @@ enum : Result
     E_SMP_SV_NAME = 332,
     E_SMP_SV_TYPE = 333,
     E_SMP_EOF = 334,
+    E_SMP_LAB = 335,
+    E_SMP_GUARD = 336,
+    E_SMP_BRACE = 337,
+    E_SMP_ELSE = 338,
+    E_SMP_ACT_TOK = 389,
+    E_SMP_ACT_ELEM = 390,
+    E_SMP_ACT_OP = 391,
+    E_SMP_ACT_EXPR = 392,
+    E_SMP_TR_OP = 393,
+    E_SMP_TR_DEST = 394,
+    E_SMP_TR_TOK = 395,
+    E_SMP_TR_JUNK = 396,
 
     // ExpressionParser
     E_EXP_OP = 384,

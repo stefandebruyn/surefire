@@ -43,24 +43,30 @@ Result StateMachineParser::parseAction(TokenIterator kIt,
     {
         kAction->tokRhs = tok;
 
-        // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, tok, errText, kConfigErr))
+        // Check that tokens remain.
+        if (kIt.eof())
         {
-            return E_SMP_EOF;
+            ConfigUtil::setError(kConfigErr, tok, errText,
+                                 "expected assignment after element name");
+            return E_SMP_ACT_ELEM;
         }
 
         // Take assignment operator.
         const Token& tokEq = kIt.take();
         if ((tokEq.type != Token::OPERATOR) || (tokEq.str != "="))
         {
-            // Expected assignment operator.
-            SFA_ASSERT(false);
+            ConfigUtil::setError(kConfigErr, tokEq, errText,
+                                 "expected assignment operator");
+            return E_SMP_ACT_OP;
         }
 
-        // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, tok, errText, kConfigErr))
+        // Check that tokens remain.
+        if (kIt.eof())
         {
-            return E_SMP_EOF;
+            ConfigUtil::setError(
+                kConfigErr, tokEq, errText,
+                "expected expression after assignment operator");
+            return E_SMP_ACT_EXPR;
         }
 
         // Parse expression after assignment operator.
@@ -76,33 +82,44 @@ Result StateMachineParser::parseAction(TokenIterator kIt,
         if (tok.str != "->")
         {
             // Unexpected operator.
-            SFA_ASSERT(false);
+            ConfigUtil::setError(kConfigErr, tok, errText,
+                                 "unexpected operator");
+            return E_SMP_TR_OP;
         }
 
-        // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, tok, errText, kConfigErr))
+        // Check that tokens remain.
+        if (kIt.eof())
         {
-            return E_SMP_EOF;
+            ConfigUtil::setError(kConfigErr, tok, errText,
+                                 "expected destination state after `->`");
+            return E_SMP_TR_DEST;
         }
 
         if (kIt.type() != Token::IDENTIFIER)
         {
             // Unexpected token after transition operator.
-            SFA_ASSERT(false);
+            ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
+                                 "expected destination state after `->`");
+            return E_SMP_TR_TOK;
         }
 
+        // Take destination state token.
         kAction->tokDestState = kIt.take();
 
         if (!kIt.eof())
         {
-            // Unexpected token after transition operator.
-            SFA_ASSERT(false);
+            // Unexpected token after destination state.
+            ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
+                                "unexpected token after transition");
+            return E_SMP_TR_JUNK;
         }
     }
     else
     {
         // Unexpected token in action.
-        SFA_ASSERT(false);
+        ConfigUtil::setError(kConfigErr, tok, errText,
+                             "expected element name or `->`");
+        return E_SMP_ACT_TOK;
     }
 
     return SUCCESS;
@@ -166,10 +183,12 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
                 kIt.take();
             }
 
-            // Check that end of file has not been reached.
-            if (ConfigUtil::checkEof(kIt, kIt[0], errText, kConfigErr))
+            // Check that guard expression contains at least 1 token.
+            if (kIt.idx() >= idxEnd)
             {
-                return E_SMP_EOF;
+                ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
+                                     "expected guard");
+                return E_SMP_GUARD;
             }
 
             // Parse guard.
@@ -213,7 +232,9 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
                 if (lvl != 0)
                 {
                     // Unbalanced braces.
-                    SFA_ASSERT(false);
+                    ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
+                                         "unbalanced brace");
+                    return E_SMP_BRACE;
                 }
             }
             else
@@ -243,13 +264,7 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
                 // Guard has an else branch.
 
                 // Take else token.
-                const Token& tokElse = kIt.take();
-
-                // Check that end of file has not been reached.
-                if (ConfigUtil::checkEof(kIt, tokElse, errText, kConfigErr))
-                {
-                    return E_SMP_EOF;
-                }
+                kIt.take();
 
                 // Find end index of else branch.
                 U32 idxElseEnd = 0;
@@ -279,22 +294,27 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
                     if (lvl != 0)
                     {
                         // Unbalanced braces.
-                        SFA_ASSERT(false);
+                        ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
+                                            "unbalanced brace");
+                        return E_SMP_BRACE;
                     }
                 }
-                else if (kIt.type() == Token::COLON)
+                else
                 {
                     // Guard is followed by a colon, so find the next newline.
                     idxElseEnd = kIt.next({Token::NEWLINE});
                 }
-                else
-                {
-                    // Unexpected token after else.
-                    SFA_ASSERT(false);
-                }
 
                 // Take left brace or colon following else.
-                kIt.take();
+                const Token& tokAfterElse = kIt.take();
+
+                // Check that else branch contains at least 1 token.
+                if (kIt.idx() >= idxElseEnd)
+                {
+                    ConfigUtil::setError(kConfigErr, tokAfterElse, errText,
+                                         "expected logic after else");
+                    return E_SMP_ELSE;
+                }
 
                 // Parse else branch.
                 res = parseBlock(kIt.slice(kIt.idx(), idxElseEnd),
@@ -344,6 +364,7 @@ Result StateMachineParser::parseState(TokenIterator& kIt,
 {
     // Assert that iterator is currently positioned at a section.
     SFA_ASSERT(kIt.type() == Token::SECTION);
+
     // Take section token.
     kState.tokName = kIt.take();
 
@@ -353,8 +374,12 @@ Result StateMachineParser::parseState(TokenIterator& kIt,
         const Token& tokLab = kIt.take();
         if (tokLab.type != Token::LABEL)
         {
-            // Expected a label.
-            SFA_ASSERT(false);
+            if (kConfigErr != nullptr)
+            {
+                ConfigUtil::setError(kConfigErr, tokLab, errText,
+                                     "expected label");
+            }
+            return E_SMP_LAB;
         }
 
         // End index of label is the next label or section token (or EOF).
@@ -679,6 +704,7 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
     // Assert that iterator is currently positioned at the state vector section.
     SFA_ASSERT((kIt.type() == Token::SECTION)
                && (kIt.str() == "[STATE_VECTOR]"));
+
     // Take section token.
     kIt.take();
 

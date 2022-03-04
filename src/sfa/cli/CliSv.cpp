@@ -1,5 +1,6 @@
 #include "sfa/pal/Console.hpp"
 #include "sfa/cli/CliSv.hpp"
+#include "sfa/sup/StateVectorParser.hpp"
 
 const std::string Cli::svHelpMsg = "usage: sv <state vector config file path>";
 
