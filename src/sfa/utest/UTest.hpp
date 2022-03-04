@@ -27,6 +27,14 @@
 
 #if defined(SFA_UTEST_HAS_SUP)
 
+#define TOKENIZE(kStr)                                                         \
+    std::vector<Token> toks;                                                   \
+    {                                                                          \
+        std::stringstream ss(kStr);                                            \
+        CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toks, nullptr));           \
+    }                                                                          \
+    TokenIterator it(toks.begin(), toks.end());
+
 template<typename T>
 SimpleString StringFrom(const std::vector<T>& kVec)
 {

@@ -1,15 +1,7 @@
-#include <sstream>
-
 #include "sfa/sup/StateMachineParser.hpp"
 #include "sfa/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
-
-#define TOKENIZE(kStr)                                                         \
-    std::stringstream ss(kStr);                                                \
-    std::vector<Token> toks;                                                   \
-    CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toks, nullptr));               \
-    TokenIterator it(toks.begin(), toks.end());
 
 static void checkParseError(TokenIterator &kIt,
                             const Result kRes,
@@ -19,7 +11,7 @@ static void checkParseError(TokenIterator &kIt,
     // Got expected return code from parser.
     ConfigErrorInfo err;
     StateMachineParser::StateParse parse = {};
-    CHECK_ERROR(kRes, StateMachineParser::parseState(kIt, parse, &err));
+    CHECK_ERROR(kRes, StateMachineParser::parseStateSection(kIt, parse, &err));
 
     // Correct line and column numbers of error are identified.
     CHECK_EQUAL(kLineNum, err.lineNum);
@@ -32,11 +24,11 @@ static void checkParseError(TokenIterator &kIt,
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
-TEST_GROUP(StateMachineParserStateErrors)
+TEST_GROUP(StateMachineParserStateSectionErrors)
 {
 };
 
-TEST(StateMachineParserStateErrors, UnexpectedTokenInsteadOfLabel)
+TEST(StateMachineParserStateSectionErrors, UnexpectedTokenInsteadOfLabel)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -45,7 +37,7 @@ TEST(StateMachineParserStateErrors, UnexpectedTokenInsteadOfLabel)
     checkParseError(it, E_SMP_LAB, 2, 1);
 }
 
-TEST(StateMachineParserStateErrors, EmptyGuard)
+TEST(StateMachineParserStateSectionErrors, EmptyGuard)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -54,7 +46,7 @@ TEST(StateMachineParserStateErrors, EmptyGuard)
     checkParseError(it, E_SMP_GUARD, 3, 5);
 }
 
-TEST(StateMachineParserStateErrors, SyntaxErrorInGuard)
+TEST(StateMachineParserStateSectionErrors, SyntaxErrorInGuard)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -63,7 +55,7 @@ TEST(StateMachineParserStateErrors, SyntaxErrorInGuard)
     checkParseError(it, E_EXP_SYNTAX, 3, 7);
 }
 
-TEST(StateMachineParserStateErrors, UnclosedLeftBrace)
+TEST(StateMachineParserStateSectionErrors, UnclosedLeftBrace)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -72,7 +64,7 @@ TEST(StateMachineParserStateErrors, UnclosedLeftBrace)
     checkParseError(it, E_SMP_BRACE, 3, 7);
 }
 
-TEST(StateMachineParserStateErrors, ErrorInIfBranch)
+TEST(StateMachineParserStateSectionErrors, ErrorInIfBranch)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -83,7 +75,7 @@ TEST(StateMachineParserStateErrors, ErrorInIfBranch)
     checkParseError(it, E_EXP_SYNTAX, 4, 11);
 }
 
-TEST(StateMachineParserStateErrors, ErrorInElseBranch)
+TEST(StateMachineParserStateSectionErrors, ErrorInElseBranch)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -95,7 +87,7 @@ TEST(StateMachineParserStateErrors, ErrorInElseBranch)
     checkParseError(it, E_EXP_SYNTAX, 5, 11);
 }
 
-TEST(StateMachineParserStateErrors, NothingAfterElse)
+TEST(StateMachineParserStateSectionErrors, NothingAfterElse)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -105,7 +97,7 @@ TEST(StateMachineParserStateErrors, NothingAfterElse)
     checkParseError(it, E_SMP_ELSE, 4, 9);
 }
 
-TEST(StateMachineParserStateErrors, NothingAfterElementName)
+TEST(StateMachineParserStateSectionErrors, NothingAfterElementName)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -114,7 +106,7 @@ TEST(StateMachineParserStateErrors, NothingAfterElementName)
     checkParseError(it, E_SMP_ACT_ELEM, 3, 5);
 }
 
-TEST(StateMachineParserStateErrors, UnexpectedTokenAfterElementName)
+TEST(StateMachineParserStateSectionErrors, UnexpectedTokenAfterElementName)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -123,7 +115,7 @@ TEST(StateMachineParserStateErrors, UnexpectedTokenAfterElementName)
     checkParseError(it, E_SMP_ACT_OP, 3, 7);
 }
 
-TEST(StateMachineParserStateErrors, WrongOperatorAfterElementName)
+TEST(StateMachineParserStateSectionErrors, WrongOperatorAfterElementName)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -132,7 +124,7 @@ TEST(StateMachineParserStateErrors, WrongOperatorAfterElementName)
     checkParseError(it, E_SMP_ACT_OP, 3, 7);
 }
 
-TEST(StateMachineParserStateErrors, NothingAfterAssignmentOperator)
+TEST(StateMachineParserStateSectionErrors, NothingAfterAssignmentOperator)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -141,7 +133,7 @@ TEST(StateMachineParserStateErrors, NothingAfterAssignmentOperator)
     checkParseError(it, E_SMP_ACT_EXPR, 3, 7);
 }
 
-TEST(StateMachineParserStateErrors, SyntaxErrorInAssignmentAction)
+TEST(StateMachineParserStateSectionErrors, SyntaxErrorInAssignmentAction)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -150,7 +142,7 @@ TEST(StateMachineParserStateErrors, SyntaxErrorInAssignmentAction)
     checkParseError(it, E_EXP_SYNTAX, 3, 11);
 }
 
-TEST(StateMachineParserStateErrors, TransitionActionWrongOperator)
+TEST(StateMachineParserStateSectionErrors, TransitionActionWrongOperator)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -159,7 +151,7 @@ TEST(StateMachineParserStateErrors, TransitionActionWrongOperator)
     checkParseError(it, E_SMP_TR_OP, 3, 5);
 }
 
-TEST(StateMachineParserStateErrors, NothingAfterTransitionOperator)
+TEST(StateMachineParserStateSectionErrors, NothingAfterTransitionOperator)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -168,7 +160,8 @@ TEST(StateMachineParserStateErrors, NothingAfterTransitionOperator)
     checkParseError(it, E_SMP_TR_DEST, 3, 5);
 }
 
-TEST(StateMachineParserStateErrors, UnexpectedTokenAfterTransitionOperator)
+TEST(StateMachineParserStateSectionErrors,
+     UnexpectedTokenAfterTransitionOperator)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -177,7 +170,7 @@ TEST(StateMachineParserStateErrors, UnexpectedTokenAfterTransitionOperator)
     checkParseError(it, E_SMP_TR_TOK, 3, 8);
 }
 
-TEST(StateMachineParserStateErrors, ExtraTokenAfterTransition)
+TEST(StateMachineParserStateSectionErrors, ExtraTokenAfterTransition)
 {
     TOKENIZE(
         "[Foo]\n"

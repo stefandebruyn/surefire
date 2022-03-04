@@ -3,12 +3,6 @@
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
-#define TOKENIZE(kSrc)                                                         \
-    std::stringstream ss(kSrc);                                                \
-    std::vector<Token> toks;                                                   \
-    CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toks, nullptr));               \
-    TokenIterator it(toks.begin(), toks.end());
-
 #define CHECK_ARG_CNT(kFuncNode, kExpectCnt)                                   \
 {                                                                              \
     U32 cnt = 0;                                                               \

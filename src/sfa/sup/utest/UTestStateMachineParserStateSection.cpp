@@ -1,23 +1,11 @@
-#include <sstream>
-
 #include "sfa/sup/StateMachineParser.hpp"
 #include "sfa/utest/UTest.hpp"
 
-/////////////////////////////////// Helpers ////////////////////////////////////
-
-#define TOKENIZE(kStr)                                                         \
-    std::stringstream ss(kStr);                                                \
-    std::vector<Token> toks;                                                   \
-    CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toks, nullptr));               \
-    TokenIterator it(toks.begin(), toks.end());
-
-//////////////////////////////////// Tests /////////////////////////////////////
-
-TEST_GROUP(StateMachineParserState)
+TEST_GROUP(StateMachineParserStateSection)
 {
 };
 
-TEST(StateMachineParserState, EntryLabel)
+TEST(StateMachineParserStateSection, EntryLabel)
 {
     // Parse state.
     TOKENIZE(
@@ -25,7 +13,7 @@ TEST(StateMachineParserState, EntryLabel)
         ".ENTRY\n"
         "    a = 10\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -50,7 +38,7 @@ TEST(StateMachineParserState, EntryLabel)
     CHECK_TRUE(parse.entry->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, StepLabel)
+TEST(StateMachineParserStateSection, StepLabel)
 {
     // Parse state.
     TOKENIZE(
@@ -58,7 +46,7 @@ TEST(StateMachineParserState, StepLabel)
         ".STEP\n"
         "    a = 10\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -83,7 +71,7 @@ TEST(StateMachineParserState, StepLabel)
     CHECK_TRUE(parse.step->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, ExitLabel)
+TEST(StateMachineParserStateSection, ExitLabel)
 {
     // Parse state.
     TOKENIZE(
@@ -91,7 +79,7 @@ TEST(StateMachineParserState, ExitLabel)
         ".EXIT\n"
         "    a = 10\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -116,7 +104,7 @@ TEST(StateMachineParserState, ExitLabel)
     CHECK_TRUE(parse.exit->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, MultipleUnguardedActions)
+TEST(StateMachineParserStateSection, MultipleUnguardedActions)
 {
     // Parse state.
     TOKENIZE(
@@ -125,7 +113,7 @@ TEST(StateMachineParserState, MultipleUnguardedActions)
         "    a = 1\n"
         "    b = 2\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -161,7 +149,7 @@ TEST(StateMachineParserState, MultipleUnguardedActions)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, IfAction)
+TEST(StateMachineParserStateSection, IfAction)
 {
     // Parse state.
     TOKENIZE(
@@ -169,7 +157,7 @@ TEST(StateMachineParserState, IfAction)
         ".ENTRY\n"
         "    a == 1: b = 2\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -216,7 +204,7 @@ TEST(StateMachineParserState, IfAction)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, IfActionElseAction)
+TEST(StateMachineParserStateSection, IfActionElseAction)
 {
     // Parse state.
     TOKENIZE(
@@ -225,7 +213,7 @@ TEST(StateMachineParserState, IfActionElseAction)
         "    a == 1: b = 2\n"
         "    ELSE: c = 3\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -284,7 +272,7 @@ TEST(StateMachineParserState, IfActionElseAction)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, IfMultipleActions)
+TEST(StateMachineParserStateSection, IfMultipleActions)
 {
     // Parse state.
     TOKENIZE(
@@ -295,7 +283,7 @@ TEST(StateMachineParserState, IfMultipleActions)
         "        c = 3\n"
         "    }\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -354,7 +342,7 @@ TEST(StateMachineParserState, IfMultipleActions)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, IfMultipleActionsElseAction)
+TEST(StateMachineParserStateSection, IfMultipleActionsElseAction)
 {
     // Parse state.
     TOKENIZE(
@@ -366,7 +354,7 @@ TEST(StateMachineParserState, IfMultipleActionsElseAction)
         "    }\n"
         "    ELSE: d = 4\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -437,7 +425,7 @@ TEST(StateMachineParserState, IfMultipleActionsElseAction)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, IfMultipleActionsElseMultipleActions)
+TEST(StateMachineParserStateSection, IfMultipleActionsElseMultipleActions)
 {
     // Parse state.
     TOKENIZE(
@@ -452,7 +440,7 @@ TEST(StateMachineParserState, IfMultipleActionsElseMultipleActions)
         "        e = 5\n"
         "    }\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -535,7 +523,7 @@ TEST(StateMachineParserState, IfMultipleActionsElseMultipleActions)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, NestedColonGuards)
+TEST(StateMachineParserStateSection, NestedColonGuards)
 {
     // Parse state.
     TOKENIZE(
@@ -543,7 +531,7 @@ TEST(StateMachineParserState, NestedColonGuards)
         ".ENTRY\n"
         "    a == 1: b == 2: c = 3\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -613,7 +601,7 @@ TEST(StateMachineParserState, NestedColonGuards)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, NestedBraceGuards)
+TEST(StateMachineParserStateSection, NestedBraceGuards)
 {
     // Parse state.
     TOKENIZE(
@@ -625,7 +613,7 @@ TEST(StateMachineParserState, NestedBraceGuards)
         "        }\n"
         "    }\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -695,7 +683,7 @@ TEST(StateMachineParserState, NestedBraceGuards)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, ColonGuardFollowedByAction)
+TEST(StateMachineParserStateSection, ColonGuardFollowedByAction)
 {
     // Parse state.
     TOKENIZE(
@@ -704,7 +692,7 @@ TEST(StateMachineParserState, ColonGuardFollowedByAction)
         "    a == 1: b = 2\n"
         "    c = 3\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -763,7 +751,7 @@ TEST(StateMachineParserState, ColonGuardFollowedByAction)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, BraceGuardFollowedByAction)
+TEST(StateMachineParserStateSection, BraceGuardFollowedByAction)
 {
     // Parse state.
     TOKENIZE(
@@ -772,7 +760,7 @@ TEST(StateMachineParserState, BraceGuardFollowedByAction)
         "    a == 1 { b = 2 }\n"
         "    c = 3\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -831,7 +819,7 @@ TEST(StateMachineParserState, BraceGuardFollowedByAction)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, NewlineAgnosticExceptForGuardsAndActions)
+TEST(StateMachineParserStateSection, NewlineAgnosticExceptForGuardsAndActions)
 {
     // Parse state.
     TOKENIZE(
@@ -840,7 +828,7 @@ TEST(StateMachineParserState, NewlineAgnosticExceptForGuardsAndActions)
         "a == 1\n\n{\n\nb = 2\n}\n\n"
         "c = 3\n\n\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -899,7 +887,7 @@ TEST(StateMachineParserState, NewlineAgnosticExceptForGuardsAndActions)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, ActionInEveryLabel)
+TEST(StateMachineParserStateSection, ActionInEveryLabel)
 {
     // Parse state.
     TOKENIZE(
@@ -911,7 +899,7 @@ TEST(StateMachineParserState, ActionInEveryLabel)
         ".EXIT\n"
         "    c = 3\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -959,12 +947,12 @@ TEST(StateMachineParserState, ActionInEveryLabel)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
-TEST(StateMachineParserState, EmptyState)
+TEST(StateMachineParserStateSection, EmptyState)
 {
     // Parse state.
     TOKENIZE("[Foo]");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.
@@ -976,7 +964,7 @@ TEST(StateMachineParserState, EmptyState)
     CHECK_TRUE(parse.exit == nullptr);
 }
 
-TEST(StateMachineParserState, EmptyLabels)
+TEST(StateMachineParserStateSection, EmptyLabels)
 {
     // Parse state.
     TOKENIZE(
@@ -985,7 +973,7 @@ TEST(StateMachineParserState, EmptyLabels)
         ".STEP\n"
         ".EXIT\n");
     StateMachineParser::StateParse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
     // State name was parsed correctly.

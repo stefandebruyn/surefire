@@ -353,9 +353,9 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
     return SUCCESS;
 }
 
-Result StateMachineParser::parseState(TokenIterator& kIt,
-                                      StateParse& kState,
-                                      ConfigErrorInfo* kConfigErr)
+Result StateMachineParser::parseStateSection(TokenIterator& kIt,
+                                             StateParse& kState,
+                                             ConfigErrorInfo* kConfigErr)
 {
     // Assert that iterator is currently positioned at a section.
     SFA_ASSERT(kIt.type() == Token::SECTION);
@@ -471,7 +471,7 @@ Result StateMachineParser::parseImpl(const std::vector<Token>& kToks,
                 {
                     // State section.
                     StateParse state = {};
-                    res = parseState(it, state, kConfigErr);
+                    res = parseStateSection(it, state, kConfigErr);
                     if (res != SUCCESS)
                     {
                         return res;

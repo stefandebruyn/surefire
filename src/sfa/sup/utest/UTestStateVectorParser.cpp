@@ -205,11 +205,11 @@ static void checkParseStateVectorConfig(
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
-TEST_GROUP(StateVectorParserParse)
+TEST_GROUP(StateVectorParser)
 {
 };
 
-TEST(StateVectorParserParse, SimpleConfig)
+TEST(StateVectorParser, SimpleConfig)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -230,7 +230,7 @@ TEST(StateVectorParserParse, SimpleConfig)
         });
 }
 
-TEST(StateVectorParserParse, AllElementTypes)
+TEST(StateVectorParser, AllElementTypes)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -262,7 +262,7 @@ TEST(StateVectorParserParse, AllElementTypes)
         });
 }
 
-TEST(StateVectorParserParse, OneRegionOneElement)
+TEST(StateVectorParser, OneRegionOneElement)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -271,7 +271,7 @@ TEST(StateVectorParserParse, OneRegionOneElement)
     checkParseStateVectorConfig(ss, {{"foo", INT32}}, {{"Foo", 4}});
 }
 
-TEST(StateVectorParserParse, OneLargeRegion)
+TEST(StateVectorParser, OneLargeRegion)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"
@@ -335,7 +335,7 @@ TEST(StateVectorParserParse, OneLargeRegion)
         });
 }
 
-TEST(StateVectorParserParse, NoNewlines)
+TEST(StateVectorParser, NoNewlines)
 {
     std::stringstream ss(
         "[REGION/Foo] I32 foo F64 bar [REGION/Bar] bool baz F32 qux");
@@ -352,7 +352,7 @@ TEST(StateVectorParserParse, NoNewlines)
         });
 }
 
-TEST(StateVectorParserParse, SelectSpecificRegions)
+TEST(StateVectorParser, SelectSpecificRegions)
 {
     std::stringstream ss(
         "[REGION/Foo]\n"

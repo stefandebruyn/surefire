@@ -82,9 +82,9 @@ namespace StateMachineParser
                                    ConfigErrorInfo* kConfigErr);
 
     /// @note PUBLIC FOR TESTING PURPOSES ONLY.
-    Result parseState(TokenIterator& kIt,
-                      StateParse& kState,
-                      ConfigErrorInfo* kConfigErr);
+    Result parseStateSection(TokenIterator& kIt,
+                             StateParse& kState,
+                             ConfigErrorInfo* kConfigErr);
 }
 
 #endif
