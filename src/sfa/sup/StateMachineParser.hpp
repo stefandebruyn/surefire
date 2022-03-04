@@ -58,18 +58,11 @@ namespace StateMachineParser
         std::vector<StateVectorElementParse> svElems;
         std::vector<LocalElementParse> localElems;
         std::vector<StateParse> states;
-        bool hasLocalSection;
         bool hasStateVectorSection;
+        bool hasLocalSection;
     };
 
-    class Config final
-    {
-        // todo
-    };
-
-    Result parse(std::istream& kIs,
-                 Parse& kParse,
-                 ConfigErrorInfo* kConfigErr);
+    Result parse(std::istream& kIs, Parse& kParse, ConfigErrorInfo* kConfigErr);
 
     /// @note PUBLIC FOR TESTING PURPOSES ONLY.
     Result parseLocalSection(TokenIterator& kIt,

@@ -1,0 +1,68 @@
+#include "sfa/sup/StateMachineParser.hpp"
+#include "sfa/utest/UTest.hpp"
+
+/////////////////////////////////// Helpers ////////////////////////////////////
+
+static void checkParseError(std::stringstream& kSs,
+                            const Result kRes,
+                            const I32 kLineNum,
+                            const I32 kColNum)
+{
+    // Got expected return code from parser.
+    StateMachineParser::Parse parse = {};
+    ConfigErrorInfo err;
+    CHECK_ERROR(kRes, StateMachineParser::parse(kSs, parse, &err));
+
+    // Correct line and column numbers of error are identified.
+    CHECK_EQUAL(kLineNum, err.lineNum);
+    CHECK_EQUAL(kColNum, err.colNum);
+
+    // An error message was given.
+    CHECK_TRUE(err.text.size() > 0);
+    CHECK_TRUE(err.subtext.size() > 0);
+
+    // Parse was not populated.
+    CHECK_EQUAL(0, parse.svElems.size());
+    CHECK_EQUAL(0, parse.localElems.size());
+    CHECK_EQUAL(0, parse.states.size());
+    CHECK_TRUE(!parse.hasStateVectorSection);
+    CHECK_TRUE(!parse.hasLocalSection);
+}
+
+//////////////////////////////////// Tests /////////////////////////////////////
+
+TEST_GROUP(StateMachineParserErrors)
+{
+};
+
+TEST(StateMachineParserErrors, UnexpectedToken)
+{
+    std::stringstream ss(
+        "@foo\n"
+        "[Foo]\n");
+    checkParseError(ss, E_SMP_TOK, 1, 1);
+}
+
+TEST(StateMachineParserErrors, ErrorInStateVectorSection)
+{
+    std::stringstream ss(
+        "[STATE_VECTOR]\n"
+        "@foo\n");
+    checkParseError(ss, E_SMP_ELEM_TYPE, 2, 1);
+}
+
+TEST(StateMachineParserErrors, ErrorInLocalSection)
+{
+    std::stringstream ss(
+        "[LOCAL]\n"
+        "@foo\n");
+    checkParseError(ss, E_SMP_ELEM_TYPE, 2, 1);
+}
+
+TEST(StateMachineParserErrors, ErrorInStateSection)
+{
+    std::stringstream ss(
+        "[Foo]\n"
+        "@foo\n");
+    checkParseError(ss, E_SMP_LAB, 2, 1);
+}

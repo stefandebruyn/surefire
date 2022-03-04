@@ -1,5 +1,4 @@
 #include <regex>
-#include <iostream> // rm later
 
 #include "sfa/core/Assert.hpp"
 #include "sfa/sup/StateMachineParser.hpp"
@@ -431,65 +430,6 @@ Result StateMachineParser::parseStateSection(TokenIterator& kIt,
     return SUCCESS;
 }
 
-Result StateMachineParser::parseImpl(const std::vector<Token>& kToks,
-                                     Parse& kParse,
-                                     ConfigErrorInfo* kConfigErr)
-{
-    TokenIterator it(kToks.begin(), kToks.end());
-    Parse parse = {};
-
-    while (!it.eof())
-    {
-        Result res = SUCCESS;
-
-        switch (it.type())
-        {
-            case Token::NEWLINE:
-                it.take();
-                break;
-
-            case Token::SECTION:
-                if (it.str() == "[STATE_VECTOR]")
-                {
-                    // State vector section.
-                    res = parseStateVectorSection(it, parse, kConfigErr);
-                    if (res != SUCCESS)
-                    {
-                        return res;
-                    }
-                }
-                else if (it.str() == "[LOCAL]")
-                {
-                    // Local elements section.
-                    res = parseLocalSection(it, parse, kConfigErr);
-                    if (res != SUCCESS)
-                    {
-                        return res;
-                    }
-                }
-                else
-                {
-                    // State section.
-                    StateParse state = {};
-                    res = parseStateSection(it, state, kConfigErr);
-                    if (res != SUCCESS)
-                    {
-                        return res;
-                    }
-                    parse.states.push_back(state);
-                }
-                break;
-
-            default:
-                // invalid type
-                SFA_ASSERT(false);
-        }
-    }
-
-    kParse = parse;
-    return SUCCESS;
-}
-
 Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
                                              Parse& kParse,
                                              ConfigErrorInfo* kConfigErr)
@@ -717,6 +657,67 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
         kParse.svElems.push_back(elemParse);
     }
 
+    return SUCCESS;
+}
+
+Result StateMachineParser::parseImpl(const std::vector<Token>& kToks,
+                                     Parse& kParse,
+                                     ConfigErrorInfo* kConfigErr)
+{
+    TokenIterator it(kToks.begin(), kToks.end());
+    Parse parse = {};
+
+    while (!it.eof())
+    {
+        Result res = SUCCESS;
+
+        switch (it.type())
+        {
+            case Token::NEWLINE:
+                it.take();
+                break;
+
+            case Token::SECTION:
+                if (it.str() == "[STATE_VECTOR]")
+                {
+                    // State vector section.
+                    res = parseStateVectorSection(it, parse, kConfigErr);
+                    if (res != SUCCESS)
+                    {
+                        return res;
+                    }
+                }
+                else if (it.str() == "[LOCAL]")
+                {
+                    // Local elements section.
+                    res = parseLocalSection(it, parse, kConfigErr);
+                    if (res != SUCCESS)
+                    {
+                        return res;
+                    }
+                }
+                else
+                {
+                    // State section.
+                    StateParse state = {};
+                    res = parseStateSection(it, state, kConfigErr);
+                    if (res != SUCCESS)
+                    {
+                        return res;
+                    }
+                    parse.states.push_back(state);
+                }
+                break;
+
+            default:
+                // Unexpected token.
+                ConfigUtil::setError(kConfigErr, it.tok(), errText,
+                                     "unexpected token");
+                return E_SMP_TOK;
+        }
+    }
+
+    kParse = parse;
     return SUCCESS;
 }
 

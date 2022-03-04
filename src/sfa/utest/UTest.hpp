@@ -30,8 +30,8 @@
 #define TOKENIZE(kStr)                                                         \
     std::vector<Token> toks;                                                   \
     {                                                                          \
-        std::stringstream ss(kStr);                                            \
-        CHECK_SUCCESS(ConfigTokenizer::tokenize(ss, toks, nullptr));           \
+        std::stringstream _ss(kStr);                                           \
+        CHECK_SUCCESS(ConfigTokenizer::tokenize(_ss, toks, nullptr));          \
     }                                                                          \
     TokenIterator it(toks.begin(), toks.end());
 

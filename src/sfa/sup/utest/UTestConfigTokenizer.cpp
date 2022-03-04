@@ -37,11 +37,18 @@ TEST(ConfigTokenizer, TokenEquivalence)
     const Token d = {Token::CONSTANT, "bar", 0, 0};
     const Token e = {Token::CONSTANT, "foo", 1, 0};
     const Token f = {Token::CONSTANT, "foo", 0, 1};
+
     CHECK_TRUE(a == b);
+    CHECK_TRUE(b == a);
+
     CHECK_TRUE(a != c);
     CHECK_TRUE(a != d);
     CHECK_TRUE(a != e);
     CHECK_TRUE(a != f);
+    CHECK_TRUE(c != a);
+    CHECK_TRUE(d != a);
+    CHECK_TRUE(e != a);
+    CHECK_TRUE(f != a);
 }
 
 TEST(ConfigTokenizer, Section)
@@ -127,6 +134,11 @@ TEST(ConfigTokenizer, RightBrace)
     CHECK_TOKEN("}", Token::RBRACE, "}", 1, 1);
 }
 
+TEST(ConfigTokenizer, Comma)
+{
+    CHECK_TOKEN(",", Token::COMMA, ",", 1, 1);
+}
+
 TEST(ConfigTokenizer, EveryToken)
 {
     const std::vector<Token> toksExpect =
@@ -151,7 +163,9 @@ TEST(ConfigTokenizer, EveryToken)
         {Token::RPAREN, ")", 8, 1},
         {Token::COLON, ":", 8, 2},
         {Token::OPERATOR, "AND", 8, 4},
-        {Token::CONSTANT, "123", 8, 8}
+        {Token::CONSTANT, "123", 8, 8},
+        {Token::COMMA, ",", 8, 11},
+        {Token::COMMA, ",", 8, 12},
     };
     CHECK_TOKENS(
         "\n"
@@ -161,7 +175,7 @@ TEST(ConfigTokenizer, EveryToken)
         "# foo\n"
         "    [foo]({@foo\n"
         " .foo   !=FALSE # foo\n"
-        "): AND 123",
+        "): AND 123,,",
         toksExpect);
 }
 
