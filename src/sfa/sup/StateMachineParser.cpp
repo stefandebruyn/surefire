@@ -113,12 +113,21 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
                                       std::shared_ptr<BlockParse>& kBlock,
                                       ConfigErrorInfo* kConfigErr)
 {
-    std::shared_ptr<BlockParse> block(new BlockParse{});
-    const std::shared_ptr<BlockParse> firstBlock = block;
+    std::shared_ptr<BlockParse> block;
+    std::shared_ptr<BlockParse> firstBlock;
     Result res = SUCCESS;
 
     while (!kIt.eof())
     {
+        if (block == nullptr)
+        {
+            // Allocate first block on first iteration of this loop. This causes
+            // an empty label to result in a null block pointer as if the label
+            // wasn't there at all.
+            block.reset(new BlockParse{});
+            firstBlock = block;
+        }
+
         // Find end index of next thing to parse. Which thing it is will depend
         // on what the end token is.
         const U32 idxEnd = kIt.next(
