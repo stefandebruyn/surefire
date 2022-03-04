@@ -831,6 +831,74 @@ TEST(StateMachineParserState, BraceGuardFollowedByAction)
     CHECK_TRUE(block->action->lhs->right == nullptr);
 }
 
+TEST(StateMachineParserState, NewlineAgnosticExceptForGuardsAndActions)
+{
+    // Parse state.
+    TOKENIZE(
+        "[Foo]\n\n"
+        ".ENTRY\n\n"
+        "a == 1\n\n{\n\nb = 2\n}\n\n"
+        "c = 3\n\n\n");
+    StateMachineParser::StateParse parse = {};
+    CHECK_SUCCESS(StateMachineParser::parseState(it, parse, nullptr));
+    CHECK_TRUE(it.eof());
+
+    // State name was parsed correctly.
+    CHECK_EQUAL(toks[0], parse.tokName);
+
+    // Only an entry label was parsed.
+    CHECK_TRUE(parse.entry != nullptr);
+    CHECK_TRUE(parse.step == nullptr);
+    CHECK_TRUE(parse.exit == nullptr);
+
+    // a == 1
+    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    CHECK_TRUE(block->guard != nullptr);
+    CHECK_TRUE(block->ifBlock != nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->action == nullptr);
+    CHECK_TRUE(block->next != nullptr);
+
+    std::shared_ptr<ExpressionParser::Parse> node = block->guard;
+    CHECK_EQUAL(toks[7], node->data);
+    CHECK_TRUE(node->left != nullptr);
+    CHECK_TRUE(node->right != nullptr);
+
+    node = block->guard->left;
+    CHECK_EQUAL(toks[6], node->data);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    node = block->guard->right;
+    CHECK_EQUAL(toks[8], node->data);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // b = 2
+    block = parse.entry->ifBlock;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->action != nullptr);
+    CHECK_TRUE(block->next == nullptr);
+    CHECK_EQUAL(toks[14], block->action->tokRhs);
+    CHECK_EQUAL(toks[16], block->action->lhs->data);
+    CHECK_TRUE(block->action->lhs->left == nullptr);
+    CHECK_TRUE(block->action->lhs->right == nullptr);
+
+    // c = 2
+    block = parse.entry->next;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->action != nullptr);
+    CHECK_TRUE(block->next == nullptr);
+    CHECK_EQUAL(toks[21], block->action->tokRhs);
+    CHECK_EQUAL(toks[23], block->action->lhs->data);
+    CHECK_TRUE(block->action->lhs->left == nullptr);
+    CHECK_TRUE(block->action->lhs->right == nullptr);
+}
+
 TEST(StateMachineParserState, ActionInEveryLabel)
 {
     // Parse state.

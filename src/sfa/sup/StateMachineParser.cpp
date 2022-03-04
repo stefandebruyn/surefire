@@ -102,7 +102,6 @@ Result StateMachineParser::parseAction(TokenIterator kIt,
     else
     {
         // Unexpected token in action.
-        std::cout << tok << std::endl;
         SFA_ASSERT(false);
     }
 
@@ -130,25 +129,34 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
 
         // Find end index of next thing to parse. Which thing it is will depend
         // on what the end token is.
-        const U32 idxEnd = kIt.next(
-            {Token::COLON, Token::LBRACE, Token::NEWLINE});
+        U32 idxEnd = kIt.next({Token::COLON, Token::LBRACE, Token::NEWLINE});
 
+        // Determine if the next thing is a guard.
+        bool isGuard = false;
         if ((idxEnd == kIt.size()) || (kIt[idxEnd].type == Token::NEWLINE))
         {
-            // Parse unguarded action.
-            res = parseAction(kIt.slice(kIt.idx(), idxEnd),
-                              block->action,
-                              kConfigErr);
-            if (res != SUCCESS)
-            {
-                return res;
-            }
-
-            // Jump to end of action.
+            // If there's a newline at the end index, check if the next
+            // non-newline token is a left brace. If it is, then we'll try to
+            // parse a guard. This allows the user to put the left brace
+            // following a guard on the next line if they prefer that style.
+            const U32 idxSave = kIt.idx();
             kIt.seek(idxEnd);
             kIt.eat();
+            if (kIt.type() == Token::LBRACE)
+            {
+                isGuard = true;
+                idxEnd = kIt.idx();
+            }
+            kIt.seek(idxSave);
         }
         else
+        {
+            // Next thing must be a guard since there's a colon or left brace at
+            // the end index.
+            isGuard = true;
+        }
+
+        if (isGuard)
         {
             // Parse guarded action or block of actions.
 
@@ -175,6 +183,7 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
 
             // Jump to first token after guard.
             kIt.seek(idxEnd);
+            kIt.eat();
 
             // Find end index of if branch.
             U32 idxBlockEnd = 0;
@@ -301,6 +310,21 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
                 kIt.take();
             }
         }
+        else
+        {
+            // Parse unguarded action.
+            res = parseAction(kIt.slice(kIt.idx(), idxEnd),
+                              block->action,
+                              kConfigErr);
+            if (res != SUCCESS)
+            {
+                return res;
+            }
+
+            // Jump to end of action.
+            kIt.seek(idxEnd);
+            kIt.eat();
+        }
 
         if (!kIt.eof())
         {
@@ -349,14 +373,29 @@ Result StateMachineParser::parseState(TokenIterator& kIt,
         // Assign label block to state based on label name.
         if (tokLab.str == ".ENTRY")
         {
+            if (kState.entry != nullptr)
+            {
+                // Multiple entry labels.
+                SFA_ASSERT(false);
+            }
             kState.entry = label;
         }
         else if (tokLab.str == ".STEP")
         {
+            if (kState.step != nullptr)
+            {
+                // Multiple entry labels.
+                SFA_ASSERT(false);
+            }
             kState.step = label;
         }
         else if (tokLab.str == ".EXIT")
         {
+            if (kState.exit != nullptr)
+            {
+                // Multiple entry labels.
+                SFA_ASSERT(false);
+            }
             kState.exit = label;
         }
         else
