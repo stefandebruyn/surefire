@@ -2,13 +2,11 @@
 #define SFA_UTEST_HPP
 
 #ifdef __has_include
-#    if __has_include(<vector>)
+#    if __has_include("sfa/sup/ConfigTokenizer.hpp")
 #        include <vector>
-#        define SFA_UTEST_HAS_VECTOR
-#    endif
-#    if __has_include(<sstream>)
 #        include <sstream>
-#        define SFA_UTEST_HAS_SSTREAM
+#        include "sfa/sup/ConfigTokenizer.hpp"
+#        define SFA_UTEST_HAS_SUP
 #    endif
 #endif
 
@@ -27,7 +25,8 @@
     CHECK_EQUAL(kErr, _res);                                                   \
 }
 
-#if defined(SFA_UTEST_HAS_VECTOR) && defined(SFA_UTEST_HAS_SSTREAM)
+#if defined(SFA_UTEST_HAS_SUP)
+
 template<typename T>
 SimpleString StringFrom(const std::vector<T>& kVec)
 {
@@ -44,6 +43,9 @@ SimpleString StringFrom(const std::vector<T>& kVec)
     ss << "]";
     return SimpleString(ss.str().c_str());
 }
-#endif
+
+SimpleString StringFrom(const Token& kTok);
+
+#endif // defined(SFA_UTEST_HAS_SUP)
 
 #endif

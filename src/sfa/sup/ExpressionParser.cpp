@@ -395,7 +395,7 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-Result ExpressionParser::parse(TokenIterator& kIt,
+Result ExpressionParser::parse(TokenIterator kIt,
                                std::shared_ptr<Parse>& kParse,
                                ConfigErrorInfo* kConfigErr)
 {

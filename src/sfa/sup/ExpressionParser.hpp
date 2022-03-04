@@ -17,7 +17,7 @@ namespace ExpressionParser
         bool func;
     };
 
-    Result parse(TokenIterator& kIt,
+    Result parse(TokenIterator kIt,
                  std::shared_ptr<Parse>& kParse,
                  ConfigErrorInfo* kConfigErr);
 }

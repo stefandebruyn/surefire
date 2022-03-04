@@ -640,7 +640,7 @@ TEST(ExpressionParser, ExpandDoubleInequalityLtLte)
     std::shared_ptr<ExpressionParser::Parse> parseExpect;
     {
         TOKENIZE("a < b AND b <= c");
-        parseExpect = parse;
+        CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
     }
 
     checkParsesEqual(parseExpect, parse);
@@ -655,7 +655,7 @@ TEST(ExpressionParser, ExpandDoubleInequalityGtGte)
     std::shared_ptr<ExpressionParser::Parse> parseExpect;
     {
         TOKENIZE("a > b AND b >= c");
-        parseExpect = parse;
+        CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
     }
 
     checkParsesEqual(parseExpect, parse);
@@ -670,9 +670,7 @@ TEST(ExpressionParser, ExpandTripleInequality)
     std::shared_ptr<ExpressionParser::Parse> parseExpect;
     {
         TOKENIZE("a < b AND b < c AND c < d");
-        std::shared_ptr<ExpressionParser::Parse> parse;
-        CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
-        parseExpect = parse;
+        CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
     }
 
     checkParsesEqual(parseExpect, parse);
@@ -687,9 +685,7 @@ TEST(ExpressionParser, ExpandDoubleInequalityNestedExpression)
     std::shared_ptr<ExpressionParser::Parse> parseExpect;
     {
         TOKENIZE("a + b < c + d AND c + d < e + f");
-        std::shared_ptr<ExpressionParser::Parse> parse;
-        CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
-        parseExpect = parse;
+        CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
     }
 
     checkParsesEqual(parseExpect, parse);

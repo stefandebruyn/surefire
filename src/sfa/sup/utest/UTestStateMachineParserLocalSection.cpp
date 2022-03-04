@@ -1,7 +1,7 @@
+#include <sstream>
+
 #include "sfa/sup/StateMachineParser.hpp"
 #include "sfa/utest/UTest.hpp"
-
-#include <sstream>
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 

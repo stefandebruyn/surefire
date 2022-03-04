@@ -16,25 +16,25 @@ namespace StateMachineParser
     struct ActionParse
     {
         Token tokRhs;
-        ExpressionParser::Parse tokLhs;
-        Token destState;
+        std::shared_ptr<ExpressionParser::Parse> lhs;
+        Token tokDestState;
     };
 
     struct BlockParse final
     {
-        ExpressionParser::Parse* guard;
-        ActionParse* action;
-        BlockParse* ifBlock;
-        BlockParse* elseBlock;
-        BlockParse* next;
+        std::shared_ptr<ExpressionParser::Parse> guard;
+        std::shared_ptr<ActionParse> action;
+        std::shared_ptr<BlockParse> ifBlock;
+        std::shared_ptr<BlockParse> elseBlock;
+        std::shared_ptr<BlockParse> next;
     };
 
     struct StateParse final
     {
         Token tokName;
-        BlockParse* entry;
-        BlockParse* step;
-        BlockParse* exit;
+        std::shared_ptr<BlockParse> entry;
+        std::shared_ptr<BlockParse> step;
+        std::shared_ptr<BlockParse> exit;
     };
 
     struct StateVectorElementParse final
@@ -83,6 +83,11 @@ namespace StateMachineParser
                                    const StateVector& kSv,
                                    Parse& kParse,
                                    ConfigErrorInfo* kConfigErr);
+
+    /// @note PUBLIC FOR TESTING PURPOSES ONLY.
+    Result parseState(TokenIterator& kIt,
+                      StateParse& kState,
+                      ConfigErrorInfo* kConfigErr);
 }
 
 #endif
