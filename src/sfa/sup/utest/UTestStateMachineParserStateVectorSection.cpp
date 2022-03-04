@@ -1,17 +1,9 @@
-#include "sfa/sup/StateMachineParser.hpp"
-#include "sfa/sup/StateVectorParser.hpp"
-#include "sfa/utest/UTest.hpp"
-
 #include <sstream>
 
-/////////////////////////////////// Helpers ////////////////////////////////////
+#include "sfa/sup/StateMachineParser.hpp"
+#include "sfa/utest/UTest.hpp"
 
-#define INIT_SV(kSrc)                                                          \
-    std::stringstream svSs(kSrc);                                              \
-    std::shared_ptr<StateVectorParser::Config> svConfig = nullptr;             \
-    CHECK_SUCCESS(StateVectorParser::parse(svSs, svConfig, nullptr));          \
-    StateVector sv;                                                            \
-    CHECK_SUCCESS(StateVector::create(svConfig->get(), sv));                   \
+/////////////////////////////////// Helpers ////////////////////////////////////
 
 #define TOKENIZE(kSrc)                                                         \
     std::stringstream smSs(kSrc);                                              \
@@ -20,21 +12,17 @@
     TokenIterator it(toks.begin(), toks.end());
 
 static void checkParseError(TokenIterator &kIt,
-                            const StateVector& kSv,
-                            StateMachineParser::Parse& kParse,
                             const Result kRes,
                             const I32 kLineNum,
                             const I32 kColNum)
 {
-    // Attempt to parse local section.
+    // Got expected return code from parser.
+    StateMachineParser::Parse parse = {};
     ConfigErrorInfo err;
-    const Result res =
-        StateMachineParser::parseStateVectorSection(kIt, kSv, kParse, &err);
+    CHECK_ERROR(kRes,
+                StateMachineParser::parseStateVectorSection(kIt, parse, &err));
 
-    // Got expected return code.
-    CHECK_ERROR(kRes, res);
-
-    // Line and column numbers of offending token are correctly identified.
+    // Correct line and column numbers of error are identified.
     CHECK_EQUAL(kLineNum, err.lineNum);
     CHECK_EQUAL(kColNum, err.colNum);
 
@@ -53,9 +41,8 @@ TEST(StateMachineParserStateVectorSection, Empty)
 {
     TOKENIZE("[STATE_VECTOR]");
     StateMachineParser::Parse parse = {};
-    StateVector sv;
     CHECK_SUCCESS(
-        StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(0, parse.svElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -65,9 +52,8 @@ TEST(StateMachineParserStateVectorSection, EmptyWithNewlines)
 {
     TOKENIZE("[STATE_VECTOR]\n\n\n");
     StateMachineParser::Parse parse = {};
-    StateVector sv;
     CHECK_SUCCESS(
-        StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(0, parse.svElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -75,15 +61,12 @@ TEST(StateMachineParserStateVectorSection, EmptyWithNewlines)
 
 TEST(StateMachineParserStateVectorSection, OneElement)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo\n");
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
-        StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(1, parse.svElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -96,15 +79,12 @@ TEST(StateMachineParserStateVectorSection, OneElement)
 
 TEST(StateMachineParserStateVectorSection, ReadOnlyAnnotation)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @READ_ONLY\n");
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
-        StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(1, parse.svElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -117,15 +97,12 @@ TEST(StateMachineParserStateVectorSection, ReadOnlyAnnotation)
 
 TEST(StateMachineParserStateVectorSection, AliasAnnotation)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @ALIAS=bar\n");
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
-        StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(1, parse.svElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -139,15 +116,12 @@ TEST(StateMachineParserStateVectorSection, AliasAnnotation)
 
 TEST(StateMachineParserStateVectorSection, MultipleAnnotations)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @ALIAS=bar @READ_ONLY\n");
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
-        StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(1, parse.svElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -161,11 +135,6 @@ TEST(StateMachineParserStateVectorSection, MultipleAnnotations)
 
 TEST(StateMachineParserStateVectorSection, MultipleElements)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n"
-        "F64 bar\n"
-        "bool baz\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo\n"
@@ -173,7 +142,7 @@ TEST(StateMachineParserStateVectorSection, MultipleElements)
         "bool baz\n");
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
-        StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(3, parse.svElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -196,19 +165,6 @@ TEST(StateMachineParserStateVectorSection, MultipleElements)
 
 TEST(StateMachineParserStateVectorSection, AllElementTypes)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I8 a\n"
-        "I16 b\n"
-        "I32 c\n"
-        "I64 d\n"
-        "U8 e\n"
-        "U16 f\n"
-        "U32 g\n"
-        "U64 h\n"
-        "F32 i\n"
-        "F64 j\n"
-        "bool k\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I8 a\n"
@@ -224,7 +180,7 @@ TEST(StateMachineParserStateVectorSection, AllElementTypes)
         "bool k\n");
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
-        StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(11, parse.svElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -287,11 +243,6 @@ TEST(StateMachineParserStateVectorSection, AllElementTypes)
 
 TEST(StateMachineParserStateVectorSection, MultipleElementsWithAnnotations)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n"
-        "F64 bar\n"
-        "bool baz\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo\n"
@@ -299,7 +250,7 @@ TEST(StateMachineParserStateVectorSection, MultipleElementsWithAnnotations)
         "bool baz @ALIAS=qux\n");
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
-        StateMachineParser::parseStateVectorSection(it, sv, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(3, parse.svElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -323,161 +274,48 @@ TEST(StateMachineParserStateVectorSection, MultipleElementsWithAnnotations)
 
 TEST(StateMachineParserStateVectorSection, ErrorRedundantReadOnlyAnnotation)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @READ_ONLY @READ_ONLY\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_RO_MULT, 2, 20);
+    checkParseError(it, E_SMP_RO_MULT, 2, 20);
 }
 
 TEST(StateMachineParserStateVectorSection, ErrorMultipleAliasAnnotations)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @ALIAS=bar @ALIAS=baz\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_AL_MULT, 2, 20);
-}
-
-TEST(StateMachineParserStateVectorSection, ErrorReuseElementNameAsAlias)
-{
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n"
-        "F64 bar\n");
-    TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo\n"
-        "F64 bar @ALIAS=foo\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_NAME_DUPE, 3, 9);
-}
-
-TEST(StateMachineParserStateVectorSection, ErrorReuseAlias)
-{
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n"
-        "F64 bar\n");
-    TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS=baz\n"
-        "F64 bar @ALIAS=baz\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_NAME_DUPE, 3, 9);
+    checkParseError(it, E_SMP_AL_MULT, 2, 20);
 }
 
 TEST(StateMachineParserStateVectorSection, ErrorExpectedElementType)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "@I32 foo\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_ELEM_TYPE, 2, 1);
-}
-
-TEST(StateMachineParserStateVectorSection, ErrorInvalidElementType)
-{
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
-    TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I33 foo\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_ELEM_TYPE, 2, 1);
+    checkParseError(it, E_SMP_ELEM_TYPE, 2, 1);
 }
 
 TEST(StateMachineParserStateVectorSection, ErrorEofAfterElementType)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_EOF, 2, 4);
+    checkParseError(it, E_SMP_EOF, 2, 4);
 }
 
 TEST(StateMachineParserStateVectorSection, ErrorUnexpectedTokenAfterElementType)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 @foo\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_ELEM_NAME, 2, 5);
-}
-
-TEST(StateMachineParserStateVectorSection, ErrorReservedElementName)
-{
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
-    TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 LOCAL\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_NAME_RSVD, 2, 5);
-}
-
-TEST(StateMachineParserStateVectorSection, ErrorReuseElementName)
-{
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
-    TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo\n"
-        "F64 foo\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_NAME_DUPE, 3, 5);
-}
-
-TEST(StateMachineParserStateVectorSection, ErrorElementNotInStateVector)
-{
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
-    TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 bar\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_SV_NAME, 2, 5);
-}
-
-TEST(StateMachineParserStateVectorSection, ErrorElementTypeMismatch)
-{
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
-    TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "F64 foo\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_SV_TYPE, 2, 5);
+    checkParseError(it, E_SMP_ELEM_NAME, 2, 5);
 }
 
 TEST(StateMachineParserStateVectorSection, ErrorUnknownAnnotation)
 {
-    INIT_SV(
-        "[REGION/Foo]\n"
-        "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo @FOO\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, sv, parse, E_SMP_ANNOT, 2, 9);
+    checkParseError(it, E_SMP_ANNOT, 2, 9);
 }

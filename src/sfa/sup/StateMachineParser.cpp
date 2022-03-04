@@ -23,13 +23,8 @@ namespace StateMachineParser
                       ConfigErrorInfo* kConfigErr);
 
     Result parseImpl(const std::vector<Token>& kToks,
-                     StateVector& kSv,
-                     std::shared_ptr<Config>& kConfig,
+                     Parse& kParse,
                      ConfigErrorInfo* kConfigErr);
-
-    bool isNameUnique(const std::string kName,
-                      const Parse& kParse,
-                      Token& kErrTok);
 }
 
 Result StateMachineParser::parseAction(TokenIterator kIt,
@@ -138,7 +133,7 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
         if (block == nullptr)
         {
             // Allocate first block on first iteration of this loop. This causes
-            // an empty label to result in a null block pointer as if the label
+            // an empty label to result in a null block pointer, as if the label
             // wasn't there at all.
             block.reset(new BlockParse{});
             firstBlock = block;
@@ -437,12 +432,9 @@ Result StateMachineParser::parseState(TokenIterator& kIt,
 }
 
 Result StateMachineParser::parseImpl(const std::vector<Token>& kToks,
-                                     StateVector& kSv,
-                                     std::shared_ptr<Config>& kConfig,
+                                     Parse& kParse,
                                      ConfigErrorInfo* kConfigErr)
 {
-    (void) kSv;
-    (void) kConfig; // rm later
     TokenIterator it(kToks.begin(), kToks.end());
     Parse parse = {};
 
@@ -459,21 +451,32 @@ Result StateMachineParser::parseImpl(const std::vector<Token>& kToks,
             case Token::SECTION:
                 if (it.str() == "[STATE_VECTOR]")
                 {
-                    res = parseStateVectorSection(it, kSv, parse, kConfigErr);
+                    // State vector section.
+                    res = parseStateVectorSection(it, parse, kConfigErr);
+                    if (res != SUCCESS)
+                    {
+                        return res;
+                    }
                 }
                 else if (it.str() == "[LOCAL]")
                 {
+                    // Local elements section.
                     res = parseLocalSection(it, parse, kConfigErr);
+                    if (res != SUCCESS)
+                    {
+                        return res;
+                    }
                 }
                 else
                 {
                     // State section.
                     StateParse state = {};
                     res = parseState(it, state, kConfigErr);
-                    if (res == SUCCESS)
+                    if (res != SUCCESS)
                     {
-                        parse.states.push_back(state);
+                        return res;
                     }
+                    parse.states.push_back(state);
                 }
                 break;
 
@@ -481,60 +484,10 @@ Result StateMachineParser::parseImpl(const std::vector<Token>& kToks,
                 // invalid type
                 SFA_ASSERT(false);
         }
-
-        if (res != SUCCESS)
-        {
-            return res;
-        }
     }
 
+    kParse = parse;
     return SUCCESS;
-}
-
-bool StateMachineParser::isNameUnique(const std::string kName,
-                                      const Parse& kParse,
-                                      Token& kErrTok)
-{
-    // Check for uniqueness against local elements.
-    for (const LocalElementParse& elem : kParse.localElems)
-    {
-        if (elem.tokName.str == kName)
-        {
-            // Name is already used by a local element.
-            kErrTok = elem.tokName;
-            return false;
-        }
-    }
-
-    // Check for uniqueness against state vector elements.
-    for (const StateVectorElementParse& elem : kParse.svElems)
-    {
-        if (elem.tokName.str == kName)
-        {
-            // Name is already used by a state vector element.
-            kErrTok = elem.tokName;
-            return false;
-        }
-        else if (elem.alias == kName)
-        {
-            // Name is already used by a state vector element alias.
-            kErrTok = elem.tokAlias;
-            return false;
-        }
-    }
-
-    // Check for uniqueness against state names.
-    for (const StateParse& state : kParse.states)
-    {
-        if (state.tokName.str == kName)
-        {
-            // Name is already used by a state.
-            kErrTok = state.tokName;
-            return false;
-        }
-    }
-
-    return true;
 }
 
 Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
@@ -552,6 +505,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
 
     // Assert that iterator is currently positioned at the local section.
     SFA_ASSERT((kIt.type() == Token::SECTION) && (kIt.str() == "[LOCAL]"));
+
     // Take section token.
     kIt.take();
 
@@ -566,15 +520,6 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
         {
             ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
                                  "expected element type");
-            return E_SMP_ELEM_TYPE;
-        }
-
-        // Check that element type is valid.
-        if (ElementTypeInfo::fromName.find(kIt.str())
-            == ElementTypeInfo::fromName.end())
-        {
-            ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
-                                 "unknown type `" + kIt.str() + "`");
             return E_SMP_ELEM_TYPE;
         }
 
@@ -594,25 +539,6 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
             ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
                                  "expected element name after type");
             return E_SMP_ELEM_NAME;
-        }
-
-        // Check that element name is not reserved.
-        if (ConfigUtil::reserved.find(kIt.str()) != ConfigUtil::reserved.end())
-        {
-            ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
-                                 "`" + kIt.str() + "` is a reserved name");
-            return E_SMP_NAME_RSVD;
-        }
-
-        // Check that element name is unique.
-        Token tokErr;
-        if (!isNameUnique(kIt.str(), kParse, tokErr))
-        {
-            std::stringstream ss;
-            ss << "reuse of name `" << kIt.str()
-               << "` (previously used on line " << tokErr.lineNum << ")";
-            ConfigUtil::setError(kConfigErr, kIt.tok(), errText, ss.str());
-            return E_SMP_NAME_DUPE;
         }
 
         // Take element name.
@@ -688,11 +614,10 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
 }
 
 Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
-                                                   const StateVector& kSv,
                                                    Parse& kParse,
                                                    ConfigErrorInfo* kConfigErr)
 {
-    // Check that a local section has not already been parsed.
+    // Check that a state vector section has not already been parsed.
     if (kParse.hasStateVectorSection)
     {
         ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
@@ -722,15 +647,6 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
             return E_SMP_ELEM_TYPE;
         }
 
-        // Check that element type is valid.
-        auto typeInfoIt = ElementTypeInfo::fromName.find(kIt.str());
-        if (typeInfoIt == ElementTypeInfo::fromName.end())
-        {
-            ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
-                                 "unknown type `" + kIt.str() + "`");
-            return E_SMP_ELEM_TYPE;
-        }
-
         // Take element type.
         elemParse.tokType = kIt.take();
 
@@ -747,49 +663,6 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
             ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
                                  "expected element name after type");
             return E_SMP_ELEM_NAME;
-        }
-
-        // Check that element name is not reserved.
-        if (ConfigUtil::reserved.find(kIt.str()) != ConfigUtil::reserved.end())
-        {
-            ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
-                                 "`" + kIt.str() + "` is a reserved name");
-            return E_SMP_NAME_RSVD;
-        }
-
-        // Check that element name is unique.
-        Token tokErr;
-        if (!isNameUnique(kIt.str(), kParse, tokErr))
-        {
-            std::stringstream ss;
-            ss << "reuse of name `" << kIt.str() << "`"
-               << " (previously used on line " << tokErr.lineNum << ")";
-            ConfigUtil::setError(kConfigErr, kIt.tok(), errText, ss.str());
-            return E_SMP_NAME_DUPE;
-        }
-
-        // Check that element exists in the state vector config.
-        const IElement* elemObj = nullptr;
-        if (kSv.getIElement(kIt.str().c_str(), elemObj) != SUCCESS)
-        {
-            ConfigUtil::setError(kConfigErr, kIt.tok(), errText,
-                                 "state vector does not contain an element"
-                                 " named `" + kIt.str() + "`");
-            return E_SMP_SV_NAME;
-        }
-
-        // Check that element has the same type in the state vector config.
-        const ElementTypeInfo& elemTypeInfo = (*typeInfoIt).second;
-        if (elemTypeInfo.enumVal != elemObj->type())
-        {
-            auto it = ElementTypeInfo::fromEnum.find(elemObj->type());
-            SFA_ASSERT(it != ElementTypeInfo::fromEnum.end());
-            std::stringstream ss;
-            ss << "element `" << kIt.str() << "` is type `" << (*it).second.name
-               << "` in the state vector config but `" << elemParse.tokType.str
-               << "` here";
-            ConfigUtil::setError(kConfigErr, kIt.tok(), errText, ss.str());
-            return E_SMP_SV_TYPE;
         }
 
         // Take element name.
@@ -827,19 +700,6 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
                     return E_SMP_AL_MULT;
                 }
 
-                // Check that alias is a unique name.
-                Token tokErr;
-                if (!isNameUnique(match[1].str(), kParse, tokErr))
-                {
-                    std::stringstream ss;
-                    ss << "reuse of name `" << kIt.str()
-                       << "` (previously used on line " << tokErr.lineNum
-                       << ")";
-                    ConfigUtil::setError(
-                        kConfigErr, kIt.tok(), errText, ss.str());
-                    return E_SMP_NAME_DUPE;
-                }
-
                 // Take alias.
                 elemParse.tokAlias = kIt.take();
                 elemParse.alias = match[1].str();
@@ -863,8 +723,7 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
 /////////////////////////////////// Public /////////////////////////////////////
 
 Result StateMachineParser::parse(std::istream& kIs,
-                                 StateVector& kSv,
-                                 std::shared_ptr<Config>& kConfig,
+                                 Parse& kParse,
                                  ConfigErrorInfo* kConfigErr)
 {
     std::vector<Token> toks;
@@ -880,5 +739,5 @@ Result StateMachineParser::parse(std::istream& kIs,
         return res;
     }
 
-    return parseImpl(toks, kSv, kConfig, kConfigErr);
+    return parseImpl(toks, kParse, kConfigErr);
 }

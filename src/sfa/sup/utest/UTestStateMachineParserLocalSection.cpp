@@ -12,20 +12,16 @@
     TokenIterator it(toks.begin(), toks.end());
 
 static void checkParseError(TokenIterator &kIt,
-                            StateMachineParser::Parse& kParse,
                             const Result kRes,
                             const I32 kLineNum,
                             const I32 kColNum)
 {
-    // Attempt to parse local section.
+    // Got expected return code from parser.
+    StateMachineParser::Parse parse = {};
     ConfigErrorInfo err;
-    const Result res =
-        StateMachineParser::parseLocalSection(kIt, kParse, &err);
+    CHECK_ERROR(kRes, StateMachineParser::parseLocalSection(kIt, parse, &err));
 
-    // Got expected return code.
-    CHECK_ERROR(kRes, res);
-
-    // Line and column numbers of offending token are correctly identified.
+    // Correct line and column numbers of error are identified.
     CHECK_EQUAL(kLineNum, err.lineNum);
     CHECK_EQUAL(kColNum, err.colNum);
 
@@ -42,11 +38,14 @@ TEST_GROUP(StateMachineParserLocalSection)
 
 TEST(StateMachineParserLocalSection, Empty)
 {
+    // Parse local section.
     TOKENIZE("[LOCAL]");
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseLocalSection(it, parse, nullptr));
 
+    // Parsed expected number of elements. Iterator scanned through the entire
+    // section.
     CHECK_EQUAL(0, parse.localElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
 }
@@ -57,13 +56,13 @@ TEST(StateMachineParserLocalSection, EmptyWithNewlines)
     StateMachineParser::Parse parse = {};
     CHECK_SUCCESS(
         StateMachineParser::parseLocalSection(it, parse, nullptr));
-
     CHECK_EQUAL(0, parse.localElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
 }
 
 TEST(StateMachineParserLocalSection, OneElement)
 {
+    // Parse local section.
     TOKENIZE(
         "[LOCAL]\n"
         "I32 foo = 0\n");
@@ -71,9 +70,12 @@ TEST(StateMachineParserLocalSection, OneElement)
     CHECK_SUCCESS(
         StateMachineParser::parseLocalSection(it, parse, nullptr));
 
+    // Parsed expected number of elements. Iterator scanned through the entire
+    // section.
     CHECK_EQUAL(1, parse.localElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
+    // foo
     CHECK_TRUE(parse.localElems[0].tokType == toks[2]);
     CHECK_TRUE(parse.localElems[0].tokName == toks[3]);
     CHECK_TRUE(parse.localElems[0].tokInitVal == toks[5]);
@@ -82,6 +84,7 @@ TEST(StateMachineParserLocalSection, OneElement)
 
 TEST(StateMachineParserLocalSection, ReadOnlyAnnotation)
 {
+    // Parse local section.
     TOKENIZE(
         "[LOCAL]\n"
         "I32 foo = 0 @READ_ONLY\n");
@@ -89,9 +92,12 @@ TEST(StateMachineParserLocalSection, ReadOnlyAnnotation)
     CHECK_SUCCESS(
         StateMachineParser::parseLocalSection(it, parse, nullptr));
 
+    // Parsed expected number of elements. Iterator scanned through the entire
+    // section.
     CHECK_EQUAL(1, parse.localElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
+    // foo
     CHECK_TRUE(parse.localElems[0].tokType == toks[2]);
     CHECK_TRUE(parse.localElems[0].tokName == toks[3]);
     CHECK_TRUE(parse.localElems[0].tokInitVal == toks[5]);
@@ -100,6 +106,7 @@ TEST(StateMachineParserLocalSection, ReadOnlyAnnotation)
 
 TEST(StateMachineParserLocalSection, MultipleElements)
 {
+    // Parse local section.
     TOKENIZE(
         "[LOCAL]\n"
         "I32 foo = 10\n"
@@ -109,19 +116,24 @@ TEST(StateMachineParserLocalSection, MultipleElements)
     CHECK_SUCCESS(
         StateMachineParser::parseLocalSection(it, parse, nullptr));
 
+    // Parsed expected number of elements. Iterator scanned through the entire
+    // section.
     CHECK_EQUAL(3, parse.localElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
+    // foo
     CHECK_TRUE(parse.localElems[0].tokType == toks[2]);
     CHECK_TRUE(parse.localElems[0].tokName == toks[3]);
     CHECK_TRUE(parse.localElems[0].tokInitVal == toks[5]);
     CHECK_EQUAL(false, parse.localElems[0].readOnly);
 
+    // bar
     CHECK_TRUE(parse.localElems[1].tokType == toks[7]);
     CHECK_TRUE(parse.localElems[1].tokName == toks[8]);
     CHECK_TRUE(parse.localElems[1].tokInitVal == toks[10]);
     CHECK_EQUAL(false, parse.localElems[1].readOnly);
 
+    // baz
     CHECK_TRUE(parse.localElems[2].tokType == toks[12]);
     CHECK_TRUE(parse.localElems[2].tokName == toks[13]);
     CHECK_TRUE(parse.localElems[2].tokInitVal == toks[15]);
@@ -130,6 +142,7 @@ TEST(StateMachineParserLocalSection, MultipleElements)
 
 TEST(StateMachineParserLocalSection, MultipleElementsWithAnnotations)
 {
+    // Parse local section.
     TOKENIZE(
         "[LOCAL]\n"
         "I32 foo = 10\n"
@@ -139,19 +152,24 @@ TEST(StateMachineParserLocalSection, MultipleElementsWithAnnotations)
     CHECK_SUCCESS(
         StateMachineParser::parseLocalSection(it, parse, nullptr));
 
+    // Parsed expected number of elements. Iterator scanned through the entire
+    // section.
     CHECK_EQUAL(3, parse.localElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
+    // foo
     CHECK_TRUE(parse.localElems[0].tokType == toks[2]);
     CHECK_TRUE(parse.localElems[0].tokName == toks[3]);
     CHECK_TRUE(parse.localElems[0].tokInitVal == toks[5]);
     CHECK_EQUAL(false, parse.localElems[0].readOnly);
 
+    // bar
     CHECK_TRUE(parse.localElems[1].tokType == toks[7]);
     CHECK_TRUE(parse.localElems[1].tokName == toks[8]);
     CHECK_TRUE(parse.localElems[1].tokInitVal == toks[10]);
     CHECK_EQUAL(true, parse.localElems[1].readOnly);
 
+    // baz
     CHECK_TRUE(parse.localElems[2].tokType == toks[13]);
     CHECK_TRUE(parse.localElems[2].tokName == toks[14]);
     CHECK_TRUE(parse.localElems[2].tokInitVal == toks[16]);
@@ -160,6 +178,7 @@ TEST(StateMachineParserLocalSection, MultipleElementsWithAnnotations)
 
 TEST(StateMachineParserLocalSection, AllElementTypes)
 {
+    // Parse local section.
     TOKENIZE(
         "[LOCAL]\n"
         "I8 a = 0\n"
@@ -177,59 +196,72 @@ TEST(StateMachineParserLocalSection, AllElementTypes)
     CHECK_SUCCESS(
         StateMachineParser::parseLocalSection(it, parse, nullptr));
 
+    // Parsed expected number of elements. Iterator scanned through the entire
+    // section.
     CHECK_EQUAL(11, parse.localElems.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
+    // a
     CHECK_TRUE(parse.localElems[0].tokType == toks[2]);
     CHECK_TRUE(parse.localElems[0].tokName == toks[3]);
     CHECK_TRUE(parse.localElems[0].tokInitVal == toks[5]);
     CHECK_EQUAL(false, parse.localElems[0].readOnly);
 
+    // b
     CHECK_TRUE(parse.localElems[1].tokType == toks[7]);
     CHECK_TRUE(parse.localElems[1].tokName == toks[8]);
     CHECK_TRUE(parse.localElems[1].tokInitVal == toks[10]);
     CHECK_EQUAL(false, parse.localElems[1].readOnly);
 
+    // c
     CHECK_TRUE(parse.localElems[2].tokType == toks[12]);
     CHECK_TRUE(parse.localElems[2].tokName == toks[13]);
     CHECK_TRUE(parse.localElems[2].tokInitVal == toks[15]);
     CHECK_EQUAL(false, parse.localElems[2].readOnly);
 
+    // d
     CHECK_TRUE(parse.localElems[3].tokType == toks[17]);
     CHECK_TRUE(parse.localElems[3].tokName == toks[18]);
     CHECK_TRUE(parse.localElems[3].tokInitVal == toks[20]);
     CHECK_EQUAL(false, parse.localElems[3].readOnly);
 
+    // e
     CHECK_TRUE(parse.localElems[4].tokType == toks[22]);
     CHECK_TRUE(parse.localElems[4].tokName == toks[23]);
     CHECK_TRUE(parse.localElems[4].tokInitVal == toks[25]);
     CHECK_EQUAL(false, parse.localElems[4].readOnly);
 
+    // f
     CHECK_TRUE(parse.localElems[5].tokType == toks[27]);
     CHECK_TRUE(parse.localElems[5].tokName == toks[28]);
     CHECK_TRUE(parse.localElems[5].tokInitVal == toks[30]);
     CHECK_EQUAL(false, parse.localElems[5].readOnly);
 
+    // g
     CHECK_TRUE(parse.localElems[6].tokType == toks[32]);
     CHECK_TRUE(parse.localElems[6].tokName == toks[33]);
     CHECK_TRUE(parse.localElems[6].tokInitVal == toks[35]);
     CHECK_EQUAL(false, parse.localElems[6].readOnly);
 
+    // h
     CHECK_TRUE(parse.localElems[7].tokType == toks[37]);
     CHECK_TRUE(parse.localElems[7].tokName == toks[38]);
     CHECK_TRUE(parse.localElems[7].tokInitVal == toks[40]);
     CHECK_EQUAL(false, parse.localElems[7].readOnly);
 
+    // i
     CHECK_TRUE(parse.localElems[8].tokType == toks[42]);
     CHECK_TRUE(parse.localElems[8].tokName == toks[43]);
     CHECK_TRUE(parse.localElems[8].tokInitVal == toks[45]);
     CHECK_EQUAL(false, parse.localElems[8].readOnly);
 
+    // j
     CHECK_TRUE(parse.localElems[9].tokType == toks[47]);
     CHECK_TRUE(parse.localElems[9].tokName == toks[48]);
     CHECK_TRUE(parse.localElems[9].tokInitVal == toks[50]);
     CHECK_EQUAL(false, parse.localElems[9].readOnly);
 
+    // k
     CHECK_TRUE(parse.localElems[10].tokType == toks[52]);
     CHECK_TRUE(parse.localElems[10].tokName == toks[53]);
     CHECK_TRUE(parse.localElems[10].tokInitVal == toks[55]);
@@ -238,136 +270,99 @@ TEST(StateMachineParserLocalSection, AllElementTypes)
 
 TEST(StateMachineParserLocalSection, ErrorRedundantReadOnlyAnnotation)
 {
-    TOKENIZE("[LOCAL] I32 foo = 0 @READ_ONLY @READ_ONLY");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_RO_MULT, 1, 32);
+    TOKENIZE(
+        "[LOCAL]\n"
+        "I32 foo = 0 @READ_ONLY @READ_ONLY\n");
+    checkParseError(it, E_SMP_RO_MULT, 2, 24);
 }
 
 TEST(StateMachineParserLocalSection, ErrorMultipleLocalSections)
 {
-    // First local section is successfully parsed.
-    TOKENIZE("[LOCAL] [LOCAL]");
+    // Got expected return code from parser.
+    std::stringstream ss(
+        "[LOCAL]\n"
+        "[LOCAL]\n");
     StateMachineParser::Parse parse = {};
-    CHECK_SUCCESS(
-        StateMachineParser::parseLocalSection(it, parse, nullptr));
+    ConfigErrorInfo err;
+    CHECK_ERROR(E_SMP_LOC_MULT, StateMachineParser::parse(ss, parse, &err));
 
-    // Second local section produces an error.
-    checkParseError(it, parse, E_SMP_LOC_MULT, 1, 9);
+    // Correct line and column numbers of error are identified.
+    CHECK_EQUAL(2, err.lineNum);
+    CHECK_EQUAL(1, err.colNum);
+
+    // An error message was given.
+    CHECK_TRUE(err.text.size() > 0);
+    CHECK_TRUE(err.subtext.size() > 0);
 }
 
 TEST(StateMachineParserLocalSection, ErrorExpectedElementType)
 {
-    TOKENIZE("[LOCAL] @foo");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_ELEM_TYPE, 1, 9);
-}
-
-TEST(StateMachineParserLocalSection, ErrorInvalidElementType)
-{
-    TOKENIZE("[LOCAL] I33 foo = 0");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_ELEM_TYPE, 1, 9);
-}
-
-TEST(StateMachineParserLocalSection, ErrorReservedElementName)
-{
-    TOKENIZE("[LOCAL] I32 STATE_VECTOR = 0");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_NAME_RSVD, 1, 13);
-}
-
-TEST(StateMachineParserLocalSection, ErrorReuseLocalElementName)
-{
     TOKENIZE(
         "[LOCAL]\n"
-        "I32 foo = 0\n"
-        "I32 foo = 0\n");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_NAME_DUPE, 3, 5);
-}
-
-TEST(StateMachineParserLocalSection, ErrorReuseStateVectorElementName)
-{
-    TOKENIZE("[LOCAL] I32 foo = 0");
-    StateMachineParser::Parse parse = {};
-    StateMachineParser::StateVectorElementParse svElemParse = {};
-    svElemParse.tokName = {Token::IDENTIFIER, "foo", -1, -1};
-    parse.svElems.push_back(svElemParse);
-    checkParseError(it, parse, E_SMP_NAME_DUPE, 1, 13);
-}
-
-TEST(StateMachineParserLocalSection, ErrorReuseStateVectorElementAlias)
-{
-    TOKENIZE("[LOCAL] I32 foo = 0");
-    StateMachineParser::Parse parse = {};
-    StateMachineParser::StateVectorElementParse svElemParse = {};
-    svElemParse.alias = "foo";
-    parse.svElems.push_back(svElemParse);
-    checkParseError(it, parse, E_SMP_NAME_DUPE, 1, 13);
-}
-
-TEST(StateMachineParserLocalSection, ErrorReuseStateName)
-{
-    TOKENIZE("[LOCAL] I32 foo = 0");
-    StateMachineParser::Parse parse = {};
-    StateMachineParser::StateParse stateParse = {};
-    stateParse.tokName = {Token::IDENTIFIER, "foo", -1, -1};
-    parse.states.push_back(stateParse);
-    checkParseError(it, parse, E_SMP_NAME_DUPE, 1, 13);
+        "@foo bar = 0\n");
+    checkParseError(it, E_SMP_ELEM_TYPE, 2, 1);
 }
 
 TEST(StateMachineParserLocalSection, ErrorEofAfterElementType)
 {
-    TOKENIZE("[LOCAL] I32");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_EOF, 1, 12);
+    TOKENIZE(
+        "[LOCAL]\n"
+        "I32\n");
+    checkParseError(it, E_SMP_EOF, 2, 4);
 }
 
 TEST(StateMachineParserLocalSection, ErrorUnexpectedTokenAfterElementType)
 {
-    TOKENIZE("[LOCAL] I32 @foo");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_ELEM_NAME, 1, 13);
+    TOKENIZE(
+        "[LOCAL]\n"
+        "I32 @foo = 0\n");
+    checkParseError(it, E_SMP_ELEM_NAME, 2, 5);
 }
 
 TEST(StateMachineParserLocalSection, ErrorEofAfterElementName)
 {
-    TOKENIZE("[LOCAL] I32 foo");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_EOF, 1, 16);
+    TOKENIZE(
+        "[LOCAL]\n"
+        "I32 foo\n");
+    checkParseError(it, E_SMP_EOF, 2, 8);
 }
 
 TEST(StateMachineParserLocalSection, ErrorUnexpectedTokenAfterElementName)
 {
-    TOKENIZE("[LOCAL] I32 foo @foo");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_LOC_OP, 1, 17);
+    TOKENIZE(
+        "[LOCAL]\n"
+        "I32 foo @foo\n 0");
+    checkParseError(it, E_SMP_LOC_OP, 2, 9);
 }
 
 TEST(StateMachineParserLocalSection, ErrorWrongOperatorAfterElementName)
 {
-    TOKENIZE("[LOCAL] I32 foo > 0");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_LOC_OP, 1, 17);
+    TOKENIZE(
+        "[LOCAL]\n"
+        "I32 foo > 0\n");
+    checkParseError(it, E_SMP_LOC_OP, 2, 9);
 }
 
 TEST(StateMachineParserLocalSection, ErrorEofAfterAssignmentOp)
 {
-    TOKENIZE("[LOCAL] I32 foo =");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_EOF, 1, 18);
+    TOKENIZE(
+        "[LOCAL]\n"
+        "I32 foo =\n");
+    checkParseError(it, E_SMP_EOF, 2, 10);
 }
 
 TEST(StateMachineParserLocalSection, ErrorUnexpectedTokenAfterAssignmentOp)
 {
-    TOKENIZE("[LOCAL] I32 foo = @foo");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_LOC_VAL, 1, 19);
+    TOKENIZE(
+        "[LOCAL]\n"
+        "I32 foo = @foo\n");
+    checkParseError(it, E_SMP_LOC_VAL, 2, 11);
 }
 
 TEST(StateMachineParserLocalSection, ErrorUnknownAnnotation)
 {
-    TOKENIZE("[LOCAL] I32 foo = 0 @FOO");
-    StateMachineParser::Parse parse = {};
-    checkParseError(it, parse, E_SMP_ANNOT, 1, 21);
+    TOKENIZE(
+        "[LOCAL]\n"
+        "I32 foo = 0 @FOO\n");
+    checkParseError(it, E_SMP_ANNOT, 2, 13);
 }
