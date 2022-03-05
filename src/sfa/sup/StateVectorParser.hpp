@@ -19,7 +19,6 @@ namespace StateVectorParser
     {
         Token tokType;
         Token tokName;
-        U32 sizeBytes;
     };
 
     struct RegionParse final
@@ -34,38 +33,10 @@ namespace StateVectorParser
         std::vector<RegionParse> regions;
     };
 
-    class Config final
-    {
-    public:
-
-        Config(const StateVector::Config kSvConfig,
-               const char* const kSvBacking,
-               const Parse& kParse);
-
-        ~Config();
-
-        const StateVector::Config& get() const;
-
-        const Parse& getParse() const;
-
-    private:
-
-        const StateVector::Config mSvConfig;
-
-        const char* const mSvBacking;
-
-        const Parse mParse;
-    };
-
-    Result parse(const std::string kFilePath,
-                 std::shared_ptr<Config>& kConfig,
+    Result parse(const std::vector<Token>& kToks,
+                 Parse& kParse,
                  ConfigErrorInfo* kConfigErr,
-                 const std::vector<std::string> kRegions = ALL_REGIONS);
-
-    Result parse(std::istream& kIs,
-                 std::shared_ptr<Config>& kConfig,
-                 ConfigErrorInfo* kConfigErr,
-                 const std::vector<std::string> kRegions = ALL_REGIONS);
+                 const std::vector<std::string> kRgns = ALL_REGIONS);
 }
 
 #endif

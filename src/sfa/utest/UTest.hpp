@@ -6,6 +6,7 @@
 #        include <vector>
 #        include <sstream>
 #        include "sfa/sup/ConfigTokenizer.hpp"
+#        include "sfa/sup/TokenIterator.hpp"
 #        define SFA_UTEST_HAS_SUP
 #    endif
 #endif

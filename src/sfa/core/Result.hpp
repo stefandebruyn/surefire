@@ -44,17 +44,9 @@ enum : Result
     E_TOK_FILE = 257,
 
     // StateVectorParser
-    E_SVP_RGN_DUPE = 288,
-    E_SVP_RGN_NAME = 289,
-    E_SVP_RGN_EMPTY = 290,
-    E_SVP_NO_RGNS = 291,
-    E_SVP_ELEM_DUPE = 292,
-    E_SVP_ELEM_NAME = 293,
-    E_SVP_ELEM_TYPE = 294,
-    E_SVP_SEC_NAME = 295,
-    E_SVP_TOK = 296,
-    E_SVP_RGN_TOK = 297,
-    E_SVP_FILE = 298,
+    E_SVP_ELEM_NAME = 288,
+    E_SVP_ELEM_TYPE = 289,
+    E_SVP_RGN = 290,
 
     // StateMachineParser
     E_SMP_SEC = 320,
