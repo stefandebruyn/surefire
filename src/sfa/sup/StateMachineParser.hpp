@@ -6,7 +6,6 @@
 
 #include "sfa/core/StateMachine.hpp"
 #include "sfa/sup/ConfigErrorInfo.hpp"
-#include "sfa/sup/ConfigTokenizer.hpp"
 #include "sfa/sup/ExpressionParser.hpp"
 #include "sfa/sup/TokenIterator.hpp"
 
@@ -62,7 +61,9 @@ namespace StateMachineParser
         bool hasLocalSection;
     };
 
-    Result parse(std::istream& kIs, Parse& kParse, ConfigErrorInfo* kConfigErr);
+    Result parse(const std::vector<Token>& kToks,
+                 Parse& kParse,
+                 ConfigErrorInfo* kConfigErr);
 
     /// @note PUBLIC FOR TESTING PURPOSES ONLY.
     Result parseLocalSection(TokenIterator& kIt,

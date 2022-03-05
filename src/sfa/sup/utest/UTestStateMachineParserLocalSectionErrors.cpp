@@ -41,12 +41,12 @@ TEST(StateMachineParserLocalSectionErrors, RedundantReadOnlyAnnotation)
 TEST(StateMachineParserLocalSectionErrors, MultipleLocalSections)
 {
     // Got expected return code from parser.
-    std::stringstream ss(
+    TOKENIZE(
         "[LOCAL]\n"
         "[LOCAL]\n");
     StateMachineParser::Parse parse = {};
     ConfigErrorInfo err;
-    CHECK_ERROR(E_SMP_LOC_MULT, StateMachineParser::parse(ss, parse, &err));
+    CHECK_ERROR(E_SMP_LOC_MULT, StateMachineParser::parse(toks, parse, &err));
 
     // Correct line and column numbers of error are identified.
     CHECK_EQUAL(2, err.lineNum);

@@ -3,7 +3,7 @@
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
-static void checkParseError(std::stringstream& kSs,
+static void checkParseError(const std::vector<Token>& kToks,
                             const Result kRes,
                             const I32 kLineNum,
                             const I32 kColNum)
@@ -11,7 +11,7 @@ static void checkParseError(std::stringstream& kSs,
     // Got expected return code from parser.
     StateMachineParser::Parse parse = {};
     ConfigErrorInfo err;
-    CHECK_ERROR(kRes, StateMachineParser::parse(kSs, parse, &err));
+    CHECK_ERROR(kRes, StateMachineParser::parse(kToks, parse, &err));
 
     // Correct line and column numbers of error are identified.
     CHECK_EQUAL(kLineNum, err.lineNum);
@@ -37,32 +37,32 @@ TEST_GROUP(StateMachineParserErrors)
 
 TEST(StateMachineParserErrors, UnexpectedToken)
 {
-    std::stringstream ss(
+    TOKENIZE(
         "@foo\n"
         "[Foo]\n");
-    checkParseError(ss, E_SMP_TOK, 1, 1);
+    checkParseError(toks, E_SMP_TOK, 1, 1);
 }
 
 TEST(StateMachineParserErrors, ErrorInStateVectorSection)
 {
-    std::stringstream ss(
+    TOKENIZE(
         "[STATE_VECTOR]\n"
         "@foo\n");
-    checkParseError(ss, E_SMP_ELEM_TYPE, 2, 1);
+    checkParseError(toks, E_SMP_ELEM_TYPE, 2, 1);
 }
 
 TEST(StateMachineParserErrors, ErrorInLocalSection)
 {
-    std::stringstream ss(
+    TOKENIZE(
         "[LOCAL]\n"
         "@foo\n");
-    checkParseError(ss, E_SMP_ELEM_TYPE, 2, 1);
+    checkParseError(toks, E_SMP_ELEM_TYPE, 2, 1);
 }
 
 TEST(StateMachineParserErrors, ErrorInStateSection)
 {
-    std::stringstream ss(
+    TOKENIZE(
         "[Foo]\n"
         "@foo\n");
-    checkParseError(ss, E_SMP_LAB, 2, 1);
+    checkParseError(toks, E_SMP_LAB, 2, 1);
 }

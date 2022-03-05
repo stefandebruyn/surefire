@@ -20,10 +20,6 @@ namespace StateMachineParser
     Result parseBlock(TokenIterator kIt,
                       std::shared_ptr<BlockParse>& kBlock,
                       ConfigErrorInfo* kConfigErr);
-
-    Result parseImpl(const std::vector<Token>& kToks,
-                     Parse& kParse,
-                     ConfigErrorInfo* kConfigErr);
 }
 
 Result StateMachineParser::parseAction(TokenIterator kIt,
@@ -660,9 +656,11 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
     return SUCCESS;
 }
 
-Result StateMachineParser::parseImpl(const std::vector<Token>& kToks,
-                                     Parse& kParse,
-                                     ConfigErrorInfo* kConfigErr)
+/////////////////////////////////// Public /////////////////////////////////////
+
+Result StateMachineParser::parse(const std::vector<Token>& kToks,
+                                 Parse& kParse,
+                                 ConfigErrorInfo* kConfigErr)
 {
     TokenIterator it(kToks.begin(), kToks.end());
     Parse parse = {};
@@ -718,27 +716,6 @@ Result StateMachineParser::parseImpl(const std::vector<Token>& kToks,
     }
 
     kParse = parse;
+
     return SUCCESS;
-}
-
-/////////////////////////////////// Public /////////////////////////////////////
-
-Result StateMachineParser::parse(std::istream& kIs,
-                                 Parse& kParse,
-                                 ConfigErrorInfo* kConfigErr)
-{
-    std::vector<Token> toks;
-    const Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
-    if (res != SUCCESS)
-    {
-        if (kConfigErr != nullptr)
-        {
-            // Overwrite error text set by tokenizer for consistent error
-            // messages from the state machine parser.
-            kConfigErr->text = errText;
-        }
-        return res;
-    }
-
-    return parseImpl(toks, kParse, kConfigErr);
 }

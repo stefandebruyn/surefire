@@ -8,7 +8,7 @@ TEST_GROUP(StateMachineParser)
 TEST(StateMachineParser, AllSections)
 {
     // Parse state machine config.
-    std::stringstream ss(
+    TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 foo\n"
         "\n"
@@ -18,9 +18,8 @@ TEST(StateMachineParser, AllSections)
         "[Foo]\n"
         ".ENTRY\n"
         "    foo = 0\n");
-    TOKENIZE(ss.str());
     StateMachineParser::Parse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parse(ss, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parse(toks, parse, nullptr));
 
     // Expected number of state vector elements, local elements, and states
     // were parsed.
@@ -66,13 +65,12 @@ TEST(StateMachineParser, AllSections)
 TEST(StateMachineParser, EmptySections)
 {
     // Parse state machine config.
-    std::stringstream ss(
+    TOKENIZE(
         "[STATE_VECTOR]\n"
         "[LOCAL]\n"
         "[Foo]\n");
-    TOKENIZE(ss.str());
     StateMachineParser::Parse parse = {};
-    CHECK_SUCCESS(StateMachineParser::parse(ss, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parse(toks, parse, nullptr));
 
     // Expected number of state vector elements, local elements, and states
     // were parsed.
