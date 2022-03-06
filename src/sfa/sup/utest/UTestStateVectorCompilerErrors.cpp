@@ -35,7 +35,7 @@ TEST_GROUP(StateVectorCompilerErrors)
 {
 };
 
-TEST(StateVectorCompilerErrors, DuplicateElementNameSameRegion)
+TEST(StateVectorCompilerErrors, DupeElementNameSameRegion)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -44,7 +44,7 @@ TEST(StateVectorCompilerErrors, DuplicateElementNameSameRegion)
     checkCompileError(toks, E_SVC_ELEM_DUPE, 3, 5);
 }
 
-TEST(StateVectorCompilerErrors, DuplicateElementNameDifferentRegion)
+TEST(StateVectorCompilerErrors, DupeElementNameDifferentRegion)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -54,7 +54,7 @@ TEST(StateVectorCompilerErrors, DuplicateElementNameDifferentRegion)
     checkCompileError(toks, E_SVC_ELEM_DUPE, 4, 5);
 }
 
-TEST(StateVectorCompilerErrors, DuplicateRegionName)
+TEST(StateVectorCompilerErrors, DupeRegionName)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -77,4 +77,12 @@ TEST(StateVectorCompilerErrors, UnknownElementType)
         "[Foo]\n"
         "I33 foo\n");
     checkCompileError(toks, E_SVC_ELEM_TYPE, 2, 1);
+}
+
+TEST(StateVectorCompilerErrors, ReservedElementName)
+{
+    TOKENIZE(
+        "[Foo]\n"
+        "I32 T\n");
+    checkCompileError(toks, E_SVC_RSVD, 2, 5);
 }

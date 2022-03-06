@@ -95,13 +95,6 @@ const std::unordered_set<std::string> OperatorInfo::relOps =
 
 const std::unordered_set<std::string> ConfigUtil::reserved =
 {
-    "STATE_VECTOR",
-    "LOCAL",
-    "IF",
-    "ELSE",
-    "ENTRY",
-    "STEP",
-    "EXIT",
     "T",
     "G",
     "S"
