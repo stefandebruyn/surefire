@@ -85,6 +85,12 @@ enum : Result
     E_EXP_EMPTY = 387,
     E_EXP_PAREN = 388,
 
+    // StateVectorCompiler
+    E_SVC_RGN_EMPTY = 316,
+    E_SVC_ELEM_TYPE = 317,
+    E_SVC_RGN_DUPE = 318,
+    E_SVC_ELEM_DUPE = 319,
+
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 
     // Socket

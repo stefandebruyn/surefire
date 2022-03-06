@@ -1,36 +1,36 @@
-// #ifndef SFA_STATE_VECTOR_COMPILER_HPP
-// #define SFA_STATE_VECTOR_COMPILER_HPP
+#ifndef SFA_STATE_VECTOR_COMPILER_HPP
+#define SFA_STATE_VECTOR_COMPILER_HPP
 
-// #include "sfa/sup/StateVectorParser.hpp"
+#include "sfa/sup/StateVectorParser.hpp"
 
-// namespace StateVectorCompiler
-// {
-//     class Assembly final
-//     {
-//     public:
+namespace StateVectorCompiler
+{
+    class Assembly final
+    {
+    public:
 
-//         Assembly(const StateVector::Config kSvConfig,
-//                  const char* const kSvBacking,
-//                  const StateVectorParser::Parse& kParse);
+        Assembly(const StateVector::Config kSvConfig,
+                 const char* const kSvBacking,
+                 const StateVectorParser::Parse& kParse);
 
-//         ~Assembly();
+        ~Assembly();
 
-//         const StateVector::Config& getConfig() const;
+        const StateVector::Config& getConfig() const;
 
-//         const StateVectorParser::Parse& getParse() const;
+        const StateVectorParser::Parse& getParse() const;
 
-//     private:
+    private:
 
-//         const StateVector::Config mSvConfig;
+        const StateVector::Config mSvConfig;
 
-//         const char* const mSvBacking;
+        const char* const mSvBacking;
 
-//         const StateVectorParser::Parse mParse;
-//     };
+        const StateVectorParser::Parse mParse;
+    };
 
-//     Result compile(const StateVectorParser::Parse& kParse,
-//                    std::shared_ptr<Assembly>& kAsm,
-//                    ConfigErrorInfo* kConfigErr);
-// }
+    Result compile(const StateVectorParser::Parse& kParse,
+                   std::shared_ptr<Assembly>& kAsm,
+                   ConfigErrorInfo* kConfigErr);
+}
 
-// #endif
+#endif
