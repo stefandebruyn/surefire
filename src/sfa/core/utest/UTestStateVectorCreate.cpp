@@ -221,3 +221,35 @@ TEST(StateVectorCreate, AllowElementMisalignmentWithoutRegions)
     CHECK_SUCCESS(res);
     POINTERS_EQUAL(&elem, elemBar);
 }
+
+TEST(StateVectorCreate, DupeElementName)
+{
+    // Rename element `bar` to `foo`.
+    const char* const tmp = gConfig.elems[1].name;
+    gConfig.elems[1].name = "foo";
+
+    // Creating state vector fails.
+    StateVector sv;
+    const Result res = StateVector::create(gConfig, sv);
+    gConfig.elems[1].name = tmp;
+    CHECK_ERROR(E_SV_ELEM_DUPE, res);
+
+    // State vector is uninitialized.
+    checkStateVectorUninitialized(sv);
+}
+
+TEST(StateVectorCreate, DupeRegionName)
+{
+    // Rename region `bar` to `foo`.
+    const char* const tmp = gConfig.regions[1].name;
+    gConfig.regions[1].name = "foo";
+
+    // Creating state vector fails.
+    StateVector sv;
+    const Result res = StateVector::create(gConfig, sv);
+    gConfig.regions[1].name = tmp;
+    CHECK_ERROR(E_SV_RGN_DUPE, res);
+
+    // State vector is uninitialized.
+    checkStateVectorUninitialized(sv);
+}

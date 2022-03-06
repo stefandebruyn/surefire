@@ -22,6 +22,8 @@ enum : Result
     E_SV_NULL = 68,
     E_SV_KEY = 69,
     E_SV_LAYOUT = 70,
+    E_SV_ELEM_DUPE = 71,
+    E_SV_RGN_DUPE = 72,
 
     // Task
     E_TSK_MODE = 128,

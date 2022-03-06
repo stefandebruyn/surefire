@@ -15,23 +15,43 @@ Result StateVector::create(const Config kConfig, StateVector& kSv)
         return E_SV_NULL;
     }
 
-    // Check that each element config element pointer is non-null.
     for (U32 i = 0; kConfig.elems[i].name != nullptr; ++i)
     {
+        // Check that element pointer is non-null.
         if (kConfig.elems[i].elem == nullptr)
         {
             return E_SV_NULL;
+        }
+
+        // Check that element name is unique.
+        for (U32 j = (i + 1); kConfig.elems[j].name != nullptr; ++j)
+        {
+            if (MemOps::strcmp(kConfig.elems[i].name, kConfig.elems[j].name)
+                == 0)
+            {
+                return E_SV_ELEM_DUPE;
+            }
         }
     }
 
     if (kConfig.regions != nullptr)
     {
-        // Check that each region config region pointer is non-null.
         for (U32 i = 0; kConfig.regions[i].name != nullptr; ++i)
         {
+            // Check that each region config region pointer is non-null.
             if (kConfig.regions[i].region == nullptr)
             {
                 return E_SV_NULL;
+            }
+
+            // Check that region name is unique.
+            for (U32 j = (i + 1); kConfig.regions[j].name != nullptr; ++j)
+            {
+                if (MemOps::strcmp(kConfig.regions[i].name,
+                                   kConfig.regions[j].name) == 0)
+                {
+                    return E_SV_RGN_DUPE;
+                }
             }
         }
 
