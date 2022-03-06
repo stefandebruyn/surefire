@@ -1,7 +1,7 @@
-#include "sfa/core/Assert.hpp" // rm later
+#include "sfa/core/Assert.hpp"
+#include "sfa/sup/ConfigUtil.hpp"
 #include "sfa/sup/StateVectorParser.hpp"
 #include "sfa/sup/TokenIterator.hpp"
-#include "sfa/sup/ConfigUtil.hpp"
 
 /////////////////////////////////// Private ////////////////////////////////////
 
@@ -18,7 +18,6 @@ Result StateVectorParser::parseRegion(TokenIterator& kIt,
                                       RegionParse& kRgn,
                                       ConfigErrorInfo* kConfigErr)
 {
-    (void) kConfigErr; // rm later
     // Assert that token iterator is currently positioned at a section.
     SFA_ASSERT(kIt.type() == Token::SECTION);
 
@@ -94,18 +93,18 @@ Result StateVectorParser::parse(const std::vector<Token>& kToks,
 
                 // Only parse region if `ALL_REGIONS` was passed or the region
                 // name appears in the passed vector.
-                RegionParse rgn = {};
-                rgn.plainName = it.str().substr(1, (it.str().size() - 2));
+                RegionParse region = {};
+                region.plainName = it.str().substr(1, (it.str().size() - 2));
                 if ((kRgns == ALL_REGIONS)
-                    || (std::find(kRgns.begin(), kRgns.end(), rgn.plainName)
+                    || (std::find(kRgns.begin(), kRgns.end(), region.plainName)
                         != kRgns.end()))
                 {
-                    const Result res = parseRegion(it, rgn, kConfigErr);
+                    const Result res = parseRegion(it, region, kConfigErr);
                     if (res != SUCCESS)
                     {
                         return res;
                     }
-                    parse.regions.push_back(rgn);
+                    parse.regions.push_back(region);
                 }
                 else
                 {
@@ -126,12 +125,12 @@ Result StateVectorParser::parse(const std::vector<Token>& kToks,
 
     // If specific regions were selected for parsing, check that all specified
     // regions existed in the config.
-    for (const std::string& rgnName : kRgns)
+    for (const std::string& regionName : kRgns)
     {
         bool found = false;
-        for (const RegionParse& rgnParse : parse.regions)
+        for (const RegionParse& regionParse : parse.regions)
         {
-            if (rgnParse.plainName == rgnName)
+            if (regionParse.plainName == regionName)
             {
                 found = true;
                 break;
@@ -145,7 +144,7 @@ Result StateVectorParser::parse(const std::vector<Token>& kToks,
             {
                 kConfigErr->text = errText;
                 kConfigErr->subtext =
-                    "region `" + rgnName + "` does not exist in config";
+                    "region `" + regionName + "` does not exist in config";
             }
             return E_SVP_RGN;
         }

@@ -37,22 +37,22 @@ I32 Cli::sv(const std::vector<std::string> kArgs)
             U32 totalElems = 0;
             U32 totalBytes = 0;
 
-            for (const StateVectorParser::RegionParse& rgn : parse.regions)
+            for (const StateVectorParser::RegionParse& region : parse.regions)
             {
                 // Compute region size in bytes.
                 U32 regionBytes = 0;
-                totalElems += rgn.elems.size();
-                for (const StateVectorParser::ElementParse& elem : rgn.elems)
+                totalElems += region.elems.size();
+                for (const StateVectorParser::ElementParse& elem : region.elems)
                 {
                     regionBytes += elem.sizeBytes;
                 }
 
                 // Print region info.
-                std::cout << "region `" << Console::cyan << rgn.plainName
+                std::cout << "region `" << Console::cyan << region.plainName
                           << Console::reset << "`: " << Console::cyan
-                          << rgn.elems.size() << Console::reset << " elements, "
-                          << Console::cyan << regionBytes << Console::reset
-                          << " B" << "\n";
+                          << region.elems.size() << Console::reset <<
+                          << " elements, " Console::cyan << regionBytes
+                          << Console::reset << " B" << "\n";
 
                 totalBytes += regionBytes;
             }
