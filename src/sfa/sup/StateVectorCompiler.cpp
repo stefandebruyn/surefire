@@ -199,17 +199,9 @@ Result StateVectorCompiler::compile(const StateVectorParser::Parse& kParse,
         }
     }
 
-    // Check that element names are unique and not reserved.
+    // Check that element names are unique.
     for (U32 i = 0; i < elems.size(); ++i)
     {
-        if (ConfigUtil::reserved.find(elems[i]->tokName.str)
-            != ConfigUtil::reserved.end())
-        {
-            ConfigUtil::setError(kConfigErr, elems[i]->tokName, errText,
-                                 "name is reserved");
-            return E_SVC_RSVD;
-        }
-
         for (U32 j = (i + 1); j < elems.size(); ++j)
         {
             if (elems[i]->tokName.str == elems[j]->tokName.str)

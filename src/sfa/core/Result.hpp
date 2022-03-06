@@ -92,7 +92,6 @@ enum : Result
     E_SVC_ELEM_TYPE = 317,
     E_SVC_RGN_DUPE = 318,
     E_SVC_ELEM_DUPE = 319,
-    E_SVC_RSVD = 320,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 
