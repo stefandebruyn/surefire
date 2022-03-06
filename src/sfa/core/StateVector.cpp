@@ -177,8 +177,7 @@ Result StateVector::getElement<bool>(const char* const kName,
     return this->getElementImpl<bool>(kName, kElem, ElementType::BOOL);
 }
 
-Result StateVector::getIElement(const char* const kName,
-                                const IElement*& kElem) const
+Result StateVector::getIElement(const char* const kName, IElement*& kElem) const
 {
     const ElementConfig* elemConfig = nullptr;
     const Result res = this->getElementConfig(kName, elemConfig);

@@ -28,14 +28,14 @@ public:
         RegionConfig* regions;
     };
 
-    static Result create(const Config kConfig, StateVector& kSm);
+    static Result create(const Config kConfig, StateVector& kSv);
 
     StateVector();
 
     template<typename T>
     Result getElement(const char* const kName, Element<T>*& kELem);
 
-    Result getIElement(const char* const kName, const IElement*& kElem) const;
+    Result getIElement(const char* const kName, IElement*& kElem) const;
 
     Result getRegion(const char* const kName, Region*& kRegion);
 

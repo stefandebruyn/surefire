@@ -82,7 +82,7 @@ static void testGetElement(const char* const kName, const Element<T>& kElem)
     Element<T>* elem = nullptr;
     CHECK_SUCCESS(sv.getElement(kName, elem));
     POINTERS_EQUAL(&kElem, elem);
-    const IElement* ielem = nullptr;
+    IElement* ielem = nullptr;
     CHECK_SUCCESS(sv.getIElement(kName, ielem));
     POINTERS_EQUAL(&kElem, ielem);
 }

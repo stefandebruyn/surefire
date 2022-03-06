@@ -174,7 +174,7 @@ const StateVectorParser::Parse& StateVectorCompiler::Assembly::getParse() const
 
 Result StateVectorCompiler::compile(const StateVectorParser::Parse& kParse,
                                     std::shared_ptr<Assembly>& kAsm,
-                                    ConfigErrorInfo* kConfigErr)
+                                    ConfigErrorInfo* const kConfigErr)
 {
     // Check that region names are unique. While we do this, collect all the
     // elements in a list so that we can check element name uniqueness.
@@ -307,4 +307,25 @@ Result StateVectorCompiler::compile(const StateVectorParser::Parse& kParse,
     kAsm.reset(new Assembly(svConfig, svBacking, kParse));
 
     return SUCCESS;
+}
+
+Result StateVectorCompiler::compile(std::istream& kIs,
+                                    std::shared_ptr<Assembly>& kAsm,
+                                    ConfigErrorInfo* const kConfigErr)
+{
+    std::vector<Token> toks;
+    Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    StateVectorParser::Parse parse = {};
+    res = StateVectorParser::parse(toks, parse, kConfigErr);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    return compile(parse, kAsm, kConfigErr);
 }

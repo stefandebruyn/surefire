@@ -1,6 +1,8 @@
 #ifndef SFA_STATE_VECTOR_COMPILER_HPP
 #define SFA_STATE_VECTOR_COMPILER_HPP
 
+#include <istream>
+
 #include "sfa/sup/StateVectorParser.hpp"
 
 namespace StateVectorCompiler
@@ -30,7 +32,11 @@ namespace StateVectorCompiler
 
     Result compile(const StateVectorParser::Parse& kParse,
                    std::shared_ptr<Assembly>& kAsm,
-                   ConfigErrorInfo* kConfigErr);
+                   ConfigErrorInfo* const kConfigErr);
+
+    Result compile(std::istream& kIs,
+                   std::shared_ptr<Assembly>& kAsm,
+                   ConfigErrorInfo* const kConfigErr);
 }
 
 #endif
