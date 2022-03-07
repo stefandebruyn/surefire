@@ -1,3 +1,4 @@
+#include <fstream>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -224,6 +225,60 @@ StateMachineCompiler::Assembly::~Assembly()
     // todo
 }
 
+Result StateMachineCompiler::compile(const std::string kFilePath,
+                                     const StateVector& kSv,
+                                     std::shared_ptr<Assembly>& kAsm,
+                                     ConfigErrorInfo* const kConfigErr)
+{
+    if (kConfigErr != nullptr)
+    {
+        kConfigErr->filePath = kFilePath;
+    }
+
+    std::ifstream ifs(kFilePath);
+    if (!ifs.is_open())
+    {
+        if (kConfigErr != nullptr)
+        {
+            kConfigErr->text = "error";
+            kConfigErr->subtext = "failed to open file `" + kFilePath + "`";
+        }
+        return E_SMC_FILE;
+    }
+
+    return compile(ifs, kSv, kAsm, kConfigErr);
+}
+
+Result StateMachineCompiler::compile(std::istream& kIs,
+                                     const StateVector& kSv,
+                                     std::shared_ptr<Assembly>& kAsm,
+                                     ConfigErrorInfo* const kConfigErr)
+{
+    std::vector<Token> toks;
+    Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
+    if (res != SUCCESS)
+    {
+        if (kConfigErr != nullptr)
+        {
+            kConfigErr->text = errText;
+        }
+        return res;
+    }
+
+    StateMachineParser::Parse parse = {};
+    res = StateMachineParser::parse(toks, parse, kConfigErr);
+    if (res != SUCCESS)
+    {
+        if (kConfigErr != nullptr)
+        {
+            kConfigErr->text = errText;
+        }
+        return res;
+    }
+
+    return compile(parse, kSv, kAsm, kConfigErr);
+}
+
 Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
                                      const StateVector& kSv,
                                      std::shared_ptr<Assembly>& kAsm,
@@ -261,26 +316,4 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
     // Compilation successful- return new state machine assembly.
     kAsm.reset(new Assembly(smConfig, kParse));
     return SUCCESS;
-}
-
-Result StateMachineCompiler::compile(std::istream& kIs,
-                                     const StateVector& kSv,
-                                     std::shared_ptr<Assembly>& kAsm,
-                                     ConfigErrorInfo* const kConfigErr)
-{
-    std::vector<Token> toks;
-    Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
-    if (res != SUCCESS)
-    {
-        return res;
-    }
-
-    StateMachineParser::Parse parse = {};
-    res = StateMachineParser::parse(toks, parse, kConfigErr);
-    if (res != SUCCESS)
-    {
-        return res;
-    }
-
-    return compile(parse, kSv, kAsm, kConfigErr);
 }

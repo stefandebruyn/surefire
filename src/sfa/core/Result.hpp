@@ -88,10 +88,14 @@ enum : Result
     E_EXP_PAREN = 388,
 
     // StateVectorCompiler
-    E_SVC_RGN_EMPTY = 316,
-    E_SVC_ELEM_TYPE = 317,
-    E_SVC_RGN_DUPE = 318,
-    E_SVC_ELEM_DUPE = 319,
+    E_SVC_FILE = 316,
+    E_SVC_RGN_EMPTY = 317,
+    E_SVC_ELEM_TYPE = 318,
+    E_SVC_RGN_DUPE = 319,
+    E_SVC_ELEM_DUPE = 320,
+
+    // StateMachineCompiler
+    E_SMC_FILE = 348,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 

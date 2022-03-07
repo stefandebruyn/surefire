@@ -26,12 +26,17 @@ namespace StateMachineCompiler
         const StateMachineParser::Parse mParse;
     };
 
-    Result compile(const StateMachineParser::Parse& kParse,
+    Result compile(const std::string kFilePath,
                    const StateVector& kSv,
                    std::shared_ptr<Assembly>& kAsm,
                    ConfigErrorInfo* const kConfigErr);
 
     Result compile(std::istream& kIs,
+                   const StateVector& kSv,
+                   std::shared_ptr<Assembly>& kAsm,
+                   ConfigErrorInfo* const kConfigErr);
+
+    Result compile(const StateMachineParser::Parse& kParse,
                    const StateVector& kSv,
                    std::shared_ptr<Assembly>& kAsm,
                    ConfigErrorInfo* const kConfigErr);

@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "sfa/core/Assert.hpp"
 #include "sfa/sup/StateVectorCompiler.hpp"
 #include "sfa/sup/ConfigUtil.hpp"
@@ -172,6 +174,58 @@ const StateVectorParser::Parse& StateVectorCompiler::Assembly::getParse() const
     return mParse;
 }
 
+Result StateVectorCompiler::compile(const std::string kFilePath,
+                                    std::shared_ptr<Assembly>& kAsm,
+                                    ConfigErrorInfo* const kConfigErr)
+{
+    if (kConfigErr != nullptr)
+    {
+        kConfigErr->filePath = kFilePath;
+    }
+
+    std::ifstream ifs(kFilePath);
+    if (!ifs.is_open())
+    {
+        if (kConfigErr != nullptr)
+        {
+            kConfigErr->text = "error";
+            kConfigErr->subtext = "failed to open file `" + kFilePath + "`";
+        }
+        return E_SMC_FILE;
+    }
+
+    return compile(ifs, kAsm, kConfigErr);
+}
+
+Result StateVectorCompiler::compile(std::istream& kIs,
+                                    std::shared_ptr<Assembly>& kAsm,
+                                    ConfigErrorInfo* const kConfigErr)
+{
+    std::vector<Token> toks;
+    Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
+    if (res != SUCCESS)
+    {
+        if (kConfigErr != nullptr)
+        {
+            kConfigErr->text = errText;
+        }
+        return res;
+    }
+
+    StateVectorParser::Parse parse = {};
+    res = StateVectorParser::parse(toks, parse, kConfigErr);
+    if (res != SUCCESS)
+    {
+        if (kConfigErr != nullptr)
+        {
+            kConfigErr->text = errText;
+        }
+        return res;
+    }
+
+    return compile(parse, kAsm, kConfigErr);
+}
+
 Result StateVectorCompiler::compile(const StateVectorParser::Parse& kParse,
                                     std::shared_ptr<Assembly>& kAsm,
                                     ConfigErrorInfo* const kConfigErr)
@@ -307,25 +361,4 @@ Result StateVectorCompiler::compile(const StateVectorParser::Parse& kParse,
     kAsm.reset(new Assembly(svConfig, svBacking, kParse));
 
     return SUCCESS;
-}
-
-Result StateVectorCompiler::compile(std::istream& kIs,
-                                    std::shared_ptr<Assembly>& kAsm,
-                                    ConfigErrorInfo* const kConfigErr)
-{
-    std::vector<Token> toks;
-    Result res = ConfigTokenizer::tokenize(kIs, toks, kConfigErr);
-    if (res != SUCCESS)
-    {
-        return res;
-    }
-
-    StateVectorParser::Parse parse = {};
-    res = StateVectorParser::parse(toks, parse, kConfigErr);
-    if (res != SUCCESS)
-    {
-        return res;
-    }
-
-    return compile(parse, kAsm, kConfigErr);
 }

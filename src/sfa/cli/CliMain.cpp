@@ -1,5 +1,8 @@
+#include <iostream>
+
 #include "sfa/core/BasicTypes.hpp"
-#include "sfa/cli/CliSv.hpp"
+#include "sfa/cli/SvCmd.hpp"
+#include "sfa/cli/SmCmd.hpp"
 
 static const std::string gHelpMsg = "idk";
 
@@ -23,6 +26,11 @@ I32 main(I32 kArgc, char* kArgv[])
     {
         // State vector command.
         return Cli::sv(std::vector<std::string>(args.begin() + 2, args.end()));
+    }
+    else if (args[1] == "sm")
+    {
+        // State machine command.
+        return Cli::sm(std::vector<std::string>(args.begin() + 2, args.end()));
     }
     else
     {
