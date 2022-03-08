@@ -10,8 +10,10 @@ namespace StateMachineCompiler
     {
     public:
 
-        Assembly(const StateMachine::Config kConfig,
-                 const StateMachineParser::Parse& kParse);
+        Assembly(
+            const StateMachine::Config kConfig,
+            const StateMachineParser::Parse& kParse,
+            const std::shared_ptr<StateVectorCompiler::Assembly> kLocalSvASm);
 
         ~Assembly();
 
@@ -24,6 +26,8 @@ namespace StateMachineCompiler
         const StateMachine::Config mConfig;
 
         const StateMachineParser::Parse mParse;
+
+        const std::shared_ptr<StateVectorCompiler::Assembly> mLocalSvAsm;
     };
 
     Result compile(const std::string kFilePath,

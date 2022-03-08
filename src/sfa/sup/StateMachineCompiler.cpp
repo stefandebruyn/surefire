@@ -13,7 +13,7 @@ namespace StateMachineCompiler
 {
     const char* const errText = "state machine config error";
 
-    const std::unordered_set<std::string> reservedElemNames = {"T", "G", "S"};
+    const std::unordered_set<std::string> reservedElemNames = {"T", "S"};
 
     struct CompilerState final
     {
@@ -44,6 +44,7 @@ Result StateMachineCompiler::checkStateVector(
 {
     (void) kConfigErr; // rm later
 
+    bool foundGElem = false;
     for (const StateMachineParser::StateVectorElementParse& elem :
          kParse.svElems)
     {
@@ -92,6 +93,30 @@ Result StateMachineCompiler::checkStateVector(
 
         // Add element to the symbol table.
         kCompState.elems[elem.tokName.str] = elemObj;
+
+        // If the element is aliased, add the alias to the symbol table too.
+        if (elem.alias.size() > 0)
+        {
+           if (elem.alias == "G")
+            {
+                // `G` alias designates the global time element updated
+                // externally to the state machine.
+                if (smTypeInfo.enumVal != ElementType::UINT64)
+                {
+                    // Global time element is not U64.
+                    SFA_ASSERT(false);
+                }
+                foundGElem = true;
+            }
+
+            kCompState.elems[elem.alias] = elemObj;
+        }
+    }
+
+    if (!foundGElem)
+    {
+        // No global time element provided.
+        SFA_ASSERT(false);
     }
 
     return SUCCESS;
@@ -127,11 +152,6 @@ Result StateMachineCompiler::compileLocalStateVector(
         });
     localSvParse.regions[0].elems.push_back(
         {
-            {Token::IDENTIFIER, "U64", -1, -1},
-            {Token::IDENTIFIER, "G", -1, -1}
-        });
-    localSvParse.regions[0].elems.push_back(
-        {
             {Token::IDENTIFIER, "U32", -1, -1},
             {Token::IDENTIFIER, "S", -1, -1}
         });
@@ -147,12 +167,15 @@ Result StateMachineCompiler::compileLocalStateVector(
             SFA_ASSERT(false);
         }
 
-        // Check for name uniqueness against state vector elements. Uniqueness
-        // against local elements will be checked by the state vector compiler
-        // later on.
-        for (U32 j = 0; j < kParse.svElems.size(); ++j)
+        // Check for name uniqueness against state vector elements and aliases.
+        // Uniqueness against local elements will be checked by the state vector
+        // compiler later on.
+        for (const StateMachineParser::StateVectorElementParse& svElem :
+             kParse.svElems)
         {
-            if (elem.tokName.str == kParse.svElems[j].tokName.str)
+            if ((elem.tokName.str == svElem.tokName.str)
+                || ((svElem.alias.size() > 0)
+                    && (elem.tokName.str == svElem.alias)))
             {
                 SFA_ASSERT(false);
             }
@@ -215,8 +238,10 @@ Result StateMachineCompiler::initLocalElementValues(
 /////////////////////////////////// Public /////////////////////////////////////
 
 StateMachineCompiler::Assembly::Assembly(
-    const StateMachine::Config kConfig,
-    const StateMachineParser::Parse& kParse) : mConfig(kConfig), mParse(kParse)
+        const StateMachine::Config kConfig,
+        const StateMachineParser::Parse& kParse,
+        const std::shared_ptr<StateVectorCompiler::Assembly> kLocalSvASm) :
+    mConfig(kConfig), mParse(kParse), mLocalSvAsm(kLocalSvASm)
 {
 }
 
@@ -313,7 +338,11 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
     // Compile each state machine state.
     // TODO
 
+    smConfig.elemState = compState.elems["S"];
+    smConfig.elemStateTime = compState.elems["T"];
+    smConfig.elemGlobalTime = compState.elems["G"];
+
     // Compilation successful- return new state machine assembly.
-    kAsm.reset(new Assembly(smConfig, kParse));
+    kAsm.reset(new Assembly(smConfig, kParse, compState.localSvAsm));
     return SUCCESS;
 }

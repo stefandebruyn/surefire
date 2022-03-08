@@ -24,13 +24,15 @@ TEST(StateMachineCompiler, Doop)
 {
     INIT_SV(
         "[Foo]\n"
-        "I32 foo\n");
+        "I32 foo\n"
+        "U64 bar\n");
     COMPILE_SM(
         "[STATE_VECTOR]\n"
         "I32 foo\n"
+        "U64 bar @ALIAS=G\n"
         "\n"
         "[LOCAL]\n"
-        "I32 bar = 0\n"
+        "I32 baz = 0\n"
         "\n"
         "[Initial]\n");
 }
