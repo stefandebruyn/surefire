@@ -24,7 +24,16 @@ Result ConfigTokenizer::tokenizeLine(const std::string& kLine,
 
     if (kConfigErr != nullptr)
     {
+        // Add line to error info for use in error messages.
         kConfigErr->lines.push_back(kLine);
+    }
+
+    // Jump to the first non-whitespace or newline character in the line.
+    while ((idx < kLine.size())
+           && std::isspace(kLine[idx])
+           && (kLine[idx] != '\n'))
+    {
+        ++idx;
     }
 
     while (idx < kLine.size())

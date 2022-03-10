@@ -139,6 +139,17 @@ TEST(ConfigTokenizer, Comma)
     CHECK_TOKEN(",", Token::COMMA, ",", 1, 1);
 }
 
+TEST(ConfigTokenizer, OnlySpaces)
+{
+    const std::vector<Token> empty;
+    CHECK_TOKENS("    ", empty);
+}
+
+TEST(ConfigTokenizer, OnlySpacesThenNewline)
+{
+    CHECK_TOKEN("    \n", Token::NEWLINE, "(newline)", 1, 5);
+}
+
 TEST(ConfigTokenizer, EveryToken)
 {
     const std::vector<Token> toksExpect =
