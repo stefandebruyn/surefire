@@ -42,10 +42,8 @@ struct OperatorInfo final
     enum Type : U8
     {
         OP_NOT,
-        OP_NEG,
         OP_MULT,
         OP_DIV,
-        OP_MOD,
         OP_ADD,
         OP_SUB,
         OP_LT,

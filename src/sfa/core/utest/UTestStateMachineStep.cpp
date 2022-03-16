@@ -34,23 +34,23 @@ static Element<U32> gElemState(gSvBacking.state);
 static Element<U64> gElemStateTime(gSvBacking.stateTime);
 static Element<U64> gElemGlobalTime(gSvBacking.globalTime);
 
-static ElementExpr<I32> gExprFoo(gElemFoo);
+static ElementExprNode<I32> gExprFoo(gElemFoo);
 
 // Expression constants
-static ConstExpr<I32> g100(100);
-static ConstExpr<I32> g1(1);
-static ConstExpr<I32> g110(110);
-static ConstExpr<I32> g0(0);
+static ConstExprNode<I32> g100(100);
+static ConstExprNode<I32> g1(1);
+static ConstExprNode<I32> g110(110);
+static ConstExprNode<I32> g0(0);
 
 // foo = 100
 static AssignmentAction<I32> gFooGets100(gElemFoo, g100);
 
 // foo = foo + 1
-static BinOpExpr<I32> gFooPlus1(add<I32>, gExprFoo, g1);
+static BinOpExprNode<I32> gFooPlus1(add<I32>, gExprFoo, g1);
 static AssignmentAction<I32> gFooGetsFooPlus1(gElemFoo, gFooPlus1);
 
 // foo == 110
-static BinOpExpr<bool, I32> gFooIs200(equals<I32>, gExprFoo, g110);
+static BinOpExprNode<bool, I32> gFooIs200(equals<I32>, gExprFoo, g110);
 
 // -> State1
 static TransitionAction gTransToState2(2);

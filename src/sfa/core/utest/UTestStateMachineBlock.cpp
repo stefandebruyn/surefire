@@ -16,7 +16,7 @@ TEST(StateMachineBlock, BlockExecuteAction)
     // Action `foo = 10`
     I32 foo = 0;
     Element<I32> elemFoo(foo);
-    ConstExpr<I32> expr10(10);
+    ConstExprNode<I32> expr10(10);
     AssignmentAction<I32> fooGets10(elemFoo, expr10);
 
     // Create block containing action.
@@ -33,19 +33,20 @@ TEST(StateMachineBlock, BlockExecuteLink)
     // Action `foo = foo + 1`
     I32 foo = 1;
     Element<I32> elemFoo(foo);
-    ElementExpr<I32> exprFoo(elemFoo);
-    ConstExpr<I32> expr1(1);
-    BinOpExpr<I32> fooPlus1(add<I32>, exprFoo, expr1);
+    ElementExprNode<I32> exprFoo(elemFoo);
+    ConstExprNode<I32> expr1(1);
+    BinOpExprNode<I32> fooPlus1(add<I32>, exprFoo, expr1);
     AssignmentAction<I32> fooGetsFooPlus1(elemFoo, fooPlus1);
 
-    // Action `foo = -foo`
-    UnaryOpExpr<I32> negateFoo(negate<I32>, exprFoo);
-    AssignmentAction<I32> fooGetsBangFoo(elemFoo, negateFoo);
+    // Action `foo = foo * -1`
+    ConstExprNode<I32> exprNeg1(-1);
+    BinOpExprNode<I32> fooTimesNeg1(multiply<I32>, exprFoo, exprNeg1);
+    AssignmentAction<I32> fooGetsFooTimesNeg1(elemFoo, fooTimesNeg1);
 
     // foo = foo + 1
-    // foo = -foo
+    // foo = foo * -1
     StateMachine::Block block1 =
-        {nullptr, nullptr, nullptr, &fooGetsBangFoo, nullptr};
+        {nullptr, nullptr, nullptr, &fooGetsFooTimesNeg1, nullptr};
     StateMachine::Block block0 =
         {nullptr, nullptr, nullptr, &fooGetsFooPlus1, &block1};
 
@@ -59,26 +60,26 @@ TEST(StateMachineBlock, BlockGuard)
     // Expression `foo == TRUE`
     bool foo = false;
     Element<bool> elemFoo(foo);
-    ElementExpr<bool> exprFoo(elemFoo);
-    ConstExpr<bool> exprTrue(true);
-    BinOpExpr<bool> fooIsTrue(equals<bool>, exprFoo, exprTrue);
+    ElementExprNode<bool> exprFoo(elemFoo);
+    ConstExprNode<bool> exprTrue(true);
+    BinOpExprNode<bool> fooIsTrue(equals<bool>, exprFoo, exprTrue);
 
     // Action `bar = 1`
     I32 bar = 0;
     Element<I32> elemBar(bar);
-    ElementExpr<I32> exprBar(elemBar);
-    ConstExpr<I32> expr1(1);
+    ElementExprNode<I32> exprBar(elemBar);
+    ConstExprNode<I32> expr1(1);
     AssignmentAction<I32> barGets1(elemBar, expr1);
 
     // Action `bar = 2`
-    ConstExpr<I32> expr2(2);
+    ConstExprNode<I32> expr2(2);
     AssignmentAction<I32> barGets2(elemBar, expr2);
 
     // Action `baz = NOT baz`
     bool baz = false;
     Element<bool> elemBaz(baz);
-    ElementExpr<bool> exprBaz(elemBaz);
-    UnaryOpExpr<bool> notBaz(bang<bool>, exprBaz);
+    ElementExprNode<bool> exprBaz(elemBaz);
+    UnaryOpExprNode<bool> notBaz(bang<bool>, exprBaz);
     AssignmentAction<bool> bazGetsNotBaz(elemBaz, notBaz);
 
     // foo:  bar = 1

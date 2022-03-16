@@ -3,6 +3,7 @@
 
 #include "sfa/core/StateVector.hpp"
 #include "sfa/sup/StateMachineParser.hpp"
+#include "sfa/sup/StateVectorCompiler.hpp"
 
 namespace StateMachineCompiler
 {
@@ -32,17 +33,17 @@ namespace StateMachineCompiler
 
     Result compile(const std::string kFilePath,
                    const StateVector& kSv,
-                   std::shared_ptr<Assembly>& kAsm,
+                   std::shared_ptr<StateMachineCompiler::Assembly>& kAsm,
                    ConfigErrorInfo* const kConfigErr);
 
     Result compile(std::istream& kIs,
                    const StateVector& kSv,
-                   std::shared_ptr<Assembly>& kAsm,
+                   std::shared_ptr<StateMachineCompiler::Assembly>& kAsm,
                    ConfigErrorInfo* const kConfigErr);
 
     Result compile(const StateMachineParser::Parse& kParse,
                    const StateVector& kSv,
-                   std::shared_ptr<Assembly>& kAsm,
+                   std::shared_ptr<StateMachineCompiler::Assembly>& kAsm,
                    ConfigErrorInfo* const kConfigErr);
 }
 

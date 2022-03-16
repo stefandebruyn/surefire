@@ -97,10 +97,11 @@ Result StateMachineCompiler::checkStateVector(
         // If the element is aliased, add the alias to the symbol table too.
         if (elem.alias.size() > 0)
         {
-           if (elem.alias == "G")
+            // `G` alias designates the global time element updated
+            // externally to the state machine.
+            if (elem.alias == "G")
             {
-                // `G` alias designates the global time element updated
-                // externally to the state machine.
+
                 if (smTypeInfo.enumVal != ElementType::UINT64)
                 {
                     // Global time element is not U64.
@@ -338,9 +339,9 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
     // Compile each state machine state.
     // TODO
 
-    smConfig.elemState = compState.elems["S"];
-    smConfig.elemStateTime = compState.elems["T"];
-    smConfig.elemGlobalTime = compState.elems["G"];
+    smConfig.elemState = static_cast<Element<U32>*>(compState.elems["S"]);
+    smConfig.elemStateTime = static_cast<Element<U64>*>(compState.elems["T"]);
+    smConfig.elemGlobalTime = static_cast<Element<U64>*>(compState.elems["G"]);
 
     // Compilation successful- return new state machine assembly.
     kAsm.reset(new Assembly(smConfig, kParse, compState.localSvAsm));

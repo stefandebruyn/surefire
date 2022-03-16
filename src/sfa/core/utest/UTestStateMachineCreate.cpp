@@ -45,9 +45,9 @@ static Element<U32> gElemState(gSvBacking.state);
 static Element<U64> gElemStateTime(gSvBacking.stateTime);
 static Element<U64> gElemGlobalTime(gSvBacking.globalTime);
 
-static ElementExpr<bool> gExprFoo(gElemFoo);
-static ElementExpr<bool> gExprBar(gElemBar);
-static ElementExpr<bool> gExprBaz(gElemBaz);
+static ElementExprNode<bool> gExprFoo(gElemFoo);
+static ElementExprNode<bool> gExprBar(gElemBar);
+static ElementExprNode<bool> gExprBaz(gElemBaz);
 
 // -> State2
 static TransitionAction gTransToState2(2);

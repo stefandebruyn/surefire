@@ -5,29 +5,40 @@
 #include "sfa/core/Result.hpp"
 #include "sfa/core/Element.hpp"
 
-template<typename T>
-class IExpr
+class IExpression
 {
 public:
 
-    virtual T evaluate() const = 0;
+    virtual ~IExpression() = default;
 
-    IExpr() = default;
-
-    virtual ~IExpr() = default;
-
-    IExpr(const IExpr<T>&) = delete;
-    IExpr(IExpr<T>&&) = delete;
-    IExpr<T>& operator=(const IExpr<T>&) = delete;
-    IExpr<T>& operator=(IExpr<T>&&) = delete;
+    virtual ElementType type() const = 0;
 };
 
 template<typename T>
-class ConstExpr final : public IExpr<T>
+class IExprNode : public IExpression
 {
 public:
 
-    ConstExpr(const T kVal) : mVal(kVal)
+    IExprNode() = default;
+
+    virtual ~IExprNode() = default;
+
+    virtual T evaluate() const = 0;
+
+    ElementType type() const final override;
+
+    IExprNode(const IExprNode<T>&) = delete;
+    IExprNode(IExprNode<T>&&) = delete;
+    IExprNode<T>& operator=(const IExprNode<T>&) = delete;
+    IExprNode<T>& operator=(IExprNode<T>&&) = delete;
+};
+
+template<typename T>
+class ConstExprNode final : public IExprNode<T>
+{
+public:
+
+    ConstExprNode(const T kVal) : mVal(kVal)
     {
     }
 
@@ -42,11 +53,11 @@ private:
 };
 
 template<typename T>
-class ElementExpr final : public IExpr<T>
+class ElementExprNode final : public IExprNode<T>
 {
 public:
 
-    ElementExpr(Element<T>& kElem) : mElem(kElem)
+    ElementExprNode(const Element<T>& kElem) : mElem(kElem)
     {
     }
 
@@ -57,19 +68,19 @@ public:
 
 private:
 
-    Element<T>& mElem;
+    const Element<T>& mElem;
 };
 
 template<typename T, typename TLhs = T, typename TRhs = TLhs>
-class BinOpExpr final : public IExpr<T>
+class BinOpExprNode final : public IExprNode<T>
 {
 public:
 
     typedef T (*Operator)(const TLhs kLhs, const TRhs kRhs);
 
-    BinOpExpr(const Operator kOp,
-              const IExpr<TLhs>& kLeft,
-              const IExpr<TRhs>& kRight) :
+    BinOpExprNode(const Operator kOp,
+                  const IExprNode<TLhs>& kLeft,
+                  const IExprNode<TRhs>& kRight) :
         mOp(kOp), mLhs(kLeft), mRhs(kRight)
     {
     }
@@ -83,19 +94,19 @@ private:
 
     const Operator mOp;
 
-    const IExpr<TLhs>& mLhs;
+    const IExprNode<TLhs>& mLhs;
 
-    const IExpr<TRhs>& mRhs;
+    const IExprNode<TRhs>& mRhs;
 };
 
 template<typename T, typename TRhs = T>
-class UnaryOpExpr final : public IExpr<T>
+class UnaryOpExprNode final : public IExprNode<T>
 {
 public:
 
     typedef T (*Operator)(const TRhs kRhs);
 
-    UnaryOpExpr(const Operator kOp, const IExpr<TRhs>& kRhs) :
+    UnaryOpExprNode(const Operator kOp, const IExprNode<TRhs>& kRhs) :
         mOp(kOp), mRhs(kRhs)
     {
     }
@@ -109,33 +120,57 @@ private:
 
     const Operator mOp;
 
-    const IExpr<TRhs>& mRhs;
+    const IExprNode<TRhs>& mRhs;
 };
 
 /////////////////////////////// Binary Operators ///////////////////////////////
 
-template<typename T, typename TLhs, typename TRhs>
+template<typename T, typename TLhs = T, typename TRhs  = TLhs>
 T add(const TLhs kLhs, const TRhs kRhs)
 {
     return (kLhs + kRhs);
 }
 
-template<typename T, typename TLhs, typename TRhs>
+template<typename T, typename TLhs = T, typename TRhs  = TLhs>
 T subtract(const TLhs kLhs, const TRhs kRhs)
 {
     return (kLhs - kRhs);
 }
 
-template<typename T, typename TLhs, typename TRhs>
+template<typename T, typename TLhs = T, typename TRhs  = TLhs>
 T multiply(const TLhs kLhs, const TRhs kRhs)
 {
     return (kLhs * kRhs);
 }
 
-template<typename T, typename TLhs, typename TRhs>
+template<typename T, typename TLhs = T, typename TRhs  = TLhs>
 T divide(const TLhs kLhs, const TRhs kRhs)
 {
     return (kLhs / kRhs);
+}
+
+template<typename TLhs, typename TRhs = TLhs>
+bool lessThan(const TLhs kLhs, const TRhs kRhs)
+{
+    return (kLhs < kRhs);
+}
+
+template<typename TLhs, typename TRhs = TLhs>
+bool lessThanEquals(const TLhs kLhs, const TRhs kRhs)
+{
+    return (kLhs <= kRhs);
+}
+
+template<typename TLhs, typename TRhs = TLhs>
+bool greaterThan(const TLhs kLhs, const TRhs kRhs)
+{
+    return (kLhs > kRhs);
+}
+
+template<typename TLhs, typename TRhs = TLhs>
+bool greaterThanEquals(const TLhs kLhs, const TRhs kRhs)
+{
+    return (kLhs >= kRhs);
 }
 
 template<typename TLhs, typename TRhs = TLhs>
@@ -150,18 +185,30 @@ bool notEquals(const TLhs kLhs, const TRhs kRhs)
     return (kLhs != kRhs);
 }
 
-/////////////////////////////// Unary Operators ////////////////////////////////
-
-template<typename T, typename TRhs = T>
-T negate(const TRhs kRhs)
+template<typename TLhs, typename TRhs = TLhs>
+bool logicalAnd(const TLhs kLhs, const TRhs kRhs)
 {
-    return -kRhs;
+    return (kLhs && kRhs);
 }
+
+template<typename TLhs, typename TRhs = TLhs>
+bool logicalOr(const TLhs kLhs, const TRhs kRhs)
+{
+    return (kLhs || kRhs);
+}
+
+/////////////////////////////// Unary Operators ////////////////////////////////
 
 template<typename T, typename TRhs = T>
 T bang(const TRhs kRhs)
 {
     return !kRhs;
+}
+
+template<typename T, typename TRhs>
+T cast(const TRhs kRhs)
+{
+    return static_cast<T>(kRhs);
 }
 
 #endif
