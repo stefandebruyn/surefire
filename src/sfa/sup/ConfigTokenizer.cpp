@@ -129,10 +129,10 @@ const std::vector<std::pair<Token::Type, std::regex>> Token::regexes =
 {
     {Token::SECTION, std::regex("\\s*(\\[[a-zA-Z0-9_/]+\\])\\s*")},
     {Token::LABEL, std::regex("\\s*([.][a-zA-Z][a-zA-Z0-9_\\[\\]-]+)\\s*")},
-    {Token::CONSTANT, std::regex("\\s*(TRUE|FALSE|[0-9]*\\.?[0-9]+)\\s*")},
+    {Token::CONSTANT, std::regex("\\s*(TRUE|FALSE|[-]?[0-9]*\\.?[0-9]+)\\s*")},
     {Token::ANNOTATION, std::regex("\\s*(@[a-zA-Z][a-zA-Z0-9_=]*)\\s*")},
     {Token::OPERATOR, std::regex(
-        "\\s*(==|!=|=|<=|<|>=|>|->|AND|OR|NOT|\\+|\\-|\\*|/)\\s*")},
+        "\\s*(==|!=|=|!|<=|<|>=|>|->|AND|OR|NOT|\\+|\\-|\\*|/)\\s*")},
     {Token::IDENTIFIER, std::regex("\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*")},
     {Token::COLON, std::regex("\\s*(:)\\s*")},
     {Token::LPAREN, std::regex("\\s*(\\()\\s*")},
