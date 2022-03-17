@@ -12,6 +12,8 @@ public:
 
     const U32 destState;
 
+    virtual ~IAction() = default;
+
     IAction(const U32 kDestState) : destState(kDestState)
     {
     }
@@ -24,7 +26,7 @@ class AssignmentAction final : public IAction
 {
 public:
 
-    AssignmentAction(Element<T>& kElem, IExprNode<T>& kExpr) :
+    AssignmentAction(Element<T>& kElem, const IExprNode<T>& kExpr) :
         IAction(0), mElem(kElem), mExpr(kExpr)
     {
     }
@@ -39,7 +41,7 @@ private:
 
     Element<T>& mElem;
 
-    IExprNode<T>& mExpr;
+    const IExprNode<T>& mExpr;
 };
 
 class TransitionAction final : public IAction

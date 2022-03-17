@@ -436,6 +436,7 @@ const IExpression* ExpressionCompiler::Assembly::root() const
 Result ExpressionCompiler::compile(
     const std::shared_ptr<ExpressionParser::Parse> kParse,
     const StateVector& kSv,
+    const ElementType kEvalType,
     std::shared_ptr<ExpressionCompiler::Assembly>& kAsm,
     ErrorInfo* const kErr)
 {
@@ -462,8 +463,64 @@ Result ExpressionCompiler::compile(
         return res;
     }
 
+    const IExpression* asmRoot = root;
+
+    // If expression should evaluate to something other than F64, add a cast.
+    if (kEvalType != ElementType::FLOAT64)
+    {
+        IExpression* newRoot = nullptr;
+        switch (kEvalType)
+        {
+            case ElementType::INT8:
+                newRoot = new UnaryOpExprNode<I8, F64>(cast<I8, F64>, *root);
+                break;
+
+            case ElementType::INT16:
+                newRoot = new UnaryOpExprNode<I16, F64>(cast<I16, F64>, *root);
+                break;
+
+            case ElementType::INT32:
+                newRoot = new UnaryOpExprNode<I32, F64>(cast<I32, F64>, *root);
+                break;
+
+            case ElementType::INT64:
+                newRoot = new UnaryOpExprNode<I64, F64>(cast<I64, F64>, *root);
+                break;
+
+            case ElementType::UINT8:
+                newRoot = new UnaryOpExprNode<U8, F64>(cast<U8, F64>, *root);
+                break;
+
+            case ElementType::UINT16:
+                newRoot = new UnaryOpExprNode<U16, F64>(cast<U16, F64>, *root);
+                break;
+
+            case ElementType::UINT32:
+                newRoot = new UnaryOpExprNode<U32, F64>(cast<U32, F64>, *root);
+                break;
+
+            case ElementType::UINT64:
+                newRoot = new UnaryOpExprNode<U64, F64>(cast<U64, F64>, *root);
+                break;
+
+            case ElementType::FLOAT32:
+                newRoot = new UnaryOpExprNode<F32, F64>(cast<F32, F64>, *root);
+                break;
+
+            case ElementType::BOOL:
+                newRoot = new UnaryOpExprNode<bool, F64>(cast<bool, F64>,
+                                                         *root);
+                break;
+
+            default:
+                SF_ASSERT(false);
+        }
+
+        asmRoot = newRoot;
+    }
+
     // Return compiled expression assembly.
-    kAsm.reset(new ExpressionCompiler::Assembly(root, exprNodes));
+    kAsm.reset(new ExpressionCompiler::Assembly(asmRoot, exprNodes));
 
     return SUCCESS;
 }

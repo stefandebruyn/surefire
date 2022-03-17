@@ -1,6 +1,7 @@
 #ifndef SF_STATE_MACHINE_COMPILER_HPP
 #define SF_STATE_MACHINE_COMPILER_HPP
 
+#include "sf/config/ExpressionCompiler.hpp"
 #include "sf/config/StateMachineParser.hpp"
 #include "sf/config/StateVectorCompiler.hpp"
 #include "sf/core/StateVector.hpp"
@@ -14,7 +15,9 @@ namespace StateMachineCompiler
         Assembly(
             const StateMachine::Config kConfig,
             const StateMachineParser::Parse& kParse,
-            const std::shared_ptr<StateVectorCompiler::Assembly> kLocalSvASm);
+            const std::shared_ptr<StateVectorCompiler::Assembly> kLocalSvAsm,
+            const std::vector<std::shared_ptr<ExpressionCompiler::Assembly>>
+                kExprs);
 
         ~Assembly();
 
@@ -29,6 +32,10 @@ namespace StateMachineCompiler
         const StateMachineParser::Parse mParse;
 
         const std::shared_ptr<StateVectorCompiler::Assembly> mLocalSvAsm;
+
+        const std::vector<std::shared_ptr<ExpressionCompiler::Assembly>> mExprs;
+
+        void deleteBlock(const StateMachine::Block* const kBlock);
     };
 
     Result compile(const std::string kFilePath,

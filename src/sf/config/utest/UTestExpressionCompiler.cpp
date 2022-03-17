@@ -39,6 +39,7 @@ static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
     std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
     CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               sv,
+                                              ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
 
@@ -59,8 +60,11 @@ static void checkCompileError(
     // Got expected return code from compiler.
     std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
     ErrorInfo err;
-    CHECK_ERROR(kRes,
-                ExpressionCompiler::compile(kExprParse, kSv, exprAsm, &err));
+    CHECK_ERROR(kRes, ExpressionCompiler::compile(kExprParse,
+                                                  kSv,
+                                                  ElementType::FLOAT64,
+                                                  exprAsm,
+                                                  &err));
 
     // Correct line and column numbers of error are identified.
     CHECK_EQUAL(kLineNum, err.lineNum);
@@ -315,6 +319,7 @@ TEST(ExpressionCompiler, OnlyElement)
     std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
     CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               sv,
+                                              ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
 
@@ -349,6 +354,7 @@ TEST(ExpressionCompiler, MultipleElements)
     std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
     CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               sv,
+                                              ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
 
@@ -397,6 +403,7 @@ TEST(ExpressionCompiler, AllElementTypes)
     std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
     CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               sv,
+                                              ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
 

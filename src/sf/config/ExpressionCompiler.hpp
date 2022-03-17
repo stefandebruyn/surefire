@@ -27,6 +27,7 @@ namespace ExpressionCompiler
 
     Result compile(const std::shared_ptr<ExpressionParser::Parse> kParse,
                    const StateVector& kSv,
+                   const ElementType kEvalType,
                    std::shared_ptr<ExpressionCompiler::Assembly>& kAsm,
                    ErrorInfo* const kErr);
 }
