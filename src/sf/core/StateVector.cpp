@@ -179,6 +179,11 @@ Result StateVector::getElement<bool>(const char* const kName,
 
 Result StateVector::getIElement(const char* const kName, IElement*& kElem) const
 {
+    if (mConfig.elems == nullptr)
+    {
+        return E_SV_UNINIT;
+    }
+
     const ElementConfig* elemConfig = nullptr;
     const Result res = this->getElementConfig(kName, elemConfig);
     if (res != SUCCESS)

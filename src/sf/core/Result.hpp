@@ -103,6 +103,7 @@ enum : Result
     E_EXC_NUM = 481,
     E_EXC_TYPE = 482,
     E_EXC_ELEM = 483,
+    E_EXC_OVFL = 484,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 

@@ -28,13 +28,6 @@ static void setup(const char* const kExprSrc,
     }
 }
 
-static void checkEvalExpr(const char* const kExprSrc,
-                          const char* const kSvSrc,
-                          const F64 kExpectVal)
-{
-    
-}
-
 static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 {
     std::shared_ptr<ExpressionParser::Parse> exprParse;
@@ -54,6 +47,31 @@ static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
     const IExprNode<F64>* const root =
         static_cast<const IExprNode<F64>* const>(exprAsm->root());
     CHECK_EQUAL(kExpectVal, root->evaluate());
+}
+
+static void checkCompileError(
+    const std::shared_ptr<ExpressionParser::Parse> kExprParse,
+    StateVector& kSv,
+    const Result kRes,
+    const I32 kLineNum,
+    const I32 kColNum)
+{
+    // Got expected return code from compiler.
+    std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
+    ErrorInfo err;
+    CHECK_ERROR(kRes,
+                ExpressionCompiler::compile(kExprParse, kSv, exprAsm, &err));
+
+    // Correct line and column numbers of error are identified.
+    CHECK_EQUAL(kLineNum, err.lineNum);
+    CHECK_EQUAL(kColNum, err.colNum);
+
+    // An error message was given.
+    CHECK_TRUE(err.text.size() > 0);
+    CHECK_TRUE(err.subtext.size() > 0);
+
+    // Assembly pointer was not populated.
+    CHECK_TRUE(exprAsm == nullptr);
 }
 
 ///////////////////////////////// Usage Tests //////////////////////////////////
@@ -281,6 +299,150 @@ TEST(ExpressionCompiler, TripleInequality)
     checkEvalConstExpr("1 < 2 < 3 <= 3", 1.0);
 }
 
+TEST(ExpressionCompiler, OnlyElement)
+{
+    std::shared_ptr<ExpressionParser::Parse> exprParse;
+    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("foo",
+            "[Foo]\n"
+            "I32 foo\n",
+            exprParse,
+            svAsm,
+            sv);
+
+    // Compile expression.
+    std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
+                                              sv,
+                                              exprAsm,
+                                              nullptr));
+
+    // Expression evaluates to 0, the initial value of element `foo`.
+    CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
+    const IExprNode<F64>* const root =
+        static_cast<const IExprNode<F64>* const>(exprAsm->root());
+    CHECK_EQUAL(0.0, root->evaluate());
+
+    // Set `foo` to a new value and re-evaluate expression.
+    Element<I32>* elemFoo = nullptr;
+    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    elemFoo->write(3);
+    CHECK_EQUAL(3.0, root->evaluate());
+}
+
+TEST(ExpressionCompiler, MultipleElements)
+{
+    std::shared_ptr<ExpressionParser::Parse> exprParse;
+    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("(foo + bar) * baz + 1",
+            "[Foo]\n"
+            "I32 foo\n"
+            "I32 bar\n"
+            "I32 baz\n",
+            exprParse,
+            svAsm,
+            sv);
+
+    // Compile expression.
+    std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
+                                              sv,
+                                              exprAsm,
+                                              nullptr));
+
+    // Expression initially evaluates to 1.
+    CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
+    const IExprNode<F64>* const root =
+        static_cast<const IExprNode<F64>* const>(exprAsm->root());
+    CHECK_EQUAL(1.0, root->evaluate());
+
+    // Set elements to new values and re-evaluate expression.
+    Element<I32>* elemFoo = nullptr;
+    Element<I32>* elemBar = nullptr;
+    Element<I32>* elemBaz = nullptr;
+    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    CHECK_SUCCESS(sv.getElement("bar", elemBar));
+    CHECK_SUCCESS(sv.getElement("baz", elemBaz));
+    elemFoo->write(3);
+    elemBar->write(-10);
+    elemBaz->write(4);
+    CHECK_EQUAL(-27.0, root->evaluate());
+}
+
+TEST(ExpressionCompiler, AllElementTypes)
+{
+    std::shared_ptr<ExpressionParser::Parse> exprParse;
+    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("a + b + c + d + e + f + g + h + i + j + k",
+            "[Foo]\n"
+            "I8 a\n"
+            "I16 b\n"
+            "I32 c\n"
+            "I64 d\n"
+            "U8 e\n"
+            "U16 f\n"
+            "U32 g\n"
+            "U64 h\n"
+            "F32 i\n"
+            "F64 j\n"
+            "BOOL k\n",
+            exprParse,
+            svAsm,
+            sv);
+
+    // Compile expression.
+    std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
+                                              sv,
+                                              exprAsm,
+                                              nullptr));
+
+    // Expression initially evaluates to 0.
+    CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
+    const IExprNode<F64>* const root =
+        static_cast<const IExprNode<F64>* const>(exprAsm->root());
+    CHECK_EQUAL(0.0, root->evaluate());
+
+    // Set elements to new values and re-evaluate expression.
+    Element<I8>* elemA = nullptr;
+    Element<I16>* elemB = nullptr;
+    Element<I32>* elemC = nullptr;
+    Element<I64>* elemD = nullptr;
+    Element<U8>* elemE = nullptr;
+    Element<U16>* elemF = nullptr;
+    Element<U32>* elemG = nullptr;
+    Element<U64>* elemH = nullptr;
+    Element<F32>* elemI = nullptr;
+    Element<F64>* elemJ = nullptr;
+    Element<bool>* elemK = nullptr;
+    CHECK_SUCCESS(sv.getElement("a", elemA));
+    CHECK_SUCCESS(sv.getElement("b", elemB));
+    CHECK_SUCCESS(sv.getElement("c", elemC));
+    CHECK_SUCCESS(sv.getElement("d", elemD));
+    CHECK_SUCCESS(sv.getElement("e", elemE));
+    CHECK_SUCCESS(sv.getElement("f", elemF));
+    CHECK_SUCCESS(sv.getElement("g", elemG));
+    CHECK_SUCCESS(sv.getElement("h", elemH));
+    CHECK_SUCCESS(sv.getElement("i", elemI));
+    CHECK_SUCCESS(sv.getElement("j", elemJ));
+    CHECK_SUCCESS(sv.getElement("k", elemK));
+    elemA->write(1);
+    elemB->write(1);
+    elemC->write(1);
+    elemD->write(1);
+    elemE->write(1);
+    elemF->write(1);
+    elemG->write(1);
+    elemH->write(1);
+    elemI->write(1.0f);
+    elemJ->write(1.0);
+    elemK->write(true);
+    CHECK_EQUAL(11.0, root->evaluate());
+}
+
 ///////////////////////////////// Error Tests //////////////////////////////////
 
 TEST_GROUP(ExpressionCompilerErrors)
@@ -289,5 +451,37 @@ TEST_GROUP(ExpressionCompilerErrors)
 
 TEST(ExpressionCompilerErrors, UnknownElement)
 {
+    std::shared_ptr<ExpressionParser::Parse> exprParse;
+    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("foo", "", exprParse, svAsm, sv);
+    checkCompileError(exprParse, sv, E_EXC_ELEM, 1, 1);
+}
 
+TEST(ExpressionCompilerErrors, InvalidNumber)
+{
+    std::shared_ptr<ExpressionParser::Parse> exprParse;
+    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("1 + 1", "", exprParse, svAsm, sv);
+    exprParse->left->data.str = "foo";
+    checkCompileError(exprParse, sv, E_EXC_NUM, 1, 1);
+}
+
+TEST(ExpressionCompilerErrors, OutOfRangeNumber)
+{
+    std::shared_ptr<ExpressionParser::Parse> exprParse;
+    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("1 + 9999999999999999999999999999999999999999999999999999999999999"
+            "99999999999999999999999999999999999999999999999999999999999999999"
+            "99999999999999999999999999999999999999999999999999999999999999999"
+            "99999999999999999999999999999999999999999999999999999999999999999"
+            "99999999999999999999999999999999999999999999999999999999999999999"
+            "99999999999999999999999999999999999999999999999999999999999999999",
+            "",
+            exprParse,
+            svAsm,
+            sv);
+    checkCompileError(exprParse, sv, E_EXC_OVFL, 1, 5);
 }

@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include <regex>
+#include <cmath>
 
 #include "sf/config/ConfigUtil.hpp"
 #include "sf/config/ExpressionCompiler.hpp"
@@ -11,8 +11,6 @@ namespace
 {
 
 const char* const errText = "expression error";
-
-const std::regex zeroRegex("[-]?[0]*[.]?[0]+");
 
 Result tokenToF64(const Token& kTok, F64& kRet, ErrorInfo* const kErr);
 
@@ -30,22 +28,24 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
 
 Result tokenToF64(const Token& kTok, F64& kRet, ErrorInfo* const kErr)
 {
-    // Do our own check for a value of 0. If the value isn't 0, then a 0 return
-    // from `atof` indicates an invalid numeric constant.
-    std::smatch match;
-    if (std::regex_match(kTok.str, match, zeroRegex))
-    {
-        kRet = 0.0;
-        return SUCCESS;
-    }
-
     // Convert string to F64.
-    const double val = std::atof(kTok.str.c_str());
-    if (val == 0.0)
+    const char* const str = kTok.str.c_str();
+    char* end = nullptr;
+    const double val = std::strtod(str, &end);
+
+    if (end == str)
     {
         // Invalid numeric constant.
-        ConfigUtil::setError(kErr, kTok, errText, "invalid numeric constant");
+        ConfigUtil::setError(kErr, kTok, errText, "invalid number");
         return E_EXC_NUM;
+    }
+
+    if (val == HUGE_VAL)
+    {
+        // Numeric constant is out of range.
+        ConfigUtil::setError(kErr, kTok, errText,
+                             "number is outside the representable range");
+        return E_EXC_OVFL;
     }
 
     // Success- return converted value.
