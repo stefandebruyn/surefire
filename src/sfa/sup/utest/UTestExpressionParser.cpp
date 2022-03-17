@@ -55,7 +55,7 @@ static void checkParseError(TokenIterator& kIt,
     CHECK_TRUE(parse == nullptr);
 }
 
-//////////////////////////////////// Tests /////////////////////////////////////
+///////////////////////////////// Usage Tests //////////////////////////////////
 
 TEST_GROUP(ExpressionParser)
 {
@@ -1092,37 +1092,43 @@ TEST(ExpressionParser, MultipleNestedFunctionCalls)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, ErrorFunctionCallLoneComma)
+///////////////////////////////// Error Tests //////////////////////////////////
+
+TEST_GROUP(ExpressionParserErrors)
+{
+};
+
+TEST(ExpressionParserErrors, FunctionCallLoneComma)
 {
     TOKENIZE("foo(,)");
     checkParseError(it, E_EXP_SYNTAX, 1, 5);
 }
 
-TEST(ExpressionParser, ErrorFunctionCallTrailingComma)
+TEST(ExpressionParserErrors, FunctionCallTrailingComma)
 {
     TOKENIZE("foo(a,)");
     checkParseError(it, E_EXP_SYNTAX, 1, 7);
 }
 
-TEST(ExpressionParser, ErrorFunctionCallLeadingComma)
+TEST(ExpressionParserErrors, FunctionCallLeadingComma)
 {
     TOKENIZE("foo(,a)");
     checkParseError(it, E_EXP_SYNTAX, 1, 5);
 }
 
-TEST(ExpressionParser, ErrorFunctionCallSequentialCommas)
+TEST(ExpressionParserErrors, FunctionCallSequentialCommas)
 {
     TOKENIZE("foo(,,)");
     checkParseError(it, E_EXP_SYNTAX, 1, 5);
 }
 
-TEST(ExpressionParser, ErrorSyntaxErrorInFunctionCallArgument)
+TEST(ExpressionParserErrors, SyntaxErrorInFunctionCallArgument)
 {
     TOKENIZE("foo(a +)");
     checkParseError(it, E_EXP_SYNTAX, 1, 7);
 }
 
-TEST(ExpressionParser, ErrorNoTokens)
+TEST(ExpressionParserErrors, NoTokens)
 {
     TOKENIZE("");
     std::shared_ptr<ExpressionParser::Parse> parse;
@@ -1130,19 +1136,19 @@ TEST(ExpressionParser, ErrorNoTokens)
     CHECK_TRUE(parse == nullptr);
 }
 
-TEST(ExpressionParser, ErrorTooManyLeftParentheses)
+TEST(ExpressionParserErrors, TooManyLeftParentheses)
 {
     TOKENIZE("((a + b) * c");
     checkParseError(it, E_EXP_PAREN, 1, 1);
 }
 
-TEST(ExpressionParser, ErrorTooManyRightParentheses)
+TEST(ExpressionParserErrors, TooManyRightParentheses)
 {
     TOKENIZE("(a + b) * c)");
     checkParseError(it, E_EXP_PAREN, 1, 12);
 }
 
-TEST(ExpressionParser, ErrorUnknownOperator)
+TEST(ExpressionParserErrors, UnknownOperator)
 {
     TOKENIZE("a + b");
     toks[1].str = "foo";
@@ -1151,43 +1157,43 @@ TEST(ExpressionParser, ErrorUnknownOperator)
     CHECK_TRUE(parse == nullptr);
 }
 
-TEST(ExpressionParser, ErrorUnexpectedToken)
+TEST(ExpressionParserErrors, UnexpectedToken)
 {
     TOKENIZE("a + b @foo");
     checkParseError(it, E_EXP_TOK, 1, 7);
 }
 
-TEST(ExpressionParser, ErrorNoTermsInExpression)
+TEST(ExpressionParserErrors, NoTermsInExpression)
 {
     TOKENIZE("()");
     checkParseError(it, E_EXP_EMPTY, 1, 1);
 }
 
-TEST(ExpressionParser, ErrorSyntaxMissingOperator)
+TEST(ExpressionParserErrors, SyntaxMissingOperator)
 {
     TOKENIZE("a b");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
-TEST(ExpressionParser, ErrorSyntaxBinaryOperatorMissingLhs)
+TEST(ExpressionParserErrors, SyntaxBinaryOperatorMissingLhs)
 {
     TOKENIZE("+ a");
     checkParseError(it, E_EXP_SYNTAX, 1, 1);
 }
 
-TEST(ExpressionParser, ErrorSyntaxBinaryOperatorMissingRhs)
+TEST(ExpressionParserErrors, SyntaxBinaryOperatorMissingRhs)
 {
     TOKENIZE("a +");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
-TEST(ExpressionParser, ErrorSyntaxUnaryOperatorMissingRhs)
+TEST(ExpressionParserErrors, SyntaxUnaryOperatorMissingRhs)
 {
     TOKENIZE("a NOT");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
-TEST(ExpressionParser, ErrorSyntaxAdjacentBinaryOperators)
+TEST(ExpressionParserErrors, SyntaxAdjacentBinaryOperators)
 {
     TOKENIZE("a + + b");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
