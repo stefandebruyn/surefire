@@ -21,9 +21,9 @@ namespace StateMachineCompiler
 
         ~Assembly();
 
-        const StateMachine::Config& getConfig() const;
+        const StateMachine::Config& config() const;
 
-        const StateMachineParser::Parse& getParse() const;
+        const StateMachineParser::Parse& parse() const;
 
     private:
 

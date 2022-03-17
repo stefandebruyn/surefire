@@ -37,4 +37,11 @@ TEST(StateMachineCompiler, Doop)
         "I32 qux = 0\n"
         "\n"
         "[Initial]\n");
+
+    Element<U32>* state = nullptr;
+    CHECK_SUCCESS(sv.getElement("baz", state));
+    state->write(1);
+
+    StateMachine sm;
+    CHECK_SUCCESS(StateMachine::create(smAsm->config(), sm));
 }

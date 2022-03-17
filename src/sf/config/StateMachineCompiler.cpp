@@ -113,6 +113,7 @@ Result checkStateVector(const StateMachineParser::Parse& kParse,
         }
 
         // Add element to the symbol table.
+        SF_ASSERT(elemObj != nullptr);
         kCompState.elems[elem.tokName.str] = elemObj;
 
         // If the element is aliased, add the alias to the symbol table too.
@@ -142,6 +143,7 @@ Result checkStateVector(const StateMachineParser::Parse& kParse,
                 foundSElem = true;
             }
 
+            SF_ASSERT(elemObj != nullptr);
             kCompState.elems[elem.alias] = elemObj;
         }
     }
@@ -243,13 +245,15 @@ Result compileLocalStateVector(const StateMachineParser::Parse& kParse,
 
     // Look up each element object in the local state vector and add it to the
     // element symbol table.
-    for (const StateMachineParser::LocalElementParse& elem : kParse.localElems)
+    for (const StateVectorParser::ElementParse& elem :
+         localSvParse.regions[0].elems)
     {
         IElement* elemObj = nullptr;
         res = kCompState.localSv.getIElement(elem.tokName.str.c_str(), elemObj);
         // Assert that element lookup succeeds since we configured the local
         // state vector in this function and know the element exists.
         SF_ASSERT(res == SUCCESS);
+        SF_ASSERT(elemObj != nullptr);
         kCompState.elems[elem.tokName.str] = elemObj;
     }
 
@@ -589,6 +593,16 @@ StateMachineCompiler::Assembly::~Assembly()
     // state machine are owned by state vector assemblies.
 }
 
+const StateMachine::Config& StateMachineCompiler::Assembly::config() const
+{
+    return mConfig;
+}
+
+const StateMachineParser::Parse& StateMachineCompiler::Assembly::parse() const
+{
+    return mParse;
+}
+
 void StateMachineCompiler::Assembly::deleteBlock(
     const StateMachine::Block* const kBlock)
 {
@@ -670,7 +684,6 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
                                      std::shared_ptr<Assembly>& kAsm,
                                      ErrorInfo* const kErr)
 {
-    StateMachine::Config smConfig = {};
     CompilerState compState = {};
 
     // Validate the state machine state vector. This will partially populate
@@ -722,12 +735,15 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
     states[compState.states.size()] =
         {StateMachine::NO_STATE, nullptr, nullptr, nullptr}; // Null terminator
 
-    // Set members of state machine config. These element lookups are guaranteed
-    // to succeed due to prior validation during compilation.
-    smConfig.elemState = static_cast<Element<U32>*>(compState.elems["S"]);
-    smConfig.elemStateTime = static_cast<Element<U64>*>(compState.elems["T"]);
-    smConfig.elemGlobalTime = static_cast<Element<U64>*>(compState.elems["G"]);
-    smConfig.states = states;
+    // Create state machine config. These element lookups are guaranteed to
+    // succeed due to prior validation during compilation.
+    const StateMachine::Config smConfig =
+    {
+        static_cast<Element<U32>*>(compState.elems["S"]),
+        static_cast<Element<U64>*>(compState.elems["T"]),
+        static_cast<Element<U64>*>(compState.elems["G"]),
+        states
+    };
 
     // Compilation successful- return new state machine assembly.
     kAsm.reset(new Assembly(smConfig,
