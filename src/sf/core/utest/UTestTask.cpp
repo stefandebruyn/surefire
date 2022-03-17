@@ -83,7 +83,7 @@ private:
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
-TEST_GROUP(ITask)
+TEST_GROUP(Task)
 {
     void teardown()
     {
@@ -92,7 +92,7 @@ TEST_GROUP(ITask)
     }
 };
 
-TEST(ITask, Uninitialized)
+TEST(Task, Uninitialized)
 {
     StateVector sv;
     CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
@@ -103,7 +103,7 @@ TEST(ITask, Uninitialized)
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
-TEST(ITask, InitializeFail)
+TEST(Task, InitializeFail)
 {
     StateVector sv;
     CHECK_SUCCESS(StateVector::create(gEmptySvConfig, sv));
@@ -115,7 +115,7 @@ TEST(ITask, InitializeFail)
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
-TEST(ITask, ErrorReinitialize)
+TEST(Task, ErrorReinitialize)
 {
     StateVector sv;
     CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
@@ -124,7 +124,7 @@ TEST(ITask, ErrorReinitialize)
     CHECK_ERROR(E_TSK_REINIT, task.initialize());
 }
 
-TEST(ITask, InvalidMode)
+TEST(Task, ErrorInvalidMode)
 {
     StateVector sv;
     CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
@@ -137,7 +137,7 @@ TEST(ITask, InvalidMode)
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
-TEST(ITask, RunEnableWhenNoModeElem)
+TEST(Task, RunEnableWhenNoModeElem)
 {
     StateVector sv;
     CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
@@ -150,7 +150,7 @@ TEST(ITask, RunEnableWhenNoModeElem)
     CHECK_EQUAL(1, gElemFoo.read());
 }
 
-TEST(ITask, ModeSwitching)
+TEST(Task, ModeSwitching)
 {
     StateVector sv;
     CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
@@ -177,7 +177,7 @@ TEST(ITask, ModeSwitching)
     CHECK_EQUAL(1, gElemFoo.read());
 }
 
-TEST(ITask, StepSafeSurfaceError)
+TEST(Task, StepSafeSurfaceError)
 {
     StateVector sv;
     CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
@@ -189,7 +189,7 @@ TEST(ITask, StepSafeSurfaceError)
     CHECK_ERROR(-1, task.step());
 }
 
-TEST(ITask, StepEnableSurfaceError)
+TEST(Task, StepEnableSurfaceError)
 {
     StateVector sv;
     CHECK_SUCCESS(StateVector::create(gSvConfig, sv));

@@ -14,9 +14,9 @@ namespace Tokenizer
 }
 
 Result Tokenizer::tokenizeLine(const std::string& kLine,
-                                     const U32 kLineNum,
-                                     std::vector<Token>& kToks,
-                                     ErrorInfo* const kErr)
+                               const U32 kLineNum,
+                               std::vector<Token>& kToks,
+                               ErrorInfo* const kErr)
 {
     // Index at which we'll try to match a token in the line. This index will
     // be bumped along as we parse tokens.
@@ -187,8 +187,8 @@ Result Tokenizer::tokenize(std::string kFilePath,
 }
 
 Result Tokenizer::tokenize(std::istream& kIs,
-                                 std::vector<Token>& kToks,
-                                 ErrorInfo* const kErr)
+                           std::vector<Token>& kToks,
+                           ErrorInfo* const kErr)
 {
     if ((kErr != nullptr) && (kErr->filePath.size() == 0))
     {
