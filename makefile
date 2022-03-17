@@ -11,17 +11,17 @@ clean:
 utest:
 	rm -rf build
 	mkdir build
-	cd build && cmake .. -DSFA_ENABLE_ASSERTS=true && make utest && sudo ./utest -v -s
+	cd build && cmake .. -DSF_ENABLE_ASSERTS=true && make utest && sudo ./utest -v -s
 
-sfa:
+sf:
 	rm -rf build
 	mkdir build
-	cd build && cmake .. && make sfa
+	cd build && cmake .. && make sf
 
-sfasup:
+sfsup:
 	rm -rf build
 	mkdir build
-	cd build && cmake .. && make sfasup
+	cd build && cmake .. && make sfsup
 
 cli:
 	rm -rf build
@@ -40,9 +40,9 @@ get-sudo:
 arduino-example:
 	rm -rf build
 	mkdir build
-	-cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=../Arduino-CMake-Toolchain/Arduino-toolchain.cmake -DSFA_ARDUINO_MAC_ADDR=0xA8610AAE759C
+	-cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=../Arduino-CMake-Toolchain/Arduino-toolchain.cmake -DSF_ARDUINO_MAC_ADDR=0xA8610AAE759C
 	cd build && python3 ../examples/arduino/select_board.py
-	cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=../Arduino-CMake-Toolchain/Arduino-toolchain.cmake -DSFA_ARDUINO_MAC_ADDR=0xA8610AAE759C && make arduino-example
+	cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=../Arduino-CMake-Toolchain/Arduino-toolchain.cmake -DSF_ARDUINO_MAC_ADDR=0xA8610AAE759C && make arduino-example
 
 .PHONY: ci
-ci: get-sudo cppcheck black utest sfa sfasup cli arduino-example clean cloc deadline
+ci: get-sudo cppcheck black utest sf sfsup cli arduino-example clean cloc deadline

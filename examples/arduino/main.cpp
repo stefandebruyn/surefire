@@ -1,16 +1,16 @@
 #include <Arduino.h>
 
-#include "sfa/core/Diag.hpp"
-#include "sfa/pal/Clock.hpp"
-#include "sfa/pal/Console.hpp"
-#include "sfa/pal/Socket.hpp"
-#include "sfa/pal/DigitalIo.hpp"
+#include "sf/core/Diag.hpp"
+#include "sf/pal/Clock.hpp"
+#include "sf/pal/Console.hpp"
+#include "sf/pal/Socket.hpp"
+#include "sf/pal/DigitalIO.hpp"
 
 const IPv4Address gMyAddr = {10, 0, 0, 21};
 const IPv4Address gTheirAddr = {10, 0, 0, 20};
 const U16 gPort = 8080;
 Socket gSock;
-DigitalIo gDio;
+DigitalIO gDio;
 
 void setup()
 {
@@ -18,8 +18,8 @@ void setup()
     Serial.begin(9600);
     Diag::haltOnError(Socket::create(gMyAddr, gPort, Socket::UDP, gSock),
                       "Failed to create socket");
-    Diag::haltOnError(DigitalIo::create(gDio), "Failed to initialize DIO");
-    Diag::haltOnError(gDio.setMode(LED_BUILTIN, DigitalIo::OUT),
+    Diag::haltOnError(DigitalIO::create(gDio), "Failed to initialize DIO");
+    Diag::haltOnError(gDio.setMode(LED_BUILTIN, DigitalIO::OUT),
                       "failed to set DIO pin as output");
 }
 
