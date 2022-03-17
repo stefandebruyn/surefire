@@ -52,7 +52,7 @@ static void checkEvalConstExpr(const char* const kExprSrc,
     CHECK_EQUAL(kExpectVal, root->evaluate());
 }
 
-//////////////////////////////////// Tests /////////////////////////////////////
+///////////////////////////////// Usage Tests //////////////////////////////////
 
 TEST_GROUP(ExpressionCompiler)
 {
@@ -286,3 +286,9 @@ TEST(ExpressionCompiler, TripleInequality)
     checkEvalConstExpr("1 < 2 < 3 < 3", 0.0, false);
     checkEvalConstExpr("1 < 2 < 3 <= 3", 1.0, false);
 }
+
+///////////////////////////////// Error Tests //////////////////////////////////
+
+TEST_GROUP(ExpressionCompilerErrors)
+{
+};

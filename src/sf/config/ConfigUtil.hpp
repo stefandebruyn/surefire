@@ -78,6 +78,9 @@ struct OperatorInfo final
     std::string str;
     U32 precedence;
     bool unary;
+    bool arithmetic;
+    bool arithmeticOperands;
+    bool logicalOperands;
 };
 
 namespace ConfigUtil

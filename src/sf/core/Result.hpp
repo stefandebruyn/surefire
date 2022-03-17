@@ -100,6 +100,9 @@ enum : Result
 
     // ExpressionCompiler
     E_EXC_NULL = 480,
+    E_EXC_NUM = 481,
+    E_EXC_TYPE = 482,
+    E_EXC_ELEM = 483,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 

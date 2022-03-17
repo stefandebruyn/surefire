@@ -59,31 +59,31 @@ const std::unordered_map<ElementType, ElementTypeInfo, EnumHash>
 };
 
 const OperatorInfo OperatorInfo::lnot =
-    {OperatorInfo::Type::NOT, "NOT", 11, true};
+    {OperatorInfo::Type::NOT, "NOT", 11, true, false, false, true};
 const OperatorInfo OperatorInfo::mult =
-    {OperatorInfo::Type::MULT, "*", 10, false};
+    {OperatorInfo::Type::MULT, "*", 10, false, true, true, false};
 const OperatorInfo OperatorInfo::divide =
-    {OperatorInfo::Type::DIV, "/", 10, false};
+    {OperatorInfo::Type::DIV, "/", 10, false, true, true, false};
 const OperatorInfo OperatorInfo::add =
-    {OperatorInfo::Type::ADD, "+", 9, false};
+    {OperatorInfo::Type::ADD, "+", 9, false, true, true, false};
 const OperatorInfo OperatorInfo::sub =
-    {OperatorInfo::Type::SUB, "-", 9, false};
+    {OperatorInfo::Type::SUB, "-", 9, false, true, true, false};
 const OperatorInfo OperatorInfo::lt =
-    {OperatorInfo::Type::LT, "<", 8, false};
+    {OperatorInfo::Type::LT, "<", 8, false, false, true, false};
 const OperatorInfo OperatorInfo::lte =
-    {OperatorInfo::Type::LTE, "<=", 8, false};
+    {OperatorInfo::Type::LTE, "<=", 8, false, false, true, false};
 const OperatorInfo OperatorInfo::gt =
-    {OperatorInfo::Type::GT, ">", 8, false};
+    {OperatorInfo::Type::GT, ">", 8, false, false, true, false};
 const OperatorInfo OperatorInfo::gte =
-    {OperatorInfo::Type::GTE, ">=", 8, false};
+    {OperatorInfo::Type::GTE, ">=", 8, false, false, true, false};
 const OperatorInfo OperatorInfo::eq =
-    {OperatorInfo::Type::EQ, "==", 7, false};
+    {OperatorInfo::Type::EQ, "==", 7, false, false, true, true};
 const OperatorInfo OperatorInfo::neq =
-    {OperatorInfo::Type::NEQ, "!=", 7, false};
+    {OperatorInfo::Type::NEQ, "!=", 7, false, false, true, true};
 const OperatorInfo OperatorInfo::land =
-    {OperatorInfo::Type::AND, "AND", 6, false};
+    {OperatorInfo::Type::AND, "AND", 6, false, false, false, true};
 const OperatorInfo OperatorInfo::lor =
-    {OperatorInfo::Type::OR, "OR", 5, false};
+    {OperatorInfo::Type::OR, "OR", 5, false, false, false, true};
 
 const std::unordered_map<std::string, OperatorInfo> OperatorInfo::fromStr =
 {
