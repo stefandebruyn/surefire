@@ -10,21 +10,18 @@ namespace
 {
 
 Result compileOperator(const std::shared_ptr<ExpressionParser::Parse> kParse,
-                       const bool kArithmetic,
                        const StateVector& kSv,
                        const IExprNode<F64>*& kNode,
                        std::vector<const IExpression*>& kExprNodes,
                        ConfigErrorInfo* const kConfigErr);
 
 Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
-                   const bool kArithmetic,
                    const StateVector& kSv,
                    const IExprNode<F64>*& kNode,
                    std::vector<const IExpression*>& kExprNodes,
                    ConfigErrorInfo* const kConfigErr);
 
 Result compileOperator(const std::shared_ptr<ExpressionParser::Parse> kParse,
-                       const bool kArithmetic,
                        const StateVector& kSv,
                        const IExprNode<F64>*& kNode,
                        std::vector<const IExpression*>& kExprNodes,
@@ -42,7 +39,6 @@ Result compileOperator(const std::shared_ptr<ExpressionParser::Parse> kParse,
     SFA_ASSERT(kParse->right != nullptr);
     const IExprNode<F64>* nodeRight = nullptr;
     Result res = compileImpl(kParse->right,
-                             kArithmetic,
                              kSv,
                              nodeRight,
                              kExprNodes,
@@ -58,8 +54,11 @@ Result compileOperator(const std::shared_ptr<ExpressionParser::Parse> kParse,
     if (!opInfo.unary)
     {
         SFA_ASSERT(kParse->left != nullptr);
-        res = compileImpl(
-            kParse->left, kArithmetic, kSv, nodeLeft, kExprNodes, kConfigErr);
+        res = compileImpl(kParse->left,
+                          kSv,
+                          nodeLeft,
+                          kExprNodes,
+                          kConfigErr);
         if (res != SUCCESS)
         {
             return res;
@@ -176,7 +175,6 @@ Result compileOperator(const std::shared_ptr<ExpressionParser::Parse> kParse,
 }
 
 Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
-                   const bool kArithmetic,
                    const StateVector& kSv,
                    const IExprNode<F64>*& kNode,
                    std::vector<const IExpression*>& kExprNodes,
@@ -359,10 +357,12 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
     }
     else if (kParse->data.type == Token::OPERATOR)
     {
-        // Expression node is an operator.
-
-        const Result res = compileOperator(
-            kParse, kArithmetic, kSv, kNode, kExprNodes, kConfigErr);
+        // Compile operator expression node.
+        const Result res = compileOperator(kParse,
+                                           kSv,
+                                           kNode,
+                                           kExprNodes,
+                                           kConfigErr);
         if (res != SUCCESS)
         {
             return res;
@@ -408,6 +408,8 @@ Result ExpressionCompiler::compile(
     std::shared_ptr<ExpressionCompiler::Assembly>& kAsm,
     ConfigErrorInfo* const kConfigErr)
 {
+    (void) kArithmetic;
+
     // Check that expression parse is non-null.
     if (kParse == nullptr)
     {
@@ -419,8 +421,11 @@ Result ExpressionCompiler::compile(
 
     // Compile expression starting at root.
     const IExprNode<F64>* root = nullptr;
-    const Result res = compileImpl(
-        kParse, kArithmetic, kSv, root, exprNodes, kConfigErr);
+    const Result res = compileImpl(kParse,
+                                   kSv,
+                                   root,
+                                   exprNodes,
+                                   kConfigErr);
     if (res != SUCCESS)
     {
         // Aborting compilation, so delete all allocated nodes.
@@ -428,6 +433,7 @@ Result ExpressionCompiler::compile(
         {
             delete node;
         }
+
         return res;
     }
 
