@@ -28,9 +28,14 @@ static void setup(const char* const kExprSrc,
     }
 }
 
-static void checkEvalConstExpr(const char* const kExprSrc,
-                               const F64 kExpectVal,
-                               const bool kArithmetic)
+static void checkEvalExpr(const char* const kExprSrc,
+                          const char* const kSvSrc,
+                          const F64 kExpectVal)
+{
+    
+}
+
+static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 {
     std::shared_ptr<ExpressionParser::Parse> exprParse;
     std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
@@ -40,7 +45,6 @@ static void checkEvalConstExpr(const char* const kExprSrc,
     // Compile expression.
     std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
     CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
-                                              kArithmetic,
                                               sv,
                                               exprAsm,
                                               nullptr));
@@ -60,64 +64,56 @@ TEST_GROUP(ExpressionCompiler)
 
 TEST(ExpressionCompiler, SimplePrecedence)
 {
-    checkEvalConstExpr("1 + 2 * 3", 7, true);
+    checkEvalConstExpr("1 + 2 * 3", 7);
 }
 
 TEST(ExpressionCompiler, SimplePrecedenceWithParens)
 {
-    checkEvalConstExpr("(1 + 2) * 3", 9, true);
+    checkEvalConstExpr("(1 + 2) * 3", 9);
 }
 
 TEST(ExpressionCompiler, Not)
 {
-    checkEvalConstExpr("NOT FALSE", 1.0, false);
-    checkEvalConstExpr("NOT TRUE", 0.0, false);
-    checkEvalConstExpr("NOT NOT FALSE", 0.0, false);
-    checkEvalConstExpr("NOT NOT NOT FALSE", 1.0, false);
+    checkEvalConstExpr("NOT FALSE", 1.0);
+    checkEvalConstExpr("NOT TRUE", 0.0);
+    checkEvalConstExpr("NOT NOT FALSE", 0.0);
+    checkEvalConstExpr("NOT NOT NOT FALSE", 1.0);
 }
 
 TEST(ExpressionCompiler, Multiply)
 {
-    checkEvalConstExpr("5 * 3", (5 * 3), true);
+    checkEvalConstExpr("5 * 3", (5 * 3));
     checkEvalConstExpr("5 * 3 * -3.14 * 9.81 * -1.62",
-                       (5 * 3 * -3.14 * 9.81 * -1.62),
-                       true);
+                       (5 * 3 * -3.14 * 9.81 * -1.62));
     checkEvalConstExpr("5 * (3 * (-3.14 * 9.81)) * -1.62",
-                       (5 * (3 * (-3.14 * 9.81)) * -1.62),
-                       true);
+                       (5 * (3 * (-3.14 * 9.81)) * -1.62));
 }
 
 TEST(ExpressionCompiler, Divide)
 {
-    checkEvalConstExpr("5 / 3", (5.0 / 3.0), true);
+    checkEvalConstExpr("5 / 3", (5.0 / 3.0));
     checkEvalConstExpr("5 / 3 / -3.14 / 9.81 / -1.62",
-                       (5.0 / 3 / -3.14 / 9.81 / -1.62),
-                       true);
+                       (5.0 / 3 / -3.14 / 9.81 / -1.62));
     checkEvalConstExpr("5 / (3 / (-3.14 / 9.81)) / -1.62",
-                       (5.0 / (3 / (-3.14 / 9.81)) / -1.62),
-                       true);
+                       (5.0 / (3 / (-3.14 / 9.81)) / -1.62));
 }
 
 TEST(ExpressionCompiler, Add)
 {
-    checkEvalConstExpr("5 + 3", (5.0 + 3.0), true);
+    checkEvalConstExpr("5 + 3", (5.0 + 3.0));
     checkEvalConstExpr("5 + 3 + -3.14 + 9.81 + -1.62",
-                       (5 + 3 + -3.14 + 9.81 + -1.62),
-                       true);
+                       (5 + 3 + -3.14 + 9.81 + -1.62));
     checkEvalConstExpr("5 + (3 + (-3.14 + 9.81)) + -1.62",
-                       (5 + (3 + (-3.14 + 9.81)) + -1.62),
-                       true);
+                       (5 + (3 + (-3.14 + 9.81)) + -1.62));
 }
 
 TEST(ExpressionCompiler, Subtract)
 {
-    checkEvalConstExpr("5 - 3", (5.0 - 3.0), true);
+    checkEvalConstExpr("5 - 3", (5.0 - 3.0));
     checkEvalConstExpr("5 - 3 - -3.14 - 9.81 - -1.62",
-                       (5 - 3 - -3.14 - 9.81 - -1.62),
-                       true);
+                       (5 - 3 - -3.14 - 9.81 - -1.62));
     checkEvalConstExpr("5 - (3 - (-3.14 - 9.81)) - -1.62",
-                       (5 - (3 - (-3.14 - 9.81)) - -1.62),
-                       true);
+                       (5 - (3 - (-3.14 - 9.81)) - -1.62));
 }
 
 TEST(ExpressionCompiler, ComplexArithmetic)
@@ -130,64 +126,63 @@ TEST(ExpressionCompiler, ComplexArithmetic)
         "(4789.478932478923 * (-321.5789004 - 333.47823 * 0.07849327843)"
         " / 3789.047893274982 * (10.743808 + (-1.0 / 3.0) - 900.9009) + -123456"
         " * ((-405.78 + 500.4333 + 7 + (7.7 + 7.77)) + 7.777 * 10.9 / 2.555))",
-        expectVal,
-        true);
+        expectVal);
 }
 
 TEST(ExpressionCompiler, LessThan)
 {
-    checkEvalConstExpr("3 < 5", 1.0, false);
-    checkEvalConstExpr("5 < 3", 0.0, false);
-    checkEvalConstExpr("5 < 5", 0.0, false);
+    checkEvalConstExpr("3 < 5", 1.0);
+    checkEvalConstExpr("5 < 3", 0.0);
+    checkEvalConstExpr("5 < 5", 0.0);
 }
 
 TEST(ExpressionCompiler, LessThanEqual)
 {
-    checkEvalConstExpr("3 <= 5", 1.0, false);
-    checkEvalConstExpr("5 <= 3", 0.0, false);
-    checkEvalConstExpr("5 <= 5", 1.0, false);
+    checkEvalConstExpr("3 <= 5", 1.0);
+    checkEvalConstExpr("5 <= 3", 0.0);
+    checkEvalConstExpr("5 <= 5", 1.0);
 }
 
 TEST(ExpressionCompiler, GreaterThan)
 {
-    checkEvalConstExpr("5 > 3", 1.0, false);
-    checkEvalConstExpr("3 > 5", 0.0, false);
-    checkEvalConstExpr("5 > 5", 0.0, false);
+    checkEvalConstExpr("5 > 3", 1.0);
+    checkEvalConstExpr("3 > 5", 0.0);
+    checkEvalConstExpr("5 > 5", 0.0);
 }
 
 TEST(ExpressionCompiler, GreaterThanEqual)
 {
-    checkEvalConstExpr("5 >= 3", 1.0, false);
-    checkEvalConstExpr("3 >= 5", 0.0, false);
-    checkEvalConstExpr("5 >= 5", 1.0, false);
+    checkEvalConstExpr("5 >= 3", 1.0);
+    checkEvalConstExpr("3 >= 5", 0.0);
+    checkEvalConstExpr("5 >= 5", 1.0);
 }
 
 TEST(ExpressionCompiler, Equal)
 {
-    checkEvalConstExpr("5 == 5", 1.0, false);
-    checkEvalConstExpr("3 == 5", 0.0, false);
+    checkEvalConstExpr("5 == 5", 1.0);
+    checkEvalConstExpr("3 == 5", 0.0);
 }
 
 TEST(ExpressionCompiler, NotEqual)
 {
-    checkEvalConstExpr("3 != 5", 1.0, false);
-    checkEvalConstExpr("5 != 5", 0.0, false);
+    checkEvalConstExpr("3 != 5", 1.0);
+    checkEvalConstExpr("5 != 5", 0.0);
 }
 
 TEST(ExpressionCompiler, And)
 {
-    checkEvalConstExpr("FALSE AND FALSE", 0.0, false);
-    checkEvalConstExpr("FALSE AND TRUE", 0.0, false);
-    checkEvalConstExpr("TRUE AND FALSE", 0.0, false);
-    checkEvalConstExpr("TRUE AND TRUE", 1.0, false);
+    checkEvalConstExpr("FALSE AND FALSE", 0.0);
+    checkEvalConstExpr("FALSE AND TRUE", 0.0);
+    checkEvalConstExpr("TRUE AND FALSE", 0.0);
+    checkEvalConstExpr("TRUE AND TRUE", 1.0);
 }
 
 TEST(ExpressionCompiler, Or)
 {
-    checkEvalConstExpr("FALSE OR FALSE", 0.0, false);
-    checkEvalConstExpr("FALSE OR TRUE", 1.0, false);
-    checkEvalConstExpr("TRUE OR FALSE", 1.0, false);
-    checkEvalConstExpr("TRUE OR TRUE", 1.0, false);
+    checkEvalConstExpr("FALSE OR FALSE", 0.0);
+    checkEvalConstExpr("FALSE OR TRUE", 1.0);
+    checkEvalConstExpr("TRUE OR FALSE", 1.0);
+    checkEvalConstExpr("TRUE OR TRUE", 1.0);
 }
 
 TEST(ExpressionCompiler, ComplexLogic)
@@ -200,91 +195,90 @@ TEST(ExpressionCompiler, ComplexLogic)
         "(TRUE OR !(FALSE AND TRUE AND !(FALSE AND !FALSE)) OR TRUE AND FALSE"
         " OR ((TRUE AND !TRUE OR FALSE) OR !!TRUE) OR FALSE AND TRUE OR FALSE"
         " AND (!FALSE AND TRUE) AND !(!(TRUE OR FALSE) OR (!FALSE OR TRUE)))",
-        expectVal,
-        false);
+        expectVal);
 }
 
 TEST(ExpressionCompiler, MixedArithmeticAndLogic)
 {
-    checkEvalConstExpr("(4 + 6) / 2 == (100 - 120) / (4 * -1)", 1.0, false);
+    checkEvalConstExpr("(4 + 6) / 2 == (100 - 120) / (4 * -1)", 1.0);
 }
 
 TEST(ExpressionCompiler, DoubleInequalityLt)
 {
-    checkEvalConstExpr("1 < 2 < 3", 1.0, false);
-    checkEvalConstExpr("2 < 2 < 3", 0.0, false);
-    checkEvalConstExpr("2 < 2 < 2", 0.0, false);
-    checkEvalConstExpr("1 < 2 < 2", 0.0, false);
-    checkEvalConstExpr("1 < 1 + 1 < 1 + 1 + 1", 1.0, false);
+    checkEvalConstExpr("1 < 2 < 3", 1.0);
+    checkEvalConstExpr("2 < 2 < 3", 0.0);
+    checkEvalConstExpr("2 < 2 < 2", 0.0);
+    checkEvalConstExpr("1 < 2 < 2", 0.0);
+    checkEvalConstExpr("1 < 1 + 1 < 1 + 1 + 1", 1.0);
 }
 
 TEST(ExpressionCompiler, DoubleInequalityLte)
 {
-    checkEvalConstExpr("1 <= 2 <= 3", 1.0, false);
-    checkEvalConstExpr("2 <= 2 <= 3", 1.0, false);
-    checkEvalConstExpr("2 <= 2 <= 2", 1.0, false);
-    checkEvalConstExpr("1 <= 2 <= 2", 1.0, false);
-    checkEvalConstExpr("3 <= 2 <= 3", 0.0, false);
-    checkEvalConstExpr("1 <= 4 <= 3", 0.0, false);
-    checkEvalConstExpr("1 <= 2 <= 1", 0.0, false);
-    checkEvalConstExpr("1 <= 1 + 1 - 1 <= 1 + 1 + 1 - 2", 1.0, false);
+    checkEvalConstExpr("1 <= 2 <= 3", 1.0);
+    checkEvalConstExpr("2 <= 2 <= 3", 1.0);
+    checkEvalConstExpr("2 <= 2 <= 2", 1.0);
+    checkEvalConstExpr("1 <= 2 <= 2", 1.0);
+    checkEvalConstExpr("3 <= 2 <= 3", 0.0);
+    checkEvalConstExpr("1 <= 4 <= 3", 0.0);
+    checkEvalConstExpr("1 <= 2 <= 1", 0.0);
+    checkEvalConstExpr("1 <= 1 + 1 - 1 <= 1 + 1 + 1 - 2", 1.0);
 }
 
 TEST(ExpressionCompiler, DoubleInequalityGt)
 {
-    checkEvalConstExpr("3 > 2 > 1", 1.0, false);
-    checkEvalConstExpr("3 > 2 > 2", 0.0, false);
-    checkEvalConstExpr("2 > 2 > 2", 0.0, false);
-    checkEvalConstExpr("2 > 2 > 1", 0.0, false);
-    checkEvalConstExpr("1 + 1 + 1 > 1 + 1 > 1", 1.0, false);
+    checkEvalConstExpr("3 > 2 > 1", 1.0);
+    checkEvalConstExpr("3 > 2 > 2", 0.0);
+    checkEvalConstExpr("2 > 2 > 2", 0.0);
+    checkEvalConstExpr("2 > 2 > 1", 0.0);
+    checkEvalConstExpr("1 + 1 + 1 > 1 + 1 > 1", 1.0);
 }
 
 TEST(ExpressionCompiler, DoubleInequalityGte)
 {
-    checkEvalConstExpr("3 >= 2 >= 1", 1.0, false);
-    checkEvalConstExpr("3 >= 2 >= 2", 1.0, false);
-    checkEvalConstExpr("2 >= 2 >= 2", 1.0, false);
-    checkEvalConstExpr("2 >= 2 >= 1", 1.0, false);
-    checkEvalConstExpr("3 >= 2 >= 3", 0.0, false);
-    checkEvalConstExpr("3 >= 4 >= 1", 0.0, false);
-    checkEvalConstExpr("1 >= 2 >= 1", 0.0, false);
-    checkEvalConstExpr("1 + 1 + 1 - 2 >= 1 + 1 - 1 >= 1", 1.0, false);
+    checkEvalConstExpr("3 >= 2 >= 1", 1.0);
+    checkEvalConstExpr("3 >= 2 >= 2", 1.0);
+    checkEvalConstExpr("2 >= 2 >= 2", 1.0);
+    checkEvalConstExpr("2 >= 2 >= 1", 1.0);
+    checkEvalConstExpr("3 >= 2 >= 3", 0.0);
+    checkEvalConstExpr("3 >= 4 >= 1", 0.0);
+    checkEvalConstExpr("1 >= 2 >= 1", 0.0);
+    checkEvalConstExpr("1 + 1 + 1 - 2 >= 1 + 1 - 1 >= 1", 1.0);
 }
 
 TEST(ExpressionCompiler, DoubleInequalityLtLte)
 {
-    checkEvalConstExpr("1 < 2 <= 3", 1.0, false);
-    checkEvalConstExpr("1 < 2 <= 2", 1.0, false);
-    checkEvalConstExpr("1 < 2 <= 1", 0.0, false);
-    checkEvalConstExpr("2 < 2 <= 2", 0.0, false);
+    checkEvalConstExpr("1 < 2 <= 3", 1.0);
+    checkEvalConstExpr("1 < 2 <= 2", 1.0);
+    checkEvalConstExpr("1 < 2 <= 1", 0.0);
+    checkEvalConstExpr("2 < 2 <= 2", 0.0);
 }
 
 TEST(ExpressionCompiler, DoubleInequalityGtGte)
 {
-    checkEvalConstExpr("3 > 2 >= 1", 1.0, false);
-    checkEvalConstExpr("2 > 2 >= 1", 0.0, false);
-    checkEvalConstExpr("1 > 2 >= 1", 0.0, false);
-    checkEvalConstExpr("2 > 2 >= 2", 0.0, false);
+    checkEvalConstExpr("3 > 2 >= 1", 1.0);
+    checkEvalConstExpr("2 > 2 >= 1", 0.0);
+    checkEvalConstExpr("1 > 2 >= 1", 0.0);
+    checkEvalConstExpr("2 > 2 >= 2", 0.0);
 }
 
 TEST(ExpressionCompiler, DoubleInequalityOpposingComparisons)
 {
-    checkEvalConstExpr("3 > 2 < 4", 1.0, false);
-    checkEvalConstExpr("3 > 2 < 2", 0.0, false);
-    checkEvalConstExpr("3 > 2 <= 4", 1.0, false);
-    checkEvalConstExpr("2 > 2 < 4", 0.0, false);
-    checkEvalConstExpr("2 >= 2 < 4", 1.0, false);
+    checkEvalConstExpr("3 > 2 < 4", 1.0);
+    checkEvalConstExpr("3 > 2 < 2", 0.0);
+    checkEvalConstExpr("3 > 2 <= 4", 1.0);
+    checkEvalConstExpr("2 > 2 < 4", 0.0);
+    checkEvalConstExpr("2 >= 2 < 4", 1.0);
 }
 
 TEST(ExpressionCompiler, TripleInequality)
 {
-    checkEvalConstExpr("1 < 2 < 3 < 4", 1.0, false);
-    checkEvalConstExpr("1 < 1 < 3 < 4", 0.0, false);
-    checkEvalConstExpr("1 <= 1 < 3 < 4", 1.0, false);
-    checkEvalConstExpr("1 < 2 < 2 < 4", 0.0, false);
-    checkEvalConstExpr("1 < 2 <= 2 < 4", 1.0, false);
-    checkEvalConstExpr("1 < 2 < 3 < 3", 0.0, false);
-    checkEvalConstExpr("1 < 2 < 3 <= 3", 1.0, false);
+    checkEvalConstExpr("1 < 2 < 3 < 4", 1.0);
+    checkEvalConstExpr("1 < 1 < 3 < 4", 0.0);
+    checkEvalConstExpr("1 <= 1 < 3 < 4", 1.0);
+    checkEvalConstExpr("1 < 2 < 2 < 4", 0.0);
+    checkEvalConstExpr("1 < 2 <= 2 < 4", 1.0);
+    checkEvalConstExpr("1 < 2 < 3 < 3", 0.0);
+    checkEvalConstExpr("1 < 2 < 3 <= 3", 1.0);
 }
 
 ///////////////////////////////// Error Tests //////////////////////////////////
@@ -292,3 +286,8 @@ TEST(ExpressionCompiler, TripleInequality)
 TEST_GROUP(ExpressionCompilerErrors)
 {
 };
+
+TEST(ExpressionCompilerErrors, UnknownElement)
+{
+
+}

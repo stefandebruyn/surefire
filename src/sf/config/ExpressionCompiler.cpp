@@ -16,12 +16,6 @@ const std::regex zeroRegex("[-]?[0]*[.]?[0]+");
 
 Result tokenToF64(const Token& kTok, F64& kRet, ErrorInfo* const kErr);
 
-Result getArithmeticity(const std::shared_ptr<ExpressionParser::Parse> kParse,
-                        const bool kArithmetic,
-                        bool* const kIsArithmetic,
-                        const StateVector& kSv,
-                        ErrorInfo* const kErr);
-
 Result compileOperator(const std::shared_ptr<ExpressionParser::Parse> kParse,
                        const StateVector& kSv,
                        const IExprNode<F64>*& kNode,
@@ -56,199 +50,6 @@ Result tokenToF64(const Token& kTok, F64& kRet, ErrorInfo* const kErr)
 
     // Success- return converted value.
     kRet = val;
-    return SUCCESS;
-}
-
-Result getArithmeticity(const std::shared_ptr<ExpressionParser::Parse> kParse,
-                        const bool kArithmetic,
-                        bool* const kIsArithmetic,
-                        const StateVector& kSv,
-                        ErrorInfo* const kErr)
-{
-    if (kParse->data.type == Token::CONSTANT)
-    {
-        if ((kParse->data.str == "TRUE") || (kParse->data.str == "FALSE"))
-        {
-            // Boolean constant.
-
-            if (kArithmetic)
-            {
-                // Logical term used in arithmetic expression.
-                ConfigUtil::setError(kErr, kParse->data, errText,
-                                     "boolean used in arithmetic expression");
-                return E_EXC_TYPE;
-            }
-
-            if (kIsArithmetic != nullptr)
-            {
-                *kIsArithmetic = false;
-            }
-        }
-        else
-        {
-            // Numeric constant.
-
-            if (!kArithmetic)
-            {
-                // Arithmetic term used in logical expression.
-                ConfigUtil::setError(kErr, kParse->data, errText,
-                                     "number used in logical expression");
-                return E_EXC_TYPE;
-            }
-
-            if (kIsArithmetic != nullptr)
-            {
-                *kIsArithmetic = true;
-            }
-        }
-    }
-    else if (kParse->data.type == Token::IDENTIFIER)
-    {
-        // Expression node is a state vector element.
-
-        // Look up element in state vector.
-        IElement* elemObj = nullptr;
-        const Result res = kSv.getIElement(kParse->data.str.c_str(), elemObj);
-        if (res != SUCCESS)
-        {
-            // Unknown element.
-            ConfigUtil::setError(kErr, kParse->data, errText,
-                                 "unknown element");
-            return E_EXC_ELEM;
-        }
-
-        auto typeInfoIt = ElementTypeInfo::fromEnum.find(elemObj->type());
-        SF_ASSERT(typeInfoIt != ElementTypeInfo::fromEnum.end());
-        const ElementTypeInfo& typeInfo = (*typeInfoIt).second;
-
-        if (kArithmetic && !typeInfo.arithmetic)
-        {
-            // Arithmetic element used in logical expression.
-            ConfigUtil::setError(kErr, kParse->data, errText,
-                                 "number used in logical expression");
-            return E_EXC_TYPE;
-        }
-
-        if (!kArithmetic && typeInfo.arithmetic)
-        {
-            // Logical element used in arithmetic expression.
-            ConfigUtil::setError(kErr, kParse->data, errText,
-                                 "boolean used in arithmetic expression");
-            return E_EXC_TYPE;
-        }
-
-        if (kIsArithmetic != nullptr)
-        {
-            *kIsArithmetic = typeInfo.arithmetic;
-        }
-    }
-    else
-    {
-        // Expression node is an operator.
-
-        auto opInfoIt = OperatorInfo::fromStr.find(kParse->data.str);
-        SF_ASSERT(opInfoIt != OperatorInfo::fromStr.end());
-        const OperatorInfo& opInfo = (*opInfoIt).second;
-
-        if (kArithmetic && !opInfo.arithmetic)
-        {
-            // Logical operator used in arithmetic expression.
-            ConfigUtil::setError(
-                kErr, kParse->data, errText,
-                "logical operator used in arithmetic expression");
-            return E_EXC_TYPE;
-        }
-
-        if (!kArithmetic && opInfo.arithmetic)
-        {
-            // Arithmetic operator used in logical expression.
-            ConfigUtil::setError(
-                kErr, kParse->data, errText,
-                "arithmetic operator used in logical expression");
-            return E_EXC_TYPE;
-        }
-
-        // Get arithmeticity of right operand.
-        bool rightOperandArithmetic = false;
-        Result res = getArithmeticity(kParse->right,
-                                      opInfo.arithmetic,
-                                      &rightOperandArithmetic,
-                                      kSv,
-                                      kErr);
-        if (res != SUCCESS)
-        {
-            return res;
-        }
-
-        bool leftOperandArithmetic = false;
-        if (!opInfo.unary)
-        {
-            // Get arithmeticity of left operand.
-            res = getArithmeticity(kParse->left,
-                                   opInfo.arithmetic,
-                                   &leftOperandArithmetic,
-                                   kSv,
-                                   kErr);
-            if (res != SUCCESS)
-            {
-                return res;
-            }
-        }
-
-        if (rightOperandArithmetic && !opInfo.arithmeticOperands)
-        {
-            // Operator cannot have arithmetic right operand.
-            ConfigUtil::setError(
-                kErr, kParse->data, errText,
-                "logical operator has numeric right operand");
-            return E_EXC_TYPE;
-        }
-
-        if (!rightOperandArithmetic && !opInfo.logicalOperands)
-        {
-            // Operator cannot have logical right operand.
-            ConfigUtil::setError(
-                kErr, kParse->data, errText,
-                "arithmetic operator has boolean right operand");
-            return E_EXC_TYPE;
-        }
-
-        if (!opInfo.unary)
-        {
-            if (leftOperandArithmetic && !opInfo.arithmeticOperands)
-            {
-                // Operator cannot have arithmetic left operand.
-                ConfigUtil::setError(
-                    kErr, kParse->data, errText,
-                    "logical operator has numeric left operand");
-                return E_EXC_TYPE;
-            }
-
-            if (!leftOperandArithmetic && !opInfo.logicalOperands)
-            {
-                // Operator cannot have logical left operand.
-                ConfigUtil::setError(
-                    kErr, kParse->data, errText,
-                    "arithmetic operator has boolean left operand");
-                return E_EXC_TYPE;
-            }
-
-            if (leftOperandArithmetic != rightOperandArithmetic)
-            {
-                // Arithmeticity of left and right operands does not match.
-                ConfigUtil::setError(
-                    kErr, kParse->data, errText,
-                    "operator has mismatched numeric and boolean operands");
-                return E_EXC_TYPE;
-            }
-        }
-
-        if (kIsArithmetic != nullptr)
-        {
-            *kIsArithmetic = opInfo.arithmetic;
-        }
-    }
-
     return SUCCESS;
 }
 
@@ -634,7 +435,6 @@ const IExpression* ExpressionCompiler::Assembly::root() const
 
 Result ExpressionCompiler::compile(
     const std::shared_ptr<ExpressionParser::Parse> kParse,
-    const bool kArithmetic,
     const StateVector& kSv,
     std::shared_ptr<ExpressionCompiler::Assembly>& kAsm,
     ErrorInfo* const kErr)
@@ -645,23 +445,12 @@ Result ExpressionCompiler::compile(
         return E_EXC_NULL;
     }
 
-    // Check that expression has correct arithmeticity.
-    Result res = getArithmeticity(kParse,
-                                  kArithmetic,
-                                  nullptr,
-                                  kSv,
-                                  kErr);
-    if (res != SUCCESS)
-    {
-        return res;
-    }
-
     // Collect allocated expression nodes in this vector.
     std::vector<const IExpression*> exprNodes;
 
     // Compile expression starting at root.
     const IExprNode<F64>* root = nullptr;
-    res = compileImpl(kParse, kSv, root, exprNodes, kErr);
+    const Result res = compileImpl(kParse, kSv, root, exprNodes, kErr);
     if (res != SUCCESS)
     {
         // Aborting compilation, so delete all allocated nodes.

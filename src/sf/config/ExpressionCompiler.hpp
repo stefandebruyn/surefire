@@ -26,7 +26,6 @@ namespace ExpressionCompiler
     };
 
     Result compile(const std::shared_ptr<ExpressionParser::Parse> kParse,
-                   const bool kArithmetic,
                    const StateVector& kSv,
                    std::shared_ptr<ExpressionCompiler::Assembly>& kAsm,
                    ErrorInfo* const kErr);
