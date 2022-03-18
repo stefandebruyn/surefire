@@ -211,4 +211,15 @@ T cast(const TRhs kRhs)
     return static_cast<T>(kRhs);
 }
 
+//////////////////////////////// Numeric Limits ////////////////////////////////
+
+namespace Limits
+{
+    template<typename T>
+    T min();
+
+    template<typename T>
+    T max();
+}
+
 #endif
