@@ -17,13 +17,16 @@ namespace StateMachineCompiler
             const StateMachineParser::Parse& kParse,
             const std::shared_ptr<StateVectorCompiler::Assembly> kLocalSvAsm,
             const std::vector<std::shared_ptr<ExpressionCompiler::Assembly>>
-                kExprs);
+                kExprs,
+            StateVector* const kLocalSv);
 
         ~Assembly();
 
         const StateMachine::Config& config() const;
 
         const StateMachineParser::Parse& parse() const;
+
+        StateVector& localStateVector() const;
 
     private:
 
@@ -34,6 +37,8 @@ namespace StateMachineCompiler
         const std::shared_ptr<StateVectorCompiler::Assembly> mLocalSvAsm;
 
         const std::vector<std::shared_ptr<ExpressionCompiler::Assembly>> mExprs;
+
+        StateVector* const mLocalSv;
 
         void deleteBlock(const StateMachine::Block* const kBlock);
     };

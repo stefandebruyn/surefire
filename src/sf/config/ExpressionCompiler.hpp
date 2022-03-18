@@ -1,6 +1,8 @@
 #ifndef SF_EXPRESSION_COMPILER_HPP
 #define SF_EXPRESSION_COMPILER_HPP
 
+#include <vector>
+
 #include "sf/config/ExpressionParser.hpp"
 #include "sf/core/Expression.hpp"
 #include "sf/core/StateVector.hpp"
@@ -26,7 +28,7 @@ namespace ExpressionCompiler
     };
 
     Result compile(const std::shared_ptr<ExpressionParser::Parse> kParse,
-                   const StateVector& kSv,
+                   const std::vector<const StateVector*> kSvs,
                    const ElementType kEvalType,
                    std::shared_ptr<ExpressionCompiler::Assembly>& kAsm,
                    ErrorInfo* const kErr);

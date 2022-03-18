@@ -22,7 +22,7 @@ struct CompilerState final
     std::unordered_map<std::string, IElement*> elems;
     std::unordered_map<std::string, U32> stateIds;
     std::shared_ptr<StateVectorCompiler::Assembly> localSvAsm;
-    StateVector localSv;
+    StateVector* localSv;
     std::vector<StateMachine::StateConfig> states;
     std::vector<std::shared_ptr<ExpressionCompiler::Assembly>> exprs;
 };
@@ -239,8 +239,9 @@ Result compileLocalStateVector(const StateMachineParser::Parse& kParse,
 
     // Configure the local state vector from the compiled config. Assert that
     // this succeeds since the config is known to be valid at this point.
+    kCompState.localSv = new StateVector();
     res = StateVector::create(kCompState.localSvAsm->getConfig(),
-                              kCompState.localSv);
+                              *kCompState.localSv);
     SF_ASSERT(res == SUCCESS);
 
     // Look up each element object in the local state vector and add it to the
@@ -249,7 +250,8 @@ Result compileLocalStateVector(const StateMachineParser::Parse& kParse,
          localSvParse.regions[0].elems)
     {
         IElement* elemObj = nullptr;
-        res = kCompState.localSv.getIElement(elem.tokName.str.c_str(), elemObj);
+        res = kCompState.localSv->getIElement(elem.tokName.str.c_str(),
+                                              elemObj);
         // Assert that element lookup succeeds since we configured the local
         // state vector in this function and know the element exists.
         SF_ASSERT(res == SUCCESS);
@@ -283,18 +285,18 @@ Result compileAction(const StateMachineParser::ActionParse& kParse,
         // Compile assignment action.
 
         // Look up RHS element.
-        IElement* elemObj = nullptr;
-        res = kSv.getIElement(kParse.tokRhs.str.c_str(), elemObj);
-        if (res != SUCCESS)
+        auto elemIt = kCompState.elems.find(kParse.tokRhs.str);
+        if (elemIt == kCompState.elems.end())
         {
             // Unknown element.
             SF_ASSERT(false);
         }
+        IElement* const elemObj = (*elemIt).second;
 
         // Compile LHS expression.
         std::shared_ptr<ExpressionCompiler::Assembly> lhsAsm;
         res = ExpressionCompiler::compile(kParse.lhs,
-                                          kSv,
+                                          {&kSv, kCompState.localSv},
                                           elemObj->type(),
                                           lhsAsm,
                                           kErr);
@@ -411,8 +413,6 @@ Result compileBlock(const StateMachineParser::BlockParse& kParse,
                     StateMachine::Block*& kBlock,
                     ErrorInfo* const kErr)
 {
-    SF_ASSERT(kParse != nullptr);
-
     // Allocate new block.
     kBlock = new StateMachine::Block{};
 
@@ -422,7 +422,7 @@ Result compileBlock(const StateMachineParser::BlockParse& kParse,
         // Compile block guard.
         std::shared_ptr<ExpressionCompiler::Assembly> guardAsm;
         res = ExpressionCompiler::compile(kParse.guard,
-                                          kSv,
+                                          {&kSv, kCompState.localSv},
                                           ElementType::BOOL,
                                           guardAsm,
                                           kErr);
@@ -555,7 +555,7 @@ Result compileState(const StateMachineParser::StateParse& kParse,
         }
     }
 
-    // Add state to compilation state.
+    // Track state in compilation state.
     kCompState.states.push_back(state);
 
     return SUCCESS;
@@ -569,8 +569,13 @@ StateMachineCompiler::Assembly::Assembly(
     const StateMachine::Config kConfig,
     const StateMachineParser::Parse& kParse,
     const std::shared_ptr<StateVectorCompiler::Assembly> kLocalSvAsm,
-    const std::vector<std::shared_ptr<ExpressionCompiler::Assembly>> kExprs) :
-    mConfig(kConfig), mParse(kParse), mLocalSvAsm(kLocalSvAsm), mExprs(kExprs)
+    const std::vector<std::shared_ptr<ExpressionCompiler::Assembly>> kExprs,
+    StateVector* const kLocalSv) :
+    mConfig(kConfig),
+    mParse(kParse),
+    mLocalSvAsm(kLocalSvAsm),
+    mExprs(kExprs),
+    mLocalSv(kLocalSv)
 {
 }
 
@@ -589,6 +594,9 @@ StateMachineCompiler::Assembly::~Assembly()
     // Delete the state config array.
     delete[] mConfig.states;
 
+    // Delete local state vector.
+    delete mLocalSv;
+
     // Note: the state vector elements are not deleted since elements in the
     // state machine are owned by state vector assemblies.
 }
@@ -601,6 +609,11 @@ const StateMachine::Config& StateMachineCompiler::Assembly::config() const
 const StateMachineParser::Parse& StateMachineCompiler::Assembly::parse() const
 {
     return mParse;
+}
+
+StateVector& StateMachineCompiler::Assembly::localStateVector() const
+{
+    return *mLocalSv;
 }
 
 void StateMachineCompiler::Assembly::deleteBlock(
@@ -712,7 +725,10 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
     // Build map of state names to IDs.
     for (U32 i = 0; i < kParse.states.size(); ++i)
     {
-        compState.stateIds[kParse.states[i].tokName.str] = (i + 1);
+        const std::string& tokNameStr = kParse.states[i].tokName.str;
+        const std::string stateName =
+            tokNameStr.substr(1, (tokNameStr.size() - 2));
+        compState.stateIds[stateName] = (i + 1);
     }
 
     // Compile each state machine state.
@@ -749,6 +765,7 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
     kAsm.reset(new Assembly(smConfig,
                             kParse,
                             compState.localSvAsm,
-                            compState.exprs));
+                            compState.exprs,
+                            compState.localSv));
     return SUCCESS;
 }
