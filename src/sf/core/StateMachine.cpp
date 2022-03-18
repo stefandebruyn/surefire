@@ -22,7 +22,7 @@ static Result checkBlockTransitions(const StateMachine::Config kConfig,
         if (kExit)
         {
             // Transitioning in an exit label is illegal.
-            return E_SM_EXIT;
+            return E_SM_TR_EXIT;
         }
 
         // Find config of transition destination state.

@@ -287,6 +287,6 @@ TEST(StateMachineCreate, ErrorIllegalTransitionInExitLabel)
     const Result res = StateMachine::create(gConfig, sm);
     gState1ExitBlock.action = stash;
 
-    CHECK_ERROR(E_SM_EXIT, res);
+    CHECK_ERROR(E_SM_TR_EXIT, res);
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }

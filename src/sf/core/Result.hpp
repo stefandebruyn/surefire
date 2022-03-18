@@ -37,7 +37,7 @@ enum : Result
     E_SM_NULL = 163,
     E_SM_TIME = 164,
     E_SM_TRANS = 165,
-    E_SM_EXIT = 166,
+    E_SM_TR_EXIT = 166,
     E_SM_EMPTY = 167,
 
 /////////////////////////// Config Library Error Codes /////////////////////////
@@ -97,6 +97,18 @@ enum : Result
 
     // StateMachineCompiler
     E_SMC_FILE = 448,
+    E_SMC_SV_ELEM = 449,
+    E_SMC_TYPE = 450,
+    E_SMC_TYPE_MISM = 451,
+    E_SMC_G_TYPE = 452,
+    E_SMC_S_TYPE = 453,
+    E_SMC_NO_G = 454,
+    E_SMC_NO_S = 455,
+    E_SMC_ELEM_DUPE = 456,
+    E_SMC_ASG_ELEM = 457,
+    E_SMC_STATE = 458,
+    E_SMC_ELEM_RO = 459,
+    E_SMC_TR_EXIT = 460,
 
     // ExpressionCompiler
     E_EXC_NULL = 480,

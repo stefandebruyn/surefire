@@ -15,7 +15,11 @@ namespace
 
 const char* const errText = "state machine config error";
 
-const std::unordered_set<std::string> reservedElemNames = {"T"};
+const std::string elemStateTimeName = "T";
+
+const std::string elemGlobalTimeName = "G";
+
+const std::string elemStateName = "S";
 
 struct CompilerState final
 {
@@ -25,7 +29,10 @@ struct CompilerState final
     StateVector* localSv;
     std::vector<StateMachine::StateConfig> states;
     std::vector<std::shared_ptr<ExpressionCompiler::Assembly>> exprs;
+    std::unordered_set<std::string> readOnlyElems;
 };
+
+void deleteBlock(StateMachine::Block* const kBlock);
 
 Result checkStateVector(const StateMachineParser::Parse& kParse,
                         const StateVector& kSv,
@@ -43,12 +50,14 @@ Result initLocalElementValues(const StateMachineParser::Parse& kParse,
 Result compileAction(const StateMachineParser::ActionParse& kParse,
                      const StateVector& kSv,
                      CompilerState& kCompState,
+                     const bool kInExitLabel,
                      IAction*& kAction,
                      ErrorInfo* const kErr);
 
 Result compileBlock(const StateMachineParser::BlockParse& kParse,
                     const StateVector& kSv,
                     CompilerState& kCompState,
+                    const bool kInExitLabel,
                     StateMachine::Block*& kBlock,
                     ErrorInfo* const kErr);
 
@@ -57,30 +66,48 @@ Result compileState(const StateMachineParser::StateParse& kParse,
                     CompilerState& kCompState,
                     ErrorInfo* const kErr);
 
+void deleteBlock(StateMachine::Block* const kBlock)
+{
+    // Base case: null block.
+    if (kBlock == nullptr)
+    {
+        return;
+    }
+
+    // Delete linked blocks.
+    deleteBlock(kBlock->ifBlock);
+    kBlock->ifBlock = nullptr;
+    deleteBlock(kBlock->elseBlock);
+    kBlock->elseBlock = nullptr;
+    deleteBlock(kBlock->next);
+    kBlock->next = nullptr;
+
+    // Delete block action and finally the block itself.
+    delete kBlock->action;
+    kBlock->action = nullptr;
+    delete kBlock;
+
+    // Note: the block guard is not deleted since expressions in the state
+    // machine are owned by expression assemblies.
+}
+
 Result checkStateVector(const StateMachineParser::Parse& kParse,
                         const StateVector& kSv,
                         CompilerState& kCompState,
                         ErrorInfo* const kErr)
 {
-    (void) kErr; // rm later
-
-    bool foundGElem = false;
-    bool foundSElem = false;
     for (const StateMachineParser::StateVectorElementParse& elem :
          kParse.svElems)
     {
-        // Check that element does not reuse a built-in element name.
-        if (reservedElemNames.find(elem.tokName.str) != reservedElemNames.end())
-        {
-            SF_ASSERT(false);
-        }
-
         // Get element object from state vector.
         IElement* elemObj = nullptr;
         if (kSv.getIElement(elem.tokName.str.c_str(), elemObj) != SUCCESS)
         {
             // Element does not exist in state vector.
-            SF_ASSERT(false);
+            ConfigUtil::setError(kErr, elem.tokName, errText,
+                                 "element `" + elem.tokName.str + "` does not "
+                                 "exist in state vector");
+            return E_SMC_SV_ELEM;
         }
 
         // Look up element type as configured in the state machine.
@@ -88,7 +115,9 @@ Result checkStateVector(const StateMachineParser::Parse& kParse,
         if (smTypeInfoIt == ElementTypeInfo::fromName.end())
         {
             // Unknown type.
-            SF_ASSERT(false);
+            ConfigUtil::setError(kErr, elem.tokType, errText,
+                                 "unknown type `" + elem.tokType.str + "`");
+            return E_SMC_TYPE;
         }
         const ElementTypeInfo& smTypeInfo = (*smTypeInfoIt).second;
 
@@ -103,61 +132,107 @@ Result checkStateVector(const StateMachineParser::Parse& kParse,
         // machine.
         if (typeInfo.enumVal != smTypeInfo.enumVal)
         {
-            SF_ASSERT(false);
+            std::stringstream ss;
+            ss << "element `" << elem.tokName.str << "` is type "
+               << typeInfo.name << " in the state vector but type "
+               << smTypeInfo.name << " here";
+            ConfigUtil::setError(kErr, elem.tokType, errText, ss.str());
+            return E_SMC_TYPE_MISM;
         }
 
         // Check that element does not appear twice in the state machine.
         if (kCompState.elems.find(elem.tokName.str) != kCompState.elems.end())
         {
-            SF_ASSERT(false);
+            ConfigUtil::setError(kErr, elem.tokName, errText,
+                                 "element `" + elem.tokName.str + "` is listed "
+                                 "more than once");
+            return E_SMC_ELEM_DUPE;
         }
 
         // Add element to the symbol table.
         SF_ASSERT(elemObj != nullptr);
         kCompState.elems[elem.tokName.str] = elemObj;
 
+        // Make a copy of the element read-only flag. The read-onlyness may
+        // change in special cases.
+        bool elemReadOnly = elem.readOnly;
+
+        // Check that global time element is the correct type.
+        if ((elem.tokName.str == elemGlobalTimeName)
+            || (elem.alias == elemGlobalTimeName))
+        {
+            // Global time element is automatically read-only.
+            elemReadOnly = true;
+
+            if (smTypeInfo.enumVal != ElementType::UINT64)
+            {
+                // Global time element is not U64.
+                std::stringstream ss;
+                ss << "`" << elemGlobalTimeName << "` must be type U64 ("
+                   << elem.tokType.str << " here)";
+                ConfigUtil::setError(kErr, elem.tokName, errText, ss.str());
+                return E_SMC_G_TYPE;
+            }
+        }
+
+        // Check that state element is the correct type.
+        if ((elem.tokName.str == elemStateName)
+            || (elem.alias == elemStateName))
+        {
+            // State element is automatically read-only.
+            elemReadOnly = true;
+
+            if (smTypeInfo.enumVal != ElementType::UINT32)
+            {
+                // State element is not U32.
+                std::stringstream ss;
+                ss << "`" << elemStateName << "` must be type U32 ("
+                   << elem.tokType.str << " here)";
+                ConfigUtil::setError(kErr, elem.tokName, errText, ss.str());
+                return E_SMC_S_TYPE;
+            }
+        }
+
         // If the element is aliased, add the alias to the symbol table too.
         if (elem.alias.size() > 0)
         {
-            // `G` alias designates the global time element updated
-            // externally to the state machine.
-            if (elem.alias == "G")
-            {
-                if (smTypeInfo.enumVal != ElementType::UINT64)
-                {
-                    // Global time element is not U64.
-                    SF_ASSERT(false);
-                }
-                foundGElem = true;
-            }
-
-            // `S` alias designates the state element used to expose the state
-            // machine state to external code.
-            if (elem.alias == "S")
-            {
-                if (smTypeInfo.enumVal != ElementType::UINT32)
-                {
-                    // State element is not U32.
-                    SF_ASSERT(false);
-                }
-                foundSElem = true;
-            }
-
             SF_ASSERT(elemObj != nullptr);
             kCompState.elems[elem.alias] = elemObj;
         }
+
+        // If element is read-only, add its name and alias to read-only set.
+        if (elemReadOnly)
+        {
+            kCompState.readOnlyElems.insert(elem.tokName.str);
+            if (elem.alias.size() > 0)
+            {
+                kCompState.readOnlyElems.insert(elem.alias);
+            }
+        }
     }
 
-    if (!foundGElem)
+    if (kCompState.elems.find(elemGlobalTimeName) == kCompState.elems.end())
     {
         // No global time element provided.
-        SF_ASSERT(false);
+        if (kErr != nullptr)
+        {
+            kErr->text = errText;
+            kErr->subtext = "no global time element aliased to `"
+                            + elemGlobalTimeName + "`";
+        }
+        return E_SMC_NO_G;
     }
 
-    if (!foundSElem)
+    if (kCompState.elems.find(elemStateName) == kCompState.elems.end())
     {
         // No state element provided.
-        SF_ASSERT(false);
+        if (kErr != nullptr)
+        {
+            kErr->text = errText;
+            kErr->subtext = "no state element aliased to `" + elemStateName
+                            + "`";
+        }
+        return E_SMC_NO_S;
     }
 
     return SUCCESS;
@@ -188,19 +263,16 @@ Result compileLocalStateVector(const StateMachineParser::Parse& kParse,
     localSvParse.regions[0].elems.push_back(
         {
             {Token::IDENTIFIER, "U64", -1, -1},
-            {Token::IDENTIFIER, "T", -1, -1}
+            {Token::IDENTIFIER, elemStateTimeName, -1, -1}
         });
+
+    // State time element is automatically read-only.
+    kCompState.readOnlyElems.insert(elemStateTimeName);
 
     for (U32 i = 0; i < kParse.localElems.size(); ++i)
     {
         const StateMachineParser::LocalElementParse& elem =
             kParse.localElems[i];
-
-        // Check that element does not reuse a built-in element name.
-        if (reservedElemNames.find(elem.tokName.str) != reservedElemNames.end())
-        {
-            SF_ASSERT(false);
-        }
 
         // Check for name uniqueness against state vector elements and aliases.
         // Uniqueness against local elements will be checked by the state vector
@@ -212,12 +284,23 @@ Result compileLocalStateVector(const StateMachineParser::Parse& kParse,
                 || ((svElem.alias.size() > 0)
                     && (elem.tokName.str == svElem.alias)))
             {
-                SF_ASSERT(false);
+                std::stringstream ss;
+                ss << "reuse of element name `" << elem.tokName.str
+                   << "` (previously used on line " << svElem.tokName.lineNum
+                   << ")";
+                ConfigUtil::setError(kErr, elem.tokName, errText, ss.str());
+                return E_SMC_ELEM_DUPE;
             }
         }
 
         // Add element to local state vector parse.
         localSvParse.regions[0].elems.push_back({elem.tokType, elem.tokName});
+
+        // If element is read-only, add to read-only set.
+        if (elem.readOnly)
+        {
+            kCompState.readOnlyElems.insert(elem.tokName.str);
+        }
     }
 
     // Compile the local state vector. Since the local state vector parse is at
@@ -276,10 +359,12 @@ Result initLocalElementValues(const StateMachineParser::Parse& kParse,
 Result compileAction(const StateMachineParser::ActionParse& kParse,
                      const StateVector& kSv,
                      CompilerState& kCompState,
+                     const bool kInExitLabel,
                      IAction*& kAction,
                      ErrorInfo* const kErr)
 {
     Result res = SUCCESS;
+
     if (kParse.lhs != nullptr)
     {
         // Compile assignment action.
@@ -289,9 +374,25 @@ Result compileAction(const StateMachineParser::ActionParse& kParse,
         if (elemIt == kCompState.elems.end())
         {
             // Unknown element.
-            SF_ASSERT(false);
+            ConfigUtil::setError(kErr, kParse.tokRhs, errText,
+                                 "unknown element `" + kParse.tokRhs.str + "`");
+            return E_SMC_ASG_ELEM;
         }
         IElement* const elemObj = (*elemIt).second;
+
+        // Check that RHS element is not read-only. This includes elements
+        // marked read-only by the user and reserved elements.
+        if ((kCompState.readOnlyElems.find(kParse.tokRhs.str) !=
+             kCompState.readOnlyElems.end())
+            || (kParse.tokRhs.str == elemGlobalTimeName)
+            || (kParse.tokRhs.str == elemStateTimeName)
+            || (kParse.tokRhs.str == elemStateName))
+        {
+            ConfigUtil::setError(kErr, kParse.tokRhs, errText,
+                                 "element `" + kParse.tokRhs.str + "` is "
+                                 "read-only");
+            return E_SMC_ELEM_RO;
+        }
 
         // Compile LHS expression.
         std::shared_ptr<ExpressionCompiler::Assembly> lhsAsm;
@@ -394,11 +495,23 @@ Result compileAction(const StateMachineParser::ActionParse& kParse,
     else
     {
         // Compile transition action.
+
+        if (kInExitLabel)
+        {
+            // Illegal transition in exit label.
+            ConfigUtil::setError(kErr, kParse.tokDestState, errText,
+                                 "illegal transition in exit label");
+            return E_SMC_TR_EXIT;
+        }
+
         auto stateIdIt = kCompState.stateIds.find(kParse.tokDestState.str);
         if (stateIdIt == kCompState.stateIds.end())
         {
             // Unknown destination state.
-            SF_ASSERT(false);
+            ConfigUtil::setError(kErr, kParse.tokDestState, errText,
+                                 "unknown state `" + kParse.tokDestState.str
+                                 + "`");
+            return E_SMC_STATE;
         }
         const U32 destState = (*stateIdIt).second;
         kAction = new TransitionAction(destState);
@@ -410,11 +523,12 @@ Result compileAction(const StateMachineParser::ActionParse& kParse,
 Result compileBlock(const StateMachineParser::BlockParse& kParse,
                     const StateVector& kSv,
                     CompilerState& kCompState,
+                    const bool kInExitLabel,
                     StateMachine::Block*& kBlock,
                     ErrorInfo* const kErr)
 {
     // Allocate new block.
-    kBlock = new StateMachine::Block{};
+    StateMachine::Block* const block = new StateMachine::Block{};
 
     Result res = SUCCESS;
     if (kParse.guard != nullptr)
@@ -436,7 +550,7 @@ Result compileBlock(const StateMachineParser::BlockParse& kParse,
             }
 
             // Delete allocations since aborting compilation.
-            delete kBlock;
+            deleteBlock(block);
             return res;
         }
 
@@ -444,7 +558,7 @@ Result compileBlock(const StateMachineParser::BlockParse& kParse,
         kCompState.exprs.push_back(guardAsm);
 
         // Assign block guard.
-        kBlock->guard = static_cast<const IExprNode<bool>*>(guardAsm->root());
+        block->guard = static_cast<const IExprNode<bool>*>(guardAsm->root());
 
         if (kParse.ifBlock != nullptr)
         {
@@ -452,12 +566,13 @@ Result compileBlock(const StateMachineParser::BlockParse& kParse,
             res = compileBlock(*kParse.ifBlock,
                                kSv,
                                kCompState,
-                               kBlock->ifBlock,
+                               kInExitLabel,
+                               block->ifBlock,
                                kErr);
             if (res != SUCCESS)
             {
                 // Delete allocations since aborting compilation.
-                delete kBlock;
+                deleteBlock(block);
                 return res;
             }
         }
@@ -468,28 +583,31 @@ Result compileBlock(const StateMachineParser::BlockParse& kParse,
             res = compileBlock(*kParse.elseBlock,
                                kSv,
                                kCompState,
-                               kBlock->elseBlock,
+                               kInExitLabel,
+                               block->elseBlock,
                                kErr);
             if (res != SUCCESS)
             {
                 // Delete allocations since aborting compilation.
-                delete kBlock;
+                deleteBlock(block);
                 return res;
             }
         }
     }
-    else if (kParse.action != nullptr)
+
+    if (kParse.action != nullptr)
     {
         // Compile action.
         res = compileAction(*kParse.action,
                             kSv,
                             kCompState,
-                            kBlock->action,
+                            kInExitLabel,
+                            block->action,
                             kErr);
         if (res != SUCCESS)
         {
             // Delete allocations since aborting compilation.
-            delete kBlock;
+            deleteBlock(block);
             return res;
         }
     }
@@ -497,15 +615,21 @@ Result compileBlock(const StateMachineParser::BlockParse& kParse,
     if (kParse.next != nullptr)
     {
         // Compile next block.
-        res = compileBlock(*kParse.next, kSv, kCompState, kBlock->next, kErr);
+        res = compileBlock(*kParse.next,
+                           kSv,
+                           kCompState,
+                           kInExitLabel,
+                           block->next,
+                           kErr);
         if (res != SUCCESS)
         {
             // Delete allocations since aborting compilation.
-            delete kBlock;
+            deleteBlock(block);
             return res;
         }
     }
 
+    kBlock = block;
     return SUCCESS;
 }
 
@@ -528,7 +652,12 @@ Result compileState(const StateMachineParser::StateParse& kParse,
     if (kParse.entry != nullptr)
     {
         // Compile entry label.
-        res = compileBlock(*kParse.entry, kSv, kCompState, state.entry, kErr);
+        res = compileBlock(*kParse.entry,
+                           kSv,
+                           kCompState,
+                           false,
+                           state.entry,
+                           kErr);
         if (res != SUCCESS)
         {
             return res;
@@ -538,7 +667,12 @@ Result compileState(const StateMachineParser::StateParse& kParse,
     if (kParse.step != nullptr)
     {
         // Compile step label.
-        res = compileBlock(*kParse.step, kSv, kCompState, state.step, kErr);
+        res = compileBlock(*kParse.step,
+                           kSv,
+                           kCompState,
+                           false,
+                           state.step,
+                           kErr);
         if (res != SUCCESS)
         {
             return res;
@@ -548,7 +682,12 @@ Result compileState(const StateMachineParser::StateParse& kParse,
     if (kParse.exit != nullptr)
     {
         // Compile exit label.
-        res = compileBlock(*kParse.exit, kSv, kCompState, state.exit, kErr);
+        res = compileBlock(*kParse.exit,
+                           kSv,
+                           kCompState,
+                           true,
+                           state.exit,
+                           kErr);
         if (res != SUCCESS)
         {
             return res;
@@ -586,9 +725,9 @@ StateMachineCompiler::Assembly::~Assembly()
          ++state)
     {
         // Delete state block structures.
-        this->deleteBlock(state->entry);
-        this->deleteBlock(state->step);
-        this->deleteBlock(state->exit);
+        deleteBlock(state->entry);
+        deleteBlock(state->step);
+        deleteBlock(state->exit);
     }
 
     // Delete the state config array.
@@ -614,28 +753,6 @@ const StateMachineParser::Parse& StateMachineCompiler::Assembly::parse() const
 StateVector& StateMachineCompiler::Assembly::localStateVector() const
 {
     return *mLocalSv;
-}
-
-void StateMachineCompiler::Assembly::deleteBlock(
-    const StateMachine::Block* const kBlock)
-{
-    // Base case: null block.
-    if (kBlock == nullptr)
-    {
-        return;
-    }
-
-    // Delete linked blocks.
-    this->deleteBlock(kBlock->ifBlock);
-    this->deleteBlock(kBlock->elseBlock);
-    this->deleteBlock(kBlock->next);
-
-    // Delete block action and finally the block itself.
-    delete kBlock->action;
-    delete kBlock;
-
-    // Note: the block guard is not deleted since expressions in the state
-    // machine are owned by expression assemblies.
 }
 
 Result StateMachineCompiler::compile(const std::string kFilePath,
@@ -737,6 +854,15 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
         res = compileState(state, kSv, compState, kErr);
         if (res != SUCCESS)
         {
+            // Delete allocations since aborting compilation.
+            delete compState.localSv;
+            for (const StateMachine::StateConfig& state : compState.states)
+            {
+                deleteBlock(state.entry);
+                deleteBlock(state.step);
+                deleteBlock(state.exit);
+            }
+
             return res;
         }
     }

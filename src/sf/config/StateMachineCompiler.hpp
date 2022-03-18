@@ -39,8 +39,6 @@ namespace StateMachineCompiler
         const std::vector<std::shared_ptr<ExpressionCompiler::Assembly>> mExprs;
 
         StateVector* const mLocalSv;
-
-        void deleteBlock(const StateMachine::Block* const kBlock);
     };
 
     Result compile(const std::string kFilePath,
