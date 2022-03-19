@@ -35,12 +35,17 @@ TEST(StateMachineBlock, BlockExecuteLink)
     Element<I32> elemFoo(foo);
     ElementExprNode<I32> exprFoo(elemFoo);
     ConstExprNode<I32> expr1(1);
-    BinOpExprNode<I32> fooPlus1(add<I32>, exprFoo, expr1);
+    BinOpExprNode<I32> fooPlus1([] (I32 a, I32 b) -> I32 { return (a + b); },
+                                exprFoo,
+                                expr1);
     AssignmentAction<I32> fooGetsFooPlus1(elemFoo, fooPlus1);
 
     // Action `foo = foo * -1`
     ConstExprNode<I32> exprNeg1(-1);
-    BinOpExprNode<I32> fooTimesNeg1(multiply<I32>, exprFoo, exprNeg1);
+    BinOpExprNode<I32> fooTimesNeg1(
+        [] (I32 a, I32 b) -> I32 { return (a * b); },
+        exprFoo,
+        exprNeg1);
     AssignmentAction<I32> fooGetsFooTimesNeg1(elemFoo, fooTimesNeg1);
 
     // foo = foo + 1
@@ -62,7 +67,10 @@ TEST(StateMachineBlock, BlockGuard)
     Element<bool> elemFoo(foo);
     ElementExprNode<bool> exprFoo(elemFoo);
     ConstExprNode<bool> exprTrue(true);
-    BinOpExprNode<bool> fooIsTrue(equals<bool>, exprFoo, exprTrue);
+    BinOpExprNode<bool> fooIsTrue(
+        [] (bool a, bool b) -> bool { return (a == b); },
+        exprFoo,
+        exprTrue);
 
     // Action `bar = 1`
     I32 bar = 0;
@@ -79,7 +87,8 @@ TEST(StateMachineBlock, BlockGuard)
     bool baz = false;
     Element<bool> elemBaz(baz);
     ElementExprNode<bool> exprBaz(elemBaz);
-    UnaryOpExprNode<bool> notBaz(bang<bool>, exprBaz);
+    UnaryOpExprNode<bool> notBaz([] (bool a) -> bool { return !a; },
+                                 exprBaz);
     AssignmentAction<bool> bazGetsNotBaz(elemBaz, notBaz);
 
     // foo:  bar = 1

@@ -45,6 +45,8 @@ TEST(ExpressionStats, ZeroSize)
     ExpressionStats<I32, 0> stats(expr);
 
     stats.update();
+    stats.update();
+    stats.update();
 
     CHECK_EQUAL(0.0, stats.mean());
     CHECK_EQUAL(0.0, stats.median());

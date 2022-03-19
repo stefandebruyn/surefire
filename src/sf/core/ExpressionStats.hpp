@@ -68,13 +68,13 @@ public:
         mSize = ((mUpdates < THistSize) ? mUpdates : THistSize);
 
         // Add value to rolling sum.
-        mSum = add<T>(mSum, val);
+        mSum += val;
 
         // If an old value was just overwritten, subtract it from the rolling
         // sum.
         if (mUpdates > THistSize)
         {
-            mSum = subtract<T>(mSum, oldVal);
+            mSum -= oldVal;
         }
     }
 
@@ -82,7 +82,7 @@ public:
     /// @brief Returns the mean of the value history. The mean of an empty
     /// history is zero.
     ///
-    /// @remarks This method is O(1).
+    /// @remark This method is O(1).
     ///
     /// @return History mean.
     ///

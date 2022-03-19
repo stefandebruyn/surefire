@@ -101,96 +101,110 @@ Result compileOperator(const std::shared_ptr<ExpressionParser::Parse> kParse,
     switch (opInfo.enumVal)
     {
         case OperatorInfo::Type::NOT:
-            kNode = new UnaryOpExprNode<F64>(bang<F64>, *nodeRight);
+        {
+            kNode = new UnaryOpExprNode<F64>(
+                [] (const F64 a) -> F64 { return !a; },
+                *nodeRight);
             break;
+        }
 
         case OperatorInfo::Type::MULT:
             kNode = new BinOpExprNode<F64>(
-                multiply<F64>, *nodeLeft, *nodeRight);
+                [] (const F64 a, const F64 b) -> F64 { return (a * b); },
+                *nodeLeft,
+                *nodeRight);
             break;
 
         case OperatorInfo::Type::DIV:
-            kNode = new BinOpExprNode<F64>(divide<F64>, *nodeLeft, *nodeRight);
+            kNode = new BinOpExprNode<F64>(
+                [] (const F64 a, const F64 b) -> F64 { return (a / b); },
+                *nodeLeft,
+                *nodeRight);
             break;
 
         case OperatorInfo::Type::ADD:
-            kNode = new BinOpExprNode<F64>(add<F64>, *nodeLeft, *nodeRight);
+            kNode = new BinOpExprNode<F64>(
+                [] (const F64 a, const F64 b) -> F64 { return (a + b); },
+                *nodeLeft,
+                *nodeRight);
             break;
 
         case OperatorInfo::Type::SUB:
             kNode = new BinOpExprNode<F64>(
-                subtract<F64>, *nodeLeft, *nodeRight);
+                [] (const F64 a, const F64 b) -> F64 { return (a - b); },
+                *nodeLeft,
+                *nodeRight);
             break;
 
         case OperatorInfo::Type::LT:
         {
-            const IExprNode<bool>* const nodeCmp = new BinOpExprNode<bool, F64>(
-                lessThan<F64>, *nodeLeft, *nodeRight);
-            kNode = new UnaryOpExprNode<F64, bool>(cast<F64, bool>, *nodeCmp);
-            kExprNodes.push_back(nodeCmp);
+            kNode = new BinOpExprNode<F64>(
+                [] (const F64 a, const F64 b) -> F64 { return (a < b); },
+                *nodeLeft,
+                *nodeRight);
             break;
         }
 
         case OperatorInfo::Type::LTE:
         {
-            const IExprNode<bool>* const nodeCmp = new BinOpExprNode<bool, F64>(
-                lessThanEquals<F64>, *nodeLeft, *nodeRight);
-            kNode = new UnaryOpExprNode<F64, bool>(cast<F64, bool>, *nodeCmp);
-            kExprNodes.push_back(nodeCmp);
+            kNode = new BinOpExprNode<F64>(
+                [] (const F64 a, const F64 b) -> F64 { return (a <= b); },
+                *nodeLeft,
+                *nodeRight);
             break;
         }
 
         case OperatorInfo::Type::GT:
         {
-            const IExprNode<bool>* const nodeCmp = new BinOpExprNode<bool, F64>(
-                greaterThan<F64>, *nodeLeft, *nodeRight);
-            kNode = new UnaryOpExprNode<F64, bool>(cast<F64, bool>, *nodeCmp);
-            kExprNodes.push_back(nodeCmp);
+            kNode = new BinOpExprNode<F64>(
+                [] (const F64 a, const F64 b) -> F64 { return (a > b); },
+                *nodeLeft,
+                *nodeRight);
             break;
         }
 
         case OperatorInfo::Type::GTE:
         {
-            const IExprNode<bool>* const nodeCmp = new BinOpExprNode<bool, F64>(
-                greaterThanEquals<F64>, *nodeLeft, *nodeRight);
-            kNode = new UnaryOpExprNode<F64, bool>(cast<F64, bool>, *nodeCmp);
-            kExprNodes.push_back(nodeCmp);
+            kNode = new BinOpExprNode<F64>(
+                [] (const F64 a, const F64 b) -> F64 { return (a >= b); },
+                *nodeLeft,
+                *nodeRight);
             break;
         }
 
         case OperatorInfo::Type::EQ:
         {
-            const IExprNode<bool>* const nodeCmp = new BinOpExprNode<bool, F64>(
-                equals<F64>, *nodeLeft, *nodeRight);
-            kNode = new UnaryOpExprNode<F64, bool>(cast<F64, bool>, *nodeCmp);
-            kExprNodes.push_back(nodeCmp);
+            kNode = new BinOpExprNode<F64>(
+                [] (const F64 a, const F64 b) -> F64 { return (a == b); },
+                *nodeLeft,
+                *nodeRight);
             break;
         }
 
         case OperatorInfo::Type::NEQ:
         {
-            const IExprNode<bool>* const nodeCmp = new BinOpExprNode<bool, F64>(
-                notEquals<F64>, *nodeLeft, *nodeRight);
-            kNode = new UnaryOpExprNode<F64, bool>(cast<F64, bool>, *nodeCmp);
-            kExprNodes.push_back(nodeCmp);
+            kNode = new BinOpExprNode<F64>(
+                [] (const F64 a, const F64 b) -> F64 { return (a != b); },
+                *nodeLeft,
+                *nodeRight);
             break;
         }
 
         case OperatorInfo::Type::AND:
         {
-            const IExprNode<bool>* const nodeCmp = new BinOpExprNode<bool, F64>(
-                logicalAnd<F64>, *nodeLeft, *nodeRight);
-            kNode = new UnaryOpExprNode<F64, bool>(cast<F64, bool>, *nodeCmp);
-            kExprNodes.push_back(nodeCmp);
+            kNode = new BinOpExprNode<F64>(
+                [] (const F64 a, const F64 b) -> F64 { return (a && b); },
+                *nodeLeft,
+                *nodeRight);
             break;
         }
 
         case OperatorInfo::Type::OR:
         {
-            const IExprNode<bool>* const nodeCmp = new BinOpExprNode<bool, F64>(
-                logicalOr<F64>, *nodeLeft, *nodeRight);
-            kNode = new UnaryOpExprNode<F64, bool>(cast<F64, bool>, *nodeCmp);
-            kExprNodes.push_back(nodeCmp);
+            kNode = new BinOpExprNode<F64>(
+                [] (const F64 a, const F64 b) -> F64 { return (a || b); },
+                *nodeLeft,
+                *nodeRight);
             break;
         }
 
@@ -294,7 +308,8 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
             {
                 const IExprNode<I8>* const nodeElem = new ElementExprNode<I8>(
                     *static_cast<const Element<I8>*>(elemObj));
-                kNode = new UnaryOpExprNode<F64, I8>(cast<F64, I8>, *nodeElem);
+                kNode = new UnaryOpExprNode<F64, I8>(safeCast<F64, I8>,
+                                                     *nodeElem);
                 kExprNodes.push_back(nodeElem);
                 break;
             }
@@ -303,7 +318,7 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
             {
                 const IExprNode<I16>* const nodeElem = new ElementExprNode<I16>(
                     *static_cast<const Element<I16>*>(elemObj));
-                kNode = new UnaryOpExprNode<F64, I16>(cast<F64, I16>,
+                kNode = new UnaryOpExprNode<F64, I16>(safeCast<F64, I16>,
                                                       *nodeElem);
                 kExprNodes.push_back(nodeElem);
                 break;
@@ -313,7 +328,7 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
             {
                 const IExprNode<I32>* const nodeElem = new ElementExprNode<I32>(
                     *static_cast<const Element<I32>*>(elemObj));
-                kNode = new UnaryOpExprNode<F64, I32>(cast<F64, I32>,
+                kNode = new UnaryOpExprNode<F64, I32>(safeCast<F64, I32>,
                                                       *nodeElem);
                 kExprNodes.push_back(nodeElem);
                 break;
@@ -323,7 +338,7 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
             {
                 const IExprNode<I64>* const nodeElem = new ElementExprNode<I64>(
                     *static_cast<const Element<I64>*>(elemObj));
-                kNode = new UnaryOpExprNode<F64, I64>(cast<F64, I64>,
+                kNode = new UnaryOpExprNode<F64, I64>(safeCast<F64, I64>,
                                                       *nodeElem);
                 kExprNodes.push_back(nodeElem);
                 break;
@@ -333,7 +348,8 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
             {
                 const IExprNode<U8>* const nodeElem = new ElementExprNode<U8>(
                     *static_cast<const Element<U8>*>(elemObj));
-                kNode = new UnaryOpExprNode<F64, U8>(cast<F64, U8>, *nodeElem);
+                kNode = new UnaryOpExprNode<F64, U8>(safeCast<F64, U8>,
+                                                     *nodeElem);
                 kExprNodes.push_back(nodeElem);
                 break;
             }
@@ -342,7 +358,7 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
             {
                 const IExprNode<U16>* const nodeElem = new ElementExprNode<U16>(
                     *static_cast<const Element<U16>*>(elemObj));
-                kNode = new UnaryOpExprNode<F64, U16>(cast<F64, U16>,
+                kNode = new UnaryOpExprNode<F64, U16>(safeCast<F64, U16>,
                                                       *nodeElem);
                 kExprNodes.push_back(nodeElem);
                 break;
@@ -352,7 +368,7 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
             {
                 const IExprNode<U32>* const nodeElem = new ElementExprNode<U32>(
                     *static_cast<const Element<U32>*>(elemObj));
-                kNode = new UnaryOpExprNode<F64, U32>(cast<F64, U32>,
+                kNode = new UnaryOpExprNode<F64, U32>(safeCast<F64, U32>,
                                                       *nodeElem);
                 kExprNodes.push_back(nodeElem);
                 break;
@@ -362,7 +378,7 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
             {
                 const IExprNode<U64>* const nodeElem = new ElementExprNode<U64>(
                     *static_cast<const Element<U64>*>(elemObj));
-                kNode = new UnaryOpExprNode<F64, U64>(cast<F64, U64>,
+                kNode = new UnaryOpExprNode<F64, U64>(safeCast<F64, U64>,
                                                       *nodeElem);
                 kExprNodes.push_back(nodeElem);
                 break;
@@ -372,7 +388,7 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
             {
                 const IExprNode<F32>* const nodeElem = new ElementExprNode<F32>(
                     *static_cast<const Element<F32>*>(elemObj));
-                kNode = new UnaryOpExprNode<F64, F32>(cast<F64, F32>,
+                kNode = new UnaryOpExprNode<F64, F32>(safeCast<F64, F32>,
                                                       *nodeElem);
                 kExprNodes.push_back(nodeElem);
                 break;
@@ -388,7 +404,7 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
                 const IExprNode<bool>* const nodeElem =
                     new ElementExprNode<bool>(
                         *static_cast<const Element<bool>*>(elemObj));
-                kNode = new UnaryOpExprNode<F64, bool>(cast<F64, bool>,
+                kNode = new UnaryOpExprNode<F64, bool>(safeCast<F64, bool>,
                                                        *nodeElem);
                 kExprNodes.push_back(nodeElem);
                 break;
@@ -471,65 +487,64 @@ Result ExpressionCompiler::compile(
         return res;
     }
 
-    const IExpression* asmRoot = root;
-
-    // If expression should evaluate to something other than F64, add a cast.
-    if (kEvalType != ElementType::FLOAT64)
+    // Add cast to target evaluation type. We do this even when both types are
+    // F64 so that NaNs can be eliminated by `safeCast`.
+    IExpression* newRoot = nullptr;
+    switch (kEvalType)
     {
-        IExpression* newRoot = nullptr;
-        switch (kEvalType)
-        {
-            case ElementType::INT8:
-                newRoot = new UnaryOpExprNode<I8, F64>(cast<I8, F64>, *root);
-                break;
+        case ElementType::INT8:
+            newRoot = new UnaryOpExprNode<I8, F64>(safeCast<I8, F64>, *root);
+            break;
 
-            case ElementType::INT16:
-                newRoot = new UnaryOpExprNode<I16, F64>(cast<I16, F64>, *root);
-                break;
+        case ElementType::INT16:
+            newRoot = new UnaryOpExprNode<I16, F64>(safeCast<I16, F64>, *root);
+            break;
 
-            case ElementType::INT32:
-                newRoot = new UnaryOpExprNode<I32, F64>(cast<I32, F64>, *root);
-                break;
+        case ElementType::INT32:
+            newRoot = new UnaryOpExprNode<I32, F64>(safeCast<I32, F64>, *root);
+            break;
 
-            case ElementType::INT64:
-                newRoot = new UnaryOpExprNode<I64, F64>(cast<I64, F64>, *root);
-                break;
+        case ElementType::INT64:
+            newRoot = new UnaryOpExprNode<I64, F64>(safeCast<I64, F64>, *root);
+            break;
 
-            case ElementType::UINT8:
-                newRoot = new UnaryOpExprNode<U8, F64>(cast<U8, F64>, *root);
-                break;
+        case ElementType::UINT8:
+            newRoot = new UnaryOpExprNode<U8, F64>(safeCast<U8, F64>, *root);
+            break;
 
-            case ElementType::UINT16:
-                newRoot = new UnaryOpExprNode<U16, F64>(cast<U16, F64>, *root);
-                break;
+        case ElementType::UINT16:
+            newRoot = new UnaryOpExprNode<U16, F64>(safeCast<U16, F64>, *root);
+            break;
 
-            case ElementType::UINT32:
-                newRoot = new UnaryOpExprNode<U32, F64>(cast<U32, F64>, *root);
-                break;
+        case ElementType::UINT32:
+            newRoot = new UnaryOpExprNode<U32, F64>(safeCast<U32, F64>, *root);
+            break;
 
-            case ElementType::UINT64:
-                newRoot = new UnaryOpExprNode<U64, F64>(cast<U64, F64>, *root);
-                break;
+        case ElementType::UINT64:
+            newRoot = new UnaryOpExprNode<U64, F64>(safeCast<U64, F64>, *root);
+            break;
 
-            case ElementType::FLOAT32:
-                newRoot = new UnaryOpExprNode<F32, F64>(cast<F32, F64>, *root);
-                break;
+        case ElementType::FLOAT32:
+            newRoot = new UnaryOpExprNode<F32, F64>(safeCast<F32, F64>, *root);
+            break;
 
-            case ElementType::BOOL:
-                newRoot = new UnaryOpExprNode<bool, F64>(cast<bool, F64>,
-                                                         *root);
-                break;
+        case ElementType::FLOAT64:
+            newRoot = new UnaryOpExprNode<F64, F64>(safeCast<F64, F64>, *root);
+            break;
 
-            default:
-                SF_ASSERT(false);
-        }
+        case ElementType::BOOL:
+            newRoot = new UnaryOpExprNode<bool, F64>(safeCast<bool, F64>,
+                                                     *root);
+            break;
 
-        exprNodes.push_back(newRoot);
-        asmRoot = newRoot;
+        default:
+            SF_ASSERT(false);
     }
 
+    exprNodes.push_back(newRoot);
+
     // Return compiled expression assembly.
-    kAsm.reset(new ExpressionCompiler::Assembly(asmRoot, exprNodes));
+    kAsm.reset(new ExpressionCompiler::Assembly(newRoot, exprNodes));
 
     return SUCCESS;
 }

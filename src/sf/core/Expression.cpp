@@ -66,7 +66,7 @@ ElementType IExprNode<bool>::type() const
     return ElementType::BOOL;
 }
 
-//////////////////////////////// Numeric Limits ////////////////////////////////
+//////////////////////////////////// Limits ////////////////////////////////////
 
 template<>
 I8 Limits::min<I8>()
@@ -107,7 +107,7 @@ I32 Limits::max<I32>()
 template<>
 I64 Limits::min<I64>()
 {
-    return (-9223372036854775807 - 1);
+    return (-9223372036854775807LL - 1);
 }
 
 template<>
@@ -162,4 +162,275 @@ template<>
 U64 Limits::max<U64>()
 {
     return 18446744073709551615ULL;
+}
+
+//////////////////////////////////// Casts /////////////////////////////////////
+
+// The following casts are from F64 to non-F64. For integer types, a non-NaN F64
+// is clamped to the integer type's numeric limits. NaN becomes 0. For bool, a
+// non-NaN, nonzero F64 becomes true and zero becomes false. NaN becomes false.
+
+template<>
+I8 safeCast<I8, F64>(const F64 kRhs)
+{
+    if (kRhs != kRhs)
+    {
+        return 0;
+    }
+
+    if (kRhs < Limits::min<I8>())
+    {
+        return Limits::min<I8>();
+    }
+
+    if (kRhs > Limits::max<I8>())
+    {
+        return Limits::max<I8>();
+    }
+
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+I16 safeCast<I16, F64>(const F64 kRhs)
+{
+    if (kRhs != kRhs)
+    {
+        return 0;
+    }
+
+    if (kRhs < Limits::min<I16>())
+    {
+        return Limits::min<I16>();
+    }
+
+    if (kRhs > Limits::max<I16>())
+    {
+        return Limits::max<I16>();
+    }
+
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+I32 safeCast<I32, F64>(const F64 kRhs)
+{
+    if (kRhs != kRhs)
+    {
+        return 0;
+    }
+
+    if (kRhs < Limits::min<I32>())
+    {
+        return Limits::min<I32>();
+    }
+
+    if (kRhs > Limits::max<I32>())
+    {
+        return Limits::max<I32>();
+    }
+
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+I64 safeCast<I64, F64>(const F64 kRhs)
+{
+    if (kRhs != kRhs)
+    {
+        return 0;
+    }
+
+    if (kRhs < Limits::min<I64>())
+    {
+        return Limits::min<I64>();
+    }
+
+    if (kRhs > Limits::max<I64>())
+    {
+        return Limits::max<I64>();
+    }
+
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+U8 safeCast<U8, F64>(const F64 kRhs)
+{
+    if (kRhs != kRhs)
+    {
+        return 0;
+    }
+
+    if (kRhs < Limits::min<U8>())
+    {
+        return Limits::min<U8>();
+    }
+
+    if (kRhs > Limits::max<U8>())
+    {
+        return Limits::max<U8>();
+    }
+
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+U16 safeCast<U16, F64>(const F64 kRhs)
+{
+    if (kRhs != kRhs)
+    {
+        return 0;
+    }
+
+    if (kRhs < Limits::min<U16>())
+    {
+        return Limits::min<U16>();
+    }
+
+    if (kRhs > Limits::max<U16>())
+    {
+        return Limits::max<U16>();
+    }
+
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+U32 safeCast<U32, F64>(const F64 kRhs)
+{
+    if (kRhs != kRhs)
+    {
+        return 0;
+    }
+
+    if (kRhs < Limits::min<U32>())
+    {
+        return Limits::min<U32>();
+    }
+
+    if (kRhs > Limits::max<U32>())
+    {
+        return Limits::max<U32>();
+    }
+
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+U64 safeCast<U64, F64>(const F64 kRhs)
+{
+    if (kRhs != kRhs)
+    {
+        return 0;
+    }
+
+    if (kRhs < Limits::min<U64>())
+    {
+        return Limits::min<U64>();
+    }
+
+    if (kRhs > Limits::max<U64>())
+    {
+        return Limits::max<U64>();
+    }
+
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+F32 safeCast<F32, F64>(const F64 kRhs)
+{
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+bool safeCast<bool, F64>(const F64 kRhs)
+{
+    if ((kRhs != kRhs) || (kRhs == 0.0))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+// The following casts are from non-F64 to F64. For this a static cast is
+// sufficient, since F64 can exactly represent most non-F64 values and
+// approximate the rest. NaNs become 0.0.
+
+template<>
+F64 safeCast<F64, I8>(const I8 kRhs)
+{
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+F64 safeCast<F64, I16>(const I16 kRhs)
+{
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+F64 safeCast<F64, I32>(const I32 kRhs)
+{
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+F64 safeCast<F64, I64>(const I64 kRhs)
+{
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+F64 safeCast<F64, U8>(const U8 kRhs)
+{
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+F64 safeCast<F64, U16>(const U16 kRhs)
+{
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+F64 safeCast<F64, U32>(const U32 kRhs)
+{
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+F64 safeCast<F64, U64>(const U64 kRhs)
+{
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+F64 safeCast<F64, F32>(const F32 kRhs)
+{
+    if (kRhs != kRhs)
+    {
+        return 0.0;
+    }
+
+    return static_cast<F64>(kRhs);
+}
+
+template<>
+F64 safeCast<F64, F64>(const F64 kRhs)
+{
+    if (kRhs != kRhs)
+    {
+        return 0.0;
+    }
+
+    return kRhs;
+}
+
+template<>
+F64 safeCast<F64, bool>(const bool kRhs)
+{
+    return static_cast<F64>(kRhs);
 }

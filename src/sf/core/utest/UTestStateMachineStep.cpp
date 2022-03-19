@@ -46,11 +46,17 @@ static ConstExprNode<I32> g0(0);
 static AssignmentAction<I32> gFooGets100(gElemFoo, g100);
 
 // foo = foo + 1
-static BinOpExprNode<I32> gFooPlus1(add<I32>, gExprFoo, g1);
+static BinOpExprNode<I32> gFooPlus1(
+    [] (I32 a, I32 b) -> I32 { return (a + b); },
+    gExprFoo,
+    g1);
 static AssignmentAction<I32> gFooGetsFooPlus1(gElemFoo, gFooPlus1);
 
 // foo == 110
-static BinOpExprNode<bool, I32> gFooIs200(equals<I32>, gExprFoo, g110);
+static BinOpExprNode<bool, I32> gFooIs200(
+    [] (I32 a, I32 b) -> bool { return (a == b); },
+    gExprFoo,
+    g110);
 
 // -> State1
 static TransitionAction gTransToState2(2);
