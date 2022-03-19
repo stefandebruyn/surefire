@@ -25,6 +25,7 @@ namespace StateMachineParser
         Ref<StateMachineParser::BlockParse> ifBlock;
         Ref<StateMachineParser::BlockParse> elseBlock;
         Ref<StateMachineParser::BlockParse> next;
+        Ref<const ExpressionParser::Parse> assertion;
     };
 
     struct StateParse final

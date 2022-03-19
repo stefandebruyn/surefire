@@ -109,6 +109,7 @@ enum : Result
     E_SMC_STATE = 458,
     E_SMC_ELEM_RO = 459,
     E_SMC_TR_EXIT = 460,
+    E_SMC_ASSERT = 461,
 
     // ExpressionCompiler
     E_EXC_NULL = 480,

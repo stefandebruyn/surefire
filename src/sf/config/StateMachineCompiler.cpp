@@ -491,6 +491,22 @@ Result compileBlock(const StateMachineParser::BlockParse& kParse,
                     StateMachine::Block*& kBlock,
                     ErrorInfo* const kErr)
 {
+    // Assertions are only allowed in state scripts, not state machines.
+    if (kParse.assertion != nullptr)
+    {
+        // Error message will point to the first token in the assertion
+        // expression, or the leftmost leaf in the tree.
+        Ref<const ExpressionParser::Parse> node = kParse.assertion;
+        while (node->left != nullptr)
+        {
+            node = node->left;
+        }
+
+        ConfigUtil::setError(kErr, node->data, errText,
+                            "state machines may not contain assertions");
+        return E_SMC_ASSERT;
+    }
+
     // Allocate new block.
     StateMachine::Block* const block = new StateMachine::Block{};
 

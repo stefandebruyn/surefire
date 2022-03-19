@@ -961,3 +961,22 @@ TEST(StateMachineCompilerErrors, TransitionInExitLabel)
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
     checkCompileError(smParse, sv, E_SMC_TR_EXIT, 7, 8);
 }
+
+TEST(StateMachineCompilerErrors, Assertion)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n");
+    TOKENIZE(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS=S\n"
+        "\n"
+        "[Initial]\n"
+        ".ENTRY\n"
+        "    @ASSERT T == 0\n");
+    StateMachineParser::Parse smParse;
+    CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
+    checkCompileError(smParse, sv, E_SMC_ASSERT, 7, 13);
+}

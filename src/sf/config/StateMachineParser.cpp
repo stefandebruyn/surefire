@@ -697,16 +697,35 @@ Result StateMachineParser::parseBlock(
         }
         else
         {
-            // Parse unguarded action.
-            res = parseAction(kIt.slice(kIt.idx(), idxEnd),
-                              block->action,
-                              kErr);
-            if (res != SUCCESS)
+            // If the next token is an assertion annotation, then this is an
+            // assertion annotation in a state script.
+            if (kIt.type() == Token::ANNOTATION && (kIt.str() == "@ASSERT"))
             {
-                return res;
+                // Take annotation.
+                kIt.take();
+
+                // Parse assertion expression.
+                res = ExpressionParser::parse(kIt.slice(kIt.idx(), idxEnd),
+                                              block->assertion,
+                                              kErr);
+                if (res != SUCCESS)
+                {
+                    return res;
+                }
+            }
+            else
+            {
+                // Not an assertion, so an unguarded action.
+                res = parseAction(kIt.slice(kIt.idx(), idxEnd),
+                                block->action,
+                                kErr);
+                if (res != SUCCESS)
+                {
+                    return res;
+                }
             }
 
-            // Jump to end of action.
+            // Jump to end of thing just parsed.
             kIt.seek(idxEnd);
             kIt.eat();
         }

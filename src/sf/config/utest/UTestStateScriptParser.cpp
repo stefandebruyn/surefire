@@ -59,9 +59,11 @@ TEST(StateScriptParser, OneSection)
     CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
     CHECK_EQUAL(1, parse.sections.size());
 
-    // Foo
+    // `Foo` section
     CHECK_EQUAL(parse.sections[0].tokName, toks[0]);
     CHECK_TRUE(parse.sections[0].block != nullptr);
+
+    // `foo = 1` block
     Ref<const StateMachineParser::BlockParse> block = parse.sections[0].block;
     CHECK_TRUE(block->guard == nullptr);
     CHECK_TRUE(block->action != nullptr);
@@ -69,15 +71,22 @@ TEST(StateScriptParser, OneSection)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->next != nullptr);
 
-    // foo = 1
+    // `foo = 1` action
     CHECK_EQUAL(block->action->tokRhs, toks[2]);
     Ref<const ExpressionParser::Parse> node = block->action->lhs;
     CHECK_EQUAL(node->data, toks[4]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 
-    // bar = 2
+    // `bar = 2` block
     block = block->next;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->action != nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->next == nullptr);
+
+    // `bar = 2` action
     CHECK_EQUAL(block->action->tokRhs, toks[6]);
     node = block->action->lhs;
     CHECK_EQUAL(node->data, toks[8]);
@@ -99,9 +108,11 @@ TEST(StateScriptParser, TwoSections)
     CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
     CHECK_EQUAL(2, parse.sections.size());
 
-    // Foo
+    // `Foo` section
     CHECK_EQUAL(parse.sections[0].tokName, toks[0]);
     CHECK_TRUE(parse.sections[0].block != nullptr);
+
+    // `foo = 1` block
     Ref<const StateMachineParser::BlockParse> block = parse.sections[0].block;
     CHECK_TRUE(block->guard == nullptr);
     CHECK_TRUE(block->action != nullptr);
@@ -109,24 +120,33 @@ TEST(StateScriptParser, TwoSections)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->next != nullptr);
 
-    // foo = 1
+    // `foo = 1` action
     CHECK_EQUAL(block->action->tokRhs, toks[2]);
     Ref<const ExpressionParser::Parse> node = block->action->lhs;
     CHECK_EQUAL(node->data, toks[4]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 
-    // bar = 2
+    // `bar = 2` block
     block = block->next;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->action != nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->next == nullptr);
+
+    // `bar = 2` action
     CHECK_EQUAL(block->action->tokRhs, toks[6]);
     node = block->action->lhs;
     CHECK_EQUAL(node->data, toks[8]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 
-    // Bar
+    // `Bar` section
     CHECK_EQUAL(parse.sections[1].tokName, toks[11]);
     CHECK_TRUE(parse.sections[1].block != nullptr);
+
+    // `baz = 3` block
     block = parse.sections[1].block;
     CHECK_TRUE(block->guard == nullptr);
     CHECK_TRUE(block->action != nullptr);
@@ -134,18 +154,79 @@ TEST(StateScriptParser, TwoSections)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->next != nullptr);
 
-    // baz = 3
+    // `baz = 3` action
     CHECK_EQUAL(block->action->tokRhs, toks[13]);
     node = block->action->lhs;
     CHECK_EQUAL(node->data, toks[15]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 
-    // qux = 4
+    // `qux = 4` block
     block = block->next;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->action != nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->next == nullptr);
+
+    // `qux = 4` action
     CHECK_EQUAL(block->action->tokRhs, toks[17]);
     node = block->action->lhs;
     CHECK_EQUAL(node->data, toks[19]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+}
+
+TEST(StateScriptParser, Assertion)
+{
+    TOKENIZE(
+        "[Foo]\n"
+        "@ASSERT foo == 1\n"
+        "bar = 2\n");
+    StateScriptParser::Parse parse = {};
+    CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
+    CHECK_EQUAL(1, parse.sections.size());
+
+    // `Foo` section
+    CHECK_EQUAL(parse.sections[0].tokName, toks[0]);
+    CHECK_TRUE(parse.sections[0].block != nullptr);
+
+    // `@ASSERT foo = 1` block
+    Ref<const StateMachineParser::BlockParse> block = parse.sections[0].block;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->action == nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->next != nullptr);
+    CHECK_TRUE(block->assertion != nullptr);
+
+    // `foo == 1` assertion
+    Ref<const ExpressionParser::Parse> node = block->assertion;
+    CHECK_EQUAL(node->data, toks[4]);
+    CHECK_TRUE(node->left != nullptr);
+    CHECK_TRUE(node->right != nullptr);
+    node = block->assertion->left;
+    CHECK_EQUAL(node->data, toks[3]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    node = block->assertion->right;
+    CHECK_EQUAL(node->data, toks[5]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // `bar = 2` block
+    block = block->next;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->action != nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->next == nullptr);
+    CHECK_TRUE(block->assertion == nullptr);
+
+    // `bar = 2` action
+    CHECK_EQUAL(block->action->tokRhs, toks[7]);
+    node = block->action->lhs;
+    CHECK_EQUAL(node->data, toks[9]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 }
@@ -162,4 +243,12 @@ TEST(StateScriptParser, ErrorInBlock)
         "[Foo]\n"
         "foo = 1 +\n");
     checkParseError(toks, E_EXP_SYNTAX, 2, 9);
+}
+
+TEST(StateScriptParser, ErrorInAssertion)
+{
+    TOKENIZE(
+        "[Foo]\n"
+        "@ASSERT foo +\n");
+    checkParseError(toks, E_EXP_SYNTAX, 2, 13);
 }
