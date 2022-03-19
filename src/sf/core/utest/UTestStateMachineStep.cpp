@@ -261,8 +261,12 @@ TEST(StateMachineStep, ErrorNonMonotonicTime)
 TEST(StateMachineStep, UpdateExpressionStats)
 {
     // State machine will update stats for elements `bar` and `baz`.
-    ExpressionStats<I32, 1> statsBar(gExprBar);
-    ExpressionStats<I32, 1> statsBaz(gExprBaz);
+    I32 barArrA[1];
+    I32 barArrB[1];
+    I32 bazArrA[1];
+    I32 bazArrB[1];
+    ExpressionStats<I32> statsBar(gExprBar, barArrA, barArrB, 1);
+    ExpressionStats<I32> statsBaz(gExprBaz, bazArrA, bazArrB, 1);
     IExpressionStats* stats[] = {&statsBar, &statsBaz, nullptr};
 
     // Initialize the state machine.

@@ -8,7 +8,9 @@ TEST_GROUP(ExpressionStats)
 TEST(ExpressionStats, EmptyHistory)
 {
     ConstExprNode<I32> expr(0);
-    ExpressionStats<I32, 4> stats(expr);
+    I32 arrA[4];
+    I32 arrB[4];
+    ExpressionStats<I32> stats(expr, arrA, arrB, 4);
     CHECK_EQUAL(0.0, stats.mean());
     CHECK_EQUAL(0.0, stats.median());
     CHECK_EQUAL(0.0, stats.min());
@@ -21,7 +23,9 @@ TEST(ExpressionStats, AllSameValue)
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
     ElementExprNode<I32> expr(elem);
-    ExpressionStats<I32, 4> stats(expr);
+    I32 arrA[4];
+    I32 arrB[4];
+    ExpressionStats<I32> stats(expr, arrA, arrB, 4);
 
     elem.write(10);
     stats.update();
@@ -42,7 +46,9 @@ TEST(ExpressionStats, AllSameValue)
 TEST(ExpressionStats, ZeroSize)
 {
     ConstExprNode<I32> expr(0);
-    ExpressionStats<I32, 0> stats(expr);
+    I32 arrA[4];
+    I32 arrB[4];
+    ExpressionStats<I32> stats(expr, arrA, arrB, 0);
 
     stats.update();
     stats.update();
@@ -55,12 +61,64 @@ TEST(ExpressionStats, ZeroSize)
     CHECK_EQUAL(0.0, stats.range());
 }
 
+TEST(ExpressionStats, NullHistoryArray)
+{
+    I32 elemBacking = 0;
+    Element<I32> elem(elemBacking);
+    ElementExprNode<I32> expr(elem);
+    I32 arrB[4];
+    ExpressionStats<I32> stats(expr, nullptr, arrB, 4);
+
+    elem.write(10);
+    stats.update();
+    CHECK_EQUAL(0.0, stats.mean());
+    CHECK_EQUAL(0.0, stats.median());
+    CHECK_EQUAL(0.0, stats.min());
+    CHECK_EQUAL(0.0, stats.max());
+    CHECK_EQUAL(0.0, stats.range());
+}
+
+TEST(ExpressionStats, NullSortedArray)
+{
+    I32 elemBacking = 0;
+    Element<I32> elem(elemBacking);
+    ElementExprNode<I32> expr(elem);
+    I32 arrA[4];
+    ExpressionStats<I32> stats(expr, arrA, nullptr, 4);
+
+    elem.write(10);
+    stats.update();
+    CHECK_EQUAL(10.0, stats.mean());
+    CHECK_EQUAL(0.0, stats.median());
+    CHECK_EQUAL(10.0, stats.min());
+    CHECK_EQUAL(10.0, stats.max());
+    CHECK_EQUAL(0.0, stats.range());
+}
+
+TEST(ExpressionStats, BothArraysNull)
+{
+    I32 elemBacking = 0;
+    Element<I32> elem(elemBacking);
+    ElementExprNode<I32> expr(elem);
+    ExpressionStats<I32> stats(expr, nullptr, nullptr, 4);
+
+    elem.write(10);
+    stats.update();
+    CHECK_EQUAL(0.0, stats.mean());
+    CHECK_EQUAL(0.0, stats.median());
+    CHECK_EQUAL(0.0, stats.min());
+    CHECK_EQUAL(0.0, stats.max());
+    CHECK_EQUAL(0.0, stats.range());
+}
+
 TEST(ExpressionStats, Mean)
 {
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
     ElementExprNode<I32> expr(elem);
-    ExpressionStats<I32, 4> stats(expr);
+    I32 arrA[4];
+    I32 arrB[4];
+    ExpressionStats<I32> stats(expr, arrA, arrB, 4);
 
     elem.write(1);
     stats.update();
@@ -88,7 +146,9 @@ TEST(ExpressionStats, Median)
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
     ElementExprNode<I32> expr(elem);
-    ExpressionStats<I32, 4> stats(expr);
+    I32 arrA[4];
+    I32 arrB[4];
+    ExpressionStats<I32> stats(expr, arrA, arrB, 4);
 
     elem.write(1);
     stats.update();
@@ -116,7 +176,9 @@ TEST(ExpressionStats, Min)
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
     ElementExprNode<I32> expr(elem);
-    ExpressionStats<I32, 4> stats(expr);
+    I32 arrA[4];
+    I32 arrB[4];
+    ExpressionStats<I32> stats(expr, arrA, arrB, 4);
 
     elem.write(1);
     stats.update();
@@ -156,7 +218,9 @@ TEST(ExpressionStats, Max)
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
     ElementExprNode<I32> expr(elem);
-    ExpressionStats<I32, 4> stats(expr);
+    I32 arrA[4];
+    I32 arrB[4];
+    ExpressionStats<I32> stats(expr, arrA, arrB, 4);
 
     elem.write(1);
     stats.update();
@@ -196,7 +260,9 @@ TEST(ExpressionStats, Range)
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
     ElementExprNode<I32> expr(elem);
-    ExpressionStats<I32, 4> stats(expr);
+    I32 arrA[4];
+    I32 arrB[4];
+    ExpressionStats<I32> stats(expr, arrA, arrB, 4);
 
     elem.write(1);
     stats.update();

@@ -100,13 +100,14 @@ Result compileRollAvgFunc(const Ref<const ExpressionParser::Parse> kParse,
         // static_cast<IExprNode<U32>*>(arg2Asm->root())->evaluate();
 
     // Create expression stats for computing rolling average.
-    ExpressionStats<F64, 10>* const exprStats =
-        new ExpressionStats<F64, 10>(*arg1Node);
-    kExprStats.push_back(exprStats);
+    // ExpressionStats<F64, 10>* const exprStats =
+        // new ExpressionStats<F64, 10>(*arg1Node);
+    // kExprStats.push_back(exprStats);
 
     // Create node which returns the rolling average computed by the stats.
-    kNode = new RollAvgNode(*exprStats);
-    kExprNodes.push_back(kNode);
+    // kNode = new RollAvgNode(*exprStats);
+    // kExprNodes.push_back(kNode);
+    (void) kNode;
 
     return SUCCESS;
 }

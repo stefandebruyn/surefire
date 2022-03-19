@@ -3,25 +3,14 @@
 
 #include "sf/core/Expression.hpp"
 
-///
-/// @brief Abstract interface for making the `ExpressionStats` template
-/// polymorphic.
-///
 class IExpressionStats
 {
 public:
 
     IExpressionStats() = default;
 
-    ///
-    /// @brief Destructor.
-    ///
     virtual ~IExpressionStats() = default;
 
-    ///
-    /// @brief Evaluates the expression, adds the new value to the history, and
-    /// discards the oldest value if the history is full.
-    ///
     virtual void update() = 0;
 
     virtual F64 mean() = 0;
@@ -40,74 +29,54 @@ public:
     IExpressionStats& operator=(IExpressionStats&&) = delete;
 };
 
-///
-/// @brief Computes statistics on a history of values of an expression.
-///
-/// @note Computations guard against overflow by saturating integer types at
-/// their minimum and maximum representable values.
-///
-/// @note When computing stats on floating point expressions, a NaN value will
-/// poison the computations and produce more NaNs. It is the responsibility of
-/// upstream code to guard against NaNs.
-///
-/// @tparam T          Type which the expression evaluates to.
-/// @tparam THistSize  Size of the history. The object will store the most
-///                    recent `THistSize` values of the expression.
-///
-template<typename T, U32 THistSize>
+template<typename T>
 class ExpressionStats final : public IExpressionStats
 {
 public:
 
-    ///
-    /// @brief Constructor. The value history is initially empty and all stats
-    /// are zero.
-    ///
-    /// @param[in] kExpr  Expression to calculate stats for.
-    ///
-    ExpressionStats(IExprNode<T>& kExpr) :
-        mExpr(kExpr), mUpdates(0), mSize(0), mSum()
+    ExpressionStats(IExprNode<T>& kExpr,
+                    T* const kArrA,
+                    T* const kArrB,
+                    const U32 kCapacity) :
+        mExpr(kExpr),
+        mHist(kArrA),
+        mSorted(kArrB),
+        mCapacity(kCapacity),
+        mUpdates(0),
+        mSize(0),
+        mSum()
     {
     }
 
-    ///
-    /// @brief Evaluates the expression, adds the new value to the history, and
-    /// discards the oldest value if the history is full.
-    ///
-    /// @remark This method is O(1).
-    ///
     void update() final override
     {
+        if ((mCapacity == 0) || (mHist == nullptr))
+        {
+            return;
+        }
+
         // Evaluate expression.
         const T val = mExpr.evaluate();
 
         // Insert value into ring buffer and save the old value.
-        const U32 insertIdx = (mUpdates++ % THistSize);
+        const U32 insertIdx = (mUpdates++ % mCapacity);
         const T oldVal = mHist[insertIdx];
         mHist[insertIdx] = val;
 
         // Update size.
-        mSize = ((mUpdates < THistSize) ? mUpdates : THistSize);
+        mSize = ((mUpdates < mCapacity) ? mUpdates : mCapacity);
 
         // Add value to rolling sum.
         mSum += val;
 
         // If an old value was just overwritten, subtract it from the rolling
         // sum.
-        if (mUpdates > THistSize)
+        if (mUpdates > mCapacity)
         {
             mSum -= oldVal;
         }
     }
 
-    ///
-    /// @brief Returns the mean of the value history. The mean of an empty
-    /// history is zero.
-    ///
-    /// @remark This method is O(1).
-    ///
-    /// @return History mean.
-    ///
     F64 mean() final override
     {
         if (mSize == 0)
@@ -118,22 +87,9 @@ public:
         return (static_cast<F64>(mSum) / mSize);
     }
 
-    ///
-    /// @brief Returns the median of the value history. The median of an empty
-    /// history is zero.
-    ///
-    /// @remark The median is determined by insertion sorting the history,
-    /// making this method O(N^2) in the worst case. This should be fast enough
-    /// for even relatively large history sizes in the 100s or 1000s. A more
-    /// time-efficient solution might use a heap, but the core library assumes
-    /// no heap memory is available, so implementing a dynamic container like a
-    /// heap in this context is tricky.
-    ///
-    /// @return History median.
-    ///
     F64 median() final override
     {
-        if (mSize == 0)
+        if ((mSize == 0) || (mHist == nullptr) || (mSorted == nullptr))
         {
             return 0.0;
         }
@@ -144,7 +100,7 @@ public:
             mSorted[i] = mHist[i];
         }
 
-        // Insertion sort in ascending order the copy.
+        // Insertion sort the history copy.
         for (U32 i = 0; i < mSize; ++i)
         {
             for (U32 j = 0; j < i; ++j)
@@ -170,14 +126,6 @@ public:
         return static_cast<F64>(mSorted[mSize / 2]);
     }
 
-    ///
-    /// @brief Gets the minimum value in the history. The min of an empty
-    /// history is zero.
-    ///
-    /// @remark This method is O(N).
-    ///
-    /// @return History min.
-    ///
     F64 min() final override
     {
         if (mSize == 0)
@@ -197,14 +145,6 @@ public:
         return static_cast<F64>(minVal);
     }
 
-    ///
-    /// @brief Gets the maximum value in the history. The max of an empty
-    /// history is zero.
-    ///
-    /// @remark This method is O(N).
-    ///
-    /// @return History max.
-    ///
     F64 max() final override
     {
         if (mSize == 0)
@@ -224,14 +164,6 @@ public:
         return static_cast<F64>(maxVal);
     }
 
-    ///
-    /// @brief Gets the range of the history. The range of an empty history is
-    /// zero.
-    ///
-    /// @remark This method is O(N).
-    ///
-    /// @return History range.
-    ///
     F64 range() final override
     {
         return (max() - min());
@@ -239,35 +171,18 @@ public:
 
 private:
 
-    ///
-    /// @brief Expression value history.
-    ///
-    T mHist[THistSize];
+    T* const mHist;
 
-    ///
-    /// @brief Array for storing sorted history when computing certain stats.
-    ///
-    T mSorted[THistSize];
+    T* const mSorted;
 
-    ///
-    /// @brief Expression.
-    ///
+    const U32 mCapacity;
+
     IExprNode<T>& mExpr;
 
-    ///
-    /// @brief Number of times a new value has been added to the history.
-    ///
     U32 mUpdates;
 
-    ///
-    /// @brief Number of values in the history. This is between 0 and history
-    /// size, inclusive.
-    ///
     U32 mSize;
 
-    ///
-    /// @brief Rolling sum of values in history.
-    ///
     T mSum;
 };
 
