@@ -14,8 +14,9 @@ namespace ExpressionCompiler
     public:
 
         Assembly(IExpression* const kRoot,
-                 const Vec<const IExpression*> kNodes,
-                 const Vec<IExpressionStats*> kStats);
+                 const Vec<const IExpression*>& kNodes,
+                 const Vec<IExpressionStats*>& kStats,
+                 const Vec<const char*>& kStatArrs);
 
         ~Assembly();
 
@@ -30,6 +31,8 @@ namespace ExpressionCompiler
         const Vec<const IExpression*> mNodes;
 
         const Vec<IExpressionStats*> mStats;
+
+        const Vec<const char*> mStatArrs;
     };
 
     Result compile(const Ref<const ExpressionParser::Parse> kParse,

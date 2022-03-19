@@ -450,6 +450,323 @@ TEST(ExpressionCompiler, AllElementTypes)
     CHECK_EQUAL(11.0, root->evaluate());
 }
 
+TEST(ExpressionCompiler, RollAvgFunction)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_AVG(foo, 2)",
+            "[Foo]\n"
+            "I32 foo\n",
+            exprParse,
+            svAsm,
+            sv);
+
+    // Compile expression.
+    Ref<const ExpressionCompiler::Assembly> exprAsm;
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
+                                              {&sv},
+                                              ElementType::FLOAT64,
+                                              exprAsm,
+                                              nullptr));
+
+    // Get expression stats used by function.
+    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    CHECK_EQUAL(1, statsVec.size());
+    IExpressionStats& stats = *statsVec[0];
+
+    // Expression initially evaluates to 0 since stats have not been updated.
+    CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
+    IExprNode<F64>* const root =
+        static_cast<IExprNode<F64>* const>(exprAsm->root());
+    CHECK_EQUAL(0.0, root->evaluate());
+
+    // Set element `foo` to 2 and update stats. Rolling average becomes 2.
+    Element<I32>* elemFoo = nullptr;
+    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    elemFoo->write(2);
+    stats.update();
+    CHECK_EQUAL(2.0, root->evaluate());
+
+    // Set `foo` to 4 and update stats. Rolling average becomes 3.
+    elemFoo->write(4);
+    stats.update();
+    CHECK_EQUAL(3.0, root->evaluate());
+
+    // Set `foo` to 6 and update stats. Rolling average becomes 5 since the
+    // oldest value (2) falls out of the window.
+    elemFoo->write(6);
+    stats.update();
+    CHECK_EQUAL(5.0, root->evaluate());
+}
+
+TEST(ExpressionCompiler, RollMedianFunction)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_MEDIAN(foo, 3)",
+            "[Foo]\n"
+            "I32 foo\n",
+            exprParse,
+            svAsm,
+            sv);
+
+    // Compile expression.
+    Ref<const ExpressionCompiler::Assembly> exprAsm;
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
+                                              {&sv},
+                                              ElementType::FLOAT64,
+                                              exprAsm,
+                                              nullptr));
+
+    // Get expression stats used by function.
+    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    CHECK_EQUAL(1, statsVec.size());
+    IExpressionStats& stats = *statsVec[0];
+
+    // Expression initially evaluates to 0 since stats have not been updated.
+    CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
+    IExprNode<F64>* const root =
+        static_cast<IExprNode<F64>* const>(exprAsm->root());
+    CHECK_EQUAL(0.0, root->evaluate());
+
+    // Set element `foo` to 2 and update stats. Rolling median becomes 2.
+    Element<I32>* elemFoo = nullptr;
+    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    elemFoo->write(2);
+    stats.update();
+    CHECK_EQUAL(2.0, root->evaluate());
+
+    // Set `foo` to 4 and update stats. Rolling median becomes 3.
+    elemFoo->write(4);
+    stats.update();
+    CHECK_EQUAL(3.0, root->evaluate());
+
+    // Set `foo` to 6 and update stats. Rolling median becomes 4.
+    elemFoo->write(6);
+    stats.update();
+    CHECK_EQUAL(4.0, root->evaluate());
+
+    // Set `foo` to 7 and update stats. Rolling median becomes 6 since the
+    // oldest value (2) falls out of the window.
+    elemFoo->write(7);
+    stats.update();
+    CHECK_EQUAL(6.0, root->evaluate());
+}
+
+TEST(ExpressionCompiler, RollMinFunction)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_MIN(foo, 2)",
+            "[Foo]\n"
+            "I32 foo\n",
+            exprParse,
+            svAsm,
+            sv);
+
+    // Compile expression.
+    Ref<const ExpressionCompiler::Assembly> exprAsm;
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
+                                              {&sv},
+                                              ElementType::FLOAT64,
+                                              exprAsm,
+                                              nullptr));
+
+    // Get expression stats used by function.
+    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    CHECK_EQUAL(1, statsVec.size());
+    IExpressionStats& stats = *statsVec[0];
+
+    // Expression initially evaluates to 0 since stats have not been updated.
+    CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
+    IExprNode<F64>* const root =
+        static_cast<IExprNode<F64>* const>(exprAsm->root());
+    CHECK_EQUAL(0.0, root->evaluate());
+
+    // Set element `foo` to -3 and update stats. Rolling min becomes -3.
+    Element<I32>* elemFoo = nullptr;
+    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    elemFoo->write(-3);
+    stats.update();
+    CHECK_EQUAL(-3.0, root->evaluate());
+
+    // Set `foo` to 1 and update stats. Rolling min stays -3.
+    elemFoo->write(1);
+    stats.update();
+    CHECK_EQUAL(-3.0, root->evaluate());
+
+    // Set `foo` to 2 and update stats. Rolling min becomes 1 since the oldest
+    // value (-3) falls out of the window.
+    elemFoo->write(2);
+    stats.update();
+    CHECK_EQUAL(1.0, root->evaluate());
+}
+
+TEST(ExpressionCompiler, RollMaxFunction)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_MAX(foo, 2)",
+            "[Foo]\n"
+            "I32 foo\n",
+            exprParse,
+            svAsm,
+            sv);
+
+    // Compile expression.
+    Ref<const ExpressionCompiler::Assembly> exprAsm;
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
+                                              {&sv},
+                                              ElementType::FLOAT64,
+                                              exprAsm,
+                                              nullptr));
+
+    // Get expression stats used by function.
+    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    CHECK_EQUAL(1, statsVec.size());
+    IExpressionStats& stats = *statsVec[0];
+
+    // Expression initially evaluates to 0 since stats have not been updated.
+    CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
+    IExprNode<F64>* const root =
+        static_cast<IExprNode<F64>* const>(exprAsm->root());
+    CHECK_EQUAL(0.0, root->evaluate());
+
+    // Set element `foo` to 3 and update stats. Rolling max becomes 3.
+    Element<I32>* elemFoo = nullptr;
+    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    elemFoo->write(3);
+    stats.update();
+    CHECK_EQUAL(3.0, root->evaluate());
+
+    // Set `foo` to 1 and update stats. Rolling max stays 3.
+    elemFoo->write(1);
+    stats.update();
+    CHECK_EQUAL(3.0, root->evaluate());
+
+    // Set `foo` to 2 and update stats. Rolling max becomes 2 since the oldest
+    // value (3) falls out of the window.
+    elemFoo->write(2);
+    stats.update();
+    CHECK_EQUAL(2.0, root->evaluate());
+}
+
+TEST(ExpressionCompiler, RollRangeFunction)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_RANGE(foo, 2)",
+            "[Foo]\n"
+            "I32 foo\n",
+            exprParse,
+            svAsm,
+            sv);
+
+    // Compile expression.
+    Ref<const ExpressionCompiler::Assembly> exprAsm;
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
+                                              {&sv},
+                                              ElementType::FLOAT64,
+                                              exprAsm,
+                                              nullptr));
+
+    // Get expression stats used by function.
+    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    CHECK_EQUAL(1, statsVec.size());
+    IExpressionStats& stats = *statsVec[0];
+
+    // Expression initially evaluates to 0 since stats have not been updated.
+    CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
+    IExprNode<F64>* const root =
+        static_cast<IExprNode<F64>* const>(exprAsm->root());
+    CHECK_EQUAL(0.0, root->evaluate());
+
+    // Set element `foo` to 3 and update stats. Rolling range stays 0 since
+    // there's only 1 value in the window.
+    Element<I32>* elemFoo = nullptr;
+    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    elemFoo->write(3);
+    stats.update();
+    CHECK_EQUAL(0.0, root->evaluate());
+
+    // Set `foo` to 1 and update stats. Rolling range becomes 2.
+    elemFoo->write(1);
+    stats.update();
+    CHECK_EQUAL(2.0, root->evaluate());
+
+    // Set `foo` to 5 and update stats. Rolling range becomes 4 since the oldest
+    // value (3) falls out of the window.
+    elemFoo->write(5);
+    stats.update();
+    CHECK_EQUAL(4.0, root->evaluate());
+}
+
+TEST(ExpressionCompiler, StatsFunctionExpressionArgs)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_MIN(foo + 1, bar * -1)",
+            "[Foo]\n"
+            "I32 foo\n"
+            "I32 bar\n",
+            exprParse,
+            svAsm,
+            sv);
+
+    // Set element `bar` to -2. This causes the `ROLL_MIN` call to use a window
+    // size of 2.
+    Element<I32>* elemBar = nullptr;
+    CHECK_SUCCESS(sv.getElement("bar", elemBar));
+    elemBar->write(-2);
+
+    // Compile expression.
+    Ref<const ExpressionCompiler::Assembly> exprAsm;
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
+                                              {&sv},
+                                              ElementType::FLOAT64,
+                                              exprAsm,
+                                              nullptr));
+
+    // Set `bar` to something else. This doesn't affect the expression since the
+    // `ROLL_MIN` window size is evaluated at compile time.
+    elemBar->write(10);
+
+    // Get expression stats used by function.
+    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    CHECK_EQUAL(1, statsVec.size());
+    IExpressionStats& stats = *statsVec[0];
+
+    // Expression initially evaluates to 0 since stats have not been updated.
+    CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
+    IExprNode<F64>* const root =
+        static_cast<IExprNode<F64>* const>(exprAsm->root());
+    CHECK_EQUAL(0.0, root->evaluate());
+
+    // Set element `foo` to -3 and update stats. Rolling min becomes -2.
+    Element<I32>* elemFoo = nullptr;
+    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    elemFoo->write(-3);
+    stats.update();
+    CHECK_EQUAL(-2.0, root->evaluate());
+
+    // Set `foo` to 1 and update stats. Rolling min stays -2.
+    elemFoo->write(1);
+    stats.update();
+    CHECK_EQUAL(-2.0, root->evaluate());
+
+    // Set `foo` to 2 and update stats. Rolling min becomes 2 since the oldest
+    // value (-2) falls out of the window.
+    elemFoo->write(2);
+    stats.update();
+    CHECK_EQUAL(2.0, root->evaluate());
+}
+
 ///////////////////////////////// Error Tests //////////////////////////////////
 
 TEST_GROUP(ExpressionCompilerErrors)
@@ -470,7 +787,8 @@ TEST(ExpressionCompilerErrors, InvalidNumber)
     Ref<const ExpressionParser::Parse> exprParse;
     Ref<const StateVectorCompiler::Assembly> svAsm;
     StateVector sv;
-    ::setup("1 + 1", "", exprParse, svAsm, sv);
+    ::setup("1 + 2", "", exprParse, svAsm, sv);
+    // Change the `1` constant token to have string "foo".
     exprParse->left->data.str = "foo";
     checkCompileError(exprParse, sv, E_EXC_NUM, 1, 1);
 }
@@ -491,4 +809,85 @@ TEST(ExpressionCompilerErrors, OutOfRangeNumber)
             svAsm,
             sv);
     checkCompileError(exprParse, sv, E_EXC_OVFL, 1, 5);
+}
+
+TEST(ExpressionCompilerErrors, StatsFunctionArity)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_AVG(1)", "", exprParse, svAsm, sv);
+    checkCompileError(exprParse, sv, E_EXC_ARITY, 1, 1);
+}
+
+TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg1)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_AVG(foo, 4)", "", exprParse, svAsm, sv);
+    checkCompileError(exprParse, sv, E_EXC_ELEM, 1, 10);
+}
+
+TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg2)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_AVG(4, foo)", "", exprParse, svAsm, sv);
+    checkCompileError(exprParse, sv, E_EXC_ELEM, 1, 13);
+}
+
+TEST(ExpressionCompilerErrors, StatsFunctionZeroWindowSize)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_AVG(4, 0)", "", exprParse, svAsm, sv);
+    checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
+}
+
+TEST(ExpressionCompilerErrors, StatsFunctionNegativeWindowSize)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_AVG(4, -1)", "", exprParse, svAsm, sv);
+    checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
+}
+
+TEST(ExpressionCompilerErrors, StatsFunctionNonIntegerWindowSize)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_AVG(4, 1.5)", "", exprParse, svAsm, sv);
+    checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
+}
+
+TEST(ExpressionCompilerErrors, StatsFunctionNaNWindowSize)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_AVG(4, 1 / 0)", "", exprParse, svAsm, sv);
+    checkCompileError(exprParse, sv, E_EXC_WIN, 1, 15);
+}
+
+TEST(ExpressionCompilerErrors, StatsFunctionWindowTooBig)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("ROLL_AVG(4, 100001)", "", exprParse, svAsm, sv);
+    checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
+}
+
+TEST(ExpressionCompilerErrors, UnknownFunction)
+{
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
+    StateVector sv;
+    ::setup("FOO()", "", exprParse, svAsm, sv);
+    checkCompileError(exprParse, sv, E_EXC_FUNC, 1, 1);
 }

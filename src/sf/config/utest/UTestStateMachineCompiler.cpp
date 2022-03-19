@@ -440,13 +440,23 @@ TEST(StateMachineCompiler, RollAvgFunction)
         "\n"
         "[Initial]\n"
         ".STEP\n"
-        "    bar = ROLL_AVG(foo, 4)\n",
+        "    bar = ROLL_AVG(foo, 2)\n",
         "state",
         1);
 
     SET_SV_ELEM("foo", I32, 3);
     CHECK_SUCCESS(sm.step());
     CHECK_LOCAL_ELEM("bar", I32, 3);
+
+    SET_SV_ELEM("foo", I32, 5);
+    SET_SV_ELEM("time", U64, 1);
+    CHECK_SUCCESS(sm.step());
+    CHECK_LOCAL_ELEM("bar", I32, 4);
+
+    SET_SV_ELEM("foo", I32, 7);
+    SET_SV_ELEM("time", U64, 2);
+    CHECK_SUCCESS(sm.step());
+    CHECK_LOCAL_ELEM("bar", I32, 6);
 }
 
 ///////////////////////////////// Error Tests //////////////////////////////////

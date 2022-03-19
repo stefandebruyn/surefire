@@ -12,11 +12,29 @@ namespace
 
 const char* const errText = "expression error";
 
+const char* const rollAvgFuncName = "ROLL_AVG";
+
+const char* const rollMedianFuncName = "ROLL_MEDIAN";
+
+const char* const rollMinFuncName = "ROLL_MIN";
+
+const char* const rollMaxFuncName = "ROLL_MAX";
+
+const char* const rollRangeFuncName = "ROLL_RANGE";
+
+const U32 maxRollWindowSize = 100000;
+
+struct CompilerState
+{
+    Vec<const IExpression*> exprNodes;
+    Vec<IExpressionStats*> exprStats;
+    Vec<const char*> statArrs;
+};
+
 Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                    const Vec<const StateVector*> kSvs,
                    IExprNode<F64>*& kNode,
-                   Vec<const IExpression*>& kExprNodes,
-                   Vec<IExpressionStats*>& kExprStats,
+                   CompilerState& kCompState,
                    ErrorInfo* const kErr);
 
 Result tokenToF64(const Token& kTok, F64& kRet, ErrorInfo* const kErr)
@@ -46,12 +64,11 @@ Result tokenToF64(const Token& kTok, F64& kRet, ErrorInfo* const kErr)
     return SUCCESS;
 }
 
-Result compileRollAvgFunc(const Ref<const ExpressionParser::Parse> kParse,
-                          const Vec<const StateVector*> kSvs,
-                          IExprNode<F64>*& kNode,
-                          Vec<const IExpression*>& kExprNodes,
-                          Vec<IExpressionStats*>& kExprStats,
-                          ErrorInfo* const kErr)
+Result compileExprStatsFunc(const Ref<const ExpressionParser::Parse> kParse,
+                            const Vec<const StateVector*> kSvs,
+                            IExprNode<F64>*& kNode,
+                            CompilerState& kCompState,
+                            ErrorInfo* const kErr)
 {
     SF_ASSERT(kParse != nullptr);
 
@@ -67,16 +84,20 @@ Result compileRollAvgFunc(const Ref<const ExpressionParser::Parse> kParse,
     if (argNodes.size() != 2)
     {
         // Wrong arity.
-        SF_ASSERT(false);
+        std::stringstream ss;
+        ss << kParse->data.str << + "expects 2 arguments, got "
+           << argNodes.size();
+        ConfigUtil::setError(kErr, kParse->data, errText, ss.str());
+        return E_EXC_ARITY;
     }
 
-    // Compile first argument expression; the expression being averaged.
+    // Compile first argument expression; the expression which stats are being
+    // calculated for.
     IExprNode<F64>* arg1Node = nullptr;
     Result res = compileImpl(argNodes[0]->right,
                              kSvs,
                              arg1Node,
-                             kExprNodes,
-                             kExprStats,
+                             kCompState,
                              kErr);
     if (res != SUCCESS)
     {
@@ -89,25 +110,74 @@ Result compileRollAvgFunc(const Ref<const ExpressionParser::Parse> kParse,
     Ref<const ExpressionCompiler::Assembly> arg2Asm;
     res = ExpressionCompiler::compile(argNodes[1]->right,
                                       kSvs,
-                                      ElementType::UINT32,
+                                      ElementType::FLOAT64,
                                       arg2Asm,
                                       kErr);
     if (res != SUCCESS)
     {
         return res;
     }
-    // const U32 histSize =
-        // static_cast<IExprNode<U32>*>(arg2Asm->root())->evaluate();
 
-    // Create expression stats for computing rolling average.
-    // ExpressionStats<F64, 10>* const exprStats =
-        // new ExpressionStats<F64, 10>(*arg1Node);
-    // kExprStats.push_back(exprStats);
+    // Validate the window size.
+    const F64 windowSizeFp =
+        static_cast<IExprNode<F64>*>(arg2Asm->root())->evaluate();
+    if ((windowSizeFp != windowSizeFp)                // NaN
+        || (windowSizeFp <= 0)                        // Negative or zero
+        || (std::ceil(windowSizeFp) != windowSizeFp)) // Non-integer
+    {
+        ConfigUtil::setError(kErr, argNodes[1]->right->data, errText,
+                             "rolling window size must be an integer > 0");
+        return E_EXC_WIN;
+    }
 
-    // Create node which returns the rolling average computed by the stats.
-    // kNode = new RollAvgNode(*exprStats);
-    // kExprNodes.push_back(kNode);
-    (void) kNode;
+    // Enforce maximum window size.
+    const U32 windowSize = safeCast<U32, F64>(windowSizeFp);
+    if (windowSize > maxRollWindowSize)
+    {
+        std::stringstream ss;
+        ss << "rolling window size must be <= " << maxRollWindowSize;
+        ConfigUtil::setError(kErr, argNodes[1]->right->data, errText, ss.str());
+        return E_EXC_WIN;
+    }
+
+    // Allocate storage arrays needed by expression stats.
+    const U32 statsBytes = (windowSize * sizeof(F64));
+    char* const statsArrA = new char[statsBytes];
+    char* const statsArrB = new char[statsBytes];
+    kCompState.statArrs.push_back(statsArrA);
+    kCompState.statArrs.push_back(statsArrB);
+
+    // Create expression stats for first argument expression.
+    ExpressionStats<F64>* const exprStats =
+        new ExpressionStats<F64>(*arg1Node,
+                                 reinterpret_cast<F64*>(statsArrA),
+                                 reinterpret_cast<F64*>(statsArrB),
+                                 windowSize);
+    kCompState.exprStats.push_back(exprStats);
+
+    // Create node which returns the desired stat.
+    if (kParse->data.str == rollAvgFuncName)
+    {
+        kNode = new RollAvgNode(*exprStats);
+    }
+    else if (kParse->data.str == rollMedianFuncName)
+    {
+        kNode = new RollMedianNode(*exprStats);
+    }
+    else if (kParse->data.str == rollMinFuncName)
+    {
+        kNode = new RollMinNode(*exprStats);
+    }
+    else if (kParse->data.str == rollMaxFuncName)
+    {
+        kNode = new RollMaxNode(*exprStats);
+    }
+    else
+    {
+        kNode = new RollRangeNode(*exprStats);
+    }
+
+    kCompState.exprNodes.push_back(kNode);
 
     return SUCCESS;
 }
@@ -115,32 +185,33 @@ Result compileRollAvgFunc(const Ref<const ExpressionParser::Parse> kParse,
 Result compileFunction(const Ref<const ExpressionParser::Parse> kParse,
                        const Vec<const StateVector*> kSvs,
                        IExprNode<F64>*& kNode,
-                       Vec<const IExpression*>& kExprNodes,
-                       Vec<IExpressionStats*>& kExprStats,
+                       CompilerState& kCompState,
                        ErrorInfo* const kErr)
 {
     SF_ASSERT(kParse != nullptr);
 
-    if (kParse->data.str == "ROLL_AVG")
+    if ((kParse->data.str == rollAvgFuncName)
+        || (kParse->data.str == rollMedianFuncName)
+        || (kParse->data.str == rollMinFuncName)
+        || (kParse->data.str == rollMaxFuncName)
+        || (kParse->data.str == rollRangeFuncName))
     {
-        return compileRollAvgFunc(kParse,
-                                  kSvs,
-                                  kNode,
-                                  kExprNodes,
-                                  kExprStats,
-                                  kErr);
+        // Compile expression stats function.
+        return compileExprStatsFunc(kParse, kSvs, kNode, kCompState, kErr);
     }
 
+    // Other functions may be added by chaining off the above `if`!
+
     // If we got this far, the function is not recognized.
-    SF_ASSERT(false);
-    return -1;
+    ConfigUtil::setError(kErr, kParse->data, errText,
+                         "unknown function `" + kParse->data.str + "`");
+    return E_EXC_FUNC;
 }
 
 Result compileOperator(const Ref<const ExpressionParser::Parse> kParse,
                        const Vec<const StateVector*> kSvs,
                        IExprNode<F64>*& kNode,
-                       Vec<const IExpression*>& kExprNodes,
-                       Vec<IExpressionStats*>& kExprStats,
+                       CompilerState& kCompState,
                        ErrorInfo* const kErr)
 {
     // Look up operator info.
@@ -153,12 +224,7 @@ Result compileOperator(const Ref<const ExpressionParser::Parse> kParse,
     // Compile right subtree.
     SF_ASSERT(kParse->right != nullptr);
     IExprNode<F64>* nodeRight = nullptr;
-    Result res = compileImpl(kParse->right,
-                             kSvs,
-                             nodeRight,
-                             kExprNodes,
-                             kExprStats,
-                             kErr);
+    Result res = compileImpl(kParse->right, kSvs, nodeRight, kCompState, kErr);
     if (res != SUCCESS)
     {
         return res;
@@ -170,12 +236,7 @@ Result compileOperator(const Ref<const ExpressionParser::Parse> kParse,
     if (!opInfo.unary)
     {
         SF_ASSERT(kParse->left != nullptr);
-        res = compileImpl(kParse->left,
-                          kSvs,
-                          nodeLeft,
-                          kExprNodes,
-                          kExprStats,
-                          kErr);
+        res = compileImpl(kParse->left, kSvs, nodeLeft, kCompState, kErr);
         if (res != SUCCESS)
         {
             return res;
@@ -300,7 +361,7 @@ Result compileOperator(const Ref<const ExpressionParser::Parse> kParse,
     }
 
     // Track the allocated node.
-    kExprNodes.push_back(kNode);
+    kCompState.exprNodes.push_back(kNode);
 
     return SUCCESS;
 }
@@ -308,8 +369,7 @@ Result compileOperator(const Ref<const ExpressionParser::Parse> kParse,
 Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                    const Vec<const StateVector*> kSvs,
                    IExprNode<F64>*& kNode,
-                   Vec<const IExpression*>& kExprNodes,
-                   Vec<IExpressionStats*>& kExprStats,
+                   CompilerState& kCompState,
                    ErrorInfo* const kErr)
 {
     // Base case: parse is null, so we fell off the tree.
@@ -321,12 +381,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
     if (kParse->func)
     {
         // Expression node is a function call.
-        return compileFunction(kParse,
-                               kSvs,
-                               kNode,
-                               kExprNodes,
-                               kExprStats,
-                               kErr);
+        return compileFunction(kParse, kSvs, kNode, kCompState, kErr);
     }
     else if (kParse->data.type == Token::CONSTANT)
     {
@@ -359,7 +414,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
             kNode = new ConstExprNode<F64>(val);
         }
 
-        kExprNodes.push_back(kNode);
+        kCompState.exprNodes.push_back(kNode);
     }
     else if (kParse->data.type == Token::IDENTIFIER)
     {
@@ -402,7 +457,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                     *static_cast<const Element<I8>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, I8>(safeCast<F64, I8>,
                                                      *nodeElem);
-                kExprNodes.push_back(nodeElem);
+                kCompState.exprNodes.push_back(nodeElem);
                 break;
             }
 
@@ -412,7 +467,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                     *static_cast<const Element<I16>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, I16>(safeCast<F64, I16>,
                                                       *nodeElem);
-                kExprNodes.push_back(nodeElem);
+                kCompState.exprNodes.push_back(nodeElem);
                 break;
             }
 
@@ -422,7 +477,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                     *static_cast<const Element<I32>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, I32>(safeCast<F64, I32>,
                                                       *nodeElem);
-                kExprNodes.push_back(nodeElem);
+                kCompState.exprNodes.push_back(nodeElem);
                 break;
             }
 
@@ -432,7 +487,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                     *static_cast<const Element<I64>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, I64>(safeCast<F64, I64>,
                                                       *nodeElem);
-                kExprNodes.push_back(nodeElem);
+                kCompState.exprNodes.push_back(nodeElem);
                 break;
             }
 
@@ -442,7 +497,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                     *static_cast<const Element<U8>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, U8>(safeCast<F64, U8>,
                                                      *nodeElem);
-                kExprNodes.push_back(nodeElem);
+                kCompState.exprNodes.push_back(nodeElem);
                 break;
             }
 
@@ -452,7 +507,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                     *static_cast<const Element<U16>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, U16>(safeCast<F64, U16>,
                                                       *nodeElem);
-                kExprNodes.push_back(nodeElem);
+                kCompState.exprNodes.push_back(nodeElem);
                 break;
             }
 
@@ -462,7 +517,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                     *static_cast<const Element<U32>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, U32>(safeCast<F64, U32>,
                                                       *nodeElem);
-                kExprNodes.push_back(nodeElem);
+                kCompState.exprNodes.push_back(nodeElem);
                 break;
             }
 
@@ -472,7 +527,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                     *static_cast<const Element<U64>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, U64>(safeCast<F64, U64>,
                                                       *nodeElem);
-                kExprNodes.push_back(nodeElem);
+                kCompState.exprNodes.push_back(nodeElem);
                 break;
             }
 
@@ -482,7 +537,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                     *static_cast<const Element<F32>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, F32>(safeCast<F64, F32>,
                                                       *nodeElem);
-                kExprNodes.push_back(nodeElem);
+                kCompState.exprNodes.push_back(nodeElem);
                 break;
             }
 
@@ -498,7 +553,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                         *static_cast<const Element<bool>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, bool>(safeCast<F64, bool>,
                                                        *nodeElem);
-                kExprNodes.push_back(nodeElem);
+                kCompState.exprNodes.push_back(nodeElem);
                 break;
             }
         }
@@ -506,7 +561,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
         // Assert that element type was recognized.
         SF_ASSERT(kNode != nullptr);
 
-        kExprNodes.push_back(kNode);
+        kCompState.exprNodes.push_back(kNode);
     }
     else
     {
@@ -514,8 +569,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
         const Result res = compileOperator(kParse,
                                            kSvs,
                                            kNode,
-                                           kExprNodes,
-                                           kExprStats,
+                                           kCompState,
                                            kErr);
         if (res != SUCCESS)
         {
@@ -531,14 +585,14 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
 /////////////////////////////////// Public /////////////////////////////////////
 
 ExpressionCompiler::Assembly::Assembly(IExpression* const kRoot,
-                                       const Vec<const IExpression*> kNodes,
-                                       const Vec<IExpressionStats*> kStats) :
-    mRoot(kRoot), mNodes(kNodes), mStats(kStats)
+                                       const Vec<const IExpression*>& kNodes,
+                                       const Vec<IExpressionStats*>& kStats,
+                                       const Vec<const char*>& kStatArrs) :
+    mRoot(kRoot), mNodes(kNodes), mStats(kStats), mStatArrs(kStatArrs)
 {
 }
 
-const Vec<IExpressionStats*>& ExpressionCompiler::Assembly::stats()
-    const
+const Vec<IExpressionStats*>& ExpressionCompiler::Assembly::stats() const
 {
     return mStats;
 }
@@ -549,6 +603,12 @@ ExpressionCompiler::Assembly::~Assembly()
     for (const IExpression* const node : mNodes)
     {
         delete node;
+    }
+
+    // Delete expression stat arrays.
+    for (const char* const arr : mStatArrs)
+    {
+        delete[] arr;
     }
 
     // Delete expression stats.
@@ -576,29 +636,24 @@ Result ExpressionCompiler::compile(
         return E_EXC_NULL;
     }
 
-    // Allocated expression nodes will be collected in this vector.
-    Vec<const IExpression*> exprNodes;
-
-    // Allocated expression stats will be collected in this vector.
-    Vec<IExpressionStats*> exprStats;
-
     // Compile expression starting at root.
+    CompilerState compState = {};
     IExprNode<F64>* root = nullptr;
-    const Result res = compileImpl(kParse,
-                                   kSvs,
-                                   root,
-                                   exprNodes,
-                                   exprStats,
-                                   kErr);
+    const Result res = compileImpl(kParse, kSvs, root, compState, kErr);
     if (res != SUCCESS)
     {
         // Delete all allocations since aborting compilation.
-        for (const IExpression* const node : exprNodes)
+        for (const IExpression* const node : compState.exprNodes)
         {
             delete node;
         }
 
-        for (const IExpressionStats* const stats : exprStats)
+        for (const char* const arr : compState.statArrs)
+        {
+            delete[] arr;
+        }
+
+        for (const IExpressionStats* const stats : compState.exprStats)
         {
             delete stats;
         }
@@ -660,10 +715,13 @@ Result ExpressionCompiler::compile(
             SF_ASSERT(false);
     }
 
-    exprNodes.push_back(newRoot);
+    compState.exprNodes.push_back(newRoot);
 
     // Return compiled expression assembly.
-    kAsm.reset(new ExpressionCompiler::Assembly(newRoot, exprNodes, exprStats));
+    kAsm.reset(new ExpressionCompiler::Assembly(newRoot,
+                                                compState.exprNodes,
+                                                compState.exprStats,
+                                                compState.statArrs));
 
     return SUCCESS;
 }

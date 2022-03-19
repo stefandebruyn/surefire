@@ -171,13 +171,13 @@ public:
 
 private:
 
+    IExprNode<T>& mExpr;
+
     T* const mHist;
 
     T* const mSorted;
 
     const U32 mCapacity;
-
-    IExprNode<T>& mExpr;
 
     U32 mUpdates;
 
@@ -199,5 +199,56 @@ private:
     IExpressionStats& mStats;
 };
 
+class RollMedianNode final : public IExprNode<F64>
+{
+public:
+
+    RollMedianNode(IExpressionStats& kStats);
+
+    F64 evaluate() final override;
+
+private:
+
+    IExpressionStats& mStats;
+};
+
+class RollMinNode final : public IExprNode<F64>
+{
+public:
+
+    RollMinNode(IExpressionStats& kStats);
+
+    F64 evaluate() final override;
+
+private:
+
+    IExpressionStats& mStats;
+};
+
+class RollMaxNode final : public IExprNode<F64>
+{
+public:
+
+    RollMaxNode(IExpressionStats& kStats);
+
+    F64 evaluate() final override;
+
+private:
+
+    IExpressionStats& mStats;
+};
+
+class RollRangeNode final : public IExprNode<F64>
+{
+public:
+
+    RollRangeNode(IExpressionStats& kStats);
+
+    F64 evaluate() final override;
+
+private:
+
+    IExpressionStats& mStats;
+};
 
 #endif
