@@ -5,7 +5,7 @@
 #include "sf/config/StateVectorCompiler.hpp"
 #include "sf/core/Assert.hpp"
 
-I32 Cli::sm(const std::vector<std::string> kArgs)
+I32 Cli::sm(const Vec<String> kArgs)
 {
     SF_ASSERT(kArgs.size() > 0);
 
@@ -16,7 +16,7 @@ I32 Cli::sm(const std::vector<std::string> kArgs)
         SF_ASSERT(kArgs.size() == 3);
 
         // Compile state vector.
-        std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+        Ref<StateVectorCompiler::Assembly> svAsm;
         ErrorInfo err;
         Result res = StateVectorCompiler::compile(kArgs[2], svAsm, &err);
 
@@ -33,7 +33,7 @@ I32 Cli::sm(const std::vector<std::string> kArgs)
 
         // Compile state machine.
         err = ErrorInfo();
-        std::shared_ptr<StateMachineCompiler::Assembly> smAsm;
+        Ref<StateMachineCompiler::Assembly> smAsm;
         res = StateMachineCompiler::compile(kArgs[1], sv, smAsm, &err);
 
         if (res != SUCCESS)

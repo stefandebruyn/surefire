@@ -5,24 +5,24 @@
 
 struct ElementInfo final
 {
-    std::string name;
+    String name;
     ElementType type;
 };
 
 struct RegionInfo final
 {
-    std::string name;
+    String name;
     U32 sizeBytes;
 };
 
-static void checkStateVectorConfig(const std::vector<Token>& kToks,
-                                   const std::vector<ElementInfo> kElems,
-                                   const std::vector<RegionInfo> kRegions)
+static void checkStateVectorConfig(const Vec<Token>& kToks,
+                                   const Vec<ElementInfo> kElems,
+                                   const Vec<RegionInfo> kRegions)
 {
     // Parse and compile state vector config.
     StateVectorParser::Parse parse = {};
     CHECK_SUCCESS(StateVectorParser::parse(kToks, parse, nullptr));
-    std::shared_ptr<StateVectorCompiler::Assembly> assembly;
+    Ref<const StateVectorCompiler::Assembly> assembly;
     CHECK_SUCCESS(StateVectorCompiler::compile(parse, assembly, nullptr));
     const StateVector::Config& svConfig = assembly->getConfig();
 
@@ -200,7 +200,7 @@ static void checkStateVectorConfig(const std::vector<Token>& kToks,
     }
 }
 
-static void checkCompileError(const std::vector<Token>& kToks,
+static void checkCompileError(const Vec<Token>& kToks,
                               const Result kRes,
                               const I32 kLineNum,
                               const I32 kColNum)
@@ -210,7 +210,7 @@ static void checkCompileError(const std::vector<Token>& kToks,
     CHECK_SUCCESS(StateVectorParser::parse(kToks, parse, nullptr));
 
     // Got expected return code from compiler.
-    std::shared_ptr<StateVectorCompiler::Assembly> assembly;
+    Ref<const StateVectorCompiler::Assembly> assembly;
     ErrorInfo err;
     CHECK_ERROR(kRes, StateVectorCompiler::compile(parse, assembly, &err));
 

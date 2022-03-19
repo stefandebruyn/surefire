@@ -5,18 +5,14 @@
 
 /////////////////////////////////// Private ////////////////////////////////////
 
-namespace StateVectorParser
+namespace
 {
-    const char* const errText = "state vector config error";
 
-    Result parseRegion(TokenIterator& kIt,
-                       RegionParse& kRgn,
-                       ErrorInfo* const kErr);
-}
+const char* const errText = "state vector config error";
 
-Result StateVectorParser::parseRegion(TokenIterator& kIt,
-                                      RegionParse& kRgn,
-                                      ErrorInfo* const kErr)
+Result parseRegion(TokenIterator& kIt,
+                   StateVectorParser::RegionParse& kRgn,
+                   ErrorInfo* const kErr)
 {
     // Assert that token iterator is currently positioned at a section.
     SF_ASSERT(kIt.type() == Token::SECTION);
@@ -28,8 +24,8 @@ Result StateVectorParser::parseRegion(TokenIterator& kIt,
     while (!kIt.eof() && (kIt.type() != Token::SECTION))
     {
         // Add new element to region.
-        kRgn.elems.push_back(ElementParse{});
-        ElementParse& elem = kRgn.elems.back();
+        kRgn.elems.push_back(StateVectorParser::ElementParse{});
+        StateVectorParser::ElementParse& elem = kRgn.elems.back();
 
         // Check that current token, which should be an element type, is an
         // identifier.
@@ -67,16 +63,18 @@ Result StateVectorParser::parseRegion(TokenIterator& kIt,
     return SUCCESS;
 }
 
+} // Anonymous namespace
+
 /////////////////////////////////// Public /////////////////////////////////////
 
-const std::vector<std::string> StateVectorParser::ALL_REGIONS;
+const Vec<String> StateVectorParser::ALL_REGIONS;
 
-Result StateVectorParser::parse(const std::vector<Token>& kToks,
-                                Parse& kParse,
+Result StateVectorParser::parse(const Vec<Token>& kToks,
+                                StateVectorParser::Parse& kParse,
                                 ErrorInfo* const kErr,
-                                const std::vector<std::string> kRgns)
+                                const Vec<String> kRgns)
 {
-    Parse parse = {};
+    StateVectorParser::Parse parse = {};
     TokenIterator it(kToks.begin(), kToks.end());
 
     while (!it.eof())
@@ -93,7 +91,7 @@ Result StateVectorParser::parse(const std::vector<Token>& kToks,
 
                 // Only parse region if `ALL_REGIONS` was passed or the region
                 // name appears in the passed vector.
-                RegionParse region = {};
+                StateVectorParser::RegionParse region = {};
                 region.plainName = it.str().substr(1, (it.str().size() - 2));
                 if ((kRgns == ALL_REGIONS)
                     || (std::find(kRgns.begin(), kRgns.end(), region.plainName)
@@ -125,10 +123,10 @@ Result StateVectorParser::parse(const std::vector<Token>& kToks,
 
     // If specific regions were selected for parsing, check that all specified
     // regions existed in the config.
-    for (const std::string& regionName : kRgns)
+    for (const String& regionName : kRgns)
     {
         bool found = false;
-        for (const RegionParse& regionParse : parse.regions)
+        for (const StateVectorParser::RegionParse& regionParse : parse.regions)
         {
             if (regionParse.plainName == regionName)
             {

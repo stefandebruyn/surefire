@@ -12,13 +12,11 @@ namespace StateMachineCompiler
     {
     public:
 
-        Assembly(
-            const StateMachine::Config kConfig,
-            const StateMachineParser::Parse& kParse,
-            const std::shared_ptr<StateVectorCompiler::Assembly> kLocalSvAsm,
-            const std::vector<std::shared_ptr<ExpressionCompiler::Assembly>>
-                kExprs,
-            StateVector* const kLocalSv);
+        Assembly(const StateMachine::Config kConfig,
+                 const StateMachineParser::Parse& kParse,
+                 const Ref<const StateVectorCompiler::Assembly> kLocalSvAsm,
+                 const Vec<Ref<const ExpressionCompiler::Assembly>> kExprs,
+                 StateVector* const kLocalSv);
 
         ~Assembly();
 
@@ -34,26 +32,26 @@ namespace StateMachineCompiler
 
         const StateMachineParser::Parse mParse;
 
-        const std::shared_ptr<StateVectorCompiler::Assembly> mLocalSvAsm;
+        const Ref<const StateVectorCompiler::Assembly> mLocalSvAsm;
 
-        const std::vector<std::shared_ptr<ExpressionCompiler::Assembly>> mExprs;
+        const Vec<Ref<const ExpressionCompiler::Assembly>> mExprs;
 
         StateVector* const mLocalSv;
     };
 
-    Result compile(const std::string kFilePath,
+    Result compile(const String kFilePath,
                    const StateVector& kSv,
-                   std::shared_ptr<StateMachineCompiler::Assembly>& kAsm,
+                   Ref<const StateMachineCompiler::Assembly>& kAsm,
                    ErrorInfo* const kErr);
 
     Result compile(std::istream& kIs,
                    const StateVector& kSv,
-                   std::shared_ptr<StateMachineCompiler::Assembly>& kAsm,
+                   Ref<const StateMachineCompiler::Assembly>& kAsm,
                    ErrorInfo* const kErr);
 
     Result compile(const StateMachineParser::Parse& kParse,
                    const StateVector& kSv,
-                   std::shared_ptr<StateMachineCompiler::Assembly>& kAsm,
+                   Ref<const StateMachineCompiler::Assembly>& kAsm,
                    ErrorInfo* const kErr);
 }
 

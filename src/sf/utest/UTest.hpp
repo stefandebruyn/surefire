@@ -31,7 +31,7 @@
 #if defined(SF_UTEST_HAS_SUP)
 
 #define TOKENIZE(kStr)                                                         \
-    std::vector<Token> toks;                                                   \
+    Vec<Token> toks;                                                   \
     {                                                                          \
         std::stringstream _ss(kStr);                                           \
         CHECK_SUCCESS(Tokenizer::tokenize(_ss, toks, nullptr));                \
@@ -39,7 +39,7 @@
     TokenIterator it(toks.begin(), toks.end());
 
 template<typename T>
-SimpleString StringFrom(const std::vector<T>& kVec)
+SimpleString StringFrom(const Vec<T>& kVec)
 {
     std::stringstream ss;
     ss << "[";

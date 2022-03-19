@@ -2,18 +2,15 @@
 #define SF_STATE_VECTOR_PARSER_HPP
 
 #include <istream>
-#include <memory>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
 #include "sf/config/ErrorInfo.hpp"
+#include "sf/config/StlTypes.hpp"
 #include "sf/config/Tokenizer.hpp"
 #include "sf/core/StateVector.hpp"
 
 namespace StateVectorParser
 {
-    extern const std::vector<std::string> ALL_REGIONS;
+    extern const Vec<String> ALL_REGIONS;
 
     struct ElementParse final
     {
@@ -24,19 +21,19 @@ namespace StateVectorParser
     struct RegionParse final
     {
         Token tokName;
-        std::string plainName;
-        std::vector<ElementParse> elems;
+        String plainName;
+        Vec<StateVectorParser::ElementParse> elems;
     };
 
     struct Parse final
     {
-        std::vector<RegionParse> regions;
+        Vec<StateVectorParser::RegionParse> regions;
     };
 
-    Result parse(const std::vector<Token>& kToks,
-                 Parse& kParse,
+    Result parse(const Vec<Token>& kToks,
+                 StateVectorParser::Parse& kParse,
                  ErrorInfo* const kErr,
-                 const std::vector<std::string> kRgns = ALL_REGIONS);
+                 const Vec<String> kRgns = ALL_REGIONS);
 }
 
 #endif

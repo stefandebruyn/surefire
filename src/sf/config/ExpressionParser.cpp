@@ -6,30 +6,18 @@
 
 /////////////////////////////////// Private ////////////////////////////////////
 
-// Private namespace members.
-namespace ExpressionParser
+namespace
 {
-    const char* const errText = "error";
 
-    Result popSubexpression(std::stack<Token>& kStack,
-                            std::stack<std::shared_ptr<Parse>>& kNodes,
-                            ErrorInfo* const kErr);
+const char* const errText = "error";
 
-    Result parseFunctionCall(TokenIterator kIt,
-                             std::shared_ptr<Parse>& kParse,
-                             ErrorInfo* const kErr);
+Result parseImpl(TokenIterator& kIt,
+                 Ref<ExpressionParser::Parse>& kParse,
+                 ErrorInfo* const kErr);
 
-    void expandDoubleInequalities(std::shared_ptr<Parse> kParse);
-
-    Result parseImpl(TokenIterator& kIt,
-                     std::shared_ptr<Parse>& kParse,
-                     ErrorInfo* const kErr);
-}
-
-Result ExpressionParser::popSubexpression(
-    std::stack<Token>& kStack,
-    std::stack<std::shared_ptr<Parse>>& kNodes,
-    ErrorInfo* const kErr)
+Result popSubexpression(std::stack<Token>& kStack,
+                        std::stack<Ref<ExpressionParser::Parse>>& kNodes,
+                        ErrorInfo* const kErr)
 {
     // Pop operator off stack.
     const Token& op = kStack.top();
@@ -53,7 +41,7 @@ Result ExpressionParser::popSubexpression(
         ConfigUtil::setError(kErr, op, errText, "invalid syntax");
         return E_EXP_SYNTAX;
     }
-    const std::shared_ptr<Parse> right = kNodes.top();
+    const Ref<ExpressionParser::Parse> right = kNodes.top();
     kNodes.pop();
 
     // Check that RHS comes before the operator in the expression.
@@ -65,7 +53,7 @@ Result ExpressionParser::popSubexpression(
         return E_EXP_SYNTAX;
     }
 
-    std::shared_ptr<Parse> left;
+    Ref<ExpressionParser::Parse> left;
     if (!opInfo.unary)
     {
         // Pop LHS from stack.
@@ -80,14 +68,16 @@ Result ExpressionParser::popSubexpression(
     }
 
     // Push operation onto expression.
-    kNodes.push(std::shared_ptr<Parse>(new Parse{op, left, right, false}));
+    kNodes.push(Ref<ExpressionParser::Parse>(
+        new ExpressionParser::Parse{op, left, right, false}));
 
     return SUCCESS;
 }
 
-Result ExpressionParser::parseFunctionCall(TokenIterator kIt,
-                                           std::shared_ptr<Parse>& kParse,
-                                           ErrorInfo* const kErr)
+
+Result parseFunctionCall(TokenIterator kIt,
+                         Ref<ExpressionParser::Parse>& kParse,
+                         ErrorInfo* const kErr)
 {
     // Assert that token sequence is an identifier followed by an open
     // parenthese and ending with a close parenthese.
@@ -97,7 +87,7 @@ Result ExpressionParser::parseFunctionCall(TokenIterator kIt,
     SF_ASSERT(kIt[kIt.size() - 1].type == Token::RPAREN);
 
     // Stores iterators for each argument expression in the function call.
-    std::vector<TokenIterator> argExprs;
+    Vec<TokenIterator> argExprs;
     // Parenthese level.
     U32 lvl = 0;
     // Start parsing at index 2, the first token after the open parenthese.
@@ -147,15 +137,16 @@ Result ExpressionParser::parseFunctionCall(TokenIterator kIt,
     }
 
     // First token in the function call tree contains the function name.
-    kParse.reset(new Parse{kIt[0], nullptr, nullptr, true});
+    kParse.reset(new ExpressionParser::Parse{kIt[0], nullptr, nullptr, true});
 
     // Parse argument expressions and chain them down the left subtree of
     // the function call node. The left child of each argument node is the next
     // argument, and the right child is the argument expression.
-    std::shared_ptr<Parse> node = kParse;
+    Ref<ExpressionParser::Parse> node = kParse;
     for (TokenIterator& argIt : argExprs)
     {
-        node->left.reset(new Parse{{}, nullptr, nullptr, false});
+        node->left.reset(
+            new ExpressionParser::Parse{{}, nullptr, nullptr, false});
         const Result res = parseImpl(argIt, node->left->right, kErr);
         if (res != SUCCESS)
         {
@@ -167,7 +158,7 @@ Result ExpressionParser::parseFunctionCall(TokenIterator kIt,
     return SUCCESS;
 }
 
-void ExpressionParser::expandDoubleInequalities(std::shared_ptr<Parse> kNode)
+void expandDoubleInequalities(const Ref<ExpressionParser::Parse> kNode)
 {
     // Recursion base case.
     if (kNode == nullptr)
@@ -188,10 +179,11 @@ void ExpressionParser::expandDoubleInequalities(std::shared_ptr<Parse> kNode)
             if (OperatorInfo::relOps.find(kNode->left->data.str)
                 != OperatorInfo::relOps.end())
             {
-                kNode->right.reset(new Parse{kNode->data,
-                                             kNode->left->right,
-                                             kNode->right,
-                                             false});
+                kNode->right.reset(
+                    new ExpressionParser::Parse{kNode->data,
+                                                kNode->left->right,
+                                                kNode->right,
+                                                false});
                 kNode->data = {Token::OPERATOR, "AND", -1, -1};
             }
         }
@@ -202,14 +194,14 @@ void ExpressionParser::expandDoubleInequalities(std::shared_ptr<Parse> kNode)
     expandDoubleInequalities(kNode->right);
 }
 
-Result ExpressionParser::parseImpl(TokenIterator& kIt,
-                                   std::shared_ptr<Parse>& kParse,
-                                   ErrorInfo* const kErr)
+Result parseImpl(TokenIterator& kIt,
+                 Ref<ExpressionParser::Parse>& kParse,
+                 ErrorInfo* const kErr)
 {
     // Copy token sequence, minus newlines, into a vector of tokens enclosed in
     // parentheses. Adding this extra pair of parentheses simplifies the
     // algorithm.
-    std::vector<Token> toks = {{Token::LPAREN, "(", -1, -1}};
+    Vec<Token> toks = {{Token::LPAREN, "(", -1, -1}};
     kIt.seek(0);
     while (!kIt.eof())
     {
@@ -218,7 +210,7 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
     toks.push_back({Token::RPAREN, ")", -1, -1});
 
     // Stack of expression nodes yet to be installed in the binary tree.
-    std::stack<std::shared_ptr<Parse>> nodes;
+    std::stack<Ref<ExpressionParser::Parse>> nodes;
 
     // Operator and operand stack.
     std::stack<Token> stack;
@@ -263,7 +255,7 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
                 }
 
                 // Parse function and push onto tree.
-                std::shared_ptr<Parse> funcNode;
+                Ref<ExpressionParser::Parse> funcNode;
                 TokenIterator funcIt((toks.begin() + i),
                                      (toks.begin() + j + 1));
                 const Result res = parseFunctionCall(funcIt,
@@ -282,8 +274,8 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
             else
             {
                 // Token is a variable or constant.
-                nodes.push(std::shared_ptr<Parse>(
-                    new Parse{tok, nullptr, nullptr, false}));
+                nodes.push(Ref<ExpressionParser::Parse>(
+                    new ExpressionParser::Parse{tok, nullptr, nullptr, false}));
             }
         }
         else if (tok.type == Token::OPERATOR)
@@ -393,10 +385,12 @@ Result ExpressionParser::parseImpl(TokenIterator& kIt,
     return SUCCESS;
 }
 
+} // Anonymous namespace
+
 /////////////////////////////////// Public /////////////////////////////////////
 
 Result ExpressionParser::parse(TokenIterator kIt,
-                               std::shared_ptr<Parse>& kParse,
+                               Ref<const ExpressionParser::Parse>& kParse,
                                ErrorInfo* const kErr)
 {
     // Assert that the iterator is at index zero.
@@ -489,5 +483,14 @@ Result ExpressionParser::parse(TokenIterator kIt,
     // contains only known operators, and contains no unexpected token types.
     // So, the only errors to check for herein are syntax errors.
 
-    return parseImpl(kIt, kParse, kErr);
+    Ref<ExpressionParser::Parse> parseRet;
+    const Result res = parseImpl(kIt, parseRet, kErr);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    kParse = parseRet;
+
+    return SUCCESS;
 }

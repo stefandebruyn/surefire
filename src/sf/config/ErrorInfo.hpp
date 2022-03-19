@@ -1,28 +1,26 @@
 #ifndef SF_CONFIG_SOURCE_HPP
 #define SF_CONFIG_SOURCE_HPP
 
-#include <string>
-#include <vector>
-
+#include "sf/config/StlTypes.hpp"
 #include "sf/core/BasicTypes.hpp"
 
 struct ErrorInfo final
 {
-    std::string text;
+    String text;
 
-    std::string filePath;
+    String filePath;
 
     I32 lineNum;
 
     I32 colNum;
 
-    std::string subtext;
+    String subtext;
 
-    std::vector<std::string> lines;
+    Vec<String> lines;
 
     ErrorInfo();
 
-    std::string prettifyError() const;
+    String prettifyError() const;
 };
 
 #endif

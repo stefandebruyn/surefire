@@ -8,7 +8,7 @@ ErrorInfo::ErrorInfo() : lineNum(-1), colNum(-1)
 {
 }
 
-std::string ErrorInfo::prettifyError() const
+String ErrorInfo::prettifyError() const
 {
     if (text.size() == 0)
     {

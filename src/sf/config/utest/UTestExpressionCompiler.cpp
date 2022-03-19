@@ -8,12 +8,12 @@
 
 static void setup(const char* const kExprSrc,
                   const char* const kSvSrc,
-                  std::shared_ptr<ExpressionParser::Parse>& kExprParse,
-                  std::shared_ptr<StateVectorCompiler::Assembly>& kSvAsm,
+                  Ref<const ExpressionParser::Parse>& kExprParse,
+                  Ref<const StateVectorCompiler::Assembly>& kSvAsm,
                   StateVector& kSv)
 {
     // Parse expression.
-    std::vector<Token> exprToks;
+    Vec<Token> exprToks;
     std::stringstream exprSs(kExprSrc);
     CHECK_SUCCESS(Tokenizer::tokenize(exprSs, exprToks, nullptr));
     TokenIterator exprIt(exprToks.begin(), exprToks.end());
@@ -30,13 +30,13 @@ static void setup(const char* const kExprSrc,
 
 static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 {
-    std::shared_ptr<ExpressionParser::Parse> exprParse;
-    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
     StateVector sv;
     setup(kExprSrc, "", exprParse, svAsm, sv);
 
     // Compile expression.
-    std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
+    Ref<const ExpressionCompiler::Assembly> exprAsm;
     CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               {&sv},
                                               ElementType::FLOAT64,
@@ -51,14 +51,14 @@ static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 }
 
 static void checkCompileError(
-    const std::shared_ptr<ExpressionParser::Parse> kExprParse,
+    const Ref<const ExpressionParser::Parse> kExprParse,
     StateVector& kSv,
     const Result kRes,
     const I32 kLineNum,
     const I32 kColNum)
 {
     // Got expected return code from compiler.
-    std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
+    Ref<const ExpressionCompiler::Assembly> exprAsm;
     ErrorInfo err;
     CHECK_ERROR(kRes, ExpressionCompiler::compile(kExprParse,
                                                   {&kSv},
@@ -305,8 +305,8 @@ TEST(ExpressionCompiler, TripleInequality)
 
 TEST(ExpressionCompiler, OnlyElement)
 {
-    std::shared_ptr<ExpressionParser::Parse> exprParse;
-    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
     StateVector sv;
     ::setup("foo",
             "[Foo]\n"
@@ -316,7 +316,7 @@ TEST(ExpressionCompiler, OnlyElement)
             sv);
 
     // Compile expression.
-    std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
+    Ref<const ExpressionCompiler::Assembly> exprAsm;
     CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               {&sv},
                                               ElementType::FLOAT64,
@@ -338,8 +338,8 @@ TEST(ExpressionCompiler, OnlyElement)
 
 TEST(ExpressionCompiler, MultipleElements)
 {
-    std::shared_ptr<ExpressionParser::Parse> exprParse;
-    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
     StateVector sv;
     ::setup("(foo + bar) * baz + 1",
             "[Foo]\n"
@@ -351,7 +351,7 @@ TEST(ExpressionCompiler, MultipleElements)
             sv);
 
     // Compile expression.
-    std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
+    Ref<const ExpressionCompiler::Assembly> exprAsm;
     CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               {&sv},
                                               ElementType::FLOAT64,
@@ -379,8 +379,8 @@ TEST(ExpressionCompiler, MultipleElements)
 
 TEST(ExpressionCompiler, AllElementTypes)
 {
-    std::shared_ptr<ExpressionParser::Parse> exprParse;
-    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
     StateVector sv;
     ::setup("a + b + c + d + e + f + g + h + i + j + k",
             "[Foo]\n"
@@ -400,7 +400,7 @@ TEST(ExpressionCompiler, AllElementTypes)
             sv);
 
     // Compile expression.
-    std::shared_ptr<ExpressionCompiler::Assembly> exprAsm;
+    Ref<const ExpressionCompiler::Assembly> exprAsm;
     CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               {&sv},
                                               ElementType::FLOAT64,
@@ -458,8 +458,8 @@ TEST_GROUP(ExpressionCompilerErrors)
 
 TEST(ExpressionCompilerErrors, UnknownElement)
 {
-    std::shared_ptr<ExpressionParser::Parse> exprParse;
-    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
     StateVector sv;
     ::setup("foo", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, sv, E_EXC_ELEM, 1, 1);
@@ -467,8 +467,8 @@ TEST(ExpressionCompilerErrors, UnknownElement)
 
 TEST(ExpressionCompilerErrors, InvalidNumber)
 {
-    std::shared_ptr<ExpressionParser::Parse> exprParse;
-    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
     StateVector sv;
     ::setup("1 + 1", "", exprParse, svAsm, sv);
     exprParse->left->data.str = "foo";
@@ -477,8 +477,8 @@ TEST(ExpressionCompilerErrors, InvalidNumber)
 
 TEST(ExpressionCompilerErrors, OutOfRangeNumber)
 {
-    std::shared_ptr<ExpressionParser::Parse> exprParse;
-    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;
+    Ref<const ExpressionParser::Parse> exprParse;
+    Ref<const StateVectorCompiler::Assembly> svAsm;
     StateVector sv;
     ::setup("1 + 9999999999999999999999999999999999999999999999999999999999999"
             "99999999999999999999999999999999999999999999999999999999999999999"

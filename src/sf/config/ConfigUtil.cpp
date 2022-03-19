@@ -25,7 +25,7 @@ const ElementTypeInfo ElementTypeInfo::f64 =
 const ElementTypeInfo ElementTypeInfo::boolean =
     {ElementType::BOOL, "bool", 1, false, false, false};
 
-const std::unordered_map<std::string, ElementTypeInfo>
+const Map<String, ElementTypeInfo>
     ElementTypeInfo::fromName =
 {
     {i8.name, i8},
@@ -42,7 +42,7 @@ const std::unordered_map<std::string, ElementTypeInfo>
     {"BOOL", boolean} // Alias for `bool`
 };
 
-const std::unordered_map<ElementType, ElementTypeInfo, EnumHash>
+const Map<ElementType, ElementTypeInfo, EnumHash>
     ElementTypeInfo::fromEnum =
 {
     {i8.enumVal, i8},
@@ -85,7 +85,7 @@ const OperatorInfo OperatorInfo::land =
 const OperatorInfo OperatorInfo::lor =
     {OperatorInfo::Type::OR, "OR", 5, false, false, false, true};
 
-const std::unordered_map<std::string, OperatorInfo> OperatorInfo::fromStr =
+const Map<String, OperatorInfo> OperatorInfo::fromStr =
 {
     {lnot.str, lnot},
     {"!", lnot}, // Alias for `NOT`
@@ -103,10 +103,10 @@ const std::unordered_map<std::string, OperatorInfo> OperatorInfo::fromStr =
     {lor.str, lor}
 };
 
-const std::unordered_set<std::string> OperatorInfo::relOps =
+const Set<String> OperatorInfo::relOps =
     {lt.str, lte.str, gt.str, gte.str};
 
-const std::unordered_set<std::string> ConfigUtil::reserved =
+const Set<String> ConfigUtil::reserved =
 {
     "STATE_VECTOR",
     "LOCAL",
@@ -122,8 +122,8 @@ const std::unordered_set<std::string> ConfigUtil::reserved =
 
 void ConfigUtil::setError(ErrorInfo* const kErr,
                           const Token& kTokErr,
-                          const std::string kText,
-                          const std::string kSubtext)
+                          const String kText,
+                          const String kSubtext)
 {
     if (kErr != nullptr)
     {
@@ -136,7 +136,7 @@ void ConfigUtil::setError(ErrorInfo* const kErr,
 
 bool ConfigUtil::checkEof(const TokenIterator& kIt,
                           const Token& kTokLast,
-                          const std::string kErrText,
+                          const String kErrText,
                           ErrorInfo* const kErr)
 {
     if (kIt.eof())

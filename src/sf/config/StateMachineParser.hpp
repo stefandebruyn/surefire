@@ -2,10 +2,10 @@
 #define SF_STATE_MACHINE_PARSER_HPP
 
 #include <istream>
-#include <memory>
 
 #include "sf/config/ErrorInfo.hpp"
 #include "sf/config/ExpressionParser.hpp"
+#include "sf/config/StlTypes.hpp"
 #include "sf/config/TokenIterator.hpp"
 #include "sf/core/StateMachine.hpp"
 
@@ -14,25 +14,25 @@ namespace StateMachineParser
     struct ActionParse
     {
         Token tokRhs;
-        std::shared_ptr<ExpressionParser::Parse> lhs;
+        Ref<const ExpressionParser::Parse> lhs;
         Token tokDestState;
     };
 
     struct BlockParse final
     {
-        std::shared_ptr<ExpressionParser::Parse> guard;
-        std::shared_ptr<ActionParse> action;
-        std::shared_ptr<BlockParse> ifBlock;
-        std::shared_ptr<BlockParse> elseBlock;
-        std::shared_ptr<BlockParse> next;
+        Ref<const ExpressionParser::Parse> guard;
+        Ref<StateMachineParser::ActionParse> action;
+        Ref<StateMachineParser::BlockParse> ifBlock;
+        Ref<StateMachineParser::BlockParse> elseBlock;
+        Ref<StateMachineParser::BlockParse> next;
     };
 
     struct StateParse final
     {
         Token tokName;
-        std::shared_ptr<BlockParse> entry;
-        std::shared_ptr<BlockParse> step;
-        std::shared_ptr<BlockParse> exit;
+        Ref<StateMachineParser::BlockParse> entry;
+        Ref<StateMachineParser::BlockParse> step;
+        Ref<StateMachineParser::BlockParse> exit;
     };
 
     struct StateVectorElementParse final
@@ -40,7 +40,7 @@ namespace StateMachineParser
         Token tokType;
         Token tokName;
         Token tokAlias;
-        std::string alias;
+        String alias;
         bool readOnly;
     };
 
@@ -54,30 +54,30 @@ namespace StateMachineParser
 
     struct Parse final
     {
-        std::vector<StateVectorElementParse> svElems;
-        std::vector<LocalElementParse> localElems;
-        std::vector<StateParse> states;
+        Vec<StateMachineParser::StateVectorElementParse> svElems;
+        Vec<StateMachineParser::LocalElementParse> localElems;
+        Vec<StateMachineParser::StateParse> states;
         bool hasStateVectorSection;
         bool hasLocalSection;
     };
 
-    Result parse(const std::vector<Token>& kToks,
-                 Parse& kParse,
+    Result parse(const Vec<Token>& kToks,
+                 StateMachineParser::Parse& kParse,
                  ErrorInfo* const kErr);
 
     /// @note PUBLIC FOR TESTING PURPOSES ONLY.
     Result parseLocalSection(TokenIterator& kIt,
-                             Parse& kParse,
+                             StateMachineParser::Parse& kParse,
                              ErrorInfo* const kErr);
 
     /// @note PUBLIC FOR TESTING PURPOSES ONLY.
     Result parseStateVectorSection(TokenIterator& kIt,
-                                   Parse& kParse,
+                                   StateMachineParser::Parse& kParse,
                                    ErrorInfo* const kErr);
 
     /// @note PUBLIC FOR TESTING PURPOSES ONLY.
     Result parseStateSection(TokenIterator& kIt,
-                             StateParse& kState,
+                             StateMachineParser::StateParse& kState,
                              ErrorInfo* const kErr);
 }
 

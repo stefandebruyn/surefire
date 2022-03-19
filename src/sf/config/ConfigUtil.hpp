@@ -1,11 +1,8 @@
 #ifndef SF_CONFIG_UTIL_HPP
 #define SF_CONFIG_UTIL_HPP
 
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-
 #include "sf/config/EnumHash.hpp"
+#include "sf/config/StlTypes.hpp"
 #include "sf/config/TokenIterator.hpp"
 #include "sf/config/Tokenizer.hpp"
 #include "sf/core/Element.hpp"
@@ -24,13 +21,13 @@ struct ElementTypeInfo final
     static const ElementTypeInfo f64;
     static const ElementTypeInfo boolean;
 
-    static const std::unordered_map<std::string, ElementTypeInfo> fromName;
+    static const Map<String, ElementTypeInfo> fromName;
 
-    static const std::unordered_map<ElementType, ElementTypeInfo, EnumHash>
+    static const Map<ElementType, ElementTypeInfo, EnumHash>
         fromEnum;
 
     ElementType enumVal;
-    std::string name;
+    String name;
     U32 sizeBytes;
     bool arithmetic;
     bool fp;
@@ -70,12 +67,12 @@ struct OperatorInfo final
     static const OperatorInfo land;
     static const OperatorInfo lor;
 
-    static const std::unordered_map<std::string, OperatorInfo> fromStr;
+    static const Map<String, OperatorInfo> fromStr;
 
-    static const std::unordered_set<std::string> relOps;
+    static const Set<String> relOps;
 
     Type enumVal;
-    std::string str;
+    String str;
     U32 precedence;
     bool unary;
     bool arithmetic;
@@ -85,16 +82,16 @@ struct OperatorInfo final
 
 namespace ConfigUtil
 {
-    extern const std::unordered_set<std::string> reserved;
+    extern const Set<String> reserved;
 
     void setError(ErrorInfo* const kErr,
                   const Token& kTokErr,
-                  const std::string kText,
-                  const std::string kSubtext);
+                  const String kText,
+                  const String kSubtext);
 
     bool checkEof(const TokenIterator& kIt,
                   const Token& kTokLast,
-                  const std::string kErrText,
+                  const String kErrText,
                   ErrorInfo* const kErr);
 }
 

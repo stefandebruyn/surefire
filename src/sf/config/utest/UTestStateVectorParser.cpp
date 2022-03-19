@@ -4,11 +4,11 @@
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 static void checkParseError(
-    const std::vector<Token>& kToks,
+    const Vec<Token>& kToks,
     const Result kRes,
     const I32 kLineNum,
     const I32 kColNum,
-    const std::vector<std::string> kRgns = StateVectorParser::ALL_REGIONS)
+    const Vec<String> kRgns = StateVectorParser::ALL_REGIONS)
 {
     // Got expected return code from parser.
     StateVectorParser::Parse parse = {};

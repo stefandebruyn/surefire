@@ -3,7 +3,7 @@
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
-static void checkParseError(const std::vector<Token>& kToks,
+static void checkParseError(const Vec<Token>& kToks,
                             const Result kRes,
                             const I32 kLineNum,
                             const I32 kColNum)
@@ -84,7 +84,7 @@ TEST(StateMachineParser, AllSections)
 
     // foo = 0
     CHECK_EQUAL(toks[18], parse.states[0].entry->action->tokRhs);
-    const std::shared_ptr<ExpressionParser::Parse> lhs =
+    const Ref<const ExpressionParser::Parse> lhs =
         parse.states[0].entry->action->lhs;
     CHECK_TRUE(lhs != nullptr);
     CHECK_EQUAL(toks[20], lhs->data);

@@ -30,16 +30,16 @@ namespace StateVectorCompiler
         const StateVectorParser::Parse mParse;
     };
 
-    Result compile(const std::string kFilePath,
-                   std::shared_ptr<Assembly>& kAsm,
+    Result compile(const String kFilePath,
+                   Ref<const StateVectorCompiler::Assembly>& kAsm,
                    ErrorInfo* const kErr);
 
     Result compile(std::istream& kIs,
-                   std::shared_ptr<Assembly>& kAsm,
+                   Ref<const StateVectorCompiler::Assembly>& kAsm,
                    ErrorInfo* const kErr);
 
     Result compile(const StateVectorParser::Parse& kParse,
-                   std::shared_ptr<Assembly>& kAsm,
+                   Ref<const StateVectorCompiler::Assembly>& kAsm,
                    ErrorInfo* const kErr);
 }
 

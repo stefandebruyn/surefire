@@ -61,7 +61,7 @@ Token::Type TokenIterator::type() const
     return this->tok().type;
 }
 
-const std::string& TokenIterator::str() const
+const String& TokenIterator::str() const
 {
     return this->tok().str;
 }
@@ -74,7 +74,7 @@ void TokenIterator::eat()
     }
 }
 
-U32 TokenIterator::next(const std::unordered_set<Token::Type> kTypes) const
+U32 TokenIterator::next(const Set<Token::Type> kTypes) const
 {
     Iterator i = mPos;
     while (i != mEnd)

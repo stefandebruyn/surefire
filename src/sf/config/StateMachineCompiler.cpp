@@ -1,6 +1,4 @@
 #include <fstream>
-#include <unordered_map>
-#include <unordered_set>
 
 #include "sf/config/ConfigUtil.hpp"
 #include "sf/config/ExpressionCompiler.hpp"
@@ -15,56 +13,22 @@ namespace
 
 const char* const errText = "state machine config error";
 
-const std::string elemStateTimeName = "T";
+const String elemStateTimeName = "T";
 
-const std::string elemGlobalTimeName = "G";
+const String elemGlobalTimeName = "G";
 
-const std::string elemStateName = "S";
+const String elemStateName = "S";
 
 struct CompilerState final
 {
-    std::unordered_map<std::string, IElement*> elems;
-    std::unordered_map<std::string, U32> stateIds;
-    std::shared_ptr<StateVectorCompiler::Assembly> localSvAsm;
+    Map<String, IElement*> elems;
+    Map<String, U32> stateIds;
+    Ref<const StateVectorCompiler::Assembly> localSvAsm;
     StateVector* localSv;
-    std::vector<StateMachine::StateConfig> states;
-    std::vector<std::shared_ptr<ExpressionCompiler::Assembly>> exprs;
-    std::unordered_set<std::string> readOnlyElems;
+    Vec<StateMachine::StateConfig> states;
+    Vec<Ref<const ExpressionCompiler::Assembly>> exprs;
+    Set<String> readOnlyElems;
 };
-
-void deleteBlock(StateMachine::Block* const kBlock);
-
-Result checkStateVector(const StateMachineParser::Parse& kParse,
-                        const StateVector& kSv,
-                        CompilerState& kCompState,
-                        ErrorInfo* const kErr);
-
-Result compileLocalStateVector(const StateMachineParser::Parse& kParse,
-                               CompilerState& kCompState,
-                               ErrorInfo* const kErr);
-
-Result initLocalElementValues(const StateMachineParser::Parse& kParse,
-                              CompilerState& kCompState,
-                              ErrorInfo* const kErr);
-
-Result compileAction(const StateMachineParser::ActionParse& kParse,
-                     const StateVector& kSv,
-                     CompilerState& kCompState,
-                     const bool kInExitLabel,
-                     IAction*& kAction,
-                     ErrorInfo* const kErr);
-
-Result compileBlock(const StateMachineParser::BlockParse& kParse,
-                    const StateVector& kSv,
-                    CompilerState& kCompState,
-                    const bool kInExitLabel,
-                    StateMachine::Block*& kBlock,
-                    ErrorInfo* const kErr);
-
-Result compileState(const StateMachineParser::StateParse& kParse,
-                    const StateVector& kSv,
-                    CompilerState& kCompState,
-                    ErrorInfo* const kErr);
 
 void deleteBlock(StateMachine::Block* const kBlock)
 {
@@ -395,7 +359,7 @@ Result compileAction(const StateMachineParser::ActionParse& kParse,
         }
 
         // Compile LHS expression.
-        std::shared_ptr<ExpressionCompiler::Assembly> lhsAsm;
+        Ref<const ExpressionCompiler::Assembly> lhsAsm;
         res = ExpressionCompiler::compile(kParse.lhs,
                                           {&kSv, kCompState.localSv},
                                           elemObj->type(),
@@ -534,7 +498,7 @@ Result compileBlock(const StateMachineParser::BlockParse& kParse,
     if (kParse.guard != nullptr)
     {
         // Compile block guard.
-        std::shared_ptr<ExpressionCompiler::Assembly> guardAsm;
+        Ref<const ExpressionCompiler::Assembly> guardAsm;
         res = ExpressionCompiler::compile(kParse.guard,
                                           {&kSv, kCompState.localSv},
                                           ElementType::BOOL,
@@ -707,8 +671,8 @@ Result compileState(const StateMachineParser::StateParse& kParse,
 StateMachineCompiler::Assembly::Assembly(
     const StateMachine::Config kConfig,
     const StateMachineParser::Parse& kParse,
-    const std::shared_ptr<StateVectorCompiler::Assembly> kLocalSvAsm,
-    const std::vector<std::shared_ptr<ExpressionCompiler::Assembly>> kExprs,
+    const Ref<const StateVectorCompiler::Assembly> kLocalSvAsm,
+    const Vec<Ref<const ExpressionCompiler::Assembly>> kExprs,
     StateVector* const kLocalSv) :
     mConfig(kConfig),
     mParse(kParse),
@@ -758,10 +722,11 @@ StateVector& StateMachineCompiler::Assembly::localStateVector() const
     return *mLocalSv;
 }
 
-Result StateMachineCompiler::compile(const std::string kFilePath,
-                                     const StateVector& kSv,
-                                     std::shared_ptr<Assembly>& kAsm,
-                                     ErrorInfo* const kErr)
+Result StateMachineCompiler::compile(
+    const String kFilePath,
+    const StateVector& kSv,
+    Ref<const StateMachineCompiler::Assembly>& kAsm,
+    ErrorInfo* const kErr)
 {
     if (kErr != nullptr)
     {
@@ -782,12 +747,13 @@ Result StateMachineCompiler::compile(const std::string kFilePath,
     return compile(ifs, kSv, kAsm, kErr);
 }
 
-Result StateMachineCompiler::compile(std::istream& kIs,
-                                     const StateVector& kSv,
-                                     std::shared_ptr<Assembly>& kAsm,
-                                     ErrorInfo* const kErr)
+Result StateMachineCompiler::compile(
+    std::istream& kIs,
+    const StateVector& kSv,
+    Ref<const StateMachineCompiler::Assembly>& kAsm,
+    ErrorInfo* const kErr)
 {
-    std::vector<Token> toks;
+    Vec<Token> toks;
     Result res = Tokenizer::tokenize(kIs, toks, kErr);
     if (res != SUCCESS)
     {
@@ -812,10 +778,11 @@ Result StateMachineCompiler::compile(std::istream& kIs,
     return compile(parse, kSv, kAsm, kErr);
 }
 
-Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
-                                     const StateVector& kSv,
-                                     std::shared_ptr<Assembly>& kAsm,
-                                     ErrorInfo* const kErr)
+Result StateMachineCompiler::compile(
+    const StateMachineParser::Parse& kParse,
+    const StateVector& kSv,
+    Ref<const StateMachineCompiler::Assembly>& kAsm,
+    ErrorInfo* const kErr)
 {
     CompilerState compState = {};
 
@@ -845,8 +812,8 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
     // Build map of state names to IDs.
     for (U32 i = 0; i < kParse.states.size(); ++i)
     {
-        const std::string& tokNameStr = kParse.states[i].tokName.str;
-        const std::string stateName =
+        const String& tokNameStr = kParse.states[i].tokName.str;
+        const String stateName =
             tokNameStr.substr(1, (tokNameStr.size() - 2));
         compState.stateIds[stateName] = (i + 1);
     }
@@ -881,9 +848,8 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
         {StateMachine::NO_STATE, nullptr, nullptr, nullptr}; // Null terminator
 
     // Collect expression stats needed by all expressions into a vector.
-    std::vector<IExpressionStats*> exprStatsVec;
-    for (const std::shared_ptr<ExpressionCompiler::Assembly>& expr
-         : compState.exprs)
+    Vec<IExpressionStats*> exprStatsVec;
+    for (const Ref<const ExpressionCompiler::Assembly>& expr : compState.exprs)
     {
         exprStatsVec.insert(exprStatsVec.end(),
                             expr->stats().begin(),

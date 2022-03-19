@@ -9,14 +9,14 @@
 #define CHECK_TOKENS(kSrc, kToksExpect)                                        \
 {                                                                              \
     std::stringstream ss(kSrc);                                                \
-    std::vector<Token> toksActual;                                             \
+    Vec<Token> toksActual;                                                     \
     CHECK_SUCCESS(Tokenizer::tokenize(ss, toksActual, nullptr));               \
     CHECK_EQUAL(kToksExpect,  toksActual);                                     \
 }
 
 #define CHECK_TOKEN(kSrc, kType, kStr, kLineNum, kColNum)                      \
 {                                                                              \
-    const std::vector<Token> toksExpect =                                      \
+    const Vec<Token> toksExpect =                                              \
     {                                                                          \
         {kType, kStr, kLineNum, kColNum}                                       \
     };                                                                         \
@@ -120,7 +120,7 @@ TEST(Tokenizer, Annotation)
 
 TEST(Tokenizer, Comment)
 {
-    const std::vector<Token> empty;
+    const Vec<Token> empty;
     CHECK_TOKENS("# hello world !#$%^", empty);
 }
 
@@ -141,7 +141,7 @@ TEST(Tokenizer, Comma)
 
 TEST(Tokenizer, OnlySpaces)
 {
-    const std::vector<Token> empty;
+    const Vec<Token> empty;
     CHECK_TOKENS("    ", empty);
 }
 
@@ -152,7 +152,7 @@ TEST(Tokenizer, OnlySpacesThenNewline)
 
 TEST(Tokenizer, EveryToken)
 {
-    const std::vector<Token> toksExpect =
+    const Vec<Token> toksExpect =
     {
         {Token::NEWLINE, "(newline)", 1, 1},
         {Token::NEWLINE, "(newline)", 2, 1},
@@ -197,7 +197,7 @@ TEST(Tokenizer, InvalidToken)
         "\n"
         "@foo 123.456\n"
         " foo$ [foo]"); // `$` is invalid
-    std::vector<Token> toks;
+    Vec<Token> toks;
     ErrorInfo err;
     CHECK_ERROR(E_TOK_INVALID, Tokenizer::tokenize(ss, toks, &err));
 
@@ -216,7 +216,7 @@ TEST(Tokenizer, InvalidToken)
 TEST(Tokenizer, NonexistentInputFile)
 {
     // Tokenizer returns error on nonexistent input file.
-    std::vector<Token> toks;
+    Vec<Token> toks;
     ErrorInfo err;
     CHECK_ERROR(E_TOK_FILE, Tokenizer::tokenize("foo.bar", toks, &err));
 

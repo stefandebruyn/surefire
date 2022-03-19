@@ -3,12 +3,10 @@
 
 #include <iostream>
 #include <regex>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
 #include "sf/config/EnumHash.hpp"
 #include "sf/config/ErrorInfo.hpp"
+#include "sf/config/StlTypes.hpp"
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Result.hpp"
 
@@ -33,12 +31,12 @@ struct Token final
         COMMA = 13
     };
 
-    static const std::unordered_map<Type, std::string, EnumHash> names;
+    static const Map<Type, String, EnumHash> names;
 
-    static const std::vector<std::pair<Type, std::regex>> regexes;
+    static const Vec<std::pair<Type, std::regex>> regexes;
 
     Type type;
-    std::string str;
+    String str;
     I32 lineNum;
     I32 colNum;
 
@@ -51,12 +49,12 @@ struct Token final
 
 namespace Tokenizer
 {
-    Result tokenize(std::string kFilePath,
-                    std::vector<Token>& kToks,
+    Result tokenize(String kFilePath,
+                    Vec<Token>& kToks,
                     ErrorInfo* const kErr);
 
     Result tokenize(std::istream& kIs,
-                    std::vector<Token>& kToks,
+                    Vec<Token>& kToks,
                     ErrorInfo* const kErr);
 }
 

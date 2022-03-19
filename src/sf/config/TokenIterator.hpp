@@ -1,15 +1,13 @@
 #ifndef SF_TOKEN_STREAM_HPP
 #define SF_TOKEN_STREAM_HPP
 
-#include <unordered_set>
-
 #include "sf/config/Tokenizer.hpp"
 
 class TokenIterator final
 {
 public:
 
-    typedef std::vector<Token>::const_iterator Iterator;
+    typedef Vec<Token>::const_iterator Iterator;
 
     static const Token NONE;
 
@@ -27,11 +25,11 @@ public:
 
     Token::Type type() const;
 
-    const std::string& str() const;
+    const String& str() const;
 
     void eat();
 
-    U32 next(const std::unordered_set<Token::Type> kTypes) const;
+    U32 next(const Set<Token::Type> kTypes) const;
 
     TokenIterator slice(const U32 kLower, const U32 kUpper);
 

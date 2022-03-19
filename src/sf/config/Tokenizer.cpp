@@ -7,15 +7,15 @@
 
 namespace Tokenizer
 {
-    Result tokenizeLine(const std::string& kLine,
+    Result tokenizeLine(const String& kLine,
                         const U32 kLineNum,
-                        std::vector<Token>& kToks,
+                        Vec<Token>& kToks,
                         ErrorInfo* const kErr);
 }
 
-Result Tokenizer::tokenizeLine(const std::string& kLine,
+Result Tokenizer::tokenizeLine(const String& kLine,
                                const U32 kLineNum,
-                               std::vector<Token>& kToks,
+                               Vec<Token>& kToks,
                                ErrorInfo* const kErr)
 {
     // Index at which we'll try to match a token in the line. This index will
@@ -46,7 +46,7 @@ Result Tokenizer::tokenizeLine(const std::string& kLine,
         for (const std::pair<Token::Type, std::regex>& tokType : Token::regexes)
         {
             // Try to match token at the current position.
-            std::string substr = kLine.substr(idx);
+            String substr = kLine.substr(idx);
             std::smatch match;
             if (std::regex_search(substr,
                                   match,
@@ -107,7 +107,7 @@ Result Tokenizer::tokenizeLine(const std::string& kLine,
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-const std::unordered_map<Token::Type, std::string, EnumHash> Token::names =
+const Map<Token::Type, String, EnumHash> Token::names =
 {
     {Token::SECTION, "section"},
     {Token::LABEL, "label"},
@@ -125,7 +125,7 @@ const std::unordered_map<Token::Type, std::string, EnumHash> Token::names =
     {Token::COMMA, "comma"}
 };
 
-const std::vector<std::pair<Token::Type, std::regex>> Token::regexes =
+const Vec<std::pair<Token::Type, std::regex>> Token::regexes =
 {
     {Token::SECTION, std::regex("\\s*(\\[[a-zA-Z0-9_/]+\\])\\s*")},
     {Token::LABEL, std::regex("\\s*([.][a-zA-Z][a-zA-Z0-9_\\[\\]-]+)\\s*")},
@@ -163,8 +163,8 @@ std::ostream& operator<<(std::ostream& kOs, const Token& kTok)
                 << ")");
 }
 
-Result Tokenizer::tokenize(std::string kFilePath,
-                                 std::vector<Token>& kToks,
+Result Tokenizer::tokenize(String kFilePath,
+                                 Vec<Token>& kToks,
                                  ErrorInfo* const kErr)
 {
     std::ifstream ifs(kFilePath);
@@ -187,7 +187,7 @@ Result Tokenizer::tokenize(std::string kFilePath,
 }
 
 Result Tokenizer::tokenize(std::istream& kIs,
-                           std::vector<Token>& kToks,
+                           Vec<Token>& kToks,
                            ErrorInfo* const kErr)
 {
     if ((kErr != nullptr) && (kErr->filePath.size() == 0))
@@ -195,7 +195,7 @@ Result Tokenizer::tokenize(std::istream& kIs,
         kErr->filePath = "(no file)";
     }
 
-    std::string line;
+    String line;
     U32 lineNum = 1;
     while (std::getline(kIs, line))
     {

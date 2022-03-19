@@ -6,19 +6,14 @@
 
 /////////////////////////////////// Private ////////////////////////////////////
 
-namespace StateVectorCompiler
+namespace
 {
-    const char* const errText = "state vector config error";
 
-    void allocateElement(const StateVectorParser::ElementParse& kElem,
-                         StateVector::ElementConfig& kElemInfo,
-                         char*& kBumpPtr);
-}
+const char* const errText = "state vector config error";
 
-void StateVectorCompiler::allocateElement(
-    const StateVectorParser::ElementParse& kElem,
-    StateVector::ElementConfig& kElemInfo,
-    char*& kBumpPtr)
+void allocateElement(const StateVectorParser::ElementParse& kElem,
+                     StateVector::ElementConfig& kElemInfo,
+                     char*& kBumpPtr)
 {
     // Allocate a copy of the element name for the element config.
     char* const nameCpy = new char[kElem.tokName.str.size() + 1];
@@ -128,6 +123,8 @@ void StateVectorCompiler::allocateElement(
     }
 }
 
+} // Anonymous namespace
+
 /////////////////////////////////// Public /////////////////////////////////////
 
 StateVectorCompiler::Assembly::Assembly(
@@ -174,9 +171,10 @@ const StateVectorParser::Parse& StateVectorCompiler::Assembly::getParse() const
     return mParse;
 }
 
-Result StateVectorCompiler::compile(const std::string kFilePath,
-                                    std::shared_ptr<Assembly>& kAsm,
-                                    ErrorInfo* const kErr)
+Result StateVectorCompiler::compile(
+    const String kFilePath,
+    Ref<const StateVectorCompiler::Assembly>& kAsm,
+    ErrorInfo* const kErr)
 {
     if (kErr != nullptr)
     {
@@ -197,11 +195,12 @@ Result StateVectorCompiler::compile(const std::string kFilePath,
     return compile(ifs, kAsm, kErr);
 }
 
-Result StateVectorCompiler::compile(std::istream& kIs,
-                                    std::shared_ptr<Assembly>& kAsm,
-                                    ErrorInfo* const kErr)
+Result StateVectorCompiler::compile(
+    std::istream& kIs,
+    Ref<const StateVectorCompiler::Assembly>& kAsm,
+    ErrorInfo* const kErr)
 {
-    std::vector<Token> toks;
+    Vec<Token> toks;
     Result res = Tokenizer::tokenize(kIs, toks, kErr);
     if (res != SUCCESS)
     {
@@ -226,13 +225,14 @@ Result StateVectorCompiler::compile(std::istream& kIs,
     return compile(parse, kAsm, kErr);
 }
 
-Result StateVectorCompiler::compile(const StateVectorParser::Parse& kParse,
-                                    std::shared_ptr<Assembly>& kAsm,
-                                    ErrorInfo* const kErr)
+Result StateVectorCompiler::compile(
+    const StateVectorParser::Parse& kParse,
+    Ref<const StateVectorCompiler::Assembly>& kAsm,
+    ErrorInfo* const kErr)
 {
     // Check that region names are unique. While we do this, collect all the
     // elements in a list so that we can check element name uniqueness.
-    std::vector<const StateVectorParser::ElementParse*> elems;
+    Vec<const StateVectorParser::ElementParse*> elems;
     for (const StateVectorParser::RegionParse& i : kParse.regions)
     {
         for (const StateVectorParser::RegionParse& j : kParse.regions)
@@ -358,7 +358,7 @@ Result StateVectorCompiler::compile(const StateVectorParser::Parse& kParse,
 
     // Create state vector config and wrap it in an assembly.
     const StateVector::Config svConfig = {elemConfigs, regionConfigs};
-    kAsm.reset(new Assembly(svConfig, svBacking, kParse));
+    kAsm.reset(new StateVectorCompiler::Assembly(svConfig, svBacking, kParse));
 
     return SUCCESS;
 }

@@ -6,7 +6,7 @@
 #define CHECK_ARG_CNT(kFuncNode, kExpectCnt)                                   \
 {                                                                              \
     U32 cnt = 0;                                                               \
-    std::shared_ptr<ExpressionParser::Parse> _node = kFuncNode;                \
+    Ref<const ExpressionParser::Parse> _node = kFuncNode;                      \
     while (_node->left)                                                        \
     {                                                                          \
         ++cnt;                                                                 \
@@ -15,9 +15,8 @@
     CHECK_EQUAL(kExpectCnt, cnt);                                              \
 }
 
-static void checkParsesEqual(
-    const std::shared_ptr<ExpressionParser::Parse> kNodeA,
-    const std::shared_ptr<ExpressionParser::Parse> kNodeB)
+static void checkParsesEqual(const Ref<const ExpressionParser::Parse> kNodeA,
+                             const Ref<const ExpressionParser::Parse> kNodeB)
 {
     CHECK_EQUAL((kNodeA == nullptr), (kNodeB == nullptr));
 
@@ -40,7 +39,7 @@ static void checkParseError(TokenIterator& kIt,
 {
     // Got expected return code.
     ErrorInfo err;
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_ERROR(kRes, ExpressionParser::parse(kIt, parse, &err));
 
     // Line and column numbers of offending token are correctly identified.
@@ -64,7 +63,7 @@ TEST_GROUP(ExpressionParser)
 TEST(ExpressionParser, OneConstant)
 {
     TOKENIZE("10");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
     CHECK_TRUE(parse->data == toks[0]);
     CHECK_TRUE(parse->left == nullptr);
@@ -74,7 +73,7 @@ TEST(ExpressionParser, OneConstant)
 TEST(ExpressionParser, OneVariable)
 {
     TOKENIZE("foo");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
     CHECK_TRUE(parse->data == toks[0]);
     CHECK_TRUE(parse->left == nullptr);
@@ -89,10 +88,10 @@ TEST(ExpressionParser, SimplePrecedence)
     //    / \
     //   2   3
     TOKENIZE("1 + 2 * 3");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // 1 +
     node = parse->left;
@@ -126,10 +125,10 @@ TEST(ExpressionParser, SimplePrecedenceWithParens)
     //  / \
     // 1   2
     TOKENIZE("(1 + 2) * 3");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // 1 + 2
     node = parse->left->left;
@@ -165,10 +164,10 @@ TEST(ExpressionParser, BinaryOperatorLeftAssociativity)
     //  / \
     // 1   foo
     TOKENIZE("1 + foo + 2 + bar");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // 1 + foo
     node = parse->left->left->left;
@@ -209,10 +208,10 @@ TEST(ExpressionParser, UnaryOperator)
     //   \
     //   foo
     TOKENIZE("NOT foo");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     node = parse;
     CHECK_TRUE(node->data == toks[0]);
@@ -232,10 +231,10 @@ TEST(ExpressionParser, UnaryAndBinaryOperator)
     //        \
     //        bar
     TOKENIZE("foo AND NOT bar");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // foo AND
     node = parse->left;
@@ -270,10 +269,10 @@ TEST(ExpressionParser, ArithmeticOperators)
     //       / \
     //      c   d
     TOKENIZE("a + b - c * d / f");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // a + b
     node = parse->left->left;
@@ -338,10 +337,10 @@ TEST(ExpressionParser, ComparisonOperators)
     //                       / \
     //                      g   h
     TOKENIZE("a < b == c <= d != e > f == g >= h");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // a < b
     node = parse->left->left->left->left;
@@ -423,10 +422,10 @@ TEST(ExpressionParser, LogicalOperators)
     //           \
     //            c
     TOKENIZE("a AND b OR NOT c");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // a AND b
     node = parse->left->left;
@@ -469,10 +468,10 @@ TEST(ExpressionParser, NestedParentheses)
     //    / \
     //   b   c
     TOKENIZE("((a AND (b OR c)) OR d) AND e");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // a AND
     node = parse->left->left->left;
@@ -519,7 +518,7 @@ TEST(ExpressionParser, NestedParentheses)
 TEST(ExpressionParser, ExtraParenthesesOnOneTerm)
 {
     TOKENIZE("(((a)))");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
     CHECK_TRUE(parse->data == toks[3]);
     CHECK_TRUE(parse->left == nullptr);
@@ -534,10 +533,10 @@ TEST(ExpressionParser, UnaryOperatorRightAssociativity)
     //    \
     //     a
     TOKENIZE("NOT NOT a");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // NOT
     node = parse;
@@ -563,10 +562,10 @@ TEST(ExpressionParser, ParenthesesAfterBinaryOperator)
     //    / \
     //   2   3
     TOKENIZE("1 + (2 + 3)");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // 1 +
     node = parse->left;
@@ -600,10 +599,10 @@ TEST(ExpressionParser, ParenthesesAfterUnaryOperator)
     //  / \
     // a   b
     TOKENIZE("NOT (a AND b)");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // NOT
     node = parse;
@@ -628,10 +627,10 @@ TEST(ExpressionParser, ParenthesesAfterUnaryOperator)
 TEST(ExpressionParser, ExpandDoubleInequalityLtLte)
 {
     TOKENIZE("a < b <= c");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> parseExpect;
+    Ref<const ExpressionParser::Parse> parseExpect;
     {
         TOKENIZE("a < b AND b <= c");
         CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
@@ -643,10 +642,10 @@ TEST(ExpressionParser, ExpandDoubleInequalityLtLte)
 TEST(ExpressionParser, ExpandDoubleInequalityGtGte)
 {
     TOKENIZE("a > b >= c");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> parseExpect;
+    Ref<const ExpressionParser::Parse> parseExpect;
     {
         TOKENIZE("a > b AND b >= c");
         CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
@@ -658,10 +657,10 @@ TEST(ExpressionParser, ExpandDoubleInequalityGtGte)
 TEST(ExpressionParser, ExpandTripleInequality)
 {
     TOKENIZE("a < b < c < d");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> parseExpect;
+    Ref<const ExpressionParser::Parse> parseExpect;
     {
         TOKENIZE("a < b AND b < c AND c < d");
         CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
@@ -673,10 +672,10 @@ TEST(ExpressionParser, ExpandTripleInequality)
 TEST(ExpressionParser, ExpandDoubleInequalityNestedExpression)
 {
     TOKENIZE("a + b < c + d < e + f");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> parseExpect;
+    Ref<const ExpressionParser::Parse> parseExpect;
     {
         TOKENIZE("a + b < c + d AND c + d < e + f");
         CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
@@ -688,10 +687,10 @@ TEST(ExpressionParser, ExpandDoubleInequalityNestedExpression)
 TEST(ExpressionParser, FunctionCallNoArgs)
 {
     TOKENIZE("foo()");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // foo
     node = parse;
@@ -710,10 +709,10 @@ TEST(ExpressionParser, FunctionCallOneArg)
     //  \
     //   a
     TOKENIZE("foo(a)");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // foo
     node = parse;
@@ -740,10 +739,10 @@ TEST(ExpressionParser, FunctionCallTwoArgs)
     //  \
     //   b
     TOKENIZE("foo(a, b)");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // foo
     node = parse;
@@ -779,10 +778,10 @@ TEST(ExpressionParser, FunctionCallThreeArgs)
     //  \
     //   c
     TOKENIZE("foo(a, b, c)");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // foo
     node = parse;
@@ -820,10 +819,10 @@ TEST(ExpressionParser, FunctionCallExpressionArg)
     //  / \
     // a   b
     TOKENIZE("foo(a + b)");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // foo
     node = parse;
@@ -862,10 +861,10 @@ TEST(ExpressionParser, FunctionCallTwoExpressionArgs)
     //  / \
     // c   d
     TOKENIZE("foo(a + b, c OR d)");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // foo
     node = parse;
@@ -913,10 +912,10 @@ TEST(ExpressionParser, FunctionCallParenthesizedExpressionArg)
     //  / \
     // a   b
     TOKENIZE("foo((a + b))");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // foo
     node = parse;
@@ -955,10 +954,10 @@ TEST(ExpressionParser, FunctionCallMultipleParenthesizedExpressionArgs)
     //  / \
     // c   d
     TOKENIZE("foo((a + b), (c OR d))");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // foo
     node = parse;
@@ -1008,10 +1007,10 @@ TEST(ExpressionParser, NestedFunctionCall)
     //  \
     //   a
     TOKENIZE("foo(bar(a))");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // foo
     node = parse;
@@ -1053,10 +1052,10 @@ TEST(ExpressionParser, MultipleNestedFunctionCalls)
     //   \
     //    b
     TOKENIZE("foo(bar(a), baz(b))");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
-    std::shared_ptr<ExpressionParser::Parse> node;
+    Ref<const ExpressionParser::Parse> node;
 
     // foo
     node = parse;
@@ -1131,7 +1130,7 @@ TEST(ExpressionParserErrors, SyntaxErrorInFunctionCallArgument)
 TEST(ExpressionParserErrors, NoTokens)
 {
     TOKENIZE("");
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_EMPTY, ExpressionParser::parse(it, parse, nullptr));
     CHECK_TRUE(parse == nullptr);
 }
@@ -1152,7 +1151,7 @@ TEST(ExpressionParserErrors, UnknownOperator)
 {
     TOKENIZE("a + b");
     toks[1].str = "foo";
-    std::shared_ptr<ExpressionParser::Parse> parse;
+    Ref<const ExpressionParser::Parse> parse;
     CHECK_ERROR(E_EXP_OP, ExpressionParser::parse(it, parse, nullptr));
     CHECK_TRUE(parse == nullptr);
 }

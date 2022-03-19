@@ -7,31 +7,23 @@
 
 /////////////////////////////////// Private ////////////////////////////////////
 
-namespace StateMachineParser
+namespace
 {
-    const char* const errText = "state machine config error";
 
-    const std::regex aliasRegex("@ALIAS=([a-zA-Z][a-zA-Z0-9_]*)");
+const char* const errText = "state machine config error";
 
-    Result parseAction(TokenIterator kIt,
-                       std::shared_ptr<ActionParse>& kAction,
-                       ErrorInfo* const kErr);
+const std::regex aliasRegex("@ALIAS=([a-zA-Z][a-zA-Z0-9_]*)");
 
-    Result parseBlock(TokenIterator kIt,
-                      std::shared_ptr<BlockParse>& kBlock,
-                      ErrorInfo* const kErr);
-}
-
-Result StateMachineParser::parseAction(TokenIterator kIt,
-                                       std::shared_ptr<ActionParse>& kAction,
-                                       ErrorInfo* const kErr)
+Result parseAction(TokenIterator kIt,
+                   Ref<StateMachineParser::ActionParse>& kAction,
+                   ErrorInfo* const kErr)
 {
-    kAction.reset(new ActionParse{});
+    StateMachineParser::ActionParse action{};
 
     const Token& tok = kIt.take();
     if (tok.type == Token::IDENTIFIER)
     {
-        kAction->tokRhs = tok;
+        action.tokRhs = tok;
 
         // Check that tokens remain.
         if (kIt.eof())
@@ -61,7 +53,7 @@ Result StateMachineParser::parseAction(TokenIterator kIt,
 
         // Parse expression after assignment operator.
         const Result res = ExpressionParser::parse(
-            kIt.slice(kIt.idx(), kIt.size()), kAction->lhs, kErr);
+            kIt.slice(kIt.idx(), kIt.size()), action.lhs, kErr);
         if (res != SUCCESS)
         {
             return res;
@@ -94,7 +86,7 @@ Result StateMachineParser::parseAction(TokenIterator kIt,
         }
 
         // Take destination state token.
-        kAction->tokDestState = kIt.take();
+        action.tokDestState = kIt.take();
 
         if (!kIt.eof())
         {
@@ -112,15 +104,17 @@ Result StateMachineParser::parseAction(TokenIterator kIt,
         return E_SMP_ACT_TOK;
     }
 
+    kAction.reset(new StateMachineParser::ActionParse(action));
+
     return SUCCESS;
 }
 
-Result StateMachineParser::parseBlock(TokenIterator kIt,
-                                      std::shared_ptr<BlockParse>& kBlock,
-                                      ErrorInfo* const kErr)
+Result parseBlock(TokenIterator kIt,
+                  Ref<StateMachineParser::BlockParse>& kBlock,
+                  ErrorInfo* const kErr)
 {
-    std::shared_ptr<BlockParse> block;
-    std::shared_ptr<BlockParse> firstBlock;
+    Ref<StateMachineParser::BlockParse> block;
+    Ref<StateMachineParser::BlockParse> firstBlock;
     Result res = SUCCESS;
 
     while (!kIt.eof())
@@ -130,7 +124,7 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
             // Allocate first block on first iteration of this loop. This causes
             // an empty label to result in a null block pointer, as if the label
             // wasn't there at all.
-            block.reset(new BlockParse{});
+            block.reset(new StateMachineParser::BlockParse{});
             firstBlock = block;
         }
 
@@ -285,7 +279,7 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
                     {
                         // Unbalanced braces.
                         ConfigUtil::setError(kErr, kIt.tok(), errText,
-                                            "unbalanced brace");
+                                             "unbalanced brace");
                         return E_SMP_BRACE;
                     }
                 }
@@ -339,18 +333,24 @@ Result StateMachineParser::parseBlock(TokenIterator kIt,
         if (!kIt.eof())
         {
             // Add another block in the chain.
-            block->next.reset(new BlockParse{});
+            block->next.reset(new StateMachineParser::BlockParse{});
             block = block->next;
         }
     }
 
     kBlock = firstBlock;
+
     return SUCCESS;
 }
 
-Result StateMachineParser::parseStateSection(TokenIterator& kIt,
-                                             StateParse& kState,
-                                             ErrorInfo* const kErr)
+} // Anonymous namespace
+
+/////////////////////////////////// Public /////////////////////////////////////
+
+Result StateMachineParser::parseStateSection(
+    TokenIterator& kIt,
+    StateMachineParser::StateParse& kState,
+    ErrorInfo* const kErr)
 {
     // Assert that iterator is currently positioned at a section.
     SF_ASSERT(kIt.type() == Token::SECTION);
@@ -376,7 +376,7 @@ Result StateMachineParser::parseStateSection(TokenIterator& kIt,
         const U32 idxLabelEnd = kIt.next({Token::LABEL, Token::SECTION});
 
         // Parse label block.
-        std::shared_ptr<BlockParse> label;
+        Ref<StateMachineParser::BlockParse> label;
         const Result res = parseBlock(kIt.slice(kIt.idx(), idxLabelEnd),
                                       label,
                                       kErr);
@@ -426,9 +426,10 @@ Result StateMachineParser::parseStateSection(TokenIterator& kIt,
     return SUCCESS;
 }
 
-Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
-                                             Parse& kParse,
-                                             ErrorInfo* const kErr)
+Result StateMachineParser::parseLocalSection(
+    TokenIterator& kIt,
+    StateMachineParser::Parse& kParse,
+    ErrorInfo* const kErr)
 {
     // Check that a local section has not already been parsed.
     if (kParse.hasLocalSection)
@@ -448,7 +449,7 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
     // Loop until end of token stream or another section.
     while (!kIt.eof() && (kIt.type() != Token::SECTION))
     {
-        LocalElementParse elemParse = {};
+        StateMachineParser::LocalElementParse elemParse = {};
 
         // Check that current token, which should be an element type, is an
         // identifier.
@@ -549,9 +550,10 @@ Result StateMachineParser::parseLocalSection(TokenIterator& kIt,
     return SUCCESS;
 }
 
-Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
-                                                   Parse& kParse,
-                                                   ErrorInfo* const kErr)
+Result StateMachineParser::parseStateVectorSection(
+    TokenIterator& kIt,
+    StateMachineParser::Parse& kParse,
+    ErrorInfo* const kErr)
 {
     // Check that a state vector section has not already been parsed.
     if (kParse.hasStateVectorSection)
@@ -572,7 +574,7 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
     // Loop until end of token stream or another section.
     while (!kIt.eof() && (kIt.type() != Token::SECTION))
     {
-        StateVectorElementParse elemParse = {};
+        StateMachineParser::StateVectorElementParse elemParse = {};
 
         // Check that current token, which should be the element type, is an
         // identifier.
@@ -656,14 +658,12 @@ Result StateMachineParser::parseStateVectorSection(TokenIterator& kIt,
     return SUCCESS;
 }
 
-/////////////////////////////////// Public /////////////////////////////////////
-
-Result StateMachineParser::parse(const std::vector<Token>& kToks,
-                                 Parse& kParse,
+Result StateMachineParser::parse(const Vec<Token>& kToks,
+                                 StateMachineParser::Parse& kParse,
                                  ErrorInfo* const kErr)
 {
     TokenIterator it(kToks.begin(), kToks.end());
-    Parse parse = {};
+    StateMachineParser::Parse parse = {};
 
     while (!it.eof())
     {
@@ -697,7 +697,7 @@ Result StateMachineParser::parse(const std::vector<Token>& kToks,
                 else
                 {
                     // State section.
-                    StateParse state = {};
+                    StateMachineParser::StateParse state = {};
                     res = parseStateSection(it, state, kErr);
                     if (res != SUCCESS)
                     {

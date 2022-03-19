@@ -8,7 +8,7 @@
 
 #define INIT_SV(kSrc)                                                          \
     std::stringstream svSrc(kSrc);                                             \
-    std::shared_ptr<StateVectorCompiler::Assembly> svAsm;                      \
+    Ref<const StateVectorCompiler::Assembly> svAsm;                            \
     CHECK_SUCCESS(StateVectorCompiler::compile(svSrc, svAsm, nullptr));        \
     StateVector sv;                                                            \
     CHECK_SUCCESS(StateVector::create(svAsm->getConfig(), sv));
@@ -16,7 +16,7 @@
 #define INIT_SM(kSrc, kStateElemName, kInitState)                              \
     /* Compile state machine. */                                               \
     std::stringstream smSrc(kSrc);                                             \
-    std::shared_ptr<StateMachineCompiler::Assembly> smAsm;                     \
+    Ref<const StateMachineCompiler::Assembly> smAsm;                           \
     CHECK_SUCCESS(StateMachineCompiler::compile(smSrc, sv, smAsm, nullptr));   \
                                                                                \
     /* Set initial state. */                                                   \
@@ -57,7 +57,7 @@ static void checkCompileError(const StateMachineParser::Parse& kParse,
                               const I32 kColNum)
 {
     // Got expected return code from compiler.
-    std::shared_ptr<StateMachineCompiler::Assembly> smAsm;
+    Ref<const StateMachineCompiler::Assembly> smAsm;
     ErrorInfo err;
     CHECK_ERROR(kRes, StateMachineCompiler::compile(kParse, kSv, smAsm, &err));
 

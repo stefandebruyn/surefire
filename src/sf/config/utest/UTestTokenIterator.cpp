@@ -1,7 +1,7 @@
 #include "sf/config/TokenIterator.hpp"
 #include "sf/utest/UTest.hpp"
 
-static const std::vector<Token> gToks =
+static const Vec<Token> gToks =
 {
     {Token::CONSTANT, "100", -1, -1},
     {Token::LABEL, "[foo]", -1, -1},
@@ -9,7 +9,7 @@ static const std::vector<Token> gToks =
     {Token::ANNOTATION, "@foo", -1, -1}
 };
 
-static const std::vector<Token> gToksNewlines =
+static const Vec<Token> gToksNewlines =
 {
     {Token::CONSTANT, "100", -1, -1},
     {Token::LABEL, "[foo]", -1, -1},

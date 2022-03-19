@@ -148,7 +148,7 @@ TEST(StateMachineParserStateSection, MultipleUnguardedActions)
     CHECK_TRUE(parse.exit == nullptr);
 
     // a = 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard == nullptr);
     CHECK_TRUE(block->ifBlock == nullptr);
     CHECK_TRUE(block->elseBlock == nullptr);
@@ -192,14 +192,14 @@ TEST(StateMachineParserStateSection, IfAction)
     CHECK_TRUE(parse.exit == nullptr);
 
     // a == 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard != nullptr);
     CHECK_TRUE(block->ifBlock != nullptr);
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action == nullptr);
     CHECK_TRUE(block->next == nullptr);
 
-    std::shared_ptr<ExpressionParser::Parse> node = block->guard;
+    Ref<const ExpressionParser::Parse> node = block->guard;
     CHECK_EQUAL(toks[5], node->data);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
@@ -248,14 +248,14 @@ TEST(StateMachineParserStateSection, IfActionElseAction)
     CHECK_TRUE(parse.exit == nullptr);
 
     // a == 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard != nullptr);
     CHECK_TRUE(block->ifBlock != nullptr);
     CHECK_TRUE(block->elseBlock != nullptr);
     CHECK_TRUE(block->action == nullptr);
     CHECK_TRUE(block->next == nullptr);
 
-    std::shared_ptr<ExpressionParser::Parse> node = block->guard;
+    Ref<const ExpressionParser::Parse> node = block->guard;
     CHECK_EQUAL(toks[5], node->data);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
@@ -318,14 +318,14 @@ TEST(StateMachineParserStateSection, IfMultipleActions)
     CHECK_TRUE(parse.exit == nullptr);
 
     // a == 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard != nullptr);
     CHECK_TRUE(block->ifBlock != nullptr);
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action == nullptr);
     CHECK_TRUE(block->next == nullptr);
 
-    std::shared_ptr<ExpressionParser::Parse> node = block->guard;
+    Ref<const ExpressionParser::Parse> node = block->guard;
     CHECK_EQUAL(toks[5], node->data);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
@@ -389,14 +389,14 @@ TEST(StateMachineParserStateSection, IfMultipleActionsElseAction)
     CHECK_TRUE(parse.exit == nullptr);
 
     // a == 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard != nullptr);
     CHECK_TRUE(block->ifBlock != nullptr);
     CHECK_TRUE(block->elseBlock != nullptr);
     CHECK_TRUE(block->action == nullptr);
     CHECK_TRUE(block->next == nullptr);
 
-    std::shared_ptr<ExpressionParser::Parse> node = block->guard;
+    Ref<const ExpressionParser::Parse> node = block->guard;
     CHECK_EQUAL(toks[5], node->data);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
@@ -475,14 +475,14 @@ TEST(StateMachineParserStateSection, IfMultipleActionsElseMultipleActions)
     CHECK_TRUE(parse.exit == nullptr);
 
     // a == 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard != nullptr);
     CHECK_TRUE(block->ifBlock != nullptr);
     CHECK_TRUE(block->elseBlock != nullptr);
     CHECK_TRUE(block->action == nullptr);
     CHECK_TRUE(block->next == nullptr);
 
-    std::shared_ptr<ExpressionParser::Parse> node = block->guard;
+    Ref<const ExpressionParser::Parse> node = block->guard;
     CHECK_EQUAL(toks[5], node->data);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
@@ -566,14 +566,14 @@ TEST(StateMachineParserStateSection, NestedColonGuards)
     CHECK_TRUE(parse.exit == nullptr);
 
     // a == 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard != nullptr);
     CHECK_TRUE(block->ifBlock != nullptr);
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action == nullptr);
     CHECK_TRUE(block->next == nullptr);
 
-    std::shared_ptr<ExpressionParser::Parse> node = block->guard;
+    Ref<const ExpressionParser::Parse> node = block->guard;
     CHECK_EQUAL(toks[5], node->data);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
@@ -648,14 +648,14 @@ TEST(StateMachineParserStateSection, NestedBraceGuards)
     CHECK_TRUE(parse.exit == nullptr);
 
     // a == 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard != nullptr);
     CHECK_TRUE(block->ifBlock != nullptr);
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action == nullptr);
     CHECK_TRUE(block->next == nullptr);
 
-    std::shared_ptr<ExpressionParser::Parse> node = block->guard;
+    Ref<const ExpressionParser::Parse> node = block->guard;
     CHECK_EQUAL(toks[5], node->data);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
@@ -727,14 +727,14 @@ TEST(StateMachineParserStateSection, ColonGuardFollowedByAction)
     CHECK_TRUE(parse.exit == nullptr);
 
     // a == 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard != nullptr);
     CHECK_TRUE(block->ifBlock != nullptr);
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action == nullptr);
     CHECK_TRUE(block->next != nullptr);
 
-    std::shared_ptr<ExpressionParser::Parse> node = block->guard;
+    Ref<const ExpressionParser::Parse> node = block->guard;
     CHECK_EQUAL(toks[5], node->data);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
@@ -795,14 +795,14 @@ TEST(StateMachineParserStateSection, BraceGuardFollowedByAction)
     CHECK_TRUE(parse.exit == nullptr);
 
     // a == 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard != nullptr);
     CHECK_TRUE(block->ifBlock != nullptr);
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action == nullptr);
     CHECK_TRUE(block->next != nullptr);
 
-    std::shared_ptr<ExpressionParser::Parse> node = block->guard;
+    Ref<const ExpressionParser::Parse> node = block->guard;
     CHECK_EQUAL(toks[5], node->data);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
@@ -863,14 +863,14 @@ TEST(StateMachineParserStateSection, NewlineAgnosticExceptForGuardsAndActions)
     CHECK_TRUE(parse.exit == nullptr);
 
     // a == 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard != nullptr);
     CHECK_TRUE(block->ifBlock != nullptr);
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action == nullptr);
     CHECK_TRUE(block->next != nullptr);
 
-    std::shared_ptr<ExpressionParser::Parse> node = block->guard;
+    Ref<const ExpressionParser::Parse> node = block->guard;
     CHECK_EQUAL(toks[7], node->data);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
@@ -934,7 +934,7 @@ TEST(StateMachineParserStateSection, ActionInEveryLabel)
     CHECK_TRUE(parse.exit != nullptr);
 
     // a = 1
-    std::shared_ptr<StateMachineParser::BlockParse> block = parse.entry;
+    Ref<const StateMachineParser::BlockParse> block = parse.entry;
     CHECK_TRUE(block->guard == nullptr);
     CHECK_TRUE(block->ifBlock == nullptr);
     CHECK_TRUE(block->elseBlock == nullptr);
