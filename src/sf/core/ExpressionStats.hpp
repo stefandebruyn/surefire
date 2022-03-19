@@ -11,11 +11,33 @@ class IExpressionStats
 {
 public:
 
+    IExpressionStats() = default;
+
+    ///
+    /// @brief Destructor.
+    ///
+    virtual ~IExpressionStats() = default;
+
     ///
     /// @brief Evaluates the expression, adds the new value to the history, and
     /// discards the oldest value if the history is full.
     ///
     virtual void update() = 0;
+
+    virtual F64 mean() const = 0;
+
+    virtual F64 median() = 0;
+
+    virtual F64 min() const = 0;
+
+    virtual F64 max() const = 0;
+
+    virtual F64 range() const = 0;
+
+    IExpressionStats(const IExpressionStats&) = delete;
+    IExpressionStats(IExpressionStats&&) = delete;
+    IExpressionStats& operator=(const IExpressionStats&) = delete;
+    IExpressionStats& operator=(IExpressionStats&&) = delete;
 };
 
 ///
@@ -86,7 +108,7 @@ public:
     ///
     /// @return History mean.
     ///
-    F64 mean() const
+    F64 mean() const final override
     {
         if (mSize == 0)
         {
@@ -109,7 +131,7 @@ public:
     ///
     /// @return History median.
     ///
-    F64 median()
+    F64 median() final override
     {
         if (mSize == 0)
         {
@@ -156,15 +178,15 @@ public:
     ///
     /// @return History min.
     ///
-    F64 min() const
+    F64 min() const final override
     {
         if (mSize == 0)
         {
             return 0.0;
         }
 
-        T minVal = Limits::max<T>();
-        for (U32 i = 0; i < mSize; ++i)
+        T minVal = mHist[0];
+        for (U32 i = 1; i < mSize; ++i)
         {
             if (mHist[i] < minVal)
             {
@@ -183,15 +205,15 @@ public:
     ///
     /// @return History max.
     ///
-    F64 max() const
+    F64 max() const final override
     {
         if (mSize == 0)
         {
             return 0.0;
         }
 
-        T maxVal = Limits::min<T>();
-        for (U32 i = 0; i < mSize; ++i)
+        T maxVal = mHist[0];
+        for (U32 i = 1; i < mSize; ++i)
         {
             if (mHist[i] > maxVal)
             {
@@ -210,7 +232,7 @@ public:
     ///
     /// @return History range.
     ///
-    F64 range() const
+    F64 range() const final override
     {
         return (max() - min());
     }
@@ -228,6 +250,11 @@ private:
     T mSorted[THistSize];
 
     ///
+    /// @brief Expression.
+    ///
+    const IExprNode<T>& mExpr;
+
+    ///
     /// @brief Number of times a new value has been added to the history.
     ///
     U32 mUpdates;
@@ -242,11 +269,20 @@ private:
     /// @brief Rolling sum of values in history.
     ///
     T mSum;
-
-    ///
-    /// @brief Expression.
-    ///
-    const IExprNode<T>& mExpr;
 };
+
+class RollAvgNode final : public IExprNode<F64>
+{
+public:
+
+    RollAvgNode(const IExpressionStats& kStats);
+
+    F64 evaluate() const final override;
+
+private:
+
+    const IExpressionStats& mStats;
+};
+
 
 #endif

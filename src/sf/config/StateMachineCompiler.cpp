@@ -733,6 +733,9 @@ StateMachineCompiler::Assembly::~Assembly()
     // Delete the state config array.
     delete[] mConfig.states;
 
+    // Delete expression stats array.
+    delete[] mConfig.stats;
+
     // Delete local state vector.
     delete mLocalSv;
 
@@ -877,6 +880,25 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
     states[compState.states.size()] =
         {StateMachine::NO_STATE, nullptr, nullptr, nullptr}; // Null terminator
 
+    // Collect expression stats needed by all expressions into a vector.
+    std::vector<IExpressionStats*> exprStatsVec;
+    for (const std::shared_ptr<ExpressionCompiler::Assembly>& expr
+         : compState.exprs)
+    {
+        exprStatsVec.insert(exprStatsVec.end(),
+                            expr->stats().begin(),
+                            expr->stats().end());
+    }
+
+    // Allocate array for expression stats pointers and copy the compiled
+    // expression stats pointers into this array.
+    IExpressionStats** const exprStats =
+        new IExpressionStats*[exprStatsVec.size() + 1];
+    std::memcpy(exprStats,
+                &exprStatsVec[0],
+                (sizeof(IExpressionStats*) * exprStatsVec.size()));
+    exprStats[exprStatsVec.size()] = nullptr; // Null terminator
+
     // Create state machine config. These element lookups are guaranteed to
     // succeed due to prior validation during compilation.
     const StateMachine::Config smConfig =
@@ -885,7 +907,7 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
         static_cast<Element<U64>*>(compState.elems["T"]),
         static_cast<Element<U64>*>(compState.elems["G"]),
         states,
-        nullptr
+        exprStats
     };
 
     // Compilation successful- return new state machine assembly.

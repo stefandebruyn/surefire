@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cmath>
+#include <iostream> // rm later
 
 #include "sf/config/ConfigUtil.hpp"
 #include "sf/config/ExpressionCompiler.hpp"
@@ -14,16 +15,32 @@ const char* const errText = "expression error";
 
 Result tokenToF64(const Token& kTok, F64& kRet, ErrorInfo* const kErr);
 
+Result compileRollAvgFunc(const std::shared_ptr<ExpressionParser::Parse> kParse,
+                          const std::vector<const StateVector*> kSvs,
+                          const IExprNode<F64>*& kNode,
+                          std::vector<const IExpression*>& kExprNodes,
+                          std::vector<IExpressionStats*>& kExprStats,
+                          ErrorInfo* const kErr);
+
+Result compileFunction(const std::shared_ptr<ExpressionParser::Parse> kParse,
+                       const std::vector<const StateVector*> kSvs,
+                       const IExprNode<F64>*& kNode,
+                       std::vector<const IExpression*>& kExprNodes,
+                       std::vector<IExpressionStats*>& kExprStats,
+                       ErrorInfo* const kErr);
+
 Result compileOperator(const std::shared_ptr<ExpressionParser::Parse> kParse,
                        const std::vector<const StateVector*> kSvs,
                        const IExprNode<F64>*& kNode,
                        std::vector<const IExpression*>& kExprNodes,
+                       std::vector<IExpressionStats*>& kExprStats,
                        ErrorInfo* const kErr);
 
 Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
                    const std::vector<const StateVector*> kSvs,
                    const IExprNode<F64>*& kNode,
                    std::vector<const IExpression*>& kExprNodes,
+                   std::vector<IExpressionStats*>& kExprStats,
                    ErrorInfo* const kErr);
 
 Result tokenToF64(const Token& kTok, F64& kRet, ErrorInfo* const kErr)
@@ -53,10 +70,100 @@ Result tokenToF64(const Token& kTok, F64& kRet, ErrorInfo* const kErr)
     return SUCCESS;
 }
 
+Result compileRollAvgFunc(const std::shared_ptr<ExpressionParser::Parse> kParse,
+                          const std::vector<const StateVector*> kSvs,
+                          const IExprNode<F64>*& kNode,
+                          std::vector<const IExpression*>& kExprNodes,
+                          std::vector<IExpressionStats*>& kExprStats,
+                          ErrorInfo* const kErr)
+{
+    SF_ASSERT(kParse != nullptr);
+
+    // Collect argument expression nodes.
+    std::vector<std::shared_ptr<ExpressionParser::Parse>> argNodes;
+    std::shared_ptr<ExpressionParser::Parse> node = kParse;
+    while (node->left != nullptr)
+    {
+        argNodes.push_back(node->left);
+        node = node->left;
+    }
+
+    if (argNodes.size() != 2)
+    {
+        // Wrong arity.
+        SF_ASSERT(false);
+    }
+
+    // Compile first argument expression; the expression being averaged.
+    const IExprNode<F64>* arg1Node = nullptr;
+    Result res = compileImpl(argNodes[0]->right,
+                             kSvs,
+                             arg1Node,
+                             kExprNodes,
+                             kExprStats,
+                             kErr);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    // Compile second argument expression, the rolling window size. This one
+    // gets passed through the entire compilation process so that we can
+    // evaluate it here and get a constant value for the window size.
+    std::shared_ptr<ExpressionCompiler::Assembly> arg2Asm;
+    res = ExpressionCompiler::compile(argNodes[1]->right,
+                                      kSvs,
+                                      ElementType::UINT32,
+                                      arg2Asm,
+                                      kErr);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+    // const U32 histSize =
+        // static_cast<const IExprNode<U32>*>(arg2Asm->root())->evaluate();
+
+    // Create expression stats for computing rolling average.
+    ExpressionStats<F64, 10>* const exprStats =
+        new ExpressionStats<F64, 10>(*arg1Node);
+    kExprStats.push_back(exprStats);
+
+    // Create node which returns the rolling average computed by the stats.
+    kNode = new RollAvgNode(*exprStats);
+    kExprNodes.push_back(kNode);
+
+    return SUCCESS;
+}
+
+Result compileFunction(const std::shared_ptr<ExpressionParser::Parse> kParse,
+                       const std::vector<const StateVector*> kSvs,
+                       const IExprNode<F64>*& kNode,
+                       std::vector<const IExpression*>& kExprNodes,
+                       std::vector<IExpressionStats*>& kExprStats,
+                       ErrorInfo* const kErr)
+{
+    SF_ASSERT(kParse != nullptr);
+
+    if (kParse->data.str == "ROLL_AVG")
+    {
+        return compileRollAvgFunc(kParse,
+                                  kSvs,
+                                  kNode,
+                                  kExprNodes,
+                                  kExprStats,
+                                  kErr);
+    }
+
+    // If we got this far, the function is not recognized.
+    SF_ASSERT(false);
+    return -1;
+}
+
 Result compileOperator(const std::shared_ptr<ExpressionParser::Parse> kParse,
                        const std::vector<const StateVector*> kSvs,
                        const IExprNode<F64>*& kNode,
                        std::vector<const IExpression*>& kExprNodes,
+                       std::vector<IExpressionStats*>& kExprStats,
                        ErrorInfo* const kErr)
 {
     // Look up operator info.
@@ -73,6 +180,7 @@ Result compileOperator(const std::shared_ptr<ExpressionParser::Parse> kParse,
                              kSvs,
                              nodeRight,
                              kExprNodes,
+                             kExprStats,
                              kErr);
     if (res != SUCCESS)
     {
@@ -89,6 +197,7 @@ Result compileOperator(const std::shared_ptr<ExpressionParser::Parse> kParse,
                           kSvs,
                           nodeLeft,
                           kExprNodes,
+                          kExprStats,
                           kErr);
         if (res != SUCCESS)
         {
@@ -223,6 +332,7 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
                    const std::vector<const StateVector*> kSvs,
                    const IExprNode<F64>*& kNode,
                    std::vector<const IExpression*>& kExprNodes,
+                   std::vector<IExpressionStats*>& kExprStats,
                    ErrorInfo* const kErr)
 {
     // Base case: parse is null, so we fell off the tree.
@@ -234,7 +344,12 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
     if (kParse->func)
     {
         // Expression node is a function call.
-        SF_ASSERT(false);
+        return compileFunction(kParse,
+                               kSvs,
+                               kNode,
+                               kExprNodes,
+                               kExprStats,
+                               kErr);
     }
     else if (kParse->data.type == Token::CONSTANT)
     {
@@ -423,6 +538,7 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
                                            kSvs,
                                            kNode,
                                            kExprNodes,
+                                           kExprStats,
                                            kErr);
         if (res != SUCCESS)
         {
@@ -438,17 +554,31 @@ Result compileImpl(const std::shared_ptr<ExpressionParser::Parse> kParse,
 /////////////////////////////////// Public /////////////////////////////////////
 
 ExpressionCompiler::Assembly::Assembly(
-        const IExpression* const kRoot,
-        const std::vector<const IExpression*> kNodes) :
-    mRoot(kRoot), mNodes(kNodes)
+    const IExpression* const kRoot,
+    const std::vector<const IExpression*> kNodes,
+    const std::vector<IExpressionStats*> kStats) :
+    mRoot(kRoot), mNodes(kNodes), mStats(kStats)
 {
+}
+
+const std::vector<IExpressionStats*>& ExpressionCompiler::Assembly::stats()
+    const
+{
+    return mStats;
 }
 
 ExpressionCompiler::Assembly::~Assembly()
 {
+    // Delete expression nodes.
     for (const IExpression* const node : mNodes)
     {
         delete node;
+    }
+
+    // Delete expression stats.
+    for (const IExpressionStats* const stats : mStats)
+    {
+        delete stats;
     }
 }
 
@@ -470,18 +600,31 @@ Result ExpressionCompiler::compile(
         return E_EXC_NULL;
     }
 
-    // Collect allocated expression nodes in this vector.
+    // Allocated expression nodes will be collected in this vector.
     std::vector<const IExpression*> exprNodes;
+
+    // Allocated expression stats will be collected in this vector.
+    std::vector<IExpressionStats*> exprStats;
 
     // Compile expression starting at root.
     const IExprNode<F64>* root = nullptr;
-    const Result res = compileImpl(kParse, kSvs, root, exprNodes, kErr);
+    const Result res = compileImpl(kParse,
+                                   kSvs,
+                                   root,
+                                   exprNodes,
+                                   exprStats,
+                                   kErr);
     if (res != SUCCESS)
     {
-        // Aborting compilation, so delete all allocated nodes.
+        // Delete all allocations since aborting compilation.
         for (const IExpression* const node : exprNodes)
         {
             delete node;
+        }
+
+        for (const IExpressionStats* const stats : exprStats)
+        {
+            delete stats;
         }
 
         return res;
@@ -544,7 +687,7 @@ Result ExpressionCompiler::compile(
     exprNodes.push_back(newRoot);
 
     // Return compiled expression assembly.
-    kAsm.reset(new ExpressionCompiler::Assembly(newRoot, exprNodes));
+    kAsm.reset(new ExpressionCompiler::Assembly(newRoot, exprNodes, exprStats));
 
     return SUCCESS;
 }

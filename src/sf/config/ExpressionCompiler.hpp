@@ -5,6 +5,7 @@
 
 #include "sf/config/ExpressionParser.hpp"
 #include "sf/core/Expression.hpp"
+#include "sf/core/ExpressionStats.hpp"
 #include "sf/core/StateVector.hpp"
 
 namespace ExpressionCompiler
@@ -14,17 +15,22 @@ namespace ExpressionCompiler
     public:
 
         Assembly(const IExpression* const kRoot,
-                 const std::vector<const IExpression*> kNodes);
+                 const std::vector<const IExpression*> kNodes,
+                 const std::vector<IExpressionStats*> kStats);
 
         ~Assembly();
 
         const IExpression* root() const;
+
+        const std::vector<IExpressionStats*>& stats() const;
 
     private:
 
         const IExpression* const mRoot;
 
         const std::vector<const IExpression*> mNodes;
+
+        const std::vector<IExpressionStats*> mStats;
     };
 
     Result compile(const std::shared_ptr<ExpressionParser::Parse> kParse,

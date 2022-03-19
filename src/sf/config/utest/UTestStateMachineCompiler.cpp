@@ -422,6 +422,33 @@ TEST(StateMachineCompiler, SpecialElements)
     CHECK_SV_ELEM("state", U32, 2);
 }
 
+TEST(StateMachineCompiler, RollAvgFunction)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS=S\n"
+        "I32 foo\n"
+        "\n"
+        "[LOCAL]\n"
+        "I32 bar = 0\n"
+        "\n"
+        "[Initial]\n"
+        ".STEP\n"
+        "    bar = ROLL_AVG(foo, 4)\n",
+        "state",
+        1);
+
+    SET_SV_ELEM("foo", I32, 3);
+    CHECK_SUCCESS(sm.step());
+    CHECK_LOCAL_ELEM("bar", I32, 3);
+}
+
 ///////////////////////////////// Error Tests //////////////////////////////////
 
 TEST_GROUP(StateMachineCompilerErrors)
