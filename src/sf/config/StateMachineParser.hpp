@@ -65,6 +65,10 @@ namespace StateMachineParser
                  StateMachineParser::Parse& kParse,
                  ErrorInfo* const kErr);
 
+    Result parseBlock(TokenIterator kIt,
+                      Ref<StateMachineParser::BlockParse>& kBlock,
+                      ErrorInfo* const kErr);
+
     /// @note PUBLIC FOR TESTING PURPOSES ONLY.
     Result parseLocalSection(TokenIterator& kIt,
                              StateMachineParser::Parse& kParse,

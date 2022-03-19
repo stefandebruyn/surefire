@@ -85,7 +85,7 @@ Result compileExprStatsFunc(const Ref<const ExpressionParser::Parse> kParse,
     {
         // Wrong arity.
         std::stringstream ss;
-        ss << kParse->data.str << + "expects 2 arguments, got "
+        ss << "`" << kParse->data.str << + "` expects 2 arguments, got "
            << argNodes.size();
         ConfigUtil::setError(kErr, kParse->data, errText, ss.str());
         return E_EXC_ARITY;

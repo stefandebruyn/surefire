@@ -109,240 +109,6 @@ Result parseAction(TokenIterator kIt,
     return SUCCESS;
 }
 
-Result parseBlock(TokenIterator kIt,
-                  Ref<StateMachineParser::BlockParse>& kBlock,
-                  ErrorInfo* const kErr)
-{
-    Ref<StateMachineParser::BlockParse> block;
-    Ref<StateMachineParser::BlockParse> firstBlock;
-    Result res = SUCCESS;
-
-    while (!kIt.eof())
-    {
-        if (block == nullptr)
-        {
-            // Allocate first block on first iteration of this loop. This causes
-            // an empty label to result in a null block pointer, as if the label
-            // wasn't there at all.
-            block.reset(new StateMachineParser::BlockParse{});
-            firstBlock = block;
-        }
-
-        // Find end index of next thing to parse. Which thing it is will depend
-        // on what the end token is.
-        U32 idxEnd = kIt.next({Token::COLON, Token::LBRACE, Token::NEWLINE});
-
-        // Determine if the next thing is a guard.
-        bool isGuard = false;
-        if ((idxEnd == kIt.size()) || (kIt[idxEnd].type == Token::NEWLINE))
-        {
-            // If there's a newline at the end index, check if the next
-            // non-newline token is a left brace. If it is, then we'll try to
-            // parse a guard. This allows the user to put the left brace
-            // following a guard on the next line if they prefer that style.
-            const U32 idxSave = kIt.idx();
-            kIt.seek(idxEnd);
-            kIt.eat();
-            if (kIt.type() == Token::LBRACE)
-            {
-                isGuard = true;
-                idxEnd = kIt.idx();
-            }
-            kIt.seek(idxSave);
-        }
-        else
-        {
-            // Next thing must be a guard since there's a colon or left brace at
-            // the end index.
-            isGuard = true;
-        }
-
-        if (isGuard)
-        {
-            // Parse guarded action or block of actions.
-
-            // Take optional if.
-            if (kIt.str() == "IF")
-            {
-                kIt.take();
-            }
-
-            // Check that guard expression contains at least 1 token.
-            if (kIt.idx() >= idxEnd)
-            {
-                ConfigUtil::setError(kErr, kIt.tok(), errText,
-                                     "expected guard");
-                return E_SMP_GUARD;
-            }
-
-            // Parse guard.
-            res = ExpressionParser::parse(kIt.slice(kIt.idx(), idxEnd),
-                                          block->guard,
-                                          kErr);
-            if (res != SUCCESS)
-            {
-                return res;
-            }
-
-            // Jump to first token after guard.
-            kIt.seek(idxEnd);
-            kIt.eat();
-
-            // Find end index of if branch.
-            U32 idxBlockEnd = 0;
-            if (kIt.type() == Token::LBRACE)
-            {
-                // Guard is followed by a left brace, so find the corresponding
-                // right brace.
-                U32 lvl = 0;
-                idxBlockEnd = kIt.idx();
-                while (idxBlockEnd < kIt.size())
-                {
-                    if (kIt[idxBlockEnd].type == Token::LBRACE)
-                    {
-                        ++lvl;
-                    }
-                    else if (kIt[idxBlockEnd].type == Token::RBRACE)
-                    {
-                        --lvl;
-                        if (lvl == 0)
-                        {
-                            break;
-                        }
-                    }
-                    ++idxBlockEnd;
-                }
-
-                if (lvl != 0)
-                {
-                    // Unbalanced braces.
-                    ConfigUtil::setError(kErr, kIt.tok(), errText,
-                                         "unbalanced brace");
-                    return E_SMP_BRACE;
-                }
-            }
-            else
-            {
-                // Guard is followed by a colon, so find the next newline.
-                idxBlockEnd = kIt.next({Token::NEWLINE});
-            }
-
-            // Take left brace or colon following guard.
-            kIt.take();
-
-            // Parse if branch of guard.
-            Result res = parseBlock(kIt.slice(kIt.idx(), idxBlockEnd),
-                                    block->ifBlock,
-                                    kErr);
-            if (res != SUCCESS)
-            {
-                return res;
-            }
-
-            // Jump to the first token after the guarded block.
-            kIt.seek(idxBlockEnd);
-            kIt.take();
-
-            if (kIt.str() == "ELSE")
-            {
-                // Guard has an else branch.
-
-                // Take else token.
-                kIt.take();
-
-                // Find end index of else branch.
-                U32 idxElseEnd = 0;
-                if (kIt.type() == Token::LBRACE)
-                {
-                    // Guard is followed by a left brace, so find the
-                    // corresponding right brace.
-                    U32 lvl = 0;
-                    idxElseEnd = kIt.idx();
-                    while (idxElseEnd < kIt.size())
-                    {
-                        if (kIt[idxElseEnd].type == Token::LBRACE)
-                        {
-                            ++lvl;
-                        }
-                        else if (kIt[idxElseEnd].type == Token::RBRACE)
-                        {
-                            --lvl;
-                            if (lvl == 0)
-                            {
-                                break;
-                            }
-                        }
-                        ++idxElseEnd;
-                    }
-
-                    if (lvl != 0)
-                    {
-                        // Unbalanced braces.
-                        ConfigUtil::setError(kErr, kIt.tok(), errText,
-                                             "unbalanced brace");
-                        return E_SMP_BRACE;
-                    }
-                }
-                else
-                {
-                    // Guard is followed by a colon, so find the next newline.
-                    idxElseEnd = kIt.next({Token::NEWLINE});
-                }
-
-                // Take left brace or colon following else.
-                const Token& tokAfterElse = kIt.take();
-
-                // Check that else branch contains at least 1 token.
-                if (kIt.idx() >= idxElseEnd)
-                {
-                    ConfigUtil::setError(kErr, tokAfterElse, errText,
-                                         "expected logic after else");
-                    return E_SMP_ELSE;
-                }
-
-                // Parse else branch.
-                res = parseBlock(kIt.slice(kIt.idx(), idxElseEnd),
-                                 block->elseBlock,
-                                 kErr);
-                if (res != SUCCESS)
-                {
-                    return res;
-                }
-
-                // Jump to the first token after the guarded block.
-                kIt.seek(idxElseEnd);
-                kIt.take();
-            }
-        }
-        else
-        {
-            // Parse unguarded action.
-            res = parseAction(kIt.slice(kIt.idx(), idxEnd),
-                              block->action,
-                              kErr);
-            if (res != SUCCESS)
-            {
-                return res;
-            }
-
-            // Jump to end of action.
-            kIt.seek(idxEnd);
-            kIt.eat();
-        }
-
-        if (!kIt.eof())
-        {
-            // Add another block in the chain.
-            block->next.reset(new StateMachineParser::BlockParse{});
-            block = block->next;
-        }
-    }
-
-    kBlock = firstBlock;
-
-    return SUCCESS;
-}
-
 } // Anonymous namespace
 
 /////////////////////////////////// Public /////////////////////////////////////
@@ -377,9 +143,10 @@ Result StateMachineParser::parseStateSection(
 
         // Parse label block.
         Ref<StateMachineParser::BlockParse> label;
-        const Result res = parseBlock(kIt.slice(kIt.idx(), idxLabelEnd),
-                                      label,
-                                      kErr);
+        const Result res = StateMachineParser::parseBlock(
+            kIt.slice(kIt.idx(), idxLabelEnd),
+            label,
+            kErr);
         if (res != SUCCESS)
         {
             return res;
@@ -716,6 +483,243 @@ Result StateMachineParser::parse(const Vec<Token>& kToks,
     }
 
     kParse = parse;
+
+    return SUCCESS;
+}
+
+Result StateMachineParser::parseBlock(
+    TokenIterator kIt,
+    Ref<StateMachineParser::BlockParse>& kBlock,
+    ErrorInfo* const kErr)
+{
+    Ref<StateMachineParser::BlockParse> block;
+    Ref<StateMachineParser::BlockParse> firstBlock;
+    Result res = SUCCESS;
+
+    while (!kIt.eof())
+    {
+        if (block == nullptr)
+        {
+            // Allocate first block on first iteration of this loop. This causes
+            // an empty label to result in a null block pointer, as if the label
+            // wasn't there at all.
+            block.reset(new StateMachineParser::BlockParse{});
+            firstBlock = block;
+        }
+
+        // Find end index of next thing to parse. Which thing it is will depend
+        // on what the end token is.
+        U32 idxEnd = kIt.next({Token::COLON, Token::LBRACE, Token::NEWLINE});
+
+        // Determine if the next thing is a guard.
+        bool isGuard = false;
+        if ((idxEnd == kIt.size()) || (kIt[idxEnd].type == Token::NEWLINE))
+        {
+            // If there's a newline at the end index, check if the next
+            // non-newline token is a left brace. If it is, then we'll try to
+            // parse a guard. This allows the user to put the left brace
+            // following a guard on the next line if they prefer that style.
+            const U32 idxSave = kIt.idx();
+            kIt.seek(idxEnd);
+            kIt.eat();
+            if (kIt.type() == Token::LBRACE)
+            {
+                isGuard = true;
+                idxEnd = kIt.idx();
+            }
+            kIt.seek(idxSave);
+        }
+        else
+        {
+            // Next thing must be a guard since there's a colon or left brace at
+            // the end index.
+            isGuard = true;
+        }
+
+        if (isGuard)
+        {
+            // Parse guarded action or block of actions.
+
+            // Take optional if.
+            if (kIt.str() == "IF")
+            {
+                kIt.take();
+            }
+
+            // Check that guard expression contains at least 1 token.
+            if (kIt.idx() >= idxEnd)
+            {
+                ConfigUtil::setError(kErr, kIt.tok(), errText,
+                                     "expected guard");
+                return E_SMP_GUARD;
+            }
+
+            // Parse guard.
+            res = ExpressionParser::parse(kIt.slice(kIt.idx(), idxEnd),
+                                          block->guard,
+                                          kErr);
+            if (res != SUCCESS)
+            {
+                return res;
+            }
+
+            // Jump to first token after guard.
+            kIt.seek(idxEnd);
+            kIt.eat();
+
+            // Find end index of if branch.
+            U32 idxBlockEnd = 0;
+            if (kIt.type() == Token::LBRACE)
+            {
+                // Guard is followed by a left brace, so find the corresponding
+                // right brace.
+                U32 lvl = 0;
+                idxBlockEnd = kIt.idx();
+                while (idxBlockEnd < kIt.size())
+                {
+                    if (kIt[idxBlockEnd].type == Token::LBRACE)
+                    {
+                        ++lvl;
+                    }
+                    else if (kIt[idxBlockEnd].type == Token::RBRACE)
+                    {
+                        --lvl;
+                        if (lvl == 0)
+                        {
+                            break;
+                        }
+                    }
+                    ++idxBlockEnd;
+                }
+
+                if (lvl != 0)
+                {
+                    // Unbalanced braces.
+                    ConfigUtil::setError(kErr, kIt.tok(), errText,
+                                         "unbalanced brace");
+                    return E_SMP_BRACE;
+                }
+            }
+            else
+            {
+                // Guard is followed by a colon, so find the next newline.
+                idxBlockEnd = kIt.next({Token::NEWLINE});
+            }
+
+            // Take left brace or colon following guard.
+            kIt.take();
+
+            // Parse if branch of guard.
+            Result res = StateMachineParser::parseBlock(
+                kIt.slice(kIt.idx(), idxBlockEnd),
+                block->ifBlock,
+                kErr);
+            if (res != SUCCESS)
+            {
+                return res;
+            }
+
+            // Jump to the first token after the guarded block.
+            kIt.seek(idxBlockEnd);
+            kIt.take();
+
+            if (kIt.str() == "ELSE")
+            {
+                // Guard has an else branch.
+
+                // Take else token.
+                kIt.take();
+
+                // Find end index of else branch.
+                U32 idxElseEnd = 0;
+                if (kIt.type() == Token::LBRACE)
+                {
+                    // Guard is followed by a left brace, so find the
+                    // corresponding right brace.
+                    U32 lvl = 0;
+                    idxElseEnd = kIt.idx();
+                    while (idxElseEnd < kIt.size())
+                    {
+                        if (kIt[idxElseEnd].type == Token::LBRACE)
+                        {
+                            ++lvl;
+                        }
+                        else if (kIt[idxElseEnd].type == Token::RBRACE)
+                        {
+                            --lvl;
+                            if (lvl == 0)
+                            {
+                                break;
+                            }
+                        }
+                        ++idxElseEnd;
+                    }
+
+                    if (lvl != 0)
+                    {
+                        // Unbalanced braces.
+                        ConfigUtil::setError(kErr, kIt.tok(), errText,
+                                             "unbalanced brace");
+                        return E_SMP_BRACE;
+                    }
+                }
+                else
+                {
+                    // Guard is followed by a colon, so find the next newline.
+                    idxElseEnd = kIt.next({Token::NEWLINE});
+                }
+
+                // Take left brace or colon following else.
+                const Token& tokAfterElse = kIt.take();
+
+                // Check that else branch contains at least 1 token.
+                if (kIt.idx() >= idxElseEnd)
+                {
+                    ConfigUtil::setError(kErr, tokAfterElse, errText,
+                                         "expected logic after else");
+                    return E_SMP_ELSE;
+                }
+
+                // Parse else branch.
+                res = StateMachineParser::parseBlock(
+                    kIt.slice(kIt.idx(), idxElseEnd),
+                    block->elseBlock,
+                    kErr);
+                if (res != SUCCESS)
+                {
+                    return res;
+                }
+
+                // Jump to the first token after the guarded block.
+                kIt.seek(idxElseEnd);
+                kIt.take();
+            }
+        }
+        else
+        {
+            // Parse unguarded action.
+            res = parseAction(kIt.slice(kIt.idx(), idxEnd),
+                              block->action,
+                              kErr);
+            if (res != SUCCESS)
+            {
+                return res;
+            }
+
+            // Jump to end of action.
+            kIt.seek(idxEnd);
+            kIt.eat();
+        }
+
+        if (!kIt.eof())
+        {
+            // Add another block in the chain.
+            block->next.reset(new StateMachineParser::BlockParse{});
+            block = block->next;
+        }
+    }
+
+    kBlock = firstBlock;
 
     return SUCCESS;
 }
