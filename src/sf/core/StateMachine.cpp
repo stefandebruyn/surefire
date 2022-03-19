@@ -211,7 +211,7 @@ Result StateMachine::create(const Config kConfig, StateMachine& kSm)
 }
 
 StateMachine::StateMachine() :
-    mConfig({nullptr, nullptr, nullptr, nullptr}),
+    mConfig({nullptr, nullptr, nullptr, nullptr, nullptr}),
     mStateCur(nullptr),
     mTimeStateStart(Clock::NO_TIME),
     mTimeLastStep(Clock::NO_TIME)
@@ -248,6 +248,17 @@ Result StateMachine::step()
     }
     const U64 tStateElapsed = (tCur - mTimeStateStart);
     mConfig.elemStateTime->write(tStateElapsed);
+
+    // Update expression stats if provided.
+    if (mConfig.stats != nullptr)
+    {
+        for (IExpressionStats** stats = mConfig.stats;
+             *stats != nullptr;
+             ++stats)
+        {
+            (*stats)->update();
+        }
+    }
 
     // Execute current state entry label.
     U32 destState = NO_STATE;

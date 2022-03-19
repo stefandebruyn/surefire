@@ -884,7 +884,8 @@ Result StateMachineCompiler::compile(const StateMachineParser::Parse& kParse,
         static_cast<Element<U32>*>(compState.elems["S"]),
         static_cast<Element<U64>*>(compState.elems["T"]),
         static_cast<Element<U64>*>(compState.elems["G"]),
-        states
+        states,
+        nullptr
     };
 
     // Compilation successful- return new state machine assembly.

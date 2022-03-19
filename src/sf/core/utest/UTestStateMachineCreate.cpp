@@ -95,7 +95,7 @@ static StateMachine::StateConfig gStates[] =
 };
 
 static StateMachine::Config gConfig =
-    {&gElemState, &gElemStateTime, &gElemGlobalTime, gStates};
+    {&gElemState, &gElemStateTime, &gElemGlobalTime, gStates, nullptr};
 
 //////////////////////////////////// Tests /////////////////////////////////////
 

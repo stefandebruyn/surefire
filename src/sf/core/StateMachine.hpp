@@ -5,6 +5,7 @@
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Element.hpp"
 #include "sf/core/Expression.hpp"
+#include "sf/core/ExpressionStats.hpp"
 #include "sf/core/Result.hpp"
 
 class StateMachine final
@@ -38,6 +39,7 @@ public:
         Element<U64>* elemStateTime;
         Element<U64>* elemGlobalTime;
         StateConfig* states;
+        IExpressionStats** stats;
     };
 
     static Result create(const Config kConfig, StateMachine& kSm);

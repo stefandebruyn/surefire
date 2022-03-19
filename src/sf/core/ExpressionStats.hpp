@@ -93,7 +93,7 @@ public:
             return 0.0;
         }
 
-        return ((F64) mSum / mSize);
+        return (static_cast<F64>(mSum) / mSize);
     }
 
     ///

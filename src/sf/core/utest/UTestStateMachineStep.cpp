@@ -7,6 +7,8 @@
 /*
 [LOCAL]
 I32 foo = 0
+I32 bar = 0
+I32 baz = 0
 
 [State1]
 .ENTRY
@@ -24,17 +26,23 @@ I32 foo = 0
 static struct
 {
     I32 foo;
+    I32 bar;
+    I32 baz;
     U32 state;
     U64 stateTime;
     U64 globalTime;
 } gSvBacking;
 
 static Element<I32> gElemFoo(gSvBacking.foo);
+static Element<I32> gElemBar(gSvBacking.bar);
+static Element<I32> gElemBaz(gSvBacking.baz);
 static Element<U32> gElemState(gSvBacking.state);
 static Element<U64> gElemStateTime(gSvBacking.stateTime);
 static Element<U64> gElemGlobalTime(gSvBacking.globalTime);
 
 static ElementExprNode<I32> gExprFoo(gElemFoo);
+static ElementExprNode<I32> gExprBar(gElemBar);
+static ElementExprNode<I32> gExprBaz(gElemBaz);
 
 // Expression constants
 static ConstExprNode<I32> g100(100);
@@ -89,7 +97,7 @@ static StateMachine::StateConfig gStates[] =
 };
 
 static StateMachine::Config gConfig =
-    {&gElemState, &gElemStateTime, &gElemGlobalTime, gStates};
+    {&gElemState, &gElemStateTime, &gElemGlobalTime, gStates, nullptr};
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
@@ -98,7 +106,7 @@ TEST_GROUP(StateMachineStep)
     void setup()
     {
         // Zero out the state vector.
-        gSvBacking = {0, 0, 0, 0};
+        gSvBacking = {0, 0, 0, 0, 0, 0};
     }
 };
 
@@ -248,4 +256,38 @@ TEST(StateMachineStep, ErrorNonMonotonicTime)
     CHECK_EQUAL(1, gElemState.read());
     CHECK_EQUAL(0, gElemStateTime.read());
     CHECK_EQUAL(0, gElemGlobalTime.read());
+}
+
+TEST(StateMachineStep, UpdateExpressionStats)
+{
+    // State machine will update stats for elements `bar` and `baz`.
+    ExpressionStats<I32, 1> statsBar(gExprBar);
+    ExpressionStats<I32, 1> statsBaz(gExprBaz);
+    IExpressionStats* stats[] = {&statsBar, &statsBaz, nullptr};
+
+    // Initialize the state machine.
+    gElemState.write(1);
+    StateMachine sm;
+    StateMachine::Config config = gConfig;
+    config.stats = stats;
+    CHECK_SUCCESS(StateMachine::create(config, sm));
+
+    // Step state machine.
+    gElemBar.write(1);
+    gElemBaz.write(-5);
+    CHECK_SUCCESS(sm.step());
+
+    // Expression stats were updated.
+    CHECK_EQUAL(1.0, statsBar.mean());
+    CHECK_EQUAL(-5.0, statsBaz.mean());
+
+    // Change `foo` and `bar` and step again.
+    gElemBar.write(-10);
+    gElemBaz.write(3);
+    gElemGlobalTime.write(1);
+    CHECK_SUCCESS(sm.step());
+
+    // Expression stats were updated.
+    CHECK_EQUAL(-10.0, statsBar.mean());
+    CHECK_EQUAL(3.0, statsBaz.mean());
 }
