@@ -45,8 +45,8 @@ static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 
     // Expression evaluates to expected value.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
-    const IExprNode<F64>* const root =
-        static_cast<const IExprNode<F64>* const>(exprAsm->root());
+    IExprNode<F64>* const root =
+        static_cast<IExprNode<F64>* const>(exprAsm->root());
     CHECK_EQUAL(kExpectVal, root->evaluate());
 }
 
@@ -325,8 +325,8 @@ TEST(ExpressionCompiler, OnlyElement)
 
     // Expression evaluates to 0, the initial value of element `foo`.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
-    const IExprNode<F64>* const root =
-        static_cast<const IExprNode<F64>* const>(exprAsm->root());
+    IExprNode<F64>* const root =
+        static_cast<IExprNode<F64>* const>(exprAsm->root());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set `foo` to a new value and re-evaluate expression.
@@ -360,8 +360,8 @@ TEST(ExpressionCompiler, MultipleElements)
 
     // Expression initially evaluates to 1.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
-    const IExprNode<F64>* const root =
-        static_cast<const IExprNode<F64>* const>(exprAsm->root());
+    IExprNode<F64>* const root =
+        static_cast<IExprNode<F64>* const>(exprAsm->root());
     CHECK_EQUAL(1.0, root->evaluate());
 
     // Set elements to new values and re-evaluate expression.
@@ -409,8 +409,8 @@ TEST(ExpressionCompiler, AllElementTypes)
 
     // Expression initially evaluates to 0.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
-    const IExprNode<F64>* const root =
-        static_cast<const IExprNode<F64>* const>(exprAsm->root());
+    IExprNode<F64>* const root =
+        static_cast<IExprNode<F64>* const>(exprAsm->root());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set elements to new values and re-evaluate expression.

@@ -26,7 +26,7 @@ class AssignmentAction final : public IAction
 {
 public:
 
-    AssignmentAction(Element<T>& kElem, const IExprNode<T>& kExpr) :
+    AssignmentAction(Element<T>& kElem, IExprNode<T>& kExpr) :
         IAction(0), mElem(kElem), mExpr(kExpr)
     {
     }
@@ -41,7 +41,7 @@ private:
 
     Element<T>& mElem;
 
-    const IExprNode<T>& mExpr;
+    IExprNode<T>& mExpr;
 };
 
 class TransitionAction final : public IAction

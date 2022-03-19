@@ -7,7 +7,7 @@ TEST_GROUP(ExpressionStats)
 
 TEST(ExpressionStats, EmptyHistory)
 {
-    const ConstExprNode<I32> expr(0);
+    ConstExprNode<I32> expr(0);
     ExpressionStats<I32, 4> stats(expr);
     CHECK_EQUAL(0.0, stats.mean());
     CHECK_EQUAL(0.0, stats.median());
@@ -20,7 +20,7 @@ TEST(ExpressionStats, AllSameValue)
 {
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
-    const ElementExprNode<I32> expr(elem);
+    ElementExprNode<I32> expr(elem);
     ExpressionStats<I32, 4> stats(expr);
 
     elem.write(10);
@@ -41,7 +41,7 @@ TEST(ExpressionStats, AllSameValue)
 
 TEST(ExpressionStats, ZeroSize)
 {
-    const ConstExprNode<I32> expr(0);
+    ConstExprNode<I32> expr(0);
     ExpressionStats<I32, 0> stats(expr);
 
     stats.update();
@@ -59,7 +59,7 @@ TEST(ExpressionStats, Mean)
 {
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
-    const ElementExprNode<I32> expr(elem);
+    ElementExprNode<I32> expr(elem);
     ExpressionStats<I32, 4> stats(expr);
 
     elem.write(1);
@@ -87,7 +87,7 @@ TEST(ExpressionStats, Median)
 {
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
-    const ElementExprNode<I32> expr(elem);
+    ElementExprNode<I32> expr(elem);
     ExpressionStats<I32, 4> stats(expr);
 
     elem.write(1);
@@ -115,7 +115,7 @@ TEST(ExpressionStats, Min)
 {
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
-    const ElementExprNode<I32> expr(elem);
+    ElementExprNode<I32> expr(elem);
     ExpressionStats<I32, 4> stats(expr);
 
     elem.write(1);
@@ -155,7 +155,7 @@ TEST(ExpressionStats, Max)
 {
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
-    const ElementExprNode<I32> expr(elem);
+    ElementExprNode<I32> expr(elem);
     ExpressionStats<I32, 4> stats(expr);
 
     elem.write(1);
@@ -195,7 +195,7 @@ TEST(ExpressionStats, Range)
 {
     I32 elemBacking = 0;
     Element<I32> elem(elemBacking);
-    const ElementExprNode<I32> expr(elem);
+    ElementExprNode<I32> expr(elem);
     ExpressionStats<I32, 4> stats(expr);
 
     elem.write(1);

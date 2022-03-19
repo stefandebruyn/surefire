@@ -24,15 +24,15 @@ public:
     ///
     virtual void update() = 0;
 
-    virtual F64 mean() const = 0;
+    virtual F64 mean() = 0;
 
     virtual F64 median() = 0;
 
-    virtual F64 min() const = 0;
+    virtual F64 min() = 0;
 
-    virtual F64 max() const = 0;
+    virtual F64 max() = 0;
 
-    virtual F64 range() const = 0;
+    virtual F64 range() = 0;
 
     IExpressionStats(const IExpressionStats&) = delete;
     IExpressionStats(IExpressionStats&&) = delete;
@@ -65,7 +65,7 @@ public:
     ///
     /// @param[in] kExpr  Expression to calculate stats for.
     ///
-    ExpressionStats(const IExprNode<T>& kExpr) :
+    ExpressionStats(IExprNode<T>& kExpr) :
         mExpr(kExpr), mUpdates(0), mSize(0), mSum()
     {
     }
@@ -108,7 +108,7 @@ public:
     ///
     /// @return History mean.
     ///
-    F64 mean() const final override
+    F64 mean() final override
     {
         if (mSize == 0)
         {
@@ -178,7 +178,7 @@ public:
     ///
     /// @return History min.
     ///
-    F64 min() const final override
+    F64 min() final override
     {
         if (mSize == 0)
         {
@@ -205,7 +205,7 @@ public:
     ///
     /// @return History max.
     ///
-    F64 max() const final override
+    F64 max() final override
     {
         if (mSize == 0)
         {
@@ -232,7 +232,7 @@ public:
     ///
     /// @return History range.
     ///
-    F64 range() const final override
+    F64 range() final override
     {
         return (max() - min());
     }
@@ -252,7 +252,7 @@ private:
     ///
     /// @brief Expression.
     ///
-    const IExprNode<T>& mExpr;
+    IExprNode<T>& mExpr;
 
     ///
     /// @brief Number of times a new value has been added to the history.
@@ -275,13 +275,13 @@ class RollAvgNode final : public IExprNode<F64>
 {
 public:
 
-    RollAvgNode(const IExpressionStats& kStats);
+    RollAvgNode(IExpressionStats& kStats);
 
-    F64 evaluate() const final override;
+    F64 evaluate() final override;
 
 private:
 
-    const IExpressionStats& mStats;
+    IExpressionStats& mStats;
 };
 
 

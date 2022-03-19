@@ -1,11 +1,10 @@
 #include "sf/core/ExpressionStats.hpp"
 
-RollAvgNode::RollAvgNode(const IExpressionStats& kStats) : mStats(kStats)
+RollAvgNode::RollAvgNode(IExpressionStats& kStats) : mStats(kStats)
 {
 }
 
-F64 RollAvgNode::evaluate() const
+F64 RollAvgNode::evaluate()
 {
-    // TODO: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-    return const_cast<IExpressionStats&>(mStats).mean();
+    return mStats.mean();
 }

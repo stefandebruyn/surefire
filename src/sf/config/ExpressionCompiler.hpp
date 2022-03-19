@@ -13,19 +13,19 @@ namespace ExpressionCompiler
     {
     public:
 
-        Assembly(const IExpression* const kRoot,
+        Assembly(IExpression* const kRoot,
                  const Vec<const IExpression*> kNodes,
                  const Vec<IExpressionStats*> kStats);
 
         ~Assembly();
 
-        const IExpression* root() const;
+        IExpression* root() const;
 
         const Vec<IExpressionStats*>& stats() const;
 
     private:
 
-        const IExpression* const mRoot;
+        IExpression* const mRoot;
 
         const Vec<const IExpression*> mNodes;
 

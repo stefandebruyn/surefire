@@ -389,67 +389,67 @@ Result compileAction(const StateMachineParser::ActionParse& kParse,
             case ElementType::INT8:
                 kAction = new AssignmentAction<I8>(
                     *static_cast<Element<I8>*>(elemObj),
-                    *static_cast<const IExprNode<I8>*>(lhsAsm->root()));
+                    *static_cast<IExprNode<I8>*>(lhsAsm->root()));
                 break;
 
             case ElementType::INT16:
                 kAction = new AssignmentAction<I16>(
                     *static_cast<Element<I16>*>(elemObj),
-                    *static_cast<const IExprNode<I16>*>(lhsAsm->root()));
+                    *static_cast<IExprNode<I16>*>(lhsAsm->root()));
                 break;
 
             case ElementType::INT32:
                 kAction = new AssignmentAction<I32>(
                     *static_cast<Element<I32>*>(elemObj),
-                    *static_cast<const IExprNode<I32>*>(lhsAsm->root()));
+                    *static_cast<IExprNode<I32>*>(lhsAsm->root()));
                 break;
 
             case ElementType::INT64:
                 kAction = new AssignmentAction<I64>(
                     *static_cast<Element<I64>*>(elemObj),
-                    *static_cast<const IExprNode<I64>*>(lhsAsm->root()));
+                    *static_cast<IExprNode<I64>*>(lhsAsm->root()));
                 break;
 
             case ElementType::UINT8:
                 kAction = new AssignmentAction<U8>(
                     *static_cast<Element<U8>*>(elemObj),
-                    *static_cast<const IExprNode<U8>*>(lhsAsm->root()));
+                    *static_cast<IExprNode<U8>*>(lhsAsm->root()));
                 break;
 
             case ElementType::UINT16:
                 kAction = new AssignmentAction<U16>(
                     *static_cast<Element<U16>*>(elemObj),
-                    *static_cast<const IExprNode<U16>*>(lhsAsm->root()));
+                    *static_cast<IExprNode<U16>*>(lhsAsm->root()));
                 break;
 
             case ElementType::UINT32:
                 kAction = new AssignmentAction<U32>(
                     *static_cast<Element<U32>*>(elemObj),
-                    *static_cast<const IExprNode<U32>*>(lhsAsm->root()));
+                    *static_cast<IExprNode<U32>*>(lhsAsm->root()));
                 break;
 
             case ElementType::UINT64:
                 kAction = new AssignmentAction<U64>(
                     *static_cast<Element<U64>*>(elemObj),
-                    *static_cast<const IExprNode<U64>*>(lhsAsm->root()));
+                    *static_cast<IExprNode<U64>*>(lhsAsm->root()));
                 break;
 
             case ElementType::FLOAT32:
                 kAction = new AssignmentAction<F32>(
                     *static_cast<Element<F32>*>(elemObj),
-                    *static_cast<const IExprNode<F32>*>(lhsAsm->root()));
+                    *static_cast<IExprNode<F32>*>(lhsAsm->root()));
                 break;
 
             case ElementType::FLOAT64:
                 kAction = new AssignmentAction<F64>(
                     *static_cast<Element<F64>*>(elemObj),
-                    *static_cast<const IExprNode<F64>*>(lhsAsm->root()));
+                    *static_cast<IExprNode<F64>*>(lhsAsm->root()));
                 break;
 
             case ElementType::BOOL:
                 kAction = new AssignmentAction<bool>(
                     *static_cast<Element<bool>*>(elemObj),
-                    *static_cast<const IExprNode<bool>*>(lhsAsm->root()));
+                    *static_cast<IExprNode<bool>*>(lhsAsm->root()));
                 break;
 
             default:
@@ -522,7 +522,7 @@ Result compileBlock(const StateMachineParser::BlockParse& kParse,
         kCompState.exprs.push_back(guardAsm);
 
         // Assign block guard.
-        block->guard = static_cast<const IExprNode<bool>*>(guardAsm->root());
+        block->guard = static_cast<IExprNode<bool>*>(guardAsm->root());
 
         if (kParse.ifBlock != nullptr)
         {

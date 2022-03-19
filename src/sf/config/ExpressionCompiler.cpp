@@ -14,7 +14,7 @@ const char* const errText = "expression error";
 
 Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                    const Vec<const StateVector*> kSvs,
-                   const IExprNode<F64>*& kNode,
+                   IExprNode<F64>*& kNode,
                    Vec<const IExpression*>& kExprNodes,
                    Vec<IExpressionStats*>& kExprStats,
                    ErrorInfo* const kErr);
@@ -48,7 +48,7 @@ Result tokenToF64(const Token& kTok, F64& kRet, ErrorInfo* const kErr)
 
 Result compileRollAvgFunc(const Ref<const ExpressionParser::Parse> kParse,
                           const Vec<const StateVector*> kSvs,
-                          const IExprNode<F64>*& kNode,
+                          IExprNode<F64>*& kNode,
                           Vec<const IExpression*>& kExprNodes,
                           Vec<IExpressionStats*>& kExprStats,
                           ErrorInfo* const kErr)
@@ -71,7 +71,7 @@ Result compileRollAvgFunc(const Ref<const ExpressionParser::Parse> kParse,
     }
 
     // Compile first argument expression; the expression being averaged.
-    const IExprNode<F64>* arg1Node = nullptr;
+    IExprNode<F64>* arg1Node = nullptr;
     Result res = compileImpl(argNodes[0]->right,
                              kSvs,
                              arg1Node,
@@ -97,7 +97,7 @@ Result compileRollAvgFunc(const Ref<const ExpressionParser::Parse> kParse,
         return res;
     }
     // const U32 histSize =
-        // static_cast<const IExprNode<U32>*>(arg2Asm->root())->evaluate();
+        // static_cast<IExprNode<U32>*>(arg2Asm->root())->evaluate();
 
     // Create expression stats for computing rolling average.
     ExpressionStats<F64, 10>* const exprStats =
@@ -113,7 +113,7 @@ Result compileRollAvgFunc(const Ref<const ExpressionParser::Parse> kParse,
 
 Result compileFunction(const Ref<const ExpressionParser::Parse> kParse,
                        const Vec<const StateVector*> kSvs,
-                       const IExprNode<F64>*& kNode,
+                       IExprNode<F64>*& kNode,
                        Vec<const IExpression*>& kExprNodes,
                        Vec<IExpressionStats*>& kExprStats,
                        ErrorInfo* const kErr)
@@ -137,7 +137,7 @@ Result compileFunction(const Ref<const ExpressionParser::Parse> kParse,
 
 Result compileOperator(const Ref<const ExpressionParser::Parse> kParse,
                        const Vec<const StateVector*> kSvs,
-                       const IExprNode<F64>*& kNode,
+                       IExprNode<F64>*& kNode,
                        Vec<const IExpression*>& kExprNodes,
                        Vec<IExpressionStats*>& kExprStats,
                        ErrorInfo* const kErr)
@@ -151,7 +151,7 @@ Result compileOperator(const Ref<const ExpressionParser::Parse> kParse,
 
     // Compile right subtree.
     SF_ASSERT(kParse->right != nullptr);
-    const IExprNode<F64>* nodeRight = nullptr;
+    IExprNode<F64>* nodeRight = nullptr;
     Result res = compileImpl(kParse->right,
                              kSvs,
                              nodeRight,
@@ -165,7 +165,7 @@ Result compileOperator(const Ref<const ExpressionParser::Parse> kParse,
     SF_ASSERT(nodeRight != nullptr);
 
     // If a binary operator, compile left subtree.
-    const IExprNode<F64>* nodeLeft = nullptr;
+    IExprNode<F64>* nodeLeft = nullptr;
     if (!opInfo.unary)
     {
         SF_ASSERT(kParse->left != nullptr);
@@ -306,7 +306,7 @@ Result compileOperator(const Ref<const ExpressionParser::Parse> kParse,
 
 Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
                    const Vec<const StateVector*> kSvs,
-                   const IExprNode<F64>*& kNode,
+                   IExprNode<F64>*& kNode,
                    Vec<const IExpression*>& kExprNodes,
                    Vec<IExpressionStats*>& kExprStats,
                    ErrorInfo* const kErr)
@@ -397,7 +397,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
         {
             case ElementType::INT8:
             {
-                const IExprNode<I8>* const nodeElem = new ElementExprNode<I8>(
+                IExprNode<I8>* const nodeElem = new ElementExprNode<I8>(
                     *static_cast<const Element<I8>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, I8>(safeCast<F64, I8>,
                                                      *nodeElem);
@@ -407,7 +407,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
 
             case ElementType::INT16:
             {
-                const IExprNode<I16>* const nodeElem = new ElementExprNode<I16>(
+                IExprNode<I16>* const nodeElem = new ElementExprNode<I16>(
                     *static_cast<const Element<I16>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, I16>(safeCast<F64, I16>,
                                                       *nodeElem);
@@ -417,7 +417,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
 
             case ElementType::INT32:
             {
-                const IExprNode<I32>* const nodeElem = new ElementExprNode<I32>(
+                IExprNode<I32>* const nodeElem = new ElementExprNode<I32>(
                     *static_cast<const Element<I32>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, I32>(safeCast<F64, I32>,
                                                       *nodeElem);
@@ -427,7 +427,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
 
             case ElementType::INT64:
             {
-                const IExprNode<I64>* const nodeElem = new ElementExprNode<I64>(
+                IExprNode<I64>* const nodeElem = new ElementExprNode<I64>(
                     *static_cast<const Element<I64>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, I64>(safeCast<F64, I64>,
                                                       *nodeElem);
@@ -437,7 +437,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
 
             case ElementType::UINT8:
             {
-                const IExprNode<U8>* const nodeElem = new ElementExprNode<U8>(
+                IExprNode<U8>* const nodeElem = new ElementExprNode<U8>(
                     *static_cast<const Element<U8>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, U8>(safeCast<F64, U8>,
                                                      *nodeElem);
@@ -447,7 +447,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
 
             case ElementType::UINT16:
             {
-                const IExprNode<U16>* const nodeElem = new ElementExprNode<U16>(
+                IExprNode<U16>* const nodeElem = new ElementExprNode<U16>(
                     *static_cast<const Element<U16>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, U16>(safeCast<F64, U16>,
                                                       *nodeElem);
@@ -457,7 +457,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
 
             case ElementType::UINT32:
             {
-                const IExprNode<U32>* const nodeElem = new ElementExprNode<U32>(
+                IExprNode<U32>* const nodeElem = new ElementExprNode<U32>(
                     *static_cast<const Element<U32>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, U32>(safeCast<F64, U32>,
                                                       *nodeElem);
@@ -467,7 +467,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
 
             case ElementType::UINT64:
             {
-                const IExprNode<U64>* const nodeElem = new ElementExprNode<U64>(
+                IExprNode<U64>* const nodeElem = new ElementExprNode<U64>(
                     *static_cast<const Element<U64>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, U64>(safeCast<F64, U64>,
                                                       *nodeElem);
@@ -477,7 +477,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
 
             case ElementType::FLOAT32:
             {
-                const IExprNode<F32>* const nodeElem = new ElementExprNode<F32>(
+                IExprNode<F32>* const nodeElem = new ElementExprNode<F32>(
                     *static_cast<const Element<F32>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, F32>(safeCast<F64, F32>,
                                                       *nodeElem);
@@ -492,7 +492,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
 
             case ElementType::BOOL:
             {
-                const IExprNode<bool>* const nodeElem =
+                IExprNode<bool>* const nodeElem =
                     new ElementExprNode<bool>(
                         *static_cast<const Element<bool>*>(elemObj));
                 kNode = new UnaryOpExprNode<F64, bool>(safeCast<F64, bool>,
@@ -529,7 +529,7 @@ Result compileImpl(const Ref<const ExpressionParser::Parse> kParse,
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-ExpressionCompiler::Assembly::Assembly(const IExpression* const kRoot,
+ExpressionCompiler::Assembly::Assembly(IExpression* const kRoot,
                                        const Vec<const IExpression*> kNodes,
                                        const Vec<IExpressionStats*> kStats) :
     mRoot(kRoot), mNodes(kNodes), mStats(kStats)
@@ -557,7 +557,7 @@ ExpressionCompiler::Assembly::~Assembly()
     }
 }
 
-const IExpression* ExpressionCompiler::Assembly::root() const
+IExpression* ExpressionCompiler::Assembly::root() const
 {
     return mRoot;
 }
@@ -582,7 +582,7 @@ Result ExpressionCompiler::compile(
     Vec<IExpressionStats*> exprStats;
 
     // Compile expression starting at root.
-    const IExprNode<F64>* root = nullptr;
+    IExprNode<F64>* root = nullptr;
     const Result res = compileImpl(kParse,
                                    kSvs,
                                    root,

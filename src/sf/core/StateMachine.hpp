@@ -16,7 +16,7 @@ public:
 
     struct Block final
     {
-        const IExprNode<bool>* guard;
+        IExprNode<bool>* guard;
         Block* ifBlock;
         Block* elseBlock;
         IAction* action;

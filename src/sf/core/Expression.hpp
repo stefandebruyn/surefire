@@ -23,13 +23,13 @@ public:
 
     virtual ~IExprNode() = default;
 
-    virtual T evaluate() const = 0;
+    virtual T evaluate() = 0;
 
     ElementType type() const final override;
 
-    IExprNode(const IExprNode<T>&) = delete;
+    IExprNode(IExprNode<T>&) = delete;
     IExprNode(IExprNode<T>&&) = delete;
-    IExprNode<T>& operator=(const IExprNode<T>&) = delete;
+    IExprNode<T>& operator=(IExprNode<T>&) = delete;
     IExprNode<T>& operator=(IExprNode<T>&&) = delete;
 };
 
@@ -42,7 +42,7 @@ public:
     {
     }
 
-    T evaluate() const final override
+    T evaluate() final override
     {
         return mVal;
     }
@@ -61,7 +61,7 @@ public:
     {
     }
 
-    T evaluate() const final override
+    T evaluate() final override
     {
         return mElem.read();
     }
@@ -79,13 +79,13 @@ public:
     typedef T (*Operator)(const TOperand kLhs, const TOperand kRhs);
 
     BinOpExprNode(const Operator kOp,
-                  const IExprNode<TOperand>& kLeft,
-                  const IExprNode<TOperand>& kRight) :
+                  IExprNode<TOperand>& kLeft,
+                  IExprNode<TOperand>& kRight) :
         mOp(kOp), mLhs(kLeft), mRhs(kRight)
     {
     }
 
-    T evaluate() const final override
+    T evaluate() final override
     {
         return mOp(mLhs.evaluate(), mRhs.evaluate());
     }
@@ -94,9 +94,9 @@ private:
 
     const Operator mOp;
 
-    const IExprNode<TOperand>& mLhs;
+    IExprNode<TOperand>& mLhs;
 
-    const IExprNode<TOperand>& mRhs;
+    IExprNode<TOperand>& mRhs;
 };
 
 template<typename T, typename TOperand = T>
@@ -106,12 +106,12 @@ public:
 
     typedef T (*Operator)(const TOperand kRhs);
 
-    UnaryOpExprNode(const Operator kOp, const IExprNode<TOperand>& kRhs) :
+    UnaryOpExprNode(const Operator kOp, IExprNode<TOperand>& kRhs) :
         mOp(kOp), mRhs(kRhs)
     {
     }
 
-    T evaluate() const final override
+    T evaluate() final override
     {
         return mOp(mRhs.evaluate());
     }
@@ -120,7 +120,7 @@ private:
 
     const Operator mOp;
 
-    const IExprNode<TOperand>& mRhs;
+    IExprNode<TOperand>& mRhs;
 };
 
 namespace Limits
