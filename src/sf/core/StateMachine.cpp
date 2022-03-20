@@ -2,6 +2,8 @@
 #include "sf/core/StateMachine.hpp"
 #include "sf/pal/Clock.hpp"
 
+#include <iostream> // rm later
+
 /////////////////////////////////// Private ////////////////////////////////////
 
 static Result checkBlockTransitions(const StateMachine::Config kConfig,
@@ -189,6 +191,7 @@ Result StateMachine::create(const Config kConfig, StateMachine& kSm)
             break;
         }
     }
+
     if (stateInitConfig->id == NO_STATE)
     {
         // Initial state not found.

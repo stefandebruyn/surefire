@@ -5,6 +5,7 @@
 #include "sf/core/Element.hpp"
 #include "sf/core/Expression.hpp"
 #include "sf/core/Result.hpp"
+#include <iostream> // rm later
 
 class IAction
 {
@@ -33,6 +34,7 @@ public:
 
     bool execute() final override
     {
+        std::cout << "HELLO THERE" << std::endl;
         mElem.write(mExpr.evaluate());
         return false;
     }
