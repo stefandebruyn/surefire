@@ -1,44 +1,44 @@
 #include <cstring>
 
-#include "sf/config/ExpressionCompiler.hpp"
-#include "sf/config/StateVectorCompiler.hpp"
+#include "sf/config/ExpressionAssembly.hpp"
+#include "sf/config/StateVectorAssembly.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 static void setup(const char* const kExprSrc,
                   const char* const kSvSrc,
-                  Ref<const ExpressionParser::Parse>& kExprParse,
-                  Ref<const StateVectorCompiler::Assembly>& kSvAsm,
-                  StateVector& kSv)
+                  Ref<const ExpressionParse>& kExprParse,
+                  Ref<const StateVectorAssembly>& kSvAsm,
+                  Ref<StateVector>& kSv)
 {
     // Parse expression.
     Vec<Token> exprToks;
     std::stringstream exprSs(kExprSrc);
     CHECK_SUCCESS(Tokenizer::tokenize(exprSs, exprToks, nullptr));
     TokenIterator exprIt(exprToks.begin(), exprToks.end());
-    CHECK_SUCCESS(ExpressionParser::parse(exprIt, kExprParse, nullptr));
+    CHECK_SUCCESS(ExpressionParse::parse(exprIt, kExprParse, nullptr));
 
     // Compile state vector.
     if (std::strlen(kSvSrc) > 0)
     {
         std::stringstream svSs(kSvSrc);
-        CHECK_SUCCESS(StateVectorCompiler::compile(svSs, kSvAsm, nullptr));
-        CHECK_SUCCESS(StateVector::create(kSvAsm->getConfig(), kSv));
+        CHECK_SUCCESS(StateVectorAssembly::compile(svSs, kSvAsm, nullptr));
+        kSv = kSvAsm->get();
     }
 }
 
 static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     setup(kExprSrc, "", exprParse, svAsm, sv);
 
     // Compile expression.
-    Ref<const ExpressionCompiler::Assembly> exprAsm;
-    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
-                                              {&sv},
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+                                              {sv},
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -46,22 +46,21 @@ static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
     // Expression evaluates to expected value.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root());
+        static_cast<IExprNode<F64>*>(exprAsm->root().get());
     CHECK_EQUAL(kExpectVal, root->evaluate());
 }
 
-static void checkCompileError(
-    const Ref<const ExpressionParser::Parse> kExprParse,
-    StateVector& kSv,
-    const Result kRes,
-    const I32 kLineNum,
-    const I32 kColNum)
+static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
+                              const Ref<StateVector> kSv,
+                              const Result kRes,
+                              const I32 kLineNum,
+                              const I32 kColNum)
 {
     // Got expected return code from compiler.
-    Ref<const ExpressionCompiler::Assembly> exprAsm;
+    Ref<const ExpressionAssembly> exprAsm;
     ErrorInfo err;
-    CHECK_ERROR(kRes, ExpressionCompiler::compile(kExprParse,
-                                                  {&kSv},
+    CHECK_ERROR(kRes, ExpressionAssembly::compile(kExprParse,
+                                                  {kSv},
                                                   ElementType::FLOAT64,
                                                   exprAsm,
                                                   &err));
@@ -80,21 +79,21 @@ static void checkCompileError(
 
 ///////////////////////////////// Usage Tests //////////////////////////////////
 
-TEST_GROUP(ExpressionCompiler)
+TEST_GROUP(ExpressionAssembly)
 {
 };
 
-TEST(ExpressionCompiler, SimplePrecedence)
+TEST(ExpressionAssembly, SimplePrecedence)
 {
     checkEvalConstExpr("1 + 2 * 3", 7);
 }
 
-TEST(ExpressionCompiler, SimplePrecedenceWithParens)
+TEST(ExpressionAssembly, SimplePrecedenceWithParens)
 {
     checkEvalConstExpr("(1 + 2) * 3", 9);
 }
 
-TEST(ExpressionCompiler, Not)
+TEST(ExpressionAssembly, Not)
 {
     checkEvalConstExpr("NOT FALSE", 1.0);
     checkEvalConstExpr("NOT TRUE", 0.0);
@@ -102,7 +101,7 @@ TEST(ExpressionCompiler, Not)
     checkEvalConstExpr("NOT NOT NOT FALSE", 1.0);
 }
 
-TEST(ExpressionCompiler, Multiply)
+TEST(ExpressionAssembly, Multiply)
 {
     checkEvalConstExpr("5 * 3", (5 * 3));
     checkEvalConstExpr("5 * 3 * -3.14 * 9.81 * -1.62",
@@ -111,7 +110,7 @@ TEST(ExpressionCompiler, Multiply)
                        (5 * (3 * (-3.14 * 9.81)) * -1.62));
 }
 
-TEST(ExpressionCompiler, Divide)
+TEST(ExpressionAssembly, Divide)
 {
     checkEvalConstExpr("5 / 3", (5.0 / 3.0));
     checkEvalConstExpr("5 / 3 / -3.14 / 9.81 / -1.62",
@@ -120,7 +119,7 @@ TEST(ExpressionCompiler, Divide)
                        (5.0 / (3 / (-3.14 / 9.81)) / -1.62));
 }
 
-TEST(ExpressionCompiler, Add)
+TEST(ExpressionAssembly, Add)
 {
     checkEvalConstExpr("5 + 3", (5.0 + 3.0));
     checkEvalConstExpr("5 + 3 + -3.14 + 9.81 + -1.62",
@@ -129,7 +128,7 @@ TEST(ExpressionCompiler, Add)
                        (5 + (3 + (-3.14 + 9.81)) + -1.62));
 }
 
-TEST(ExpressionCompiler, Subtract)
+TEST(ExpressionAssembly, Subtract)
 {
     checkEvalConstExpr("5 - 3", (5.0 - 3.0));
     checkEvalConstExpr("5 - 3 - -3.14 - 9.81 - -1.62",
@@ -138,7 +137,7 @@ TEST(ExpressionCompiler, Subtract)
                        (5 - (3 - (-3.14 - 9.81)) - -1.62));
 }
 
-TEST(ExpressionCompiler, ComplexArithmetic)
+TEST(ExpressionAssembly, ComplexArithmetic)
 {
     const F64 expectVal =
         (4789.478932478923 * (-321.5789004 - 333.47823 * 0.07849327843)
@@ -151,47 +150,47 @@ TEST(ExpressionCompiler, ComplexArithmetic)
         expectVal);
 }
 
-TEST(ExpressionCompiler, LessThan)
+TEST(ExpressionAssembly, LessThan)
 {
     checkEvalConstExpr("3 < 5", 1.0);
     checkEvalConstExpr("5 < 3", 0.0);
     checkEvalConstExpr("5 < 5", 0.0);
 }
 
-TEST(ExpressionCompiler, LessThanEqual)
+TEST(ExpressionAssembly, LessThanEqual)
 {
     checkEvalConstExpr("3 <= 5", 1.0);
     checkEvalConstExpr("5 <= 3", 0.0);
     checkEvalConstExpr("5 <= 5", 1.0);
 }
 
-TEST(ExpressionCompiler, GreaterThan)
+TEST(ExpressionAssembly, GreaterThan)
 {
     checkEvalConstExpr("5 > 3", 1.0);
     checkEvalConstExpr("3 > 5", 0.0);
     checkEvalConstExpr("5 > 5", 0.0);
 }
 
-TEST(ExpressionCompiler, GreaterThanEqual)
+TEST(ExpressionAssembly, GreaterThanEqual)
 {
     checkEvalConstExpr("5 >= 3", 1.0);
     checkEvalConstExpr("3 >= 5", 0.0);
     checkEvalConstExpr("5 >= 5", 1.0);
 }
 
-TEST(ExpressionCompiler, Equal)
+TEST(ExpressionAssembly, Equal)
 {
     checkEvalConstExpr("5 == 5", 1.0);
     checkEvalConstExpr("3 == 5", 0.0);
 }
 
-TEST(ExpressionCompiler, NotEqual)
+TEST(ExpressionAssembly, NotEqual)
 {
     checkEvalConstExpr("3 != 5", 1.0);
     checkEvalConstExpr("5 != 5", 0.0);
 }
 
-TEST(ExpressionCompiler, And)
+TEST(ExpressionAssembly, And)
 {
     checkEvalConstExpr("FALSE AND FALSE", 0.0);
     checkEvalConstExpr("FALSE AND TRUE", 0.0);
@@ -199,7 +198,7 @@ TEST(ExpressionCompiler, And)
     checkEvalConstExpr("TRUE AND TRUE", 1.0);
 }
 
-TEST(ExpressionCompiler, Or)
+TEST(ExpressionAssembly, Or)
 {
     checkEvalConstExpr("FALSE OR FALSE", 0.0);
     checkEvalConstExpr("FALSE OR TRUE", 1.0);
@@ -207,7 +206,7 @@ TEST(ExpressionCompiler, Or)
     checkEvalConstExpr("TRUE OR TRUE", 1.0);
 }
 
-TEST(ExpressionCompiler, ComplexLogic)
+TEST(ExpressionAssembly, ComplexLogic)
 {
     const bool expectVal =
         (true || !(false && true && !(false && !false)) || true && false
@@ -220,12 +219,12 @@ TEST(ExpressionCompiler, ComplexLogic)
         expectVal);
 }
 
-TEST(ExpressionCompiler, MixedArithmeticAndLogic)
+TEST(ExpressionAssembly, MixedArithmeticAndLogic)
 {
     checkEvalConstExpr("(4 + 6) / 2 == (100 - 120) / (4 * -1)", 1.0);
 }
 
-TEST(ExpressionCompiler, DoubleInequalityLt)
+TEST(ExpressionAssembly, DoubleInequalityLt)
 {
     checkEvalConstExpr("1 < 2 < 3", 1.0);
     checkEvalConstExpr("2 < 2 < 3", 0.0);
@@ -234,7 +233,7 @@ TEST(ExpressionCompiler, DoubleInequalityLt)
     checkEvalConstExpr("1 < 1 + 1 < 1 + 1 + 1", 1.0);
 }
 
-TEST(ExpressionCompiler, DoubleInequalityLte)
+TEST(ExpressionAssembly, DoubleInequalityLte)
 {
     checkEvalConstExpr("1 <= 2 <= 3", 1.0);
     checkEvalConstExpr("2 <= 2 <= 3", 1.0);
@@ -246,7 +245,7 @@ TEST(ExpressionCompiler, DoubleInequalityLte)
     checkEvalConstExpr("1 <= 1 + 1 - 1 <= 1 + 1 + 1 - 2", 1.0);
 }
 
-TEST(ExpressionCompiler, DoubleInequalityGt)
+TEST(ExpressionAssembly, DoubleInequalityGt)
 {
     checkEvalConstExpr("3 > 2 > 1", 1.0);
     checkEvalConstExpr("3 > 2 > 2", 0.0);
@@ -255,7 +254,7 @@ TEST(ExpressionCompiler, DoubleInequalityGt)
     checkEvalConstExpr("1 + 1 + 1 > 1 + 1 > 1", 1.0);
 }
 
-TEST(ExpressionCompiler, DoubleInequalityGte)
+TEST(ExpressionAssembly, DoubleInequalityGte)
 {
     checkEvalConstExpr("3 >= 2 >= 1", 1.0);
     checkEvalConstExpr("3 >= 2 >= 2", 1.0);
@@ -267,7 +266,7 @@ TEST(ExpressionCompiler, DoubleInequalityGte)
     checkEvalConstExpr("1 + 1 + 1 - 2 >= 1 + 1 - 1 >= 1", 1.0);
 }
 
-TEST(ExpressionCompiler, DoubleInequalityLtLte)
+TEST(ExpressionAssembly, DoubleInequalityLtLte)
 {
     checkEvalConstExpr("1 < 2 <= 3", 1.0);
     checkEvalConstExpr("1 < 2 <= 2", 1.0);
@@ -275,7 +274,7 @@ TEST(ExpressionCompiler, DoubleInequalityLtLte)
     checkEvalConstExpr("2 < 2 <= 2", 0.0);
 }
 
-TEST(ExpressionCompiler, DoubleInequalityGtGte)
+TEST(ExpressionAssembly, DoubleInequalityGtGte)
 {
     checkEvalConstExpr("3 > 2 >= 1", 1.0);
     checkEvalConstExpr("2 > 2 >= 1", 0.0);
@@ -283,7 +282,7 @@ TEST(ExpressionCompiler, DoubleInequalityGtGte)
     checkEvalConstExpr("2 > 2 >= 2", 0.0);
 }
 
-TEST(ExpressionCompiler, DoubleInequalityOpposingComparisons)
+TEST(ExpressionAssembly, DoubleInequalityOpposingComparisons)
 {
     checkEvalConstExpr("3 > 2 < 4", 1.0);
     checkEvalConstExpr("3 > 2 < 2", 0.0);
@@ -292,7 +291,7 @@ TEST(ExpressionCompiler, DoubleInequalityOpposingComparisons)
     checkEvalConstExpr("2 >= 2 < 4", 1.0);
 }
 
-TEST(ExpressionCompiler, TripleInequality)
+TEST(ExpressionAssembly, TripleInequality)
 {
     checkEvalConstExpr("1 < 2 < 3 < 4", 1.0);
     checkEvalConstExpr("1 < 1 < 3 < 4", 0.0);
@@ -303,11 +302,11 @@ TEST(ExpressionCompiler, TripleInequality)
     checkEvalConstExpr("1 < 2 < 3 <= 3", 1.0);
 }
 
-TEST(ExpressionCompiler, OnlyElement)
+TEST(ExpressionAssembly, OnlyElement)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("foo",
             "[Foo]\n"
             "I32 foo\n",
@@ -316,9 +315,9 @@ TEST(ExpressionCompiler, OnlyElement)
             sv);
 
     // Compile expression.
-    Ref<const ExpressionCompiler::Assembly> exprAsm;
-    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
-                                              {&sv},
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+                                              {sv},
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -326,21 +325,21 @@ TEST(ExpressionCompiler, OnlyElement)
     // Expression evaluates to 0, the initial value of element `foo`.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root());
+        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set `foo` to a new value and re-evaluate expression.
     Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
     elemFoo->write(3);
     CHECK_EQUAL(3.0, root->evaluate());
 }
 
-TEST(ExpressionCompiler, MultipleElements)
+TEST(ExpressionAssembly, MultipleElements)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("(foo + bar) * baz + 1",
             "[Foo]\n"
             "I32 foo\n"
@@ -351,9 +350,9 @@ TEST(ExpressionCompiler, MultipleElements)
             sv);
 
     // Compile expression.
-    Ref<const ExpressionCompiler::Assembly> exprAsm;
-    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
-                                              {&sv},
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+                                              {sv},
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -361,27 +360,27 @@ TEST(ExpressionCompiler, MultipleElements)
     // Expression initially evaluates to 1.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root());
+        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
     CHECK_EQUAL(1.0, root->evaluate());
 
     // Set elements to new values and re-evaluate expression.
     Element<I32>* elemFoo = nullptr;
     Element<I32>* elemBar = nullptr;
     Element<I32>* elemBaz = nullptr;
-    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
-    CHECK_SUCCESS(sv.getElement("bar", elemBar));
-    CHECK_SUCCESS(sv.getElement("baz", elemBaz));
+    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
+    CHECK_SUCCESS(sv->getElement("bar", elemBar));
+    CHECK_SUCCESS(sv->getElement("baz", elemBaz));
     elemFoo->write(3);
     elemBar->write(-10);
     elemBaz->write(4);
     CHECK_EQUAL(-27.0, root->evaluate());
 }
 
-TEST(ExpressionCompiler, AllElementTypes)
+TEST(ExpressionAssembly, AllElementTypes)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("a + b + c + d + e + f + g + h + i + j + k",
             "[Foo]\n"
             "I8 a\n"
@@ -400,9 +399,9 @@ TEST(ExpressionCompiler, AllElementTypes)
             sv);
 
     // Compile expression.
-    Ref<const ExpressionCompiler::Assembly> exprAsm;
-    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
-                                              {&sv},
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+                                              {sv},
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -410,7 +409,7 @@ TEST(ExpressionCompiler, AllElementTypes)
     // Expression initially evaluates to 0.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root());
+        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set elements to new values and re-evaluate expression.
@@ -425,17 +424,17 @@ TEST(ExpressionCompiler, AllElementTypes)
     Element<F32>* elemI = nullptr;
     Element<F64>* elemJ = nullptr;
     Element<bool>* elemK = nullptr;
-    CHECK_SUCCESS(sv.getElement("a", elemA));
-    CHECK_SUCCESS(sv.getElement("b", elemB));
-    CHECK_SUCCESS(sv.getElement("c", elemC));
-    CHECK_SUCCESS(sv.getElement("d", elemD));
-    CHECK_SUCCESS(sv.getElement("e", elemE));
-    CHECK_SUCCESS(sv.getElement("f", elemF));
-    CHECK_SUCCESS(sv.getElement("g", elemG));
-    CHECK_SUCCESS(sv.getElement("h", elemH));
-    CHECK_SUCCESS(sv.getElement("i", elemI));
-    CHECK_SUCCESS(sv.getElement("j", elemJ));
-    CHECK_SUCCESS(sv.getElement("k", elemK));
+    CHECK_SUCCESS(sv->getElement("a", elemA));
+    CHECK_SUCCESS(sv->getElement("b", elemB));
+    CHECK_SUCCESS(sv->getElement("c", elemC));
+    CHECK_SUCCESS(sv->getElement("d", elemD));
+    CHECK_SUCCESS(sv->getElement("e", elemE));
+    CHECK_SUCCESS(sv->getElement("f", elemF));
+    CHECK_SUCCESS(sv->getElement("g", elemG));
+    CHECK_SUCCESS(sv->getElement("h", elemH));
+    CHECK_SUCCESS(sv->getElement("i", elemI));
+    CHECK_SUCCESS(sv->getElement("j", elemJ));
+    CHECK_SUCCESS(sv->getElement("k", elemK));
     elemA->write(1);
     elemB->write(1);
     elemC->write(1);
@@ -450,11 +449,11 @@ TEST(ExpressionCompiler, AllElementTypes)
     CHECK_EQUAL(11.0, root->evaluate());
 }
 
-TEST(ExpressionCompiler, RollAvgFunction)
+TEST(ExpressionAssembly, RollAvgFunction)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_AVG(foo, 2)",
             "[Foo]\n"
             "I32 foo\n",
@@ -463,27 +462,27 @@ TEST(ExpressionCompiler, RollAvgFunction)
             sv);
 
     // Compile expression.
-    Ref<const ExpressionCompiler::Assembly> exprAsm;
-    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
-                                              {&sv},
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+                                              {sv},
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
 
     // Get expression stats used by function.
-    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    const Vec<Ref<IExpressionStats>> statsVec = exprAsm->stats();
     CHECK_EQUAL(1, statsVec.size());
     IExpressionStats& stats = *statsVec[0];
 
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root());
+        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to 2 and update stats. Rolling average becomes 2.
     Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
     elemFoo->write(2);
     stats.update();
     CHECK_EQUAL(2.0, root->evaluate());
@@ -500,11 +499,11 @@ TEST(ExpressionCompiler, RollAvgFunction)
     CHECK_EQUAL(5.0, root->evaluate());
 }
 
-TEST(ExpressionCompiler, RollMedianFunction)
+TEST(ExpressionAssembly, RollMedianFunction)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_MEDIAN(foo, 3)",
             "[Foo]\n"
             "I32 foo\n",
@@ -513,27 +512,27 @@ TEST(ExpressionCompiler, RollMedianFunction)
             sv);
 
     // Compile expression.
-    Ref<const ExpressionCompiler::Assembly> exprAsm;
-    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
-                                              {&sv},
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+                                              {sv},
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
 
     // Get expression stats used by function.
-    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    const Vec<Ref<IExpressionStats>> statsVec = exprAsm->stats();
     CHECK_EQUAL(1, statsVec.size());
     IExpressionStats& stats = *statsVec[0];
 
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root());
+        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to 2 and update stats. Rolling median becomes 2.
     Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
     elemFoo->write(2);
     stats.update();
     CHECK_EQUAL(2.0, root->evaluate());
@@ -555,11 +554,11 @@ TEST(ExpressionCompiler, RollMedianFunction)
     CHECK_EQUAL(6.0, root->evaluate());
 }
 
-TEST(ExpressionCompiler, RollMinFunction)
+TEST(ExpressionAssembly, RollMinFunction)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_MIN(foo, 2)",
             "[Foo]\n"
             "I32 foo\n",
@@ -568,27 +567,27 @@ TEST(ExpressionCompiler, RollMinFunction)
             sv);
 
     // Compile expression.
-    Ref<const ExpressionCompiler::Assembly> exprAsm;
-    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
-                                              {&sv},
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+                                              {sv},
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
 
     // Get expression stats used by function.
-    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    const Vec<Ref<IExpressionStats>> statsVec = exprAsm->stats();
     CHECK_EQUAL(1, statsVec.size());
     IExpressionStats& stats = *statsVec[0];
 
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root());
+        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to -3 and update stats. Rolling min becomes -3.
     Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
     elemFoo->write(-3);
     stats.update();
     CHECK_EQUAL(-3.0, root->evaluate());
@@ -605,11 +604,11 @@ TEST(ExpressionCompiler, RollMinFunction)
     CHECK_EQUAL(1.0, root->evaluate());
 }
 
-TEST(ExpressionCompiler, RollMaxFunction)
+TEST(ExpressionAssembly, RollMaxFunction)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_MAX(foo, 2)",
             "[Foo]\n"
             "I32 foo\n",
@@ -618,27 +617,27 @@ TEST(ExpressionCompiler, RollMaxFunction)
             sv);
 
     // Compile expression.
-    Ref<const ExpressionCompiler::Assembly> exprAsm;
-    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
-                                              {&sv},
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+                                              {sv},
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
 
     // Get expression stats used by function.
-    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    const Vec<Ref<IExpressionStats>> statsVec = exprAsm->stats();
     CHECK_EQUAL(1, statsVec.size());
     IExpressionStats& stats = *statsVec[0];
 
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root());
+        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to 3 and update stats. Rolling max becomes 3.
     Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
     elemFoo->write(3);
     stats.update();
     CHECK_EQUAL(3.0, root->evaluate());
@@ -655,11 +654,11 @@ TEST(ExpressionCompiler, RollMaxFunction)
     CHECK_EQUAL(2.0, root->evaluate());
 }
 
-TEST(ExpressionCompiler, RollRangeFunction)
+TEST(ExpressionAssembly, RollRangeFunction)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_RANGE(foo, 2)",
             "[Foo]\n"
             "I32 foo\n",
@@ -668,28 +667,28 @@ TEST(ExpressionCompiler, RollRangeFunction)
             sv);
 
     // Compile expression.
-    Ref<const ExpressionCompiler::Assembly> exprAsm;
-    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
-                                              {&sv},
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+                                              {sv},
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
 
     // Get expression stats used by function.
-    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    const Vec<Ref<IExpressionStats>> statsVec = exprAsm->stats();
     CHECK_EQUAL(1, statsVec.size());
     IExpressionStats& stats = *statsVec[0];
 
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root());
+        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to 3 and update stats. Rolling range stays 0 since
     // there's only 1 value in the window.
     Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
     elemFoo->write(3);
     stats.update();
     CHECK_EQUAL(0.0, root->evaluate());
@@ -706,11 +705,11 @@ TEST(ExpressionCompiler, RollRangeFunction)
     CHECK_EQUAL(4.0, root->evaluate());
 }
 
-TEST(ExpressionCompiler, StatsFunctionExpressionArgs)
+TEST(ExpressionAssembly, StatsFunctionExpressionArgs)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_MIN(foo + 1, bar * -1)",
             "[Foo]\n"
             "I32 foo\n"
@@ -722,13 +721,13 @@ TEST(ExpressionCompiler, StatsFunctionExpressionArgs)
     // Set element `bar` to -2. This causes the `ROLL_MIN` call to use a window
     // size of 2.
     Element<I32>* elemBar = nullptr;
-    CHECK_SUCCESS(sv.getElement("bar", elemBar));
+    CHECK_SUCCESS(sv->getElement("bar", elemBar));
     elemBar->write(-2);
 
     // Compile expression.
-    Ref<const ExpressionCompiler::Assembly> exprAsm;
-    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
-                                              {&sv},
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+                                              {sv},
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -738,19 +737,19 @@ TEST(ExpressionCompiler, StatsFunctionExpressionArgs)
     elemBar->write(10);
 
     // Get expression stats used by function.
-    const Vec<IExpressionStats*>& statsVec = exprAsm->stats();
+    const Vec<Ref<IExpressionStats>> statsVec = exprAsm->stats();
     CHECK_EQUAL(1, statsVec.size());
     IExpressionStats& stats = *statsVec[0];
 
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root());
+        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to -3 and update stats. Rolling min becomes -2.
     Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv.getElement("foo", elemFoo));
+    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
     elemFoo->write(-3);
     stats.update();
     CHECK_EQUAL(-2.0, root->evaluate());
@@ -769,35 +768,24 @@ TEST(ExpressionCompiler, StatsFunctionExpressionArgs)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
-TEST_GROUP(ExpressionCompilerErrors)
+TEST_GROUP(ExpressionAssemblyErrors)
 {
 };
 
-TEST(ExpressionCompilerErrors, UnknownElement)
+TEST(ExpressionAssemblyErrors, UnknownElement)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("foo", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, sv, E_EXC_ELEM, 1, 1);
 }
 
-TEST(ExpressionCompilerErrors, InvalidNumber)
+TEST(ExpressionAssemblyErrors, OutOfRangeNumber)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
-    ::setup("1 + 2", "", exprParse, svAsm, sv);
-    // Change the `1` constant token to have string "foo".
-    exprParse->left->data.str = "foo";
-    checkCompileError(exprParse, sv, E_EXC_NUM, 1, 1);
-}
-
-TEST(ExpressionCompilerErrors, OutOfRangeNumber)
-{
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("1 + 9999999999999999999999999999999999999999999999999999999999999"
             "99999999999999999999999999999999999999999999999999999999999999999"
             "99999999999999999999999999999999999999999999999999999999999999999"
@@ -811,83 +799,83 @@ TEST(ExpressionCompilerErrors, OutOfRangeNumber)
     checkCompileError(exprParse, sv, E_EXC_OVFL, 1, 5);
 }
 
-TEST(ExpressionCompilerErrors, StatsFunctionArity)
+TEST(ExpressionAssemblyErrors, StatsFunctionArity)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_AVG(1)", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, sv, E_EXC_ARITY, 1, 1);
 }
 
-TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg1)
+TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg1)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_AVG(foo, 4)", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, sv, E_EXC_ELEM, 1, 10);
 }
 
-TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg2)
+TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg2)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, foo)", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, sv, E_EXC_ELEM, 1, 13);
 }
 
-TEST(ExpressionCompilerErrors, StatsFunctionZeroWindowSize)
+TEST(ExpressionAssemblyErrors, StatsFunctionZeroWindowSize)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 0)", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
 }
 
-TEST(ExpressionCompilerErrors, StatsFunctionNegativeWindowSize)
+TEST(ExpressionAssemblyErrors, StatsFunctionNegativeWindowSize)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, -1)", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
 }
 
-TEST(ExpressionCompilerErrors, StatsFunctionNonIntegerWindowSize)
+TEST(ExpressionAssemblyErrors, StatsFunctionNonIntegerWindowSize)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 1.5)", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
 }
 
-TEST(ExpressionCompilerErrors, StatsFunctionNaNWindowSize)
+TEST(ExpressionAssemblyErrors, StatsFunctionNaNWindowSize)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 1 / 0)", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, sv, E_EXC_WIN, 1, 15);
 }
 
-TEST(ExpressionCompilerErrors, StatsFunctionWindowTooBig)
+TEST(ExpressionAssemblyErrors, StatsFunctionWindowTooBig)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 100001)", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
 }
 
-TEST(ExpressionCompilerErrors, UnknownFunction)
+TEST(ExpressionAssemblyErrors, UnknownFunction)
 {
-    Ref<const ExpressionParser::Parse> exprParse;
-    Ref<const StateVectorCompiler::Assembly> svAsm;
-    StateVector sv;
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
     ::setup("FOO()", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, sv, E_EXC_FUNC, 1, 1);
 }

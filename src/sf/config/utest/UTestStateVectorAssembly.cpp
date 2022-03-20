@@ -1,4 +1,4 @@
-#include "sf/config/StateVectorCompiler.hpp"
+#include "sf/config/StateVectorAssembly.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
@@ -20,11 +20,11 @@ static void checkStateVectorConfig(const Vec<Token>& kToks,
                                    const Vec<RegionInfo> kRegions)
 {
     // Parse and compile state vector config.
-    StateVectorParser::Parse parse = {};
-    CHECK_SUCCESS(StateVectorParser::parse(kToks, parse, nullptr));
-    Ref<const StateVectorCompiler::Assembly> assembly;
-    CHECK_SUCCESS(StateVectorCompiler::compile(parse, assembly, nullptr));
-    const StateVector::Config& svConfig = assembly->getConfig();
+    Ref<const StateVectorParse> parse;
+    CHECK_SUCCESS(StateVectorParse::parse(kToks, parse, nullptr));
+    Ref<const StateVectorAssembly> assembly;
+    CHECK_SUCCESS(StateVectorAssembly::compile(parse, assembly, nullptr));
+    const StateVector::Config& svConfig = assembly->config();
 
     // Element names match the parsed config and all element pointers are
     // non-null.
@@ -206,13 +206,13 @@ static void checkCompileError(const Vec<Token>& kToks,
                               const I32 kColNum)
 {
     // Parse state vector config.
-    StateVectorParser::Parse parse = {};
-    CHECK_SUCCESS(StateVectorParser::parse(kToks, parse, nullptr));
+    Ref<const StateVectorParse> parse;
+    CHECK_SUCCESS(StateVectorParse::parse(kToks, parse, nullptr));
 
     // Got expected return code from compiler.
-    Ref<const StateVectorCompiler::Assembly> assembly;
+    Ref<const StateVectorAssembly> assembly;
     ErrorInfo err;
-    CHECK_ERROR(kRes, StateVectorCompiler::compile(parse, assembly, &err));
+    CHECK_ERROR(kRes, StateVectorAssembly::compile(parse, assembly, &err));
 
     // Correct line and column numbers of error are identified.
     CHECK_EQUAL(kLineNum, err.lineNum);
@@ -228,11 +228,11 @@ static void checkCompileError(const Vec<Token>& kToks,
 
 ///////////////////////////////// Usage Tests //////////////////////////////////
 
-TEST_GROUP(StateVectorCompiler)
+TEST_GROUP(StateVectorAssembly)
 {
 };
 
-TEST(StateVectorCompiler, OneElement)
+TEST(StateVectorAssembly, OneElement)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -247,7 +247,7 @@ TEST(StateVectorCompiler, OneElement)
         });
 }
 
-TEST(StateVectorCompiler, SimpleConfig)
+TEST(StateVectorAssembly, SimpleConfig)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -269,7 +269,7 @@ TEST(StateVectorCompiler, SimpleConfig)
         });
 }
 
-TEST(StateVectorCompiler, AllElementTypes)
+TEST(StateVectorAssembly, AllElementTypes)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -306,7 +306,7 @@ TEST(StateVectorCompiler, AllElementTypes)
         });
 }
 
-TEST(StateVectorCompiler, OneLargeRegion)
+TEST(StateVectorAssembly, OneLargeRegion)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -399,7 +399,7 @@ TEST(StateVectorCompiler, OneLargeRegion)
         });
 }
 
-TEST(StateVectorCompiler, NewlineAgnostic)
+TEST(StateVectorAssembly, NewlineAgnostic)
 {
     TOKENIZE(
         "[Foo] I32 foo F64 bar [Bar] bool baz F32 qux");
@@ -419,11 +419,11 @@ TEST(StateVectorCompiler, NewlineAgnostic)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
-TEST_GROUP(StateVectorCompilerErrors)
+TEST_GROUP(StateVectorAssemblyErrors)
 {
 };
 
-TEST(StateVectorCompilerErrors, DuplicateElementNameSameRegion)
+TEST(StateVectorAssemblyErrors, DuplicateElementNameSameRegion)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -432,7 +432,7 @@ TEST(StateVectorCompilerErrors, DuplicateElementNameSameRegion)
     checkCompileError(toks, E_SVC_ELEM_DUPE, 3, 5);
 }
 
-TEST(StateVectorCompilerErrors, DuplicateElementNameDifferentRegion)
+TEST(StateVectorAssemblyErrors, DuplicateElementNameDifferentRegion)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -442,7 +442,7 @@ TEST(StateVectorCompilerErrors, DuplicateElementNameDifferentRegion)
     checkCompileError(toks, E_SVC_ELEM_DUPE, 4, 5);
 }
 
-TEST(StateVectorCompilerErrors, DuplicateRegionName)
+TEST(StateVectorAssemblyErrors, DuplicateRegionName)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -452,14 +452,14 @@ TEST(StateVectorCompilerErrors, DuplicateRegionName)
     checkCompileError(toks, E_SVC_RGN_DUPE, 3, 1);
 }
 
-TEST(StateVectorCompilerErrors, EmptyRegion)
+TEST(StateVectorAssemblyErrors, EmptyRegion)
 {
     TOKENIZE(
         "[Foo]\n");
     checkCompileError(toks, E_SVC_RGN_EMPTY, 1, 1);
 }
 
-TEST(StateVectorCompilerErrors, UnknownElementType)
+TEST(StateVectorAssemblyErrors, UnknownElementType)
 {
     TOKENIZE(
         "[Foo]\n"

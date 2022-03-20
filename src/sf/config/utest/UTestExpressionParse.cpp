@@ -1,4 +1,4 @@
-#include "sf/config/ExpressionParser.hpp"
+#include "sf/config/ExpressionParse.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
@@ -6,7 +6,7 @@
 #define CHECK_ARG_CNT(kFuncNode, kExpectCnt)                                   \
 {                                                                              \
     U32 cnt = 0;                                                               \
-    Ref<const ExpressionParser::Parse> _node = kFuncNode;                      \
+    Ref<const ExpressionParse> _node = kFuncNode;                              \
     while (_node->left)                                                        \
     {                                                                          \
         ++cnt;                                                                 \
@@ -15,8 +15,8 @@
     CHECK_EQUAL(kExpectCnt, cnt);                                              \
 }
 
-static void checkParsesEqual(const Ref<const ExpressionParser::Parse> kNodeA,
-                             const Ref<const ExpressionParser::Parse> kNodeB)
+static void checkParsesEqual(const Ref<const ExpressionParse> kNodeA,
+                             const Ref<const ExpressionParse> kNodeB)
 {
     CHECK_EQUAL((kNodeA == nullptr), (kNodeB == nullptr));
 
@@ -39,8 +39,8 @@ static void checkParseError(TokenIterator& kIt,
 {
     // Got expected return code.
     ErrorInfo err;
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_ERROR(kRes, ExpressionParser::parse(kIt, parse, &err));
+    Ref<const ExpressionParse> parse;
+    CHECK_ERROR(kRes, ExpressionParse::parse(kIt, parse, &err));
 
     // Line and column numbers of offending token are correctly identified.
     CHECK_EQUAL(kLineNum, err.lineNum);
@@ -56,31 +56,31 @@ static void checkParseError(TokenIterator& kIt,
 
 ///////////////////////////////// Usage Tests //////////////////////////////////
 
-TEST_GROUP(ExpressionParser)
+TEST_GROUP(ExpressionParse)
 {
 };
 
-TEST(ExpressionParser, OneConstant)
+TEST(ExpressionParse, OneConstant)
 {
     TOKENIZE("10");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
     CHECK_TRUE(parse->data == toks[0]);
     CHECK_TRUE(parse->left == nullptr);
     CHECK_TRUE(parse->right == nullptr);
 }
 
-TEST(ExpressionParser, OneVariable)
+TEST(ExpressionParse, OneVariable)
 {
     TOKENIZE("foo");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
     CHECK_TRUE(parse->data == toks[0]);
     CHECK_TRUE(parse->left == nullptr);
     CHECK_TRUE(parse->right == nullptr);
 }
 
-TEST(ExpressionParser, SimplePrecedence)
+TEST(ExpressionParse, SimplePrecedence)
 {
     //   +
     //  / \
@@ -88,10 +88,10 @@ TEST(ExpressionParser, SimplePrecedence)
     //    / \
     //   2   3
     TOKENIZE("1 + 2 * 3");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // 1 +
     node = parse->left;
@@ -117,7 +117,7 @@ TEST(ExpressionParser, SimplePrecedence)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, SimplePrecedenceWithParens)
+TEST(ExpressionParse, SimplePrecedenceWithParens)
 {
     //     *
     //    / \
@@ -125,10 +125,10 @@ TEST(ExpressionParser, SimplePrecedenceWithParens)
     //  / \
     // 1   2
     TOKENIZE("(1 + 2) * 3");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // 1 + 2
     node = parse->left->left;
@@ -154,7 +154,7 @@ TEST(ExpressionParser, SimplePrecedenceWithParens)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, BinaryOperatorLeftAssociativity)
+TEST(ExpressionParse, BinaryOperatorLeftAssociativity)
 {
     //       +
     //      / \
@@ -164,10 +164,10 @@ TEST(ExpressionParser, BinaryOperatorLeftAssociativity)
     //  / \
     // 1   foo
     TOKENIZE("1 + foo + 2 + bar");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // 1 + foo
     node = parse->left->left->left;
@@ -202,16 +202,16 @@ TEST(ExpressionParser, BinaryOperatorLeftAssociativity)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, UnaryOperator)
+TEST(ExpressionParse, UnaryOperator)
 {
     // NOT
     //   \
     //   foo
     TOKENIZE("NOT foo");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     node = parse;
     CHECK_TRUE(node->data == toks[0]);
@@ -223,7 +223,7 @@ TEST(ExpressionParser, UnaryOperator)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, UnaryAndBinaryOperator)
+TEST(ExpressionParse, UnaryAndBinaryOperator)
 {
     //   AND
     //   /  \
@@ -231,10 +231,10 @@ TEST(ExpressionParser, UnaryAndBinaryOperator)
     //        \
     //        bar
     TOKENIZE("foo AND NOT bar");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // foo AND
     node = parse->left;
@@ -256,7 +256,7 @@ TEST(ExpressionParser, UnaryAndBinaryOperator)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, ArithmeticOperators)
+TEST(ExpressionParse, ArithmeticOperators)
 {
     //     -
     //    / \
@@ -269,10 +269,10 @@ TEST(ExpressionParser, ArithmeticOperators)
     //       / \
     //      c   d
     TOKENIZE("a + b - c * d / f");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // a + b
     node = parse->left->left;
@@ -316,7 +316,7 @@ TEST(ExpressionParser, ArithmeticOperators)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, ComparisonOperators)
+TEST(ExpressionParse, ComparisonOperators)
 {
     //         ==
     //        / \
@@ -337,10 +337,10 @@ TEST(ExpressionParser, ComparisonOperators)
     //                       / \
     //                      g   h
     TOKENIZE("a < b == c <= d != e > f == g >= h");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // a < b
     node = parse->left->left->left->left;
@@ -411,7 +411,7 @@ TEST(ExpressionParser, ComparisonOperators)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, LogicalOperators)
+TEST(ExpressionParse, LogicalOperators)
 {
     //     OR
     //    / \
@@ -422,10 +422,10 @@ TEST(ExpressionParser, LogicalOperators)
     //           \
     //            c
     TOKENIZE("a AND b OR NOT c");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // a AND b
     node = parse->left->left;
@@ -456,7 +456,7 @@ TEST(ExpressionParser, LogicalOperators)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, NestedParentheses)
+TEST(ExpressionParse, NestedParentheses)
 {
     //       AND
     //      / \
@@ -468,10 +468,10 @@ TEST(ExpressionParser, NestedParentheses)
     //    / \
     //   b   c
     TOKENIZE("((a AND (b OR c)) OR d) AND e");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // a AND
     node = parse->left->left->left;
@@ -515,17 +515,17 @@ TEST(ExpressionParser, NestedParentheses)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, ExtraParenthesesOnOneTerm)
+TEST(ExpressionParse, ExtraParenthesesOnOneTerm)
 {
     TOKENIZE("(((a)))");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
     CHECK_TRUE(parse->data == toks[3]);
     CHECK_TRUE(parse->left == nullptr);
     CHECK_TRUE(parse->right == nullptr);
 }
 
-TEST(ExpressionParser, UnaryOperatorRightAssociativity)
+TEST(ExpressionParse, UnaryOperatorRightAssociativity)
 {
     // NOT
     //  \
@@ -533,10 +533,10 @@ TEST(ExpressionParser, UnaryOperatorRightAssociativity)
     //    \
     //     a
     TOKENIZE("NOT NOT a");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // NOT
     node = parse;
@@ -554,7 +554,7 @@ TEST(ExpressionParser, UnaryOperatorRightAssociativity)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, ParenthesesAfterBinaryOperator)
+TEST(ExpressionParse, ParenthesesAfterBinaryOperator)
 {
     //   +
     //  / \
@@ -562,10 +562,10 @@ TEST(ExpressionParser, ParenthesesAfterBinaryOperator)
     //    / \
     //   2   3
     TOKENIZE("1 + (2 + 3)");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // 1 +
     node = parse->left;
@@ -591,7 +591,7 @@ TEST(ExpressionParser, ParenthesesAfterBinaryOperator)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, ParenthesesAfterUnaryOperator)
+TEST(ExpressionParse, ParenthesesAfterUnaryOperator)
 {
     // NOT
     //  \
@@ -599,10 +599,10 @@ TEST(ExpressionParser, ParenthesesAfterUnaryOperator)
     //  / \
     // a   b
     TOKENIZE("NOT (a AND b)");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // NOT
     node = parse;
@@ -624,73 +624,73 @@ TEST(ExpressionParser, ParenthesesAfterUnaryOperator)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, ExpandDoubleInequalityLtLte)
+TEST(ExpressionParse, ExpandDoubleInequalityLtLte)
 {
     TOKENIZE("a < b <= c");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> parseExpect;
+    Ref<const ExpressionParse> parseExpect;
     {
         TOKENIZE("a < b AND b <= c");
-        CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
+        CHECK_SUCCESS(ExpressionParse::parse(it, parseExpect, nullptr));
     }
 
     checkParsesEqual(parseExpect, parse);
 }
 
-TEST(ExpressionParser, ExpandDoubleInequalityGtGte)
+TEST(ExpressionParse, ExpandDoubleInequalityGtGte)
 {
     TOKENIZE("a > b >= c");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> parseExpect;
+    Ref<const ExpressionParse> parseExpect;
     {
         TOKENIZE("a > b AND b >= c");
-        CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
+        CHECK_SUCCESS(ExpressionParse::parse(it, parseExpect, nullptr));
     }
 
     checkParsesEqual(parseExpect, parse);
 }
 
-TEST(ExpressionParser, ExpandTripleInequality)
+TEST(ExpressionParse, ExpandTripleInequality)
 {
     TOKENIZE("a < b < c < d");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> parseExpect;
+    Ref<const ExpressionParse> parseExpect;
     {
         TOKENIZE("a < b AND b < c AND c < d");
-        CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
+        CHECK_SUCCESS(ExpressionParse::parse(it, parseExpect, nullptr));
     }
 
     checkParsesEqual(parseExpect, parse);
 }
 
-TEST(ExpressionParser, ExpandDoubleInequalityNestedExpression)
+TEST(ExpressionParse, ExpandDoubleInequalityNestedExpression)
 {
     TOKENIZE("a + b < c + d < e + f");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> parseExpect;
+    Ref<const ExpressionParse> parseExpect;
     {
         TOKENIZE("a + b < c + d AND c + d < e + f");
-        CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
+        CHECK_SUCCESS(ExpressionParse::parse(it, parseExpect, nullptr));
     }
 
     checkParsesEqual(parseExpect, parse);
 }
 
-TEST(ExpressionParser, FunctionCallNoArgs)
+TEST(ExpressionParse, FunctionCallNoArgs)
 {
     TOKENIZE("foo()");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // foo
     node = parse;
@@ -701,7 +701,7 @@ TEST(ExpressionParser, FunctionCallNoArgs)
     CHECK_TRUE(node->func);
 }
 
-TEST(ExpressionParser, FunctionCallOneArg)
+TEST(ExpressionParse, FunctionCallOneArg)
 {
     //   foo
     //  /
@@ -709,10 +709,10 @@ TEST(ExpressionParser, FunctionCallOneArg)
     //  \
     //   a
     TOKENIZE("foo(a)");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // foo
     node = parse;
@@ -728,7 +728,7 @@ TEST(ExpressionParser, FunctionCallOneArg)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, FunctionCallTwoArgs)
+TEST(ExpressionParse, FunctionCallTwoArgs)
 {
     //      foo
     //     /
@@ -739,10 +739,10 @@ TEST(ExpressionParser, FunctionCallTwoArgs)
     //  \
     //   b
     TOKENIZE("foo(a, b)");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // foo
     node = parse;
@@ -764,7 +764,7 @@ TEST(ExpressionParser, FunctionCallTwoArgs)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, FunctionCallThreeArgs)
+TEST(ExpressionParse, FunctionCallThreeArgs)
 {
     //         foo
     //        /
@@ -778,10 +778,10 @@ TEST(ExpressionParser, FunctionCallThreeArgs)
     //  \
     //   c
     TOKENIZE("foo(a, b, c)");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // foo
     node = parse;
@@ -809,7 +809,7 @@ TEST(ExpressionParser, FunctionCallThreeArgs)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, FunctionCallExpressionArg)
+TEST(ExpressionParse, FunctionCallExpressionArg)
 {
     //   foo
     //  /
@@ -819,10 +819,10 @@ TEST(ExpressionParser, FunctionCallExpressionArg)
     //  / \
     // a   b
     TOKENIZE("foo(a + b)");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // foo
     node = parse;
@@ -846,7 +846,7 @@ TEST(ExpressionParser, FunctionCallExpressionArg)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, FunctionCallTwoExpressionArgs)
+TEST(ExpressionParse, FunctionCallTwoExpressionArgs)
 {
     //        foo
     //       /
@@ -861,10 +861,10 @@ TEST(ExpressionParser, FunctionCallTwoExpressionArgs)
     //  / \
     // c   d
     TOKENIZE("foo(a + b, c OR d)");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // foo
     node = parse;
@@ -902,7 +902,7 @@ TEST(ExpressionParser, FunctionCallTwoExpressionArgs)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, FunctionCallParenthesizedExpressionArg)
+TEST(ExpressionParse, FunctionCallParenthesizedExpressionArg)
 {
     //   foo
     //  /
@@ -912,10 +912,10 @@ TEST(ExpressionParser, FunctionCallParenthesizedExpressionArg)
     //  / \
     // a   b
     TOKENIZE("foo((a + b))");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // foo
     node = parse;
@@ -939,7 +939,7 @@ TEST(ExpressionParser, FunctionCallParenthesizedExpressionArg)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, FunctionCallMultipleParenthesizedExpressionArgs)
+TEST(ExpressionParse, FunctionCallMultipleParenthesizedExpressionArgs)
 {
     //        foo
     //       /
@@ -954,10 +954,10 @@ TEST(ExpressionParser, FunctionCallMultipleParenthesizedExpressionArgs)
     //  / \
     // c   d
     TOKENIZE("foo((a + b), (c OR d))");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // foo
     node = parse;
@@ -995,7 +995,7 @@ TEST(ExpressionParser, FunctionCallMultipleParenthesizedExpressionArgs)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, NestedFunctionCall)
+TEST(ExpressionParse, NestedFunctionCall)
 {
     //   foo
     //  /
@@ -1007,10 +1007,10 @@ TEST(ExpressionParser, NestedFunctionCall)
     //  \
     //   a
     TOKENIZE("foo(bar(a))");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // foo
     node = parse;
@@ -1033,7 +1033,7 @@ TEST(ExpressionParser, NestedFunctionCall)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(ExpressionParser, MultipleNestedFunctionCalls)
+TEST(ExpressionParse, MultipleNestedFunctionCalls)
 {
     //           foo
     //          /
@@ -1052,10 +1052,10 @@ TEST(ExpressionParser, MultipleNestedFunctionCalls)
     //   \
     //    b
     TOKENIZE("foo(bar(a), baz(b))");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_SUCCESS(ExpressionParse::parse(it, parse, nullptr));
 
-    Ref<const ExpressionParser::Parse> node;
+    Ref<const ExpressionParse> node;
 
     // foo
     node = parse;
@@ -1093,106 +1093,106 @@ TEST(ExpressionParser, MultipleNestedFunctionCalls)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
-TEST_GROUP(ExpressionParserErrors)
+TEST_GROUP(ExpressionParseErrors)
 {
 };
 
-TEST(ExpressionParserErrors, FunctionCallLoneComma)
+TEST(ExpressionParseErrors, FunctionCallLoneComma)
 {
     TOKENIZE("foo(,)");
     checkParseError(it, E_EXP_SYNTAX, 1, 5);
 }
 
-TEST(ExpressionParserErrors, FunctionCallTrailingComma)
+TEST(ExpressionParseErrors, FunctionCallTrailingComma)
 {
     TOKENIZE("foo(a,)");
     checkParseError(it, E_EXP_SYNTAX, 1, 7);
 }
 
-TEST(ExpressionParserErrors, FunctionCallLeadingComma)
+TEST(ExpressionParseErrors, FunctionCallLeadingComma)
 {
     TOKENIZE("foo(,a)");
     checkParseError(it, E_EXP_SYNTAX, 1, 5);
 }
 
-TEST(ExpressionParserErrors, FunctionCallSequentialCommas)
+TEST(ExpressionParseErrors, FunctionCallSequentialCommas)
 {
     TOKENIZE("foo(,,)");
     checkParseError(it, E_EXP_SYNTAX, 1, 5);
 }
 
-TEST(ExpressionParserErrors, SyntaxErrorInFunctionCallArgument)
+TEST(ExpressionParseErrors, SyntaxErrorInFunctionCallArgument)
 {
     TOKENIZE("foo(a +)");
     checkParseError(it, E_EXP_SYNTAX, 1, 7);
 }
 
-TEST(ExpressionParserErrors, NoTokens)
+TEST(ExpressionParseErrors, NoTokens)
 {
     TOKENIZE("");
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_ERROR(E_EXP_EMPTY, ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_ERROR(E_EXP_EMPTY, ExpressionParse::parse(it, parse, nullptr));
     CHECK_TRUE(parse == nullptr);
 }
 
-TEST(ExpressionParserErrors, TooManyLeftParentheses)
+TEST(ExpressionParseErrors, TooManyLeftParentheses)
 {
     TOKENIZE("((a + b) * c");
     checkParseError(it, E_EXP_PAREN, 1, 1);
 }
 
-TEST(ExpressionParserErrors, TooManyRightParentheses)
+TEST(ExpressionParseErrors, TooManyRightParentheses)
 {
     TOKENIZE("(a + b) * c)");
     checkParseError(it, E_EXP_PAREN, 1, 12);
 }
 
-TEST(ExpressionParserErrors, UnknownOperator)
+TEST(ExpressionParseErrors, UnknownOperator)
 {
     TOKENIZE("a + b");
     toks[1].str = "foo";
-    Ref<const ExpressionParser::Parse> parse;
-    CHECK_ERROR(E_EXP_OP, ExpressionParser::parse(it, parse, nullptr));
+    Ref<const ExpressionParse> parse;
+    CHECK_ERROR(E_EXP_OP, ExpressionParse::parse(it, parse, nullptr));
     CHECK_TRUE(parse == nullptr);
 }
 
-TEST(ExpressionParserErrors, UnexpectedToken)
+TEST(ExpressionParseErrors, UnexpectedToken)
 {
     TOKENIZE("a + b @foo");
     checkParseError(it, E_EXP_TOK, 1, 7);
 }
 
-TEST(ExpressionParserErrors, NoTermsInExpression)
+TEST(ExpressionParseErrors, NoTermsInExpression)
 {
     TOKENIZE("()");
     checkParseError(it, E_EXP_EMPTY, 1, 1);
 }
 
-TEST(ExpressionParserErrors, SyntaxMissingOperator)
+TEST(ExpressionParseErrors, SyntaxMissingOperator)
 {
     TOKENIZE("a b");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
-TEST(ExpressionParserErrors, SyntaxBinaryOperatorMissingLhs)
+TEST(ExpressionParseErrors, SyntaxBinaryOperatorMissingLhs)
 {
     TOKENIZE("+ a");
     checkParseError(it, E_EXP_SYNTAX, 1, 1);
 }
 
-TEST(ExpressionParserErrors, SyntaxBinaryOperatorMissingRhs)
+TEST(ExpressionParseErrors, SyntaxBinaryOperatorMissingRhs)
 {
     TOKENIZE("a +");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
-TEST(ExpressionParserErrors, SyntaxUnaryOperatorMissingRhs)
+TEST(ExpressionParseErrors, SyntaxUnaryOperatorMissingRhs)
 {
     TOKENIZE("a NOT");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
-TEST(ExpressionParserErrors, SyntaxAdjacentBinaryOperators)
+TEST(ExpressionParseErrors, SyntaxAdjacentBinaryOperators)
 {
     TOKENIZE("a + + b");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
