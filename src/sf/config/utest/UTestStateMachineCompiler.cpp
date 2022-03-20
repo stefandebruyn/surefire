@@ -1,5 +1,4 @@
 #include <sstream>
-#include <iostream> //rm later
 
 #include "sf/config/StateMachineAssembly.hpp"
 #include "sf/config/StateVectorAssembly.hpp"
@@ -205,6 +204,7 @@ TEST(StateMachineAssembly, TransitionInStepDoExitLabel)
     // After stepping again, `foo` is set to 2 in the state `Foo` entry label.
     SET_SV_ELEM("time", U64, 1);
     CHECK_SUCCESS(sm.step());
+    CHECK_SV_ELEM("state", U32, 2);
     CHECK_LOCAL_ELEM("foo", I32, 2);
 }
 

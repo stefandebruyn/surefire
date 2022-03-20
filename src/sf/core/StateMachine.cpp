@@ -2,9 +2,7 @@
 #include "sf/core/StateMachine.hpp"
 #include "sf/pal/Clock.hpp"
 
-#include <iostream> // rm later
-
-/////////////////////////////////// Private ////////////////////////////////////
+/////////////////////////////////// Helpers ////////////////////////////////////
 
 static Result checkBlockTransitions(const StateMachine::Config kConfig,
                                     const StateMachine::Block* const kBlock,
@@ -149,7 +147,7 @@ U32 StateMachine::Block::execute()
         return next->execute();
     }
 
-    return NO_STATE;
+    return StateMachine::NO_STATE;
 }
 
 Result StateMachine::create(const Config kConfig, StateMachine& kSm)
@@ -172,7 +170,9 @@ Result StateMachine::create(const Config kConfig, StateMachine& kSm)
     // Check that config contains at least 1 state. This also serves to iterate
     // over the full state config array and partially verify it is well-formed.
     U32 numStates = 0;
-    for (StateConfig* state = kConfig.states; state->id != NO_STATE; ++state)
+    for (StateConfig* state = kConfig.states;
+         state->id != StateMachine::NO_STATE;
+         ++state)
     {
         ++numStates;
     }
@@ -184,7 +184,7 @@ Result StateMachine::create(const Config kConfig, StateMachine& kSm)
     // Find initial state based on state element.
     const U32 stateInit = kConfig.elemState->read();
     StateConfig* stateInitConfig = kConfig.states;
-    for (; stateInitConfig->id != NO_STATE; ++stateInitConfig)
+    for (; stateInitConfig->id != StateMachine::NO_STATE; ++stateInitConfig)
     {
         if (stateInitConfig->id == stateInit)
         {
@@ -192,7 +192,7 @@ Result StateMachine::create(const Config kConfig, StateMachine& kSm)
         }
     }
 
-    if (stateInitConfig->id == NO_STATE)
+    if (stateInitConfig->id == StateMachine::NO_STATE)
     {
         // Initial state not found.
         return E_SM_STATE;
@@ -264,7 +264,7 @@ Result StateMachine::step()
     }
 
     // Execute current state entry label.
-    U32 destState = NO_STATE;
+    U32 destState = StateMachine::NO_STATE;
     if (tStateElapsed == 0)
     {
         if (mStateCur->entry != nullptr)
@@ -274,13 +274,13 @@ Result StateMachine::step()
     }
 
     // Execute current state step label if entry label did not transition.
-    if ((destState == NO_STATE) && (mStateCur->step != nullptr))
+    if ((destState == StateMachine::NO_STATE) && (mStateCur->step != nullptr))
     {
         destState = mStateCur->step->execute();
     }
 
     // If transitioning, do end of state logic.
-    if (destState != NO_STATE)
+    if (destState != StateMachine::NO_STATE)
     {
         // Execute current state exit label.
         if (mStateCur->exit != nullptr)
@@ -289,7 +289,8 @@ Result StateMachine::step()
         }
 
         // Transition to new state.
-        for (StateConfig* state = mConfig.states; state->id != NO_STATE;
+        for (StateConfig* state = mConfig.states;
+             state->id != StateMachine::NO_STATE;
              ++state)
         {
             if (state->id == destState)

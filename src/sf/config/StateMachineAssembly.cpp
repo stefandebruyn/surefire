@@ -1,5 +1,4 @@
 #include <fstream>
-#include <iostream> // rm later
 
 #include "sf/config/ConfigUtil.hpp"
 #include "sf/config/ExpressionAssembly.hpp"
@@ -83,8 +82,10 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
                                      Ref<const StateMachineAssembly>& kAsm,
                                      ErrorInfo* const kErr)
 {
+    // Initialize a blank workspace for the compilation.
     StateMachineAssembly::Workspace ws = {};
 
+    // Allocate a vector for storing state machine configs.
     ws.stateConfigs.reset(new Vec<StateMachine::StateConfig>());
 
     // Validate the state machine state vector. This will partially populate
@@ -110,7 +111,8 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
         return res;
     }
 
-    // Build map of state names to IDs.
+    // Build map of state names to IDs. IDs begin at 1 and count up in the order
+    // states are defined in the config.
     for (U32 i = 0; i < kParse->states.size(); ++i)
     {
         const String& tokNameStr = kParse->states[i].tokName.str;
@@ -124,12 +126,12 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
         res = StateMachineAssembly::compileState(state, kSv, ws, kErr);
         if (res != SUCCESS)
         {
-            // Delete allocations since aborting compilation.
             return res;
         }
     }
 
-    // Collect expression stats needed by all expressions into a vector.
+    // Collect expression stats needed by all state machine expressions into a
+    // vector.
     Vec<Ref<IExpressionStats>> allExprStats;
     for (const Ref<const ExpressionAssembly> exprAsm : ws.exprAsms)
     {
@@ -142,9 +144,8 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     // Copy addresses of expression stats into a vector. The memory underlying
     // this vector will be directly provided to the state machine config. The
     // memory is twice-wrapped in a vector and then a shared pointer to
-    // automatically handle deallocation. (C++11 shared pointers don't correctly
-    // deallocate dynamically-sized arrays, so a vector is used instead of a
-    // native array.)
+    // automatically handle deallocation. (C++11 shared pointers are not
+    // specialized for native arrays, so a vector is used instead.)
     const Ref<Vec<IExpressionStats*>> exprStatArr(new Vec<IExpressionStats*>());
     for (const Ref<IExpressionStats> exprStats : allExprStats)
     {
@@ -164,14 +165,16 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
 
     // Config is done- create new state machine with it. The config is given the
     // raw pointers of the state config and expression stats arrays underlying
-    // the previously allocated vectors.
+    // the previously allocated vectors, as well as raw pointers of certain
+    // state vector elements. The lifetimes of these elements are managed by
+    // the global/local state vector assemblies.
     const StateMachine::Config smConfig =
     {
         static_cast<Element<U32>*>(ws.elems["S"]),
         static_cast<Element<U64>*>(ws.elems["T"]),
         static_cast<Element<U64>*>(ws.elems["G"]),
-        &((*ws.stateConfigs)[0]),
-        &((*exprStatArr)[0]),
+        ws.stateConfigs->data(),
+        exprStatArr->data()
     };
     const Ref<StateMachine> sm(new StateMachine());
     res = StateMachine::create(smConfig, *sm);
@@ -649,8 +652,9 @@ Result StateMachineAssembly::compileBlock(
         return E_SMC_ASSERT;
     }
 
-    // Allocate new block.
+    // Allocate new block and add to workspace.
     kBlock.reset(new StateMachine::Block{});
+    kWs.blocks.push_back(kBlock);
 
     Result res = SUCCESS;
     if (kParse->guard != nullptr)
@@ -794,10 +798,6 @@ Result StateMachineAssembly::compileState(
             return res;
         }
 
-        // Add compiled block to workspace.
-        SF_ASSERT(entryBlock != nullptr);
-        kWs.blocks.push_back(entryBlock);
-
         // Put compiled block raw pointer in owning state.
         stateConfig.entry = entryBlock.get();
     }
@@ -816,10 +816,6 @@ Result StateMachineAssembly::compileState(
         {
             return res;
         }
-
-        // Add compiled block to workspace.
-        SF_ASSERT(stepBlock != nullptr);
-        kWs.blocks.push_back(stepBlock);
 
         // Put compiled block raw pointer in owning state.
         stateConfig.step = stepBlock.get();
@@ -840,12 +836,8 @@ Result StateMachineAssembly::compileState(
             return res;
         }
 
-        // Add compiled block to workspace.
-        SF_ASSERT(exitBlock != nullptr);
-        kWs.blocks.push_back(exitBlock);
-
         // Put compiled block raw pointer in owning state.
-        stateConfig.step = exitBlock.get();
+        stateConfig.exit = exitBlock.get();
     }
 
     // Add state config to workspace.

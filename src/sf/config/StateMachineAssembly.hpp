@@ -39,10 +39,11 @@ private:
     {
         Map<String, IElement*> elems;
         Map<String, U32> stateIds;
-        Ref<const StateVectorAssembly> localSvAsm;
-        Ref<Vec<StateMachine::StateConfig>> stateConfigs;
-        Vec<Ref<const ExpressionAssembly>> exprAsms;
         Set<String> readOnlyElems;
+
+        Ref<const StateVectorAssembly> localSvAsm;
+        Vec<Ref<const ExpressionAssembly>> exprAsms;
+        Ref<Vec<StateMachine::StateConfig>> stateConfigs;
         Vec<Ref<StateMachine::Block>> blocks;
         Vec<Ref<IAction>> actions;
 
