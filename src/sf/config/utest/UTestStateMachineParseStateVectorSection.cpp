@@ -11,8 +11,10 @@ static void checkParseError(TokenIterator &kIt,
     // Got expected return code from parser.
     Vec<StateMachineParse::StateVectorElementParse> parse;
     ErrorInfo err;
-    CHECK_ERROR(kRes,
-                StateMachineParse::parseStateVectorSection(kIt, parse, &err));
+    TokenIterator itCpy = kIt;
+    CHECK_ERROR(kRes, StateMachineParse::parseStateVectorSection(kIt,
+                                                                 parse,
+                                                                 &err));
 
     // Correct line and column numbers of error are identified.
     CHECK_EQUAL(kLineNum, err.lineNum);
@@ -21,6 +23,11 @@ static void checkParseError(TokenIterator &kIt,
     // An error message was given.
     CHECK_TRUE(err.text.size() > 0);
     CHECK_TRUE(err.subtext.size() > 0);
+
+    // A null error info pointer is not dereferenced.
+    CHECK_ERROR(kRes, StateMachineParse::parseStateVectorSection(itCpy,
+                                                                 parse,
+                                                                 nullptr));
 }
 
 ///////////////////////////////// Usage Tests //////////////////////////////////

@@ -3,7 +3,7 @@
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
-static void checkParseError(TokenIterator &kIt,
+static void checkParseError(TokenIterator& kIt,
                             const Result kRes,
                             const I32 kLineNum,
                             const I32 kColNum)
@@ -11,6 +11,7 @@ static void checkParseError(TokenIterator &kIt,
     // Got expected return code from parser.
     Vec<StateMachineParse::LocalElementParse> parse;
     ErrorInfo err;
+    TokenIterator itCpy = kIt;
     CHECK_ERROR(kRes, StateMachineParse::parseLocalSection(kIt, parse, &err));
 
     // Correct line and column numbers of error are identified.
@@ -20,6 +21,11 @@ static void checkParseError(TokenIterator &kIt,
     // An error message was given.
     CHECK_TRUE(err.text.size() > 0);
     CHECK_TRUE(err.subtext.size() > 0);
+
+    // A null error info pointer is not dereferenced.
+    CHECK_ERROR(kRes, StateMachineParse::parseLocalSection(itCpy,
+                                                           parse,
+                                                           nullptr));
 }
 
 ///////////////////////////////// Usage Tests //////////////////////////////////

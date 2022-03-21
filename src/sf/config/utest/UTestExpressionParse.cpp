@@ -52,6 +52,9 @@ static void checkParseError(TokenIterator& kIt,
 
     // Parse was not populated.
     CHECK_TRUE(parse == nullptr);
+
+    // A null error info pointer is not dereferenced.
+    CHECK_ERROR(kRes, ExpressionParse::parse(kIt, parse, nullptr));
 }
 
 ///////////////////////////////// Usage Tests //////////////////////////////////

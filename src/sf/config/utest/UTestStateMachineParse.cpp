@@ -23,6 +23,9 @@ static void checkParseError(const Vec<Token>& kToks,
 
     // Parse was not populated.
     CHECK_TRUE(parse == nullptr);
+
+    // A null error info pointer is not dereferenced.
+    CHECK_ERROR(kRes, StateMachineParse::parse(kToks, parse, nullptr));
 }
 
 ///////////////////////////////// Usage Tests //////////////////////////////////

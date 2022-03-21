@@ -25,6 +25,9 @@ static void checkParseError(
     // An error message was given.
     CHECK_TRUE(err.text.size() > 0);
     CHECK_TRUE(err.subtext.size() > 0);
+
+    // A null error info pointer is not dereferenced.
+    CHECK_ERROR(kRes, StateVectorParse::parse(kToks, parse, nullptr, kRegions));
 }
 
 ///////////////////////////////// Usage Tests //////////////////////////////////

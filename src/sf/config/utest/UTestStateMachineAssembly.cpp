@@ -73,6 +73,12 @@ static void checkCompileError(const Ref<const StateMachineParse> kParse,
     // An error message was given.
     CHECK_TRUE(err.text.size() > 0);
     CHECK_TRUE(err.subtext.size() > 0);
+
+    // A null error info pointer is not dereferenced.
+    CHECK_ERROR(kRes, StateMachineAssembly::compile(kParse,
+                                                    kSv,
+                                                    smAsm,
+                                                    nullptr));
 }
 
 ///////////////////////////////// Usage Tests //////////////////////////////////

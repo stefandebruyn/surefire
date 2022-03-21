@@ -75,6 +75,13 @@ static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
 
     // Assembly pointer was not populated.
     CHECK_TRUE(exprAsm == nullptr);
+
+    // A null error info pointer is not dereferenced.
+    CHECK_ERROR(kRes, ExpressionAssembly::compile(kExprParse,
+                                                  {kSv},
+                                                  ElementType::FLOAT64,
+                                                  exprAsm,
+                                                  nullptr));
 }
 
 ///////////////////////////////// Usage Tests //////////////////////////////////

@@ -224,6 +224,9 @@ static void checkCompileError(const Vec<Token>& kToks,
 
     // Assembly pointer was not populated.
     CHECK_TRUE(assembly == nullptr);
+
+    // A null error info pointer is not dereferenced.
+    CHECK_ERROR(kRes, StateVectorAssembly::compile(parse, assembly, nullptr));
 }
 
 ///////////////////////////////// Usage Tests //////////////////////////////////
