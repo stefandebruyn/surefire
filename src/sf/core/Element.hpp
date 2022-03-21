@@ -5,17 +5,17 @@
 
 enum ElementType : U32
 {
-    INT8,
-    INT16,
-    INT32,
-    INT64,
-    UINT8,
-    UINT16,
-    UINT32,
-    UINT64,
-    FLOAT32,
-    FLOAT64,
-    BOOL
+    INT8 = 0,
+    INT16 = 1,
+    INT32 = 2,
+    INT64 = 3,
+    UINT8 = 4,
+    UINT16 = 5,
+    UINT32 = 6,
+    UINT64 = 7,
+    FLOAT32 = 8,
+    FLOAT64 = 9,
+    BOOL = 10
 };
 
 class IElement

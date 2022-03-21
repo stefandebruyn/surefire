@@ -90,9 +90,9 @@ Result StateVector::create(const Config kConfig, StateVector& kSv)
         }
     }
 
-    // If we got this far, the config is valid- set `mConfig` so that the state
-    // vector is usable.
+    // Config is valid- put config in state vector to initialize it.
     kSv.mConfig = kConfig;
+
     return SUCCESS;
 }
 

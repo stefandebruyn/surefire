@@ -227,8 +227,8 @@ Result StateMachineAssembly::checkStateVector(
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
-    SF_ASSERT(kParse != nullptr);
-    SF_ASSERT(kSv != nullptr);
+    SF_SAFE_ASSERT(kParse != nullptr);
+    SF_SAFE_ASSERT(kSv != nullptr);
 
     for (const StateMachineParse::StateVectorElementParse& elem :
          kParse->svElems)
@@ -243,25 +243,23 @@ Result StateMachineAssembly::checkStateVector(
                                  "exist in state vector");
             return E_SMA_SV_ELEM;
         }
-        SF_ASSERT(elemObj != nullptr);
+        SF_SAFE_ASSERT(elemObj != nullptr);
 
         // Look up element type as configured in the state machine.
-        auto smTypeInfoIt = ElementTypeInfo::fromName.find(elem.tokType.str);
-        if (smTypeInfoIt == ElementTypeInfo::fromName.end())
+        auto smTypeInfoIt = TypeInfo::fromName.find(elem.tokType.str);
+        if (smTypeInfoIt == TypeInfo::fromName.end())
         {
             // Unknown type.
             ConfigUtil::setError(kErr, elem.tokType, gErrText,
                                  "unknown type `" + elem.tokType.str + "`");
             return E_SMA_TYPE;
         }
-        const ElementTypeInfo& smTypeInfo = (*smTypeInfoIt).second;
+        const TypeInfo& smTypeInfo = (*smTypeInfoIt).second;
 
         // Look up element type info as configured in the actual state vector.
-        auto typeInfoIt = ElementTypeInfo::fromEnum.find(elemObj->type());
-        // Assert that lookup succeeds since valid element types are guaranteed
-        // by the state vector.
-        SF_ASSERT(typeInfoIt != ElementTypeInfo::fromEnum.end());
-        const ElementTypeInfo& typeInfo = (*typeInfoIt).second;
+        auto typeInfoIt = TypeInfo::fromEnum.find(elemObj->type());
+        SF_SAFE_ASSERT(typeInfoIt != TypeInfo::fromEnum.end());
+        const TypeInfo& typeInfo = (*typeInfoIt).second;
 
         // Check that element has the same type in the state vector and state
         // machine.
@@ -423,13 +421,17 @@ Result StateMachineAssembly::compileLocalStateVector(
     Result res = StateVectorAssembly::compile(localSvConfig,
                                               kWs.localSvAsm,
                                               kErr);
-    SF_ASSERT(res == SUCCESS);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    SF_SAFE_ASSERT(kWs.localSvAsm != nullptr);
+    SF_SAFE_ASSERT(kWs.localSvAsm->parse() != nullptr);
+    SF_SAFE_ASSERT(kWs.localSvAsm->parse()->regions.size() == 1);
 
     // Look up each element object in the local state vector and add it to the
     // element symbol table.
-    SF_ASSERT(kWs.localSvAsm != nullptr);
-    SF_ASSERT(kWs.localSvAsm->parse() != nullptr);
-    SF_ASSERT(kWs.localSvAsm->parse()->regions.size() == 1);
     for (const StateVectorParse::ElementParse& elem :
          kWs.localSvAsm->parse()->regions[0].elems)
     {
@@ -438,8 +440,8 @@ Result StateMachineAssembly::compileLocalStateVector(
                                                  elemObj);
         // Assert that element lookup succeeds since we configured the local
         // state vector in this function and know the element exists.
-        SF_ASSERT(res == SUCCESS);
-        SF_ASSERT(elemObj != nullptr);
+        SF_SAFE_ASSERT(res == SUCCESS);
+        SF_SAFE_ASSERT(elemObj != nullptr);
         kWs.elems[elem.tokName.str] = elemObj;
     }
 
@@ -600,7 +602,7 @@ Result StateMachineAssembly::compileAction(
         if (kInExitLabel)
         {
             // Illegal transition in exit label.
-            ConfigUtil::setError(kErr, kParse->tokDestState, gErrText,
+            ConfigUtil::setError(kErr, kParse->tokTransitionKeyword, gErrText,
                                  "illegal transition in exit label");
             return E_SMA_TR_EXIT;
         }

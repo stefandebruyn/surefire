@@ -26,7 +26,7 @@ SF_ENABLE_CODE_COV;
 #    define SF_ASSERT(kExpr)
 #endif
 
-#define SF_SAFE_ASSERT(kExpr, kCleanupCode)                                    \
+#define SF_SAFE_ASSERT_CLEAN(kExpr, kCleanupCode)                              \
 SF_DISABLE_CODE_COV;                                                           \
 do                                                                             \
 {                                                                              \
@@ -37,19 +37,21 @@ do                                                                             \
         kCleanupCode                                                           \
                                                                                \
         /* Save assertion failure location. */                                 \
-        errFile = __FILE__;                                                    \
-        errLineNum = __LINE__;                                                 \
+        ::Assert::failFile = __FILE__;                                         \
+        ::Assert::failLineNum = __LINE__;                                      \
                                                                                \
         return E_ASSERT;                                                       \
     }                                                                          \
 } while (false);                                                               \
 SF_ENABLE_CODE_COV;
 
+#define SF_SAFE_ASSERT(kExpr) SF_SAFE_ASSERT_CLEAN(kExpr, {})
+
 namespace Assert
 {
     extern const char* failFile;
 
-    extern U64 failLineNum;
+    extern I32 failLineNum;
 }
 
 #endif

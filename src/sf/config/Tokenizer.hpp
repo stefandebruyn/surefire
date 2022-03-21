@@ -6,6 +6,7 @@
 
 #include "sf/config/EnumHash.hpp"
 #include "sf/config/ErrorInfo.hpp"
+#include "sf/config/LanguageConstants.hpp"
 #include "sf/config/StlTypes.hpp"
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Result.hpp"
@@ -28,7 +29,8 @@ struct Token final
         COMMENT = 10,
         LBRACE = 11,
         RBRACE = 12,
-        COMMA = 13
+        COMMA = 13,
+        KEYWORD = 14
     };
 
     static const Map<Type, String, EnumHash> names;
@@ -39,6 +41,8 @@ struct Token final
     String str;
     I32 lineNum;
     I32 colNum;
+    const OpInfo* opInfo;
+    const TypeInfo* typeInfo;
 
     bool operator==(const Token& kOther) const;
 
@@ -49,9 +53,7 @@ struct Token final
 
 namespace Tokenizer
 {
-    Result tokenize(String kFilePath,
-                    Vec<Token>& kToks,
-                    ErrorInfo* const kErr);
+    Result tokenize(String kFilePath, Vec<Token>& kToks, ErrorInfo* const kErr);
 
     Result tokenize(std::istream& kIs,
                     Vec<Token>& kToks,

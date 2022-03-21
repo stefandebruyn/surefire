@@ -7,9 +7,9 @@
 
 enum TaskMode : U8
 {
-    DISABLE,
-    SAFE,
-    ENABLE
+    DISABLE = 0,
+    SAFE = 1,
+    ENABLE = 2
 };
 
 class ITask

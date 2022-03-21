@@ -10,8 +10,8 @@ public:
 
     enum Mode : U8
     {
-        IN,
-        OUT
+        IN = 0,
+        OUT = 1
     };
 
     static Result create(DigitalIO& kDio);

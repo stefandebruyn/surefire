@@ -9,6 +9,10 @@ enum : Result
 {
     SUCCESS = 0,
 
+///////////////////////////// Special Error Codes //////////////////////////////
+
+    E_ASSERT = 1,
+
 /////////////////////////// Core Library Error Codes ///////////////////////////
 
     // Region
@@ -67,7 +71,7 @@ enum : Result
     E_SMP_SV_NAME = 332,
     E_SMP_SV_TYPE = 333,
     E_SMP_EOF = 334,
-    E_SMP_LAB = 335,
+    E_SMP_NO_LAB = 335,
     E_SMP_GUARD = 336,
     E_SMP_BRACE = 337,
     E_SMP_ELSE = 338,
@@ -80,6 +84,10 @@ enum : Result
     E_SMP_TR_TOK = 345,
     E_SMP_TR_JUNK = 346,
     E_SMP_TOK = 347,
+    E_SMP_ENTRY = 348,
+    E_SMP_STEP = 349,
+    E_SMP_LAB_DUPE = 350,
+    E_SMP_LAB = 351,
 
     // ExpressionParse
     E_EXP_OP = 384,

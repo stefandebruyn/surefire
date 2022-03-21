@@ -30,7 +30,7 @@ Result StateMachineParse::parseStateSection(
         if (tokLab.type != Token::LABEL)
         {
             ConfigUtil::setError(kErr, tokLab, gErrText, "expected label");
-            return E_SMP_LAB;
+            return E_SMP_NO_LAB;
         }
 
         // End index of label is the next label or section token (or EOF).
@@ -50,35 +50,54 @@ Result StateMachineParse::parseStateSection(
         // Assign label block to state based on label name.
         if (tokLab.str == LangConst::labelEntry)
         {
+            // Check that an entry label wasn't already parsed.
             if (kParse.entry != nullptr)
             {
-                // Multiple entry labels.
-                SF_ASSERT(false);
+                ConfigUtil::setError(kErr,
+                                     tokLab,
+                                     gErrText,
+                                     "multiple entry labels");
+                return E_SMP_LAB_DUPE;
             }
+
             kParse.entry = label;
         }
         else if (tokLab.str == LangConst::labelStep)
         {
+            // Check that a step label wasn't already parsed.
             if (kParse.step != nullptr)
             {
-                // Multiple entry labels.
-                SF_ASSERT(false);
+                ConfigUtil::setError(kErr,
+                                     tokLab,
+                                     gErrText,
+                                     "multiple step labels");
+                return E_SMP_LAB_DUPE;
             }
+
             kParse.step = label;
         }
         else if (tokLab.str == LangConst::labelExit)
         {
+            // Check that an exit label wasn't already parsed.
             if (kParse.exit != nullptr)
             {
-                // Multiple entry labels.
-                SF_ASSERT(false);
+                ConfigUtil::setError(kErr,
+                                     tokLab,
+                                     gErrText,
+                                     "multiple exit labels");
+                return E_SMP_LAB_DUPE;
             }
+
             kParse.exit = label;
         }
         else
         {
             // Unknown label.
-            SF_ASSERT(false);
+            ConfigUtil::setError(kErr,
+                                 tokLab,
+                                 gErrText,
+                                 "unknown label `" + tokLab.str + "`");
+            return E_SMP_LAB;
         }
 
         // Jump to end of label block.
@@ -447,10 +466,11 @@ Result StateMachineParse::parseAction(
     Ref<const StateMachineParse::ActionParse>& kParse,
     ErrorInfo* const kErr)
 {
-    // Data to parse that will eventually become members of the parsed action.
+    // Data to parse that will become members of the parsed action.
     Token tokRhs = {};
     Ref<const ExpressionParse> lhs;
     Token tokDestState = {};
+    Token tokTransitionKeyword = {};
 
     // Look at first token to determine action type.
     const Token& tok = kIt.take();
@@ -493,15 +513,12 @@ Result StateMachineParse::parseAction(
             return res;
         }
     }
-    else if (tok.type == Token::OPERATOR)
+    else if (tok.str == LangConst::keywordTransition)
     {
-        if (tok.str != LangConst::keywordTransition)
-        {
-            // Unexpected operator.
-            ConfigUtil::setError(kErr, tok, gErrText,
-                                 "unexpected operator");
-            return E_SMP_TR_OP;
-        }
+        // Parse transition action.
+
+        // Save transition keyword token.
+        tokTransitionKeyword = tok;
 
         // Check that tokens remain.
         if (kIt.eof())
@@ -542,9 +559,11 @@ Result StateMachineParse::parseAction(
         return E_SMP_ACT_TOK;
     }
 
+    // Action is valid- return parse.
     kParse.reset(new StateMachineParse::ActionParse{tokRhs,
                                                     lhs,
-                                                    tokDestState});
+                                                    tokDestState,
+                                                    tokTransitionKeyword});
 
     return SUCCESS;
 }
@@ -556,21 +575,18 @@ Result StateMachineParse::parseBlockRec(
 {
     Result res = SUCCESS;
 
-    // Data to parse that will eventually become members of the parsed block.
+    // Data to parse that will become members of the parsed block.
     Ref<StateMachineParse::MutBlockParse> block;
     Ref<StateMachineParse::MutBlockParse> firstBlock;
 
+    // Allocate first block in chain. This is done before entering the parse
+    // loop so that an empty label results in an all-null block, which makes
+    // detection of duplicate labels easier.
+    block.reset(new StateMachineParse::MutBlockParse{});
+    firstBlock = block;
+
     while (!kIt.eof())
     {
-        if (block == nullptr)
-        {
-            // Allocate first block on first iteration of this loop. This causes
-            // an empty label to result in a null block pointer, as if the label
-            // wasn't there at all.
-            block.reset(new StateMachineParse::MutBlockParse{});
-            firstBlock = block;
-        }
-
         // Find end index of next thing to parse. Which thing it is will depend
         // on what the end token is.
         U32 idxEnd = kIt.next({Token::COLON, Token::LBRACE, Token::NEWLINE});

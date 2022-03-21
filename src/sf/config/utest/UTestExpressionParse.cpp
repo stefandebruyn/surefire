@@ -1147,15 +1147,6 @@ TEST(ExpressionParseErrors, TooManyRightParentheses)
     checkParseError(it, E_EXP_PAREN, 1, 12);
 }
 
-TEST(ExpressionParseErrors, UnknownOperator)
-{
-    TOKENIZE("a + b");
-    toks[1].str = "foo";
-    Ref<const ExpressionParse> parse;
-    CHECK_ERROR(E_EXP_OP, ExpressionParse::parse(it, parse, nullptr));
-    CHECK_TRUE(parse == nullptr);
-}
-
 TEST(ExpressionParseErrors, UnexpectedToken)
 {
     TOKENIZE("a + b @foo");

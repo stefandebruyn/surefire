@@ -40,11 +40,8 @@ I32 Cli::sv(const Vec<String> kArgs)
             totalElems += region.elems.size();
             for (const StateVectorParser::ElementParse& elem : region.elems)
             {
-                auto typeInfoIt =
-                    ElementTypeInfo::fromName.find(elem.tokType.str);
-                SF_ASSERT(typeInfoIt != ElementTypeInfo::fromName.end());
-                const ElementTypeInfo& typeInfo = (*typeInfoIt).second;
-                regionBytes += typeInfo.sizeBytes;
+                SF_ASSERT(elem.tokType.typeInfo != nullptr);
+                regionBytes += elem.tokType.typeInfo->sizeBytes;
             }
 
             // Print region info.

@@ -14,8 +14,8 @@ public:
 
     enum Policy : U8
     {
-        FAIR,
-        REALTIME
+        FAIR = 0,
+        REALTIME = 1
     };
 
     static const I32 FAIR_MIN_PRI;

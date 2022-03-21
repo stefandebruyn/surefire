@@ -57,7 +57,7 @@ static Result tokenizeLine(const String& kLine,
                     }
                 }
 
-                // Match successful- if not a comment, pack into a `Token` and
+                // Match successful- if not a comment, pack into a token and
                 // append to the return vector.
                 if (tokType.first != Token::COMMENT)
                 {
@@ -66,7 +66,9 @@ static Result tokenizeLine(const String& kLine,
                         tokType.first,
                         match[1].str(),
                         static_cast<I32>(kLineNum),
-                        static_cast<I32>(idx + nonWsIdx + 1)
+                        static_cast<I32>(idx + nonWsIdx + 1),
+                        nullptr,
+                        nullptr
                     };
                     kToks.push_back(tok);
                 }
@@ -114,13 +116,15 @@ const Map<Token::Type, String, EnumHash> Token::names =
     {Token::COMMENT, "comment"},
     {Token::LBRACE, "left brace"},
     {Token::RBRACE, "right brace"},
-    {Token::COMMA, "comma"}
+    {Token::COMMA, "comma"},
+    {Token::KEYWORD, "keyword"}
 };
 
 const Vec<std::pair<Token::Type, std::regex>> Token::regexes =
 {
     {Token::SECTION, std::regex("\\s*(\\[[a-zA-Z0-9_/]+\\])\\s*")},
     {Token::LABEL, std::regex("\\s*([.][a-zA-Z][a-zA-Z0-9_\\[\\]-]+)\\s*")},
+    {Token::KEYWORD, std::regex("\\s*(IF|ELSE|->)\\s*")},
     {Token::CONSTANT, std::regex("\\s*(TRUE|FALSE|[-]?[0-9]*\\.?[0-9]+)\\s*")},
     {Token::ANNOTATION, std::regex("\\s*(@[a-zA-Z][a-zA-Z0-9_=]*)\\s*")},
     {Token::OPERATOR, std::regex(
@@ -156,9 +160,10 @@ std::ostream& operator<<(std::ostream& kOs, const Token& kTok)
 }
 
 Result Tokenizer::tokenize(String kFilePath,
-                                 Vec<Token>& kToks,
-                                 ErrorInfo* const kErr)
+                           Vec<Token>& kToks,
+                           ErrorInfo* const kErr)
 {
+    // Open the file input stream.
     std::ifstream ifs(kFilePath);
     if (!ifs.is_open())
     {
@@ -209,12 +214,32 @@ Result Tokenizer::tokenize(std::istream& kIs,
                 Token::NEWLINE,
                 "(newline)",
                 static_cast<I32>(lineNum),
-                static_cast<I32>(line.size() + 1)
+                static_cast<I32>(line.size() + 1),
+                nullptr,
+                nullptr
             };
             kToks.push_back(newlineTok);
         }
 
         ++lineNum;
+    }
+
+    // Garnish tokens with any additional metadata to save lookups later.
+    for (Token& tok : kToks)
+    {
+        // Check for operator match.
+        auto opInfoIt = OpInfo::fromStr.find(tok.str);
+        if (opInfoIt != OpInfo::fromStr.end())
+        {
+            tok.opInfo = &((*opInfoIt).second);
+        }
+
+        // Check for type name match.
+        auto typeInfoIt = TypeInfo::fromName.find(tok.str);
+        if (typeInfoIt != TypeInfo::fromName.end())
+        {
+            tok.typeInfo = &((*typeInfoIt).second);
+        }
     }
 
     return SUCCESS;

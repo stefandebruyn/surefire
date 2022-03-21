@@ -462,6 +462,56 @@ TEST(StateMachineAssembly, RollAvgFunction)
     CHECK_LOCAL_ELEM("bar", I32, 6);
 }
 
+TEST(StateMachineAssembly, TransitionToCurrentState)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n"
+        "I32 foo\n"
+        "I32 bar\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS=S\n"
+        "I32 foo\n"
+        "I32 bar\n"
+        "\n"
+        "[Initial]\n"
+        ".ENTRY\n"
+        "    foo = 0\n"
+        ".STEP\n"
+        "    foo = foo + 1\n"
+        "    foo == 3: -> Initial\n"
+        ".EXIT\n"
+        "    bar = bar + 1\n",
+        "state",
+        1);
+
+    CHECK_SUCCESS(sm.step());
+    CHECK_SV_ELEM("foo", I32, 1);
+    CHECK_SV_ELEM("bar", I32, 0);
+    CHECK_LOCAL_ELEM("T", U64, 0);
+
+    SET_SV_ELEM("time", U64, 1);
+    CHECK_SUCCESS(sm.step());
+    CHECK_SV_ELEM("foo", I32, 2);
+    CHECK_SV_ELEM("bar", I32, 0);
+    CHECK_LOCAL_ELEM("T", U64, 1);
+
+    SET_SV_ELEM("time", U64, 2);
+    CHECK_SUCCESS(sm.step());
+    CHECK_SV_ELEM("foo", I32, 3);
+    CHECK_SV_ELEM("bar", I32, 1);
+    CHECK_LOCAL_ELEM("T", U64, 2);
+
+    SET_SV_ELEM("time", U64, 3);
+    CHECK_SUCCESS(sm.step());
+    CHECK_SV_ELEM("foo", I32, 1);
+    CHECK_SV_ELEM("bar", I32, 1);
+    CHECK_LOCAL_ELEM("T", U64, 0);
+}
+
 ///////////////////////////////// Error Tests //////////////////////////////////
 
 TEST_GROUP(StateMachineAssemblyErrors)
@@ -962,7 +1012,7 @@ TEST(StateMachineAssemblyErrors, TransitionInExitLabel)
         "[Foo]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMA_TR_EXIT, 7, 8);
+    checkCompileError(smParse, sv, E_SMA_TR_EXIT, 7, 5);
 }
 
 TEST(StateMachineAssemblyErrors, Assertion)

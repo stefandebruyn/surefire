@@ -2,7 +2,15 @@
 
 #include "sf/config/TokenIterator.hpp"
 
-const Token TokenIterator::NONE = {Token::NONE, "(none)", -1, -1};
+const Token TokenIterator::NONE =
+{
+    Token::NONE,
+    "(none)",
+    -1,
+    -1,
+    nullptr,
+    nullptr
+};
 
 TokenIterator::TokenIterator(Iterator kStart, Iterator kEnd) :
     mStart(kStart), mEnd(kEnd), mPos(kStart), mSize(kEnd - kStart)

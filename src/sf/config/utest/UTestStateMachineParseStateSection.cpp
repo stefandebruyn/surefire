@@ -127,6 +127,38 @@ TEST(StateMachineParseStateSection, ExitLabel)
     CHECK_TRUE(parse.exit->action->lhs->right == nullptr);
 }
 
+TEST(StateMachineParseStateSection, Transition)
+{
+    // Parse state.
+    TOKENIZE(
+        "[Foo]\n"
+        ".ENTRY\n"
+        "    -> Bar\n");
+    StateMachineParse::StateParse parse = {};
+    CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
+    CHECK_TRUE(it.eof());
+
+    // State name was parsed correctly.
+    CHECK_EQUAL(toks[0], parse.tokName);
+
+    // Only an entry label was parsed.
+    CHECK_TRUE(parse.entry != nullptr);
+    CHECK_TRUE(parse.step == nullptr);
+    CHECK_TRUE(parse.exit == nullptr);
+
+    // Entry label contains a single unguarded action.
+    CHECK_TRUE(parse.entry->guard == nullptr);
+    CHECK_TRUE(parse.entry->ifBlock == nullptr);
+    CHECK_TRUE(parse.entry->elseBlock == nullptr);
+    CHECK_TRUE(parse.entry->action != nullptr);
+    CHECK_TRUE(parse.entry->next == nullptr);
+
+    // -> Bar
+    CHECK_TRUE(parse.entry->action->lhs == nullptr);
+    CHECK_EQUAL(toks[5], parse.entry->action->tokDestState);
+    CHECK_EQUAL(toks[4], parse.entry->action->tokTransitionKeyword);
+}
+
 TEST(StateMachineParseStateSection, MultipleUnguardedActions)
 {
     // Parse state.
@@ -1014,13 +1046,13 @@ TEST_GROUP(StateMachineParseStateSectionErrors)
 {
 };
 
-TEST(StateMachineParseStateSectionErrors, UnexpectedTokenInsteadOfLabel)
+TEST(StateMachineParseStateSectionErrors, ExpectedLabel)
 {
     TOKENIZE(
         "[Foo]\n"
         "@foo\n"
         "    a = 1\n");
-    checkParseError(it, E_SMP_LAB, 2, 1);
+    checkParseError(it, E_SMP_NO_LAB, 2, 1);
 }
 
 TEST(StateMachineParseStateSectionErrors, EmptyGuard)
@@ -1128,15 +1160,6 @@ TEST(StateMachineParseStateSectionErrors, SyntaxErrorInAssignmentAction)
     checkParseError(it, E_EXP_SYNTAX, 3, 11);
 }
 
-TEST(StateMachineParseStateSectionErrors, TransitionActionWrongOperator)
-{
-    TOKENIZE(
-        "[Foo]\n"
-        ".ENTRY\n"
-        "    > Bar\n");
-    checkParseError(it, E_SMP_TR_OP, 3, 5);
-}
-
 TEST(StateMachineParseStateSectionErrors, NothingAfterTransitionOperator)
 {
     TOKENIZE(
@@ -1163,4 +1186,48 @@ TEST(StateMachineParseStateSectionErrors, ExtraTokenAfterTransition)
         ".ENTRY\n"
         "    -> Bar @foo\n");
     checkParseError(it, E_SMP_TR_JUNK, 3, 12);
+}
+
+TEST(StateMachineParseStateSectionErrors, InvalidFirstActionToken)
+{
+    TOKENIZE(
+        "[Foo]\n"
+        ".ENTRY\n"
+        "    @foo\n");
+    checkParseError(it, E_SMP_ACT_TOK, 3, 5);
+}
+
+TEST(StateMachineParseStateSectionErrors, MultipleEntryLabels)
+{
+    TOKENIZE(
+        "[Foo]\n"
+        ".ENTRY\n"
+        ".ENTRY\n");
+    checkParseError(it, E_SMP_LAB_DUPE, 3, 1);
+}
+
+TEST(StateMachineParseStateSectionErrors, MultipleStepLabels)
+{
+    TOKENIZE(
+        "[Foo]\n"
+        ".STEP\n"
+        ".STEP\n");
+    checkParseError(it, E_SMP_LAB_DUPE, 3, 1);
+}
+
+TEST(StateMachineParseStateSectionErrors, MultipleExitLabels)
+{
+    TOKENIZE(
+        "[Foo]\n"
+        ".EXIT\n"
+        ".EXIT\n");
+    checkParseError(it, E_SMP_LAB_DUPE, 3, 1);
+}
+
+TEST(StateMachineParseStateSectionErrors, UnknownLabel)
+{
+    TOKENIZE(
+        "[Foo]\n"
+        ".FOO\n");
+    checkParseError(it, E_SMP_LAB, 2, 1);
 }

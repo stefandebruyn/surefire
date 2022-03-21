@@ -18,6 +18,7 @@ public:
         Token tokRhs;
         Ref<const ExpressionParse> lhs;
         Token tokDestState;
+        Token tokTransitionKeyword;
     };
 
     struct BlockParse final

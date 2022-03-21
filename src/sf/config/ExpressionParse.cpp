@@ -46,38 +46,24 @@ Result ExpressionParse::parse(TokenIterator kIt,
             if (lvl < 0)
             {
                 // Unbalanced parentheses.
-                ConfigUtil::setError(kErr, tok, gErrText,
+                ConfigUtil::setError(kErr,
+                                     tok,
+                                     gErrText,
                                      "unbalanced parenthese");
                 return E_EXP_PAREN;
             }
         }
     }
 
+    // Check that parentheses are balanced.
     if (lvl != 0)
     {
-        // Unbalanced parentheses.
         SF_ASSERT(tokLastLvl0Paren != nullptr);
-        ConfigUtil::setError(kErr, *tokLastLvl0Paren, gErrText,
+        ConfigUtil::setError(kErr,
+                             *tokLastLvl0Paren,
+                             gErrText,
                              "unbalanced parenthese");
         return E_EXP_PAREN;
-    }
-
-    // Check that all operator tokens have operator info available.
-    kIt.seek(0);
-    while (!kIt.eof())
-    {
-        const Token& tok = kIt.take();
-        if (tok.type == Token::OPERATOR)
-        {
-            auto opInfoIt = OperatorInfo::fromStr.find(tok.str);
-            if (opInfoIt == OperatorInfo::fromStr.end())
-            {
-                // No info for operator. This would indicate a bug in the
-                // framework and not an error on the user's part, so provide
-                // no config error message.
-                return E_EXP_OP;
-            }
-        }
     }
 
     // Check that expression contains only identifier, constant, operator,
@@ -94,7 +80,9 @@ Result ExpressionParse::parse(TokenIterator kIt,
             && (tok.type != Token::COMMA))
         {
             // Unexpected token in expression.
-            ConfigUtil::setError(kErr, tok, gErrText,
+            ConfigUtil::setError(kErr,
+                                 tok,
+                                 gErrText,
                                  "unexpected token in expression");
             return E_EXP_TOK;
         }
@@ -103,14 +91,14 @@ Result ExpressionParse::parse(TokenIterator kIt,
     // At this point we know that the expression has balanced parentheses,
     // contains only known operators, and contains no unexpected token types.
     // So, the only errors to check for herein are syntax errors.
-
     Ref<ExpressionParse::MutNode> root;
-    const Result res = parseImpl(kIt, root, kErr);
+    const Result res = ExpressionParse::parseImpl(kIt, root, kErr);
     if (res != SUCCESS)
     {
         return res;
     }
 
+    // Convert tree to one of user-facing public node type.
     ExpressionParse::convertTree(root, kParse);
 
     return SUCCESS;
@@ -133,10 +121,9 @@ Result ExpressionParse::popSubexpression(
         return E_EXP_SYNTAX;
     }
 
-    // Look up operator info.
-    auto opInfoIt = OperatorInfo::fromStr.find(op.str);
-    SF_ASSERT(opInfoIt != OperatorInfo::fromStr.end());
-    const OperatorInfo& opInfo = (*opInfoIt).second;
+    // Get operator info.
+    SF_ASSERT(op.opInfo != nullptr);
+    const OpInfo& opInfo = *op.opInfo;
 
     // Pop RHS from stack.
     if (kNodes.empty())
@@ -191,8 +178,10 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
 
     // Stores iterators for each argument expression in the function call.
     Vec<TokenIterator> argExprs;
+
     // Parenthese level.
     U32 lvl = 0;
+
     // Start parsing at index 2, the first token after the open parenthese.
     U32 idxArgStart = 2;
     kIt.seek(idxArgStart);
@@ -272,20 +261,28 @@ void ExpressionParse::expandDoubleIneq(const Ref<ExpressionParse::MutNode> kNode
 
     if ((kNode->left != nullptr) && (kNode->right != nullptr))
     {
-        if (OperatorInfo::relOps.find(kNode->data.str)
-            != OperatorInfo::relOps.end())
+        if (OpInfo::relOps.find(kNode->data.str)
+            != OpInfo::relOps.end())
         {
             // If this node and the left node contain a relational operator,
             // this is a double inequality. It's impossible for the right node
             // to contain a relational operator since all operators used in
             // double inequalities have the same precedence and are
             // right-associative.
-            if (OperatorInfo::relOps.find(kNode->left->data.str)
-                != OperatorInfo::relOps.end())
+            if (OpInfo::relOps.find(kNode->left->data.str)
+                != OpInfo::relOps.end())
             {
                 kNode->right.reset(new ExpressionParse::MutNode{
                     kNode->data, kNode->left->right, kNode->right, false});
-                kNode->data = {Token::OPERATOR, OperatorInfo::land.str, -1, -1};
+                kNode->data =
+                {
+                    Token::OPERATOR,
+                    OpInfo::land.str,
+                    -1,
+                    -1,
+                    &OpInfo::land,
+                    nullptr
+                };
             }
         }
     }
@@ -302,13 +299,13 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
     // Copy token sequence, minus newlines, into a vector of tokens enclosed in
     // parentheses. Adding this extra pair of parentheses simplifies the
     // algorithm.
-    Vec<Token> toks = {{Token::LPAREN, "(", -1, -1}};
+    Vec<Token> toks = {{Token::LPAREN, "(", -1, -1, nullptr, nullptr}};
     kIt.seek(0);
     while (!kIt.eof())
     {
         toks.push_back(kIt.take());
     }
-    toks.push_back({Token::RPAREN, ")", -1, -1});
+    toks.push_back({Token::RPAREN, ")", -1, -1, nullptr, nullptr});
 
     // Stack of expression nodes yet to be installed in the binary tree.
     std::stack<Ref<ExpressionParse::MutNode>> nodes;
@@ -383,9 +380,9 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
         }
         else if (tok.type == Token::OPERATOR)
         {
-            // Look up operator info.
-            auto opInfoIt = OperatorInfo::fromStr.find(tok.str);
-            const OperatorInfo& opInfo = (*opInfoIt).second;
+            // Get operator info.
+            SF_ASSERT(tok.opInfo != nullptr);
+            const OpInfo& opInfo = *tok.opInfo;
 
             while (!stack.empty())
             {
@@ -396,8 +393,8 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
                     // Last item on stack is not an operator; keep going.
                     break;
                 }
-                auto lastOpInfoIt = OperatorInfo::fromStr.find(tokLast.str);
-                const OperatorInfo& lastOpInfo = (*lastOpInfoIt).second;
+                SF_ASSERT(tokLast.opInfo != nullptr);
+                const OpInfo& lastOpInfo = *tokLast.opInfo;
 
                 // Determine whether to process the subexpression currently on
                 // the stack based on the precedence and associativity of this

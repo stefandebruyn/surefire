@@ -147,5 +147,5 @@ TEST(StateMachineParseErrors, ErrorInStateSection)
     TOKENIZE(
         "[Foo]\n"
         "@foo\n");
-    checkParseError(toks, E_SMP_LAB, 2, 1);
+    checkParseError(toks, E_SMP_NO_LAB, 2, 1);
 }

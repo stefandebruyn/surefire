@@ -133,15 +133,15 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
         // Add element sizes into byte count.
         for (const StateVectorParse::ElementParse& elem : region.elems)
         {
-            auto typeInfoIt = ElementTypeInfo::fromName.find(elem.tokType.str);
-            if (typeInfoIt == ElementTypeInfo::fromName.end())
+            auto typeInfoIt = TypeInfo::fromName.find(elem.tokType.str);
+            if (typeInfoIt == TypeInfo::fromName.end())
             {
                 // Unknown element type.
                 ConfigUtil::setError(kErr, elem.tokType, gErrText,
                                      "unknown type");
                 return E_SVA_ELEM_TYPE;
             }
-            const ElementTypeInfo& typeInfo = (*typeInfoIt).second;
+            const TypeInfo& typeInfo = (*typeInfoIt).second;
             svSizeBytes += typeInfo.sizeBytes;
         }
     }
@@ -265,11 +265,10 @@ void StateVectorAssembly::allocateElement(
     std::strcpy(nameCpy, kElem.tokName.str.c_str());
     kElemInfo.name = nameCpy;
 
-    // Look up element type info.
-    auto typeInfoIt = ElementTypeInfo::fromName.find(kElem.tokType.str);
-    // Assert that lookup succeeds since element type was validated earlier.
-    SF_ASSERT(typeInfoIt != ElementTypeInfo::fromName.end());
-    const ElementTypeInfo& typeInfo = (*typeInfoIt).second;
+    // Look up element type info. Assert that this lookup succeeds since the
+    // element type was validated earlier.
+    SF_ASSERT(kElem.tokType.typeInfo != nullptr);
+    const TypeInfo& typeInfo = *kElem.tokType.typeInfo;
 
     // Allocate element object for element based on its type.
     switch (typeInfo.enumVal)

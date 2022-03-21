@@ -40,14 +40,13 @@ public:
     Result getRegion(const char* const kName, Region*& kRegion);
 
     StateVector(const StateVector&) = delete;
-    StateVector& operator=(const StateVector&) = delete;
     StateVector(StateVector&&) = delete;
+    StateVector& operator=(const StateVector&) = delete;
+    StateVector& operator=(StateVector&&) = default;
 
 private:
 
     Config mConfig;
-
-    StateVector& operator=(StateVector&&) = default;
 
     Result getElementConfig(const char* const kName,
                             const ElementConfig*& kElemConfig) const;

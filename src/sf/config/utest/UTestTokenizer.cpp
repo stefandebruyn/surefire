@@ -75,7 +75,6 @@ TEST(Tokenizer, Operator)
     CHECK_TOKEN("<", Token::OPERATOR, "<", 1, 1);
     CHECK_TOKEN(">=", Token::OPERATOR, ">=", 1, 1);
     CHECK_TOKEN(">", Token::OPERATOR, ">", 1, 1);
-    CHECK_TOKEN("->", Token::OPERATOR, "->", 1, 1);
     CHECK_TOKEN("AND", Token::OPERATOR, "AND", 1, 1);
     CHECK_TOKEN("OR", Token::OPERATOR, "OR", 1, 1);
     CHECK_TOKEN("+", Token::OPERATOR, "+", 1, 1);
@@ -139,6 +138,13 @@ TEST(Tokenizer, Comma)
     CHECK_TOKEN(",", Token::COMMA, ",", 1, 1);
 }
 
+TEST(Tokenizer, Keyword)
+{
+    CHECK_TOKEN("IF", Token::KEYWORD, "IF", 1, 1);
+    CHECK_TOKEN("ELSE", Token::KEYWORD, "ELSE", 1, 1);
+    CHECK_TOKEN("->", Token::KEYWORD, "->", 1, 1);
+}
+
 TEST(Tokenizer, OnlySpaces)
 {
     const Vec<Token> empty;
@@ -177,6 +183,7 @@ TEST(Tokenizer, EveryToken)
         {Token::CONSTANT, "123", 8, 8},
         {Token::COMMA, ",", 8, 11},
         {Token::COMMA, ",", 8, 12},
+        {Token::KEYWORD, "->", 8, 13},
     };
     CHECK_TOKENS(
         "\n"
@@ -186,7 +193,7 @@ TEST(Tokenizer, EveryToken)
         "# foo\n"
         "    [foo]({@foo\n"
         " .foo   !=FALSE # foo\n"
-        "): AND 123,,",
+        "): AND 123,,->",
         toksExpect);
 }
 

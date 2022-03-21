@@ -22,7 +22,7 @@ public:
 
     enum Protocol : U8
     {
-        UDP
+        UDP = 0
     };
 
     static Result create(const IPv4Address kIp,

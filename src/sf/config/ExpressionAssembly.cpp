@@ -316,12 +316,11 @@ Result ExpressionAssembly::compileOperator(
     ExpressionAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
-    // Look up operator info.
-    auto opInfoIt = OperatorInfo::fromStr.find(kParse->data.str);
-    // Assert that lookup succeeded. This is guaranteed by the expression
-    // parser.
-    SF_ASSERT(opInfoIt != OperatorInfo::fromStr.end());
-    const OperatorInfo& opInfo = (*opInfoIt).second;
+    SF_ASSERT(kParse != nullptr);
+
+    // Get operator info.
+    SF_ASSERT(kParse->data.opInfo != nullptr);
+    const OpInfo& opInfo = *kParse->data.opInfo;
 
     // Compile right subtree.
     SF_ASSERT(kParse->right != nullptr);
@@ -357,7 +356,7 @@ Result ExpressionAssembly::compileOperator(
     // Create operator node.
     switch (opInfo.enumVal)
     {
-        case OperatorInfo::Type::NOT:
+        case OpInfo::Type::NOT:
         {
             kNode.reset(new UnaryOpExprNode<F64>(
                 [] (const F64 a) -> F64 { return !a; },
@@ -365,35 +364,35 @@ Result ExpressionAssembly::compileOperator(
             break;
         }
 
-        case OperatorInfo::Type::MULT:
+        case OpInfo::Type::MULT:
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a * b); },
                 *nodeLeft,
                 *nodeRight));
             break;
 
-        case OperatorInfo::Type::DIV:
+        case OpInfo::Type::DIV:
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a / b); },
                 *nodeLeft,
                 *nodeRight));
             break;
 
-        case OperatorInfo::Type::ADD:
+        case OpInfo::Type::ADD:
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a + b); },
                 *nodeLeft,
                 *nodeRight));
             break;
 
-        case OperatorInfo::Type::SUB:
+        case OpInfo::Type::SUB:
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a - b); },
                 *nodeLeft,
                 *nodeRight));
             break;
 
-        case OperatorInfo::Type::LT:
+        case OpInfo::Type::LT:
         {
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a < b); },
@@ -402,7 +401,7 @@ Result ExpressionAssembly::compileOperator(
             break;
         }
 
-        case OperatorInfo::Type::LTE:
+        case OpInfo::Type::LTE:
         {
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a <= b); },
@@ -411,7 +410,7 @@ Result ExpressionAssembly::compileOperator(
             break;
         }
 
-        case OperatorInfo::Type::GT:
+        case OpInfo::Type::GT:
         {
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a > b); },
@@ -420,7 +419,7 @@ Result ExpressionAssembly::compileOperator(
             break;
         }
 
-        case OperatorInfo::Type::GTE:
+        case OpInfo::Type::GTE:
         {
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a >= b); },
@@ -429,7 +428,7 @@ Result ExpressionAssembly::compileOperator(
             break;
         }
 
-        case OperatorInfo::Type::EQ:
+        case OpInfo::Type::EQ:
         {
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a == b); },
@@ -438,7 +437,7 @@ Result ExpressionAssembly::compileOperator(
             break;
         }
 
-        case OperatorInfo::Type::NEQ:
+        case OpInfo::Type::NEQ:
         {
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a != b); },
@@ -447,7 +446,7 @@ Result ExpressionAssembly::compileOperator(
             break;
         }
 
-        case OperatorInfo::Type::AND:
+        case OpInfo::Type::AND:
         {
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a && b); },
@@ -456,7 +455,7 @@ Result ExpressionAssembly::compileOperator(
             break;
         }
 
-        case OperatorInfo::Type::OR:
+        case OpInfo::Type::OR:
         {
             kNode.reset(new BinOpExprNode<F64>(
                 [] (const F64 a, const F64 b) -> F64 { return (a || b); },
