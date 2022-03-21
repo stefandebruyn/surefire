@@ -41,15 +41,16 @@ private:
         Map<String, U32> stateIds;
         Set<String> readOnlyElems;
 
-        Ref<const StateMachineParse> smParse;
         Ref<const StateVectorAssembly> localSvAsm;
         Vec<Ref<const ExpressionAssembly>> exprAsms;
         Ref<Vec<StateMachine::StateConfig>> stateConfigs;
         Vec<Ref<StateMachine::Block>> blocks;
         Vec<Ref<IAction>> actions;
         Ref<Vec<IExpressionStats*>> exprStatArr;
-        StateMachine::Config smConfig;
+
         Ref<StateMachine> sm;
+        StateMachine::Config smConfig;
+        Ref<const StateMachineParse> smParse;
     };
 
     static Result checkStateVector(const Ref<const StateMachineParse> kParse,

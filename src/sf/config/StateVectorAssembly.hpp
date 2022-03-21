@@ -21,8 +21,6 @@ public:
                           Ref<const StateVectorAssembly>& kAsm,
                           ErrorInfo* const kErr);
 
-    ~StateVectorAssembly();
-
     Ref<StateVector> get() const;
 
     StateVector::Config config() const;
@@ -31,22 +29,28 @@ public:
 
 private:
 
-    const Ref<StateVector> mSv;
+    struct Workspace final
+    {
+        Ref<Vec<StateVector::ElementConfig>> elemConfigs;
+        Ref<Vec<StateVector::RegionConfig>> regionConfigs;
+        Ref<Vec<U8>> svBacking;
+        Vec<Ref<String>> configStrings;
+        Vec<Ref<IElement>> elems;
+        Vec<Ref<Region>> regions;
 
-    const StateVector::Config mConfig;
+        Ref<StateVector> sv;
+        StateVector::Config svConfig;
+        Ref<const StateVectorParse> svParse;
+    };
 
-    const Ref<const StateVectorParse> mParse;
+    const StateVectorAssembly::Workspace mWs;
 
-    const char* const mBacking;
+    static Result allocateElement(const StateVectorParse::ElementParse& kElem,
+                                  StateVectorAssembly::Workspace& kWs,
+                                  StateVector::ElementConfig& kElemConfig,
+                                  U8*& kBumpPtr);
 
-    static void allocateElement(const StateVectorParse::ElementParse& kElem,
-                                StateVector::ElementConfig& kElemInfo,
-                                char*& kBumpPtr);
-
-    StateVectorAssembly(const Ref<StateVector> kSv,
-                        const StateVector::Config kConfig,
-                        const Ref<const StateVectorParse> kParse,
-                        const char* const kBacking);
+    StateVectorAssembly(const StateVectorAssembly::Workspace& kWs);
 };
 
 #endif

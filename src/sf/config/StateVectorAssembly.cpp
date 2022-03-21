@@ -146,47 +146,77 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
         }
     }
 
-    // Allocate array for element configs.
-    StateVector::ElementConfig* const elemConfigs =
-        new StateVector::ElementConfig[elemCnt + 1];
-    elemConfigs[elemCnt] = {nullptr, nullptr}; // Null terminator
+    // Initialize a blank workspace for the compilation.
+    StateVectorAssembly::Workspace ws = {};
 
-    // Allocate array for region configs.
-    StateVector::RegionConfig* const regionConfigs =
-        new StateVector::RegionConfig[regionCnt + 1];
-    regionConfigs[regionCnt] = {nullptr, nullptr}; // Null terminator
+    // Put the state vector parse in the workspace so that the original parse
+    // which became the state vector can be recalled.
+    ws.svParse = kParse;
 
-    // Allocate backing storage for state vector and zero it out.
-    char* const svBacking = new char[svSizeBytes];
-    std::memset(svBacking, 0, svSizeBytes);
+    // Allocate vector for storing element configs. The memory underlying this
+    // vector will be directly given to the state vector config. (A vector is
+    // used instead of a native array since C++11 shared pointers are not
+    // specialized for native arrays.)
+    ws.elemConfigs.reset(new Vec<StateVector::ElementConfig>(elemCnt + 1));
 
-    // Allocate element and region objects and put them into the arrays we just
-    // allocated.
-    char* bumpPtr = svBacking;
+    // Set null terminator for element config array required by state vector.
+    (*ws.elemConfigs)[elemCnt] = {nullptr, nullptr};
+
+    // Allocate vector for storing region configs. As with the element configs,
+    // the memory underlying this vector will be given to the state vector
+    // config in raw pointer form.
+    ws.regionConfigs.reset(new Vec<StateVector::RegionConfig>(regionCnt + 1));
+
+    // Set null terminator for region config array required by state vector.
+    (*ws.regionConfigs)[regionCnt] = {nullptr, nullptr};
+
+    // Allocate backing storage for state vector. This memory will be
+    // automatically zeroed out by the vector implementation, ensuring that
+    // state vector elements default to zero.
+    ws.svBacking.reset(new Vec<U8>(svSizeBytes));
+
+    // Now to initialize the members of the element and region config arrays.
+    // This pointer stores the address of the next element's backing storage
+    // and will be bumped along as elements are allocated.
+    U8* bumpPtr = ws.svBacking->data();
+
+    // Index of the current element within the entire state vector.
     U32 elemIdx = 0;
+
     for (U32 regionIdx = 0; regionIdx < kParse->regions.size(); ++regionIdx)
     {
+        // Get region parse.
         const StateVectorParse::RegionParse& regionParse =
             kParse->regions[regionIdx];
 
         // Save a copy of the bump pointer, which right now points to the start
         // of the region.
-        char* const regionPtr = bumpPtr;
+        U8* const regionPtr = bumpPtr;
 
-        // Allocate elements and populate element config array.
+        // Allocate elements in region and populate element config array.
         for (const StateVectorParse::ElementParse& elemParse :
              regionParse.elems)
         {
-            StateVectorAssembly::allocateElement(elemParse,
-                                                 elemConfigs[elemIdx],
-                                                 bumpPtr);
+            const Result res = StateVectorAssembly::allocateElement(
+                elemParse,
+                ws,
+                (*ws.elemConfigs)[elemIdx],
+                bumpPtr);
+            if (res != SUCCESS)
+            {
+                return res;
+            }
+
             ++elemIdx;
         }
 
-        // Allocate a copy of the region name for the region config object.
-        char* regionNameCpy = new char[regionParse.plainName.size() + 1];
-        std::strcpy(regionNameCpy, regionParse.plainName.c_str());
-        regionConfigs[regionIdx].name = regionNameCpy;
+        // Allocate a copy of the region name and put the raw pointer in the
+        // region config.
+        const Ref<String> regionNameCpy(new String(regionParse.plainName));
+        (*ws.regionConfigs)[regionIdx].name = regionNameCpy->c_str();
+
+        // Add region name to workspace.
+        ws.configStrings.push_back(regionNameCpy);
 
         // Compute the size of the region. Since the `allocateElement` calls
         // above will have bumped the bump pointer to the end of the region,
@@ -195,88 +225,73 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
         const U64 regionSizeBytes =
             (reinterpret_cast<U64>(bumpPtr) - reinterpret_cast<U64>(regionPtr));
 
-        // Allocate region and put into config array.
-        Region* const region = new Region(regionPtr, regionSizeBytes);
-        regionConfigs[regionIdx] = {regionNameCpy, region};
+        // Allocate region object, add it to the workspace, and put raw pointers
+        // to the region name and object in the region config array.
+        const Ref<Region> region(new Region(regionPtr, regionSizeBytes));
+        ws.regions.push_back(region);
+        (*ws.regionConfigs)[regionIdx] = {regionNameCpy->c_str(), region.get()};
     }
 
-    // Config is done- create new state vector with it.
-    const StateVector::Config svConfig = {elemConfigs, regionConfigs};
-    const Ref<StateVector> sv(new StateVector());
-    const Result res = StateVector::create(svConfig, *sv);
+    // Config is done- create new state vector with it. Assert that creation
+    // succeeds since the state vector config is known correct at this point.
+    ws.svConfig = {ws.elemConfigs->data(), ws.regionConfigs->data()};
+    ws.sv.reset(new StateVector());
+    const Result res = StateVector::create(ws.svConfig, *ws.sv);
     SF_SAFE_ASSERT(res == SUCCESS);
 
     // Create the final assembly.
-    kAsm.reset(new StateVectorAssembly(sv, svConfig, kParse, svBacking));
+    kAsm.reset(new StateVectorAssembly(ws));
 
     return SUCCESS;
 }
 
-StateVectorAssembly::~StateVectorAssembly()
-{
-    // Delete name string and object for each element.
-    for (U32 i = 0; mConfig.elems[i].name != nullptr; ++i)
-    {
-        delete[] mConfig.elems[i].name;
-        delete mConfig.elems[i].elem;
-    }
-
-    // Delete name string and object for each region.
-    for (U32 i = 0; mConfig.regions[i].name != nullptr; ++i)
-    {
-        delete[] mConfig.regions[i].name;
-        delete mConfig.regions[i].region;
-    }
-
-    // Delete element config array.
-    delete[] mConfig.elems;
-
-    // Delete region config array.
-    delete[] mConfig.regions;
-
-    // Delete state vector backing storage.
-    delete[] mBacking;
-}
-
 Ref<StateVector> StateVectorAssembly::get() const
 {
-    return mSv;
+    return mWs.sv;
 }
 
 StateVector::Config StateVectorAssembly::config() const
 {
-    return mConfig;
+    return mWs.svConfig;
 }
 
 Ref<const StateVectorParse> StateVectorAssembly::parse() const
 {
-    return mParse;
+    return mWs.svParse;
 }
 
 /////////////////////////////////// Private ////////////////////////////////////
 
-void StateVectorAssembly::allocateElement(
+Result StateVectorAssembly::allocateElement(
     const StateVectorParse::ElementParse& kElem,
-    StateVector::ElementConfig& kElemInfo,
-    char*& kBumpPtr)
+    StateVectorAssembly::Workspace& kWs,
+    StateVector::ElementConfig& kElemConfig,
+    U8*& kBumpPtr)
 {
-    // Allocate a copy of the element name for the element config.
-    char* const nameCpy = new char[kElem.tokName.str.size() + 1];
-    std::strcpy(nameCpy, kElem.tokName.str.c_str());
-    kElemInfo.name = nameCpy;
+    // Assert that bump pointer is not null.
+    SF_SAFE_ASSERT(kBumpPtr != nullptr);
 
-    // Look up element type info. Assert that this lookup succeeds since the
-    // element type was validated earlier.
-    SF_ASSERT(kElem.tokType.typeInfo != nullptr);
+    // Allocate a copy of the element name, add it to the workspace, and put the
+    // raw pointer in the element config.
+    const Ref<String> elemNameCpy(new String(kElem.tokName.str));
+    kWs.configStrings.push_back(elemNameCpy);
+    kElemConfig.name = elemNameCpy->c_str();
+
+    // Get element type info. Assert that type info is attached to the element
+    // type token. This is guaranteed by the tokenizer and previous validation
+    // of element types appearing in the state vector config.
+    SF_SAFE_ASSERT(kElem.tokType.typeInfo != nullptr);
     const TypeInfo& typeInfo = *kElem.tokType.typeInfo;
 
-    // Allocate element object for element based on its type.
+    // Allocate element object for element based on its type and bump the bump
+    // pointer by the element's size.
+    Ref<IElement> elemObj;
     switch (typeInfo.enumVal)
     {
         case ElementType::INT8:
         {
             I8& backing = *reinterpret_cast<I8*>(kBumpPtr);
-            kElemInfo.elem = static_cast<IElement*>(new Element<I8>(backing));
+            elemObj.reset(new Element<I8>(backing));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -284,7 +299,7 @@ void StateVectorAssembly::allocateElement(
         case ElementType::INT16:
         {
             I16& backing = *reinterpret_cast<I16*>(kBumpPtr);
-            kElemInfo.elem = static_cast<IElement*>(new Element<I16>(backing));
+            elemObj.reset(new Element<I16>(backing));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -292,7 +307,7 @@ void StateVectorAssembly::allocateElement(
         case ElementType::INT32:
         {
             I32& backing = *reinterpret_cast<I32*>(kBumpPtr);
-            kElemInfo.elem = static_cast<IElement*>(new Element<I32>(backing));
+            elemObj.reset(new Element<I32>(backing));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -300,7 +315,7 @@ void StateVectorAssembly::allocateElement(
         case ElementType::INT64:
         {
             I64& backing = *reinterpret_cast<I64*>(kBumpPtr);
-            kElemInfo.elem = static_cast<IElement*>(new Element<I64>(backing));
+            elemObj.reset(new Element<I64>(backing));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -308,7 +323,7 @@ void StateVectorAssembly::allocateElement(
         case ElementType::UINT8:
         {
             U8& backing = *reinterpret_cast<U8*>(kBumpPtr);
-            kElemInfo.elem = static_cast<IElement*>(new Element<U8>(backing));
+            elemObj.reset(new Element<U8>(backing));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -316,7 +331,7 @@ void StateVectorAssembly::allocateElement(
         case ElementType::UINT16:
         {
             U16& backing = *reinterpret_cast<U16*>(kBumpPtr);
-            kElemInfo.elem = static_cast<IElement*>(new Element<U16>(backing));
+            elemObj.reset(new Element<U16>(backing));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -324,7 +339,7 @@ void StateVectorAssembly::allocateElement(
         case ElementType::UINT32:
         {
             U32& backing = *reinterpret_cast<U32*>(kBumpPtr);
-            kElemInfo.elem = static_cast<IElement*>(new Element<U32>(backing));
+            elemObj.reset(new Element<U32>(backing));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -332,7 +347,7 @@ void StateVectorAssembly::allocateElement(
         case ElementType::UINT64:
         {
             U64& backing = *reinterpret_cast<U64*>(kBumpPtr);
-            kElemInfo.elem = static_cast<IElement*>(new Element<U64>(backing));
+            elemObj.reset(new Element<U64>(backing));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -340,7 +355,7 @@ void StateVectorAssembly::allocateElement(
         case ElementType::FLOAT32:
         {
             F32& backing = *reinterpret_cast<F32*>(kBumpPtr);
-            kElemInfo.elem = static_cast<IElement*>(new Element<F32>(backing));
+            elemObj.reset(new Element<F32>(backing));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -348,7 +363,7 @@ void StateVectorAssembly::allocateElement(
         case ElementType::FLOAT64:
         {
             F64& backing = *reinterpret_cast<F64*>(kBumpPtr);
-            kElemInfo.elem = static_cast<IElement*>(new Element<F64>(backing));
+            elemObj.reset(new Element<F64>(backing));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -356,22 +371,25 @@ void StateVectorAssembly::allocateElement(
         case ElementType::BOOL:
         {
             bool& backing = *reinterpret_cast<bool*>(kBumpPtr);
-            kElemInfo.elem = static_cast<IElement*>(new Element<bool>(backing));
+            elemObj.reset(new Element<bool>(backing));
             kBumpPtr += sizeof(backing);
             break;
         }
 
         default:
-            // Unreachable- would indicate a bug in the element info LUT.
-            SF_ASSERT(false);
+            // Unreachable.
+            SF_SAFE_ASSERT(false);
     }
+
+    // Add allocated element to workspace and put the raw pointer in the element
+    // config.
+    kWs.elems.push_back(elemObj);
+    kElemConfig.elem = elemObj.get();
+
+    return SUCCESS;
 }
 
 StateVectorAssembly::StateVectorAssembly(
-    const Ref<StateVector> kSv,
-    const StateVector::Config kConfig,
-    const Ref<const StateVectorParse> kParse,
-    const char* const kBacking) :
-    mSv(kSv), mConfig(kConfig), mParse(kParse), mBacking(kBacking)
+    const StateVectorAssembly::Workspace& kWs) : mWs(kWs)
 {
 }

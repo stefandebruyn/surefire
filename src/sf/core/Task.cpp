@@ -13,13 +13,14 @@ Result ITask::initialize()
     {
         mInitialized = true;
     }
+
     return res;
 }
 
 Result ITask::step()
 {
     // Check that the task initialized successfully.
-    if (mInitialized != true)
+    if (!mInitialized)
     {
         return E_TSK_UNINIT;
     }
