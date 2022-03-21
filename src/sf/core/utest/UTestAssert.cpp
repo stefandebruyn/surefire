@@ -92,11 +92,11 @@ TEST(Assert, SafeAssertCleanup)
 
 TEST(Assert, UnsafeAssert)
 {
-    // Unsafe-asserting true does not halt.
+    // Asserting true never halts.
     SF_ASSERT(true);
 
 #ifndef SF_ENABLE_ASSERTS
-    // Unsafe-asserting false does not halt when asserts are not enabled.
+    // Asserting false does not halt when asserts are not enabled.
     Console::printf(" Note: asserts are disabled");
     SF_ASSERT(false);
 #else
