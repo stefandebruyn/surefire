@@ -9,7 +9,7 @@
 #define SF_ENABLE_CODE_COV // bar
 
 #ifdef SF_ENABLE_ASSERTS
-#define SF_ASSERT(kExpr)                                                       \
+#    define SF_ASSERT(kExpr)                                                   \
 SF_DISABLE_CODE_COV;                                                           \
 do                                                                             \
 {                                                                              \
@@ -26,6 +26,14 @@ SF_ENABLE_CODE_COV;
 #    define SF_ASSERT(kExpr)
 #endif
 
+#ifdef SF_SAFE_ASSERT_SAVES_FAIL_SITE
+#    define SF_SAVE_FAIL_SITE                                                  \
+::Assert::failFile = __FILE__;                                                 \
+::Assert::failLineNum = __LINE__;
+#else
+#    define SF_SAVE_FAIL_SITE
+#endif
+
 #define SF_SAFE_ASSERT_CLEAN(kExpr, kCleanupCode)                              \
 SF_DISABLE_CODE_COV;                                                           \
 do                                                                             \
@@ -33,12 +41,11 @@ do                                                                             \
     const bool _res = (kExpr);                                                 \
     if (_res != true)                                                          \
     {                                                                          \
-        /* Run cleanup code. */                                                \
-        kCleanupCode                                                           \
+        /* Assert failed- Run cleanup code. */                                 \
+        kCleanupCode;                                                          \
                                                                                \
-        /* Save assertion failure location. */                                 \
-        ::Assert::failFile = __FILE__;                                         \
-        ::Assert::failLineNum = __LINE__;                                      \
+        /* Save fail site (if the appropriate symbol is defined). */           \
+        SF_SAVE_FAIL_SITE;                                                     \
                                                                                \
         return E_ASSERT;                                                       \
     }                                                                          \

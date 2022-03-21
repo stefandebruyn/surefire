@@ -34,9 +34,14 @@ else()
     message(FATAL_ERROR "unsupported target platform")
 endif()
 
-# Enable framework asserts if specified.
+# Enable framework unsafe asserts if specified.
 if(${SF_ENABLE_ASSERTS})
     add_compile_options(-DSF_ENABLE_ASSERTS)
+endif()
+
+# Enable saving of safe assert fail sites if specified.
+if(${SF_SAFE_ASSERT_SAVES_FAIL_SITE})
+    add_compile_options(-DSF_SAFE_ASSERT_SAVES_FAIL_SITE)
 endif()
 
 # Requires that the CppUTest submodule be initialized. If this errors out, run

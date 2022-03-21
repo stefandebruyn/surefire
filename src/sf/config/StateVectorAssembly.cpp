@@ -204,7 +204,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
     const StateVector::Config svConfig = {elemConfigs, regionConfigs};
     const Ref<StateVector> sv(new StateVector());
     const Result res = StateVector::create(svConfig, *sv);
-    SF_ASSERT(res == SUCCESS);
+    SF_SAFE_ASSERT(res == SUCCESS);
 
     // Create the final assembly.
     kAsm.reset(new StateVectorAssembly(sv, svConfig, kParse, svBacking));
