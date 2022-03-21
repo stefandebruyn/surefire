@@ -34,7 +34,7 @@ Result StateMachineAssembly::compile(const String kFilePath,
             kErr->text = "error";
             kErr->subtext = "failed to open file `" + kFilePath + "`";
         }
-        return E_SMC_FILE;
+        return E_SMA_FILE;
     }
 
     // Send input stream into the next compilation phase.
@@ -82,7 +82,7 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     // Check that state machine parse is non-null.
     if (kParse == nullptr)
     {
-        return E_SMC_NULL;
+        return E_SMA_NULL;
     }
 
     // Initialize a blank workspace for the compilation.
@@ -241,7 +241,7 @@ Result StateMachineAssembly::checkStateVector(
             ConfigUtil::setError(kErr, elem.tokName, gErrText,
                                  "element `" + elem.tokName.str + "` does not "
                                  "exist in state vector");
-            return E_SMC_SV_ELEM;
+            return E_SMA_SV_ELEM;
         }
         SF_ASSERT(elemObj != nullptr);
 
@@ -252,7 +252,7 @@ Result StateMachineAssembly::checkStateVector(
             // Unknown type.
             ConfigUtil::setError(kErr, elem.tokType, gErrText,
                                  "unknown type `" + elem.tokType.str + "`");
-            return E_SMC_TYPE;
+            return E_SMA_TYPE;
         }
         const ElementTypeInfo& smTypeInfo = (*smTypeInfoIt).second;
 
@@ -272,7 +272,7 @@ Result StateMachineAssembly::checkStateVector(
                << typeInfo.name << " in the state vector but type "
                << smTypeInfo.name << " here";
             ConfigUtil::setError(kErr, elem.tokType, gErrText, ss.str());
-            return E_SMC_TYPE_MISM;
+            return E_SMA_TYPE_MISM;
         }
 
         // Check that element does not appear twice in the state machine.
@@ -281,7 +281,7 @@ Result StateMachineAssembly::checkStateVector(
             ConfigUtil::setError(kErr, elem.tokName, gErrText,
                                  "element `" + elem.tokName.str + "` is listed "
                                  "more than once");
-            return E_SMC_ELEM_DUPE;
+            return E_SMA_ELEM_DUPE;
         }
 
         // Add element to the symbol table.
@@ -305,7 +305,7 @@ Result StateMachineAssembly::checkStateVector(
                 ss << "`" << LangConst::elemNameGlobalTime
                    << "` must be type U64 (" << elem.tokType.str << " here)";
                 ConfigUtil::setError(kErr, elem.tokName, gErrText, ss.str());
-                return E_SMC_G_TYPE;
+                return E_SMA_G_TYPE;
             }
         }
 
@@ -323,7 +323,7 @@ Result StateMachineAssembly::checkStateVector(
                 ss << "`" << LangConst::elemNameState << "` must be type U32 ("
                    << elem.tokType.str << " here)";
                 ConfigUtil::setError(kErr, elem.tokName, gErrText, ss.str());
-                return E_SMC_S_TYPE;
+                return E_SMA_S_TYPE;
             }
         }
 
@@ -353,7 +353,7 @@ Result StateMachineAssembly::checkStateVector(
             kErr->subtext = "no global time element aliased to `"
                             + LangConst::elemNameGlobalTime + "`";
         }
-        return E_SMC_NO_G;
+        return E_SMA_NO_G;
     }
 
     if (kWs.elems.find(LangConst::elemNameState) == kWs.elems.end())
@@ -365,7 +365,7 @@ Result StateMachineAssembly::checkStateVector(
             kErr->subtext = "no state element aliased to `"
                             + LangConst::elemNameState + "`";
         }
-        return E_SMC_NO_S;
+        return E_SMA_NO_S;
     }
 
     return SUCCESS;
@@ -403,7 +403,7 @@ Result StateMachineAssembly::compileLocalStateVector(
                    << "` (previously used on line " << svElem.tokName.lineNum
                    << ")";
                 ConfigUtil::setError(kErr, elem.tokName, gErrText, ss.str());
-                return E_SMC_ELEM_DUPE;
+                return E_SMA_ELEM_DUPE;
             }
         }
 
@@ -480,7 +480,7 @@ Result StateMachineAssembly::compileAction(
             ConfigUtil::setError(
                 kErr, kParse->tokRhs, gErrText,
                 "unknown element `" + kParse->tokRhs.str + "`");
-            return E_SMC_ASG_ELEM;
+            return E_SMA_ASG_ELEM;
         }
         IElement* const elemObj = (*elemIt).second;
 
@@ -492,7 +492,7 @@ Result StateMachineAssembly::compileAction(
             ConfigUtil::setError(kErr, kParse->tokRhs, gErrText,
                                  "element `" + kParse->tokRhs.str + "` is "
                                  "read-only");
-            return E_SMC_ELEM_RO;
+            return E_SMA_ELEM_RO;
         }
 
         // Compile LHS expression.
@@ -602,7 +602,7 @@ Result StateMachineAssembly::compileAction(
             // Illegal transition in exit label.
             ConfigUtil::setError(kErr, kParse->tokDestState, gErrText,
                                  "illegal transition in exit label");
-            return E_SMC_TR_EXIT;
+            return E_SMA_TR_EXIT;
         }
 
         auto stateIdIt = kWs.stateIds.find(kParse->tokDestState.str);
@@ -612,7 +612,7 @@ Result StateMachineAssembly::compileAction(
             ConfigUtil::setError(kErr, kParse->tokDestState, gErrText,
                                  "unknown state `" + kParse->tokDestState.str
                                  + "`");
-            return E_SMC_STATE;
+            return E_SMA_STATE;
         }
         const U32 destState = (*stateIdIt).second;
         kAction.reset(new TransitionAction(destState));
@@ -651,7 +651,7 @@ Result StateMachineAssembly::compileBlock(
                              node->data,
                              gErrText,
                              "state machines may not contain assertions");
-        return E_SMC_ASSERT;
+        return E_SMA_ASSERT;
     }
 
     // Allocate new block and add to workspace.

@@ -778,7 +778,7 @@ TEST(ExpressionAssemblyErrors, UnknownElement)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("foo", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXC_ELEM, 1, 1);
+    checkCompileError(exprParse, sv, E_EXA_ELEM, 1, 1);
 }
 
 TEST(ExpressionAssemblyErrors, OutOfRangeNumber)
@@ -796,7 +796,7 @@ TEST(ExpressionAssemblyErrors, OutOfRangeNumber)
             exprParse,
             svAsm,
             sv);
-    checkCompileError(exprParse, sv, E_EXC_OVFL, 1, 5);
+    checkCompileError(exprParse, sv, E_EXA_OVFL, 1, 5);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionArity)
@@ -805,7 +805,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionArity)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(1)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXC_ARITY, 1, 1);
+    checkCompileError(exprParse, sv, E_EXA_ARITY, 1, 1);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg1)
@@ -814,7 +814,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg1)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(foo, 4)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXC_ELEM, 1, 10);
+    checkCompileError(exprParse, sv, E_EXA_ELEM, 1, 10);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg2)
@@ -823,7 +823,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg2)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, foo)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXC_ELEM, 1, 13);
+    checkCompileError(exprParse, sv, E_EXA_ELEM, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionZeroWindowSize)
@@ -832,7 +832,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionZeroWindowSize)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 0)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
+    checkCompileError(exprParse, sv, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionNegativeWindowSize)
@@ -841,7 +841,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionNegativeWindowSize)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, -1)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
+    checkCompileError(exprParse, sv, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionNonIntegerWindowSize)
@@ -850,7 +850,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionNonIntegerWindowSize)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 1.5)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
+    checkCompileError(exprParse, sv, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionNaNWindowSize)
@@ -859,7 +859,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionNaNWindowSize)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 1 / 0)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXC_WIN, 1, 15);
+    checkCompileError(exprParse, sv, E_EXA_WIN, 1, 15);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionWindowTooBig)
@@ -868,7 +868,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionWindowTooBig)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 100001)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXC_WIN, 1, 13);
+    checkCompileError(exprParse, sv, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, UnknownFunction)
@@ -877,5 +877,5 @@ TEST(ExpressionAssemblyErrors, UnknownFunction)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("FOO()", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXC_FUNC, 1, 1);
+    checkCompileError(exprParse, sv, E_EXA_FUNC, 1, 1);
 }

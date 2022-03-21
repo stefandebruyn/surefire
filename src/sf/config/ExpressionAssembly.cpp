@@ -21,7 +21,7 @@ Result ExpressionAssembly::compile(const Ref<const ExpressionParse> kParse,
     // Check that expression parse is non-null.
     if (kParse == nullptr)
     {
-        return E_EXC_NULL;
+        return E_EXA_NULL;
     }
 
     // Compile expression starting at root.
@@ -137,7 +137,7 @@ Result ExpressionAssembly::tokenToF64(const Token& kTok,
     {
         // Invalid numeric constant.
         ConfigUtil::setError(kErr, kTok, gErrText, "invalid number");
-        return E_EXC_NUM;
+        return E_EXA_NUM;
     }
 
     if (val == HUGE_VAL)
@@ -145,7 +145,7 @@ Result ExpressionAssembly::tokenToF64(const Token& kTok,
         // Numeric constant is out of range.
         ConfigUtil::setError(kErr, kTok, gErrText,
                              "number is outside the representable range");
-        return E_EXC_OVFL;
+        return E_EXA_OVFL;
     }
 
     // Success- return converted value.
@@ -179,7 +179,7 @@ Result ExpressionAssembly::compileExprStatsFunc(
         ss << "`" << kParse->data.str << + "` expects 2 arguments, got "
            << argNodes.size();
         ConfigUtil::setError(kErr, kParse->data, gErrText, ss.str());
-        return E_EXC_ARITY;
+        return E_EXA_ARITY;
     }
 
     // Compile first argument expression; the expression which stats are being
@@ -218,7 +218,7 @@ Result ExpressionAssembly::compileExprStatsFunc(
     {
         ConfigUtil::setError(kErr, argNodes[1]->right->data, gErrText,
                              "rolling window size must be an integer > 0");
-        return E_EXC_WIN;
+        return E_EXA_WIN;
     }
 
     // Enforce maximum window size.
@@ -229,7 +229,7 @@ Result ExpressionAssembly::compileExprStatsFunc(
         ss << "rolling window size must be <= "
            << LangConst::rollWindowMaxSize;
         ConfigUtil::setError(kErr, argNodes[1]->right->data, gErrText, ss.str());
-        return E_EXC_WIN;
+        return E_EXA_WIN;
     }
 
     // Allocate storage arrays needed by expression stats and add them to the
@@ -306,7 +306,7 @@ Result ExpressionAssembly::compileFunction(
     // If we got this far, the function is not recognized.
     ConfigUtil::setError(kErr, kParse->data, gErrText,
                          "unknown function `" + kParse->data.str + "`");
-    return E_EXC_FUNC;
+    return E_EXA_FUNC;
 }
 
 Result ExpressionAssembly::compileOperator(
@@ -561,7 +561,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
             // Unknown element.
             ConfigUtil::setError(kErr, kParse->data, gErrText,
                                  "unknown element");
-            return E_EXC_ELEM;
+            return E_EXA_ELEM;
         }
 
         // Narrow the element pointer to a template instantiation of the

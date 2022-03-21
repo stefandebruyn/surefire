@@ -429,7 +429,7 @@ TEST(StateVectorAssemblyErrors, DuplicateElementNameSameRegion)
         "[Foo]\n"
         "I32 foo\n"
         "F64 foo\n");
-    checkCompileError(toks, E_SVC_ELEM_DUPE, 3, 5);
+    checkCompileError(toks, E_SVA_ELEM_DUPE, 3, 5);
 }
 
 TEST(StateVectorAssemblyErrors, DuplicateElementNameDifferentRegion)
@@ -439,7 +439,7 @@ TEST(StateVectorAssemblyErrors, DuplicateElementNameDifferentRegion)
         "I32 foo\n"
         "[Bar]\n"
         "F64 foo\n");
-    checkCompileError(toks, E_SVC_ELEM_DUPE, 4, 5);
+    checkCompileError(toks, E_SVA_ELEM_DUPE, 4, 5);
 }
 
 TEST(StateVectorAssemblyErrors, DuplicateRegionName)
@@ -449,14 +449,14 @@ TEST(StateVectorAssemblyErrors, DuplicateRegionName)
         "I32 foo\n"
         "[Foo]\n"
         "F64 bar\n");
-    checkCompileError(toks, E_SVC_RGN_DUPE, 3, 1);
+    checkCompileError(toks, E_SVA_RGN_DUPE, 3, 1);
 }
 
 TEST(StateVectorAssemblyErrors, EmptyRegion)
 {
     TOKENIZE(
         "[Foo]\n");
-    checkCompileError(toks, E_SVC_RGN_EMPTY, 1, 1);
+    checkCompileError(toks, E_SVA_RGN_EMPTY, 1, 1);
 }
 
 TEST(StateVectorAssemblyErrors, UnknownElementType)
@@ -464,5 +464,5 @@ TEST(StateVectorAssemblyErrors, UnknownElementType)
     TOKENIZE(
         "[Foo]\n"
         "I33 foo\n");
-    checkCompileError(toks, E_SVC_ELEM_TYPE, 2, 1);
+    checkCompileError(toks, E_SVA_ELEM_TYPE, 2, 1);
 }

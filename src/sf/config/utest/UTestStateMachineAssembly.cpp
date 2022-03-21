@@ -480,7 +480,7 @@ TEST(StateMachineAssemblyErrors, UnknownStateVectorElement)
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_SV_ELEM, 2, 5);
+    checkCompileError(smParse, sv, E_SMA_SV_ELEM, 2, 5);
 }
 
 TEST(StateMachineAssemblyErrors, UnknownStateVectorElementType)
@@ -495,7 +495,7 @@ TEST(StateMachineAssemblyErrors, UnknownStateVectorElementType)
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_TYPE, 2, 1);
+    checkCompileError(smParse, sv, E_SMA_TYPE, 2, 1);
 }
 
 TEST(StateMachineAssemblyErrors, StateVectorElementTypeMismatch)
@@ -510,7 +510,7 @@ TEST(StateMachineAssemblyErrors, StateVectorElementTypeMismatch)
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_TYPE_MISM, 2, 1);
+    checkCompileError(smParse, sv, E_SMA_TYPE_MISM, 2, 1);
 }
 
 TEST(StateMachineAssemblyErrors, StateVectorElementListedTwice)
@@ -526,7 +526,7 @@ TEST(StateMachineAssemblyErrors, StateVectorElementListedTwice)
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ELEM_DUPE, 3, 5);
+    checkCompileError(smParse, sv, E_SMA_ELEM_DUPE, 3, 5);
 }
 
 TEST(StateMachineAssemblyErrors, GlobalTimeElementWrongType)
@@ -541,7 +541,7 @@ TEST(StateMachineAssemblyErrors, GlobalTimeElementWrongType)
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_G_TYPE, 2, 5);
+    checkCompileError(smParse, sv, E_SMA_G_TYPE, 2, 5);
 }
 
 TEST(StateMachineAssemblyErrors, StateElementWrongType)
@@ -556,7 +556,7 @@ TEST(StateMachineAssemblyErrors, StateElementWrongType)
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_S_TYPE, 2, 5);
+    checkCompileError(smParse, sv, E_SMA_S_TYPE, 2, 5);
 }
 
 TEST(StateMachineAssemblyErrors, LocalElementReusesSvElementName)
@@ -578,7 +578,7 @@ TEST(StateMachineAssemblyErrors, LocalElementReusesSvElementName)
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ELEM_DUPE, 7, 5);
+    checkCompileError(smParse, sv, E_SMA_ELEM_DUPE, 7, 5);
 }
 
 TEST(StateMachineAssemblyErrors, AssignmentActionUnknownElement)
@@ -597,7 +597,7 @@ TEST(StateMachineAssemblyErrors, AssignmentActionUnknownElement)
         "    foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ASG_ELEM, 7, 5);
+    checkCompileError(smParse, sv, E_SMA_ASG_ELEM, 7, 5);
 }
 
 TEST(StateMachineAssemblyErrors, ErrorInAssignmentActionExpression)
@@ -618,7 +618,7 @@ TEST(StateMachineAssemblyErrors, ErrorInAssignmentActionExpression)
         "    foo = bar\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_EXC_ELEM, 8, 11);
+    checkCompileError(smParse, sv, E_EXA_ELEM, 8, 11);
 }
 
 TEST(StateMachineAssemblyErrors, TransitionToUnknownState)
@@ -637,7 +637,7 @@ TEST(StateMachineAssemblyErrors, TransitionToUnknownState)
         "    -> Foo\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_STATE, 7, 8);
+    checkCompileError(smParse, sv, E_SMA_STATE, 7, 8);
 }
 
 TEST(StateMachineAssemblyErrors, ErrorInGuardExpression)
@@ -658,7 +658,7 @@ TEST(StateMachineAssemblyErrors, ErrorInGuardExpression)
         "    bar: foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_EXC_ELEM, 8, 5);
+    checkCompileError(smParse, sv, E_EXA_ELEM, 8, 5);
 }
 
 TEST(StateMachineAssemblyErrors, ErrorInIfBranch)
@@ -679,7 +679,7 @@ TEST(StateMachineAssemblyErrors, ErrorInIfBranch)
         "    foo == 0: bar = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ASG_ELEM, 8, 15);
+    checkCompileError(smParse, sv, E_SMA_ASG_ELEM, 8, 15);
 }
 
 TEST(StateMachineAssemblyErrors, ErrorInElseBranch)
@@ -701,7 +701,7 @@ TEST(StateMachineAssemblyErrors, ErrorInElseBranch)
         "    ELSE: bar = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ASG_ELEM, 9, 11);
+    checkCompileError(smParse, sv, E_SMA_ASG_ELEM, 9, 11);
 }
 
 TEST(StateMachineAssemblyErrors, ErrorInNextBlock)
@@ -724,7 +724,7 @@ TEST(StateMachineAssemblyErrors, ErrorInNextBlock)
         "    bar = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ASG_ELEM, 10, 5);
+    checkCompileError(smParse, sv, E_SMA_ASG_ELEM, 10, 5);
 }
 
 TEST(StateMachineAssemblyErrors, ErrorInStepLabel)
@@ -743,7 +743,7 @@ TEST(StateMachineAssemblyErrors, ErrorInStepLabel)
         "    foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ASG_ELEM, 7, 5);
+    checkCompileError(smParse, sv, E_SMA_ASG_ELEM, 7, 5);
 }
 
 TEST(StateMachineAssemblyErrors, ErrorInExitLabel)
@@ -762,7 +762,7 @@ TEST(StateMachineAssemblyErrors, ErrorInExitLabel)
         "    foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ASG_ELEM, 7, 5);
+    checkCompileError(smParse, sv, E_SMA_ASG_ELEM, 7, 5);
 }
 
 TEST(StateMachineAssemblyErrors, ErrorInNonInitialState)
@@ -788,7 +788,7 @@ TEST(StateMachineAssemblyErrors, ErrorInNonInitialState)
         "    bar = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ASG_ELEM, 13, 5);
+    checkCompileError(smParse, sv, E_SMA_ASG_ELEM, 13, 5);
 }
 
 TEST(StateMachineAssemblyErrors, NoGlobalTimeElement)
@@ -804,7 +804,7 @@ TEST(StateMachineAssemblyErrors, NoGlobalTimeElement)
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_NO_G, -1, -1);
+    checkCompileError(smParse, sv, E_SMA_NO_G, -1, -1);
 }
 
 TEST(StateMachineAssemblyErrors, NoStateElement)
@@ -820,7 +820,7 @@ TEST(StateMachineAssemblyErrors, NoStateElement)
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_NO_S, -1, -1);
+    checkCompileError(smParse, sv, E_SMA_NO_S, -1, -1);
 }
 
 TEST(StateMachineAssemblyErrors, WriteReadOnlyStateVectorElement)
@@ -841,7 +841,7 @@ TEST(StateMachineAssemblyErrors, WriteReadOnlyStateVectorElement)
         "    foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ELEM_RO, 8, 5);
+    checkCompileError(smParse, sv, E_SMA_ELEM_RO, 8, 5);
 }
 
 TEST(StateMachineAssemblyErrors, WriteReadOnlyStateVectorElementAlias)
@@ -862,7 +862,7 @@ TEST(StateMachineAssemblyErrors, WriteReadOnlyStateVectorElementAlias)
         "    bar = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ELEM_RO, 8, 5);
+    checkCompileError(smParse, sv, E_SMA_ELEM_RO, 8, 5);
 }
 
 TEST(StateMachineAssemblyErrors, WriteReadOnlyLocalElement)
@@ -884,7 +884,7 @@ TEST(StateMachineAssemblyErrors, WriteReadOnlyLocalElement)
         "    foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ELEM_RO, 10, 5);
+    checkCompileError(smParse, sv, E_SMA_ELEM_RO, 10, 5);
 }
 
 TEST(StateMachineAssemblyErrors, WriteGlobalTimeElement)
@@ -903,7 +903,7 @@ TEST(StateMachineAssemblyErrors, WriteGlobalTimeElement)
         "    G = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ELEM_RO, 7, 5);
+    checkCompileError(smParse, sv, E_SMA_ELEM_RO, 7, 5);
 }
 
 TEST(StateMachineAssemblyErrors, WriteLocalTimeElement)
@@ -922,7 +922,7 @@ TEST(StateMachineAssemblyErrors, WriteLocalTimeElement)
         "    T = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ELEM_RO, 7, 5);
+    checkCompileError(smParse, sv, E_SMA_ELEM_RO, 7, 5);
 }
 
 TEST(StateMachineAssemblyErrors, WriteStateElement)
@@ -941,7 +941,7 @@ TEST(StateMachineAssemblyErrors, WriteStateElement)
         "    S = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ELEM_RO, 7, 5);
+    checkCompileError(smParse, sv, E_SMA_ELEM_RO, 7, 5);
 }
 
 TEST(StateMachineAssemblyErrors, TransitionInExitLabel)
@@ -962,7 +962,7 @@ TEST(StateMachineAssemblyErrors, TransitionInExitLabel)
         "[Foo]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_TR_EXIT, 7, 8);
+    checkCompileError(smParse, sv, E_SMA_TR_EXIT, 7, 8);
 }
 
 TEST(StateMachineAssemblyErrors, Assertion)
@@ -981,5 +981,5 @@ TEST(StateMachineAssemblyErrors, Assertion)
         "    @ASSERT T == 0\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, sv, E_SMC_ASSERT, 7, 13);
+    checkCompileError(smParse, sv, E_SMA_ASSERT, 7, 13);
 }

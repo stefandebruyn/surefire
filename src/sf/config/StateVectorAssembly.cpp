@@ -27,7 +27,7 @@ Result StateVectorAssembly::compile(const String kFilePath,
             kErr->text = "error";
             kErr->subtext = "failed to open file `" + kFilePath + "`";
         }
-        return E_SMC_FILE;
+        return E_SMA_FILE;
     }
 
     return StateVectorAssembly::compile(ifs, kAsm, kErr);
@@ -69,7 +69,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
     // Check that state vector parse is non-null.
     if (kParse == nullptr)
     {
-        return E_SVC_NULL;
+        return E_SVA_NULL;
     }
 
     // Check that region names are unique. While we do this, collect all the
@@ -85,7 +85,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
                 ss << "reuse of region name `" << j.plainName
                    << "` (previously used on line " << i.tokName.lineNum << ")";
                 ConfigUtil::setError(kErr, j.tokName, gErrText, ss.str());
-                return E_SVC_RGN_DUPE;
+                return E_SVA_RGN_DUPE;
             }
         }
 
@@ -108,7 +108,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
                    << elems[i]->tokName.lineNum << ")";
                 ConfigUtil::setError(
                     kErr, elems[j]->tokName, gErrText, ss.str());
-                return E_SVC_ELEM_DUPE;
+                return E_SVA_ELEM_DUPE;
             }
         }
     }
@@ -124,7 +124,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
         {
             ConfigUtil::setError(kErr, region.tokName, gErrText,
                                  "region is empty");
-            return E_SVC_RGN_EMPTY;
+            return E_SVA_RGN_EMPTY;
         }
 
         // Add elements into element count.
@@ -139,7 +139,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
                 // Unknown element type.
                 ConfigUtil::setError(kErr, elem.tokType, gErrText,
                                      "unknown type");
-                return E_SVC_ELEM_TYPE;
+                return E_SVA_ELEM_TYPE;
             }
             const ElementTypeInfo& typeInfo = (*typeInfoIt).second;
             svSizeBytes += typeInfo.sizeBytes;

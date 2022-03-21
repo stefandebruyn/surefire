@@ -46,12 +46,12 @@ enum : Result
     E_TOK_INVALID = 256,
     E_TOK_FILE = 257,
 
-    // StateVectorParser
+    // StateVectorParse
     E_SVP_ELEM_NAME = 288,
     E_SVP_ELEM_TYPE = 289,
     E_SVP_RGN = 290,
 
-    // StateMachineParser
+    // StateMachineParse
     E_SMP_SEC = 320,
     E_SMP_ELEM_TYPE = 321,
     E_SMP_ELEM_NAME = 322,
@@ -81,49 +81,49 @@ enum : Result
     E_SMP_TR_JUNK = 346,
     E_SMP_TOK = 347,
 
-    // ExpressionParser
+    // ExpressionParse
     E_EXP_OP = 384,
     E_EXP_SYNTAX = 385,
     E_EXP_TOK = 386,
     E_EXP_EMPTY = 387,
     E_EXP_PAREN = 388,
 
-    // StateVectorCompiler
-    E_SVC_FILE = 416,
-    E_SVC_RGN_EMPTY = 417,
-    E_SVC_ELEM_TYPE = 418,
-    E_SVC_RGN_DUPE = 419,
-    E_SVC_ELEM_DUPE = 420,
-    E_SVC_NULL = 421,
+    // StateVectorAssembly
+    E_SVA_FILE = 416,
+    E_SVA_RGN_EMPTY = 417,
+    E_SVA_ELEM_TYPE = 418,
+    E_SVA_RGN_DUPE = 419,
+    E_SVA_ELEM_DUPE = 420,
+    E_SVA_NULL = 421,
 
-    // StateMachineCompiler
-    E_SMC_FILE = 448,
-    E_SMC_SV_ELEM = 449,
-    E_SMC_TYPE = 450,
-    E_SMC_TYPE_MISM = 451,
-    E_SMC_G_TYPE = 452,
-    E_SMC_S_TYPE = 453,
-    E_SMC_NO_G = 454,
-    E_SMC_NO_S = 455,
-    E_SMC_ELEM_DUPE = 456,
-    E_SMC_ASG_ELEM = 457,
-    E_SMC_STATE = 458,
-    E_SMC_ELEM_RO = 459,
-    E_SMC_TR_EXIT = 460,
-    E_SMC_ASSERT = 461,
-    E_SMC_NULL = 462,
+    // StateMachineAssembly
+    E_SMA_FILE = 448,
+    E_SMA_SV_ELEM = 449,
+    E_SMA_TYPE = 450,
+    E_SMA_TYPE_MISM = 451,
+    E_SMA_G_TYPE = 452,
+    E_SMA_S_TYPE = 453,
+    E_SMA_NO_G = 454,
+    E_SMA_NO_S = 455,
+    E_SMA_ELEM_DUPE = 456,
+    E_SMA_ASG_ELEM = 457,
+    E_SMA_STATE = 458,
+    E_SMA_ELEM_RO = 459,
+    E_SMA_TR_EXIT = 460,
+    E_SMA_ASSERT = 461,
+    E_SMA_NULL = 462,
 
-    // ExpressionCompiler
-    E_EXC_NULL = 480,
-    E_EXC_NUM = 481,
-    E_EXC_TYPE = 482,
-    E_EXC_ELEM = 483,
-    E_EXC_OVFL = 484,
-    E_EXC_ARITY = 485,
-    E_EXC_FUNC = 486,
-    E_EXC_WIN = 487,
+    // ExpressionAssembly
+    E_EXA_NULL = 480,
+    E_EXA_NUM = 481,
+    E_EXA_TYPE = 482,
+    E_EXA_ELEM = 483,
+    E_EXA_OVFL = 484,
+    E_EXA_ARITY = 485,
+    E_EXA_FUNC = 486,
+    E_EXA_WIN = 487,
 
-    // StateScriptParser
+    // StateScriptParse
     E_SSP_SEC = 512,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
