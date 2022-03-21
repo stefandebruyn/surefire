@@ -64,11 +64,14 @@ TEST(StateMachineParseLocalSection, OneElement)
     CHECK_EQUAL(1, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
-    // foo
+    // I32 foo = 0
     CHECK_TRUE(parse[0].tokType == toks[2]);
     CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_TRUE(parse[0].tokInitVal == toks[5]);
-    CHECK_EQUAL(false, parse[0].readOnly);
+    Ref<const ExpressionParse> node = parse[0].initValExpr;
+    CHECK_EQUAL(node->data, toks[5]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[0].readOnly);
 }
 
 TEST(StateMachineParseLocalSection, ReadOnlyAnnotation)
@@ -85,11 +88,14 @@ TEST(StateMachineParseLocalSection, ReadOnlyAnnotation)
     CHECK_EQUAL(1, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
-    // foo
+    // I32 foo = 0
     CHECK_TRUE(parse[0].tokType == toks[2]);
     CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_TRUE(parse[0].tokInitVal == toks[5]);
-    CHECK_EQUAL(true, parse[0].readOnly);
+    Ref<const ExpressionParse> node = parse[0].initValExpr;
+    CHECK_EQUAL(node->data, toks[5]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(parse[0].readOnly);
 }
 
 TEST(StateMachineParseLocalSection, MultipleElements)
@@ -108,23 +114,32 @@ TEST(StateMachineParseLocalSection, MultipleElements)
     CHECK_EQUAL(3, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
-    // foo
+    // I32 foo = 10
     CHECK_TRUE(parse[0].tokType == toks[2]);
     CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_TRUE(parse[0].tokInitVal == toks[5]);
-    CHECK_EQUAL(false, parse[0].readOnly);
+    Ref<const ExpressionParse> node = parse[0].initValExpr;
+    CHECK_EQUAL(node->data, toks[5]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[0].readOnly);
 
-    // bar
+    // F64 bar = 0.0
     CHECK_TRUE(parse[1].tokType == toks[7]);
     CHECK_TRUE(parse[1].tokName == toks[8]);
-    CHECK_TRUE(parse[1].tokInitVal == toks[10]);
-    CHECK_EQUAL(false, parse[1].readOnly);
+    node = parse[1].initValExpr;
+    CHECK_EQUAL(node->data, toks[10]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[0].readOnly);
 
-    // baz
+    // BOOL baz = FALSE
     CHECK_TRUE(parse[2].tokType == toks[12]);
     CHECK_TRUE(parse[2].tokName == toks[13]);
-    CHECK_TRUE(parse[2].tokInitVal == toks[15]);
-    CHECK_EQUAL(false, parse[2].readOnly);
+    node = parse[2].initValExpr;
+    CHECK_EQUAL(node->data, toks[15]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[0].readOnly);
 }
 
 TEST(StateMachineParseLocalSection, MultipleElementsWithAnnotations)
@@ -143,23 +158,32 @@ TEST(StateMachineParseLocalSection, MultipleElementsWithAnnotations)
     CHECK_EQUAL(3, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
-    // foo
+    // I32 foo = 10
     CHECK_TRUE(parse[0].tokType == toks[2]);
     CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_TRUE(parse[0].tokInitVal == toks[5]);
-    CHECK_EQUAL(false, parse[0].readOnly);
+    Ref<const ExpressionParse> node = parse[0].initValExpr;
+    CHECK_EQUAL(node->data, toks[5]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[0].readOnly);
 
-    // bar
+    // F64 bar = 0.0 @READ_ONLY
     CHECK_TRUE(parse[1].tokType == toks[7]);
     CHECK_TRUE(parse[1].tokName == toks[8]);
-    CHECK_TRUE(parse[1].tokInitVal == toks[10]);
-    CHECK_EQUAL(true, parse[1].readOnly);
+    node = parse[1].initValExpr;
+    CHECK_EQUAL(node->data, toks[10]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(parse[1].readOnly);
 
-    // baz
+    // BOOL baz = FALSE @READ_ONLY
     CHECK_TRUE(parse[2].tokType == toks[13]);
     CHECK_TRUE(parse[2].tokName == toks[14]);
-    CHECK_TRUE(parse[2].tokInitVal == toks[16]);
-    CHECK_EQUAL(true, parse[2].readOnly);
+    node = parse[2].initValExpr;
+    CHECK_EQUAL(node->data, toks[16]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(parse[2].readOnly);
 }
 
 TEST(StateMachineParseLocalSection, AllElementTypes)
@@ -186,71 +210,136 @@ TEST(StateMachineParseLocalSection, AllElementTypes)
     CHECK_EQUAL(11, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
-    // a
+    // I8 a = 0
     CHECK_TRUE(parse[0].tokType == toks[2]);
     CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_TRUE(parse[0].tokInitVal == toks[5]);
-    CHECK_EQUAL(false, parse[0].readOnly);
+    Ref<const ExpressionParse> node = parse[0].initValExpr;
+    CHECK_EQUAL(node->data, toks[5]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[0].readOnly);
 
-    // b
+    // I16 b = 0
     CHECK_TRUE(parse[1].tokType == toks[7]);
     CHECK_TRUE(parse[1].tokName == toks[8]);
-    CHECK_TRUE(parse[1].tokInitVal == toks[10]);
-    CHECK_EQUAL(false, parse[1].readOnly);
+    node = parse[1].initValExpr;
+    CHECK_EQUAL(node->data, toks[10]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[1].readOnly);
 
-    // c
+    // I32 c = 0
     CHECK_TRUE(parse[2].tokType == toks[12]);
     CHECK_TRUE(parse[2].tokName == toks[13]);
-    CHECK_TRUE(parse[2].tokInitVal == toks[15]);
-    CHECK_EQUAL(false, parse[2].readOnly);
+    node = parse[2].initValExpr;
+    CHECK_EQUAL(node->data, toks[15]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[2].readOnly);
 
-    // d
+    // I64 d = 0
     CHECK_TRUE(parse[3].tokType == toks[17]);
     CHECK_TRUE(parse[3].tokName == toks[18]);
-    CHECK_TRUE(parse[3].tokInitVal == toks[20]);
-    CHECK_EQUAL(false, parse[3].readOnly);
+    node = parse[3].initValExpr;
+    CHECK_EQUAL(node->data, toks[20]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[3].readOnly);
 
-    // e
+    // U8 e = 0
     CHECK_TRUE(parse[4].tokType == toks[22]);
     CHECK_TRUE(parse[4].tokName == toks[23]);
-    CHECK_TRUE(parse[4].tokInitVal == toks[25]);
-    CHECK_EQUAL(false, parse[4].readOnly);
+    node = parse[4].initValExpr;
+    CHECK_EQUAL(node->data, toks[25]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[4].readOnly);
 
-    // f
+    // U16 f = 0
     CHECK_TRUE(parse[5].tokType == toks[27]);
     CHECK_TRUE(parse[5].tokName == toks[28]);
-    CHECK_TRUE(parse[5].tokInitVal == toks[30]);
-    CHECK_EQUAL(false, parse[5].readOnly);
+    node = parse[5].initValExpr;
+    CHECK_EQUAL(node->data, toks[30]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[5].readOnly);
 
-    // g
+    // U32 g = 0
     CHECK_TRUE(parse[6].tokType == toks[32]);
     CHECK_TRUE(parse[6].tokName == toks[33]);
-    CHECK_TRUE(parse[6].tokInitVal == toks[35]);
-    CHECK_EQUAL(false, parse[6].readOnly);
+    node = parse[6].initValExpr;
+    CHECK_EQUAL(node->data, toks[35]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[6].readOnly);
 
-    // h
+    // U64 h = 0
     CHECK_TRUE(parse[7].tokType == toks[37]);
     CHECK_TRUE(parse[7].tokName == toks[38]);
-    CHECK_TRUE(parse[7].tokInitVal == toks[40]);
-    CHECK_EQUAL(false, parse[7].readOnly);
+    node = parse[7].initValExpr;
+    CHECK_EQUAL(node->data, toks[40]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[7].readOnly);
 
-    // i
+    // F32 i = 0
     CHECK_TRUE(parse[8].tokType == toks[42]);
     CHECK_TRUE(parse[8].tokName == toks[43]);
-    CHECK_TRUE(parse[8].tokInitVal == toks[45]);
-    CHECK_EQUAL(false, parse[8].readOnly);
+    node = parse[8].initValExpr;
+    CHECK_EQUAL(node->data, toks[45]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[8].readOnly);
 
-    // j
+    // F64 j = 0
     CHECK_TRUE(parse[9].tokType == toks[47]);
     CHECK_TRUE(parse[9].tokName == toks[48]);
-    CHECK_TRUE(parse[9].tokInitVal == toks[50]);
-    CHECK_EQUAL(false, parse[9].readOnly);
+    node = parse[9].initValExpr;
+    CHECK_EQUAL(node->data, toks[50]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[9].readOnly);
 
-    // k
+    // BOOL k = FALSE
     CHECK_TRUE(parse[10].tokType == toks[52]);
     CHECK_TRUE(parse[10].tokName == toks[53]);
-    CHECK_TRUE(parse[10].tokInitVal == toks[55]);
-    CHECK_EQUAL(false, parse[10].readOnly);
+    node = parse[10].initValExpr;
+    CHECK_EQUAL(node->data, toks[55]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[10].readOnly);
+}
+
+TEST(StateMachineParseLocalSection, MultipleTermsInElementAssignment)
+{
+    // Parse local section.
+    TOKENIZE(
+        "[LOCAL]\n"
+        "I32 foo = a + b\n");
+    Vec<StateMachineParse::LocalElementParse> parse;
+    CHECK_SUCCESS(StateMachineParse::parseLocalSection(it, parse, nullptr));
+
+    // Parsed expected number of elements. Iterator scanned through the entire
+    // section.
+    CHECK_EQUAL(1, parse.size());
+    CHECK_EQUAL(toks.size(), it.idx());
+
+    // I32 foo = a + b
+    CHECK_TRUE(parse[0].tokType == toks[2]);
+    CHECK_TRUE(parse[0].tokName == toks[3]);
+    Ref<const ExpressionParse> node = parse[0].initValExpr;
+    CHECK_EQUAL(node->data, toks[6]);
+    CHECK_TRUE(node->left != nullptr);
+    CHECK_TRUE(node->right != nullptr);
+    node = parse[0].initValExpr->left;
+    CHECK_EQUAL(node->data, toks[5]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    node = parse[0].initValExpr->right;
+    CHECK_EQUAL(node->data, toks[7]);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+    CHECK_TRUE(!parse[0].readOnly);
 }
 
 ///////////////////////////////// Error Tests //////////////////////////////////
@@ -328,7 +417,7 @@ TEST(StateMachineParseLocalSectionErrors, UnexpectedTokenAfterAssignmentOp)
     TOKENIZE(
         "[LOCAL]\n"
         "I32 foo = @foo\n");
-    checkParseError(it, E_SMP_LOC_VAL, 2, 11);
+    checkParseError(it, E_SMP_LOC_VAL, 2, 9);
 }
 
 TEST(StateMachineParseLocalSectionErrors, UnknownAnnotation)

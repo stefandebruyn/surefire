@@ -88,6 +88,10 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     // Initialize a blank workspace for the compilation.
     StateMachineAssembly::Workspace ws = {};
 
+    // Put the state machine parse in the workspace so that the original parse
+    // which became the state machine can be recalled.
+    ws.smParse = kParse;
+
     // Allocate a vector for storing state machine configs.
     ws.stateConfigs.reset(new Vec<StateMachine::StateConfig>());
 
@@ -108,7 +112,7 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     }
 
     // Set local element initial values.
-    res = StateMachineAssembly::initLocalElementValues(kParse, ws, kErr);
+    res = StateMachineAssembly::initLocalElementValues(kParse, kSv, ws, kErr);
     if (res != SUCCESS)
     {
         return res;
@@ -188,10 +192,6 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     ws.elems.clear();
     ws.stateIds.clear();
     ws.readOnlyElems.clear();
-
-    // Put the state machine parse in the workspace so that the original parse
-    // which became the state machine can be recalled.
-    ws.smParse = kParse;
 
     // Create the final assembly.
     kAsm.reset(new StateMachineAssembly(ws));
@@ -426,23 +426,127 @@ Result StateMachineAssembly::compileLocalStateVector(
         return res;
     }
 
-    SF_SAFE_ASSERT(kWs.localSvAsm != nullptr);
-    SF_SAFE_ASSERT(kWs.localSvAsm->parse() != nullptr);
+    // Assert that local state vector assembly contains exactly one region. This
+    // is guaranteed by the configuration above.
     SF_SAFE_ASSERT(kWs.localSvAsm->parse()->regions.size() == 1);
 
-    // Look up each element object in the local state vector and add it to the
-    // element symbol table.
+    // Assert that the pointers we're about to dereference are non-null. This is
+    // guaranteed by prior assembly code.
+    SF_SAFE_ASSERT(kWs.localSvAsm != nullptr);
+    SF_SAFE_ASSERT(kWs.localSvAsm->parse() != nullptr);
+
+    // Add local state vector elements to element symbol table.
     for (const StateVectorParse::ElementParse& elem :
          kWs.localSvAsm->parse()->regions[0].elems)
     {
+        // Look up element object.
         IElement* elemObj = nullptr;
         res = kWs.localSvAsm->get()->getIElement(elem.tokName.str.c_str(),
                                                  elemObj);
-        // Assert that element lookup succeeds since we configured the local
-        // state vector in this function and know the element exists.
+
+        // Assert that lookup succeeded. This is guaranteed by the local state
+        // vector configuration above.
         SF_SAFE_ASSERT(res == SUCCESS);
         SF_SAFE_ASSERT(elemObj != nullptr);
+
+        // Add element to symbol table.
         kWs.elems[elem.tokName.str] = elemObj;
+    }
+
+    return SUCCESS;
+}
+
+Result StateMachineAssembly::checkLocalElemInitExprs(
+    const StateMachineParse::LocalElementParse& kInitElem,
+    const Ref<const ExpressionParse> kExpr,
+    const Ref<StateVector> kSv,
+    StateMachineAssembly::Workspace& kWs,
+    ErrorInfo* const kErr)
+{
+    SF_SAFE_ASSERT(kSv != nullptr);
+
+    // Base case: node is null, so we fell off the tree.
+    if (kExpr == nullptr)
+    {
+        return SUCCESS;
+    }
+
+    // If expression node is an element identifier, need to enforce certain
+    // rules about the elements that may be referenced.
+    if ((kExpr->data.type == Token::IDENTIFIER) && !kExpr->func)
+    {
+        // Check that element is not being used to initialize itself.
+        if (kExpr->data.str == kInitElem.tokName.str)
+        {
+            ConfigUtil::setError(kErr,
+                                 kExpr->data,
+                                 gErrText,
+                                 "cannot use element to initialize itself");
+            return E_SMA_SELF_REF;
+        }
+
+        // Check that element is not a (non-local) state vector element.
+        IElement* elemObj = nullptr;
+        if (kSv->getIElement(kExpr->data.str.c_str(), elemObj) == SUCCESS)
+        {
+            std::stringstream ss;
+            ss << "illegal reference to non-local element `"
+               << kExpr->data.type << "`";
+            ConfigUtil::setError(kErr, kExpr->data, gErrText, ss.str());
+            return E_SMA_LOC_SV_REF;
+        }
+
+        // Assert that the state machine parse in the workspace is non-null.
+        // This is guaranteed by earlier assembly code.
+        SF_ASSERT(kWs.smParse != nullptr);
+
+        // Check that element is not used before it's initialized.
+        for (const StateMachineParse::LocalElementParse& elem :
+             kWs.smParse->localElems)
+        {
+            // Break when we run into ourselves in the local element list.
+            if (elem.tokName.str == kExpr->data.str)
+            {
+                break;
+            }
+
+            // If we run into the element referenced by this expression node
+            // before running into the element being initialized, then that's
+            // a use-before-initialization error. Technically this would be
+            // well-defined since elements default to zero even before being
+            // initialized, but we still consider it unsafe to let the user do
+            // this.
+            if (elem.tokName.str == kInitElem.tokName.str)
+            {
+                std::stringstream ss;
+                ss << "element `" << kExpr->data.str
+                   << "` is not yet initialized";
+                ConfigUtil::setError(kErr, kExpr->data, gErrText, ss.str());
+                return E_SMA_UBI;
+            }
+        }
+    }
+
+    // Check left subtree.
+    Result res = StateMachineAssembly::checkLocalElemInitExprs(kInitElem,
+                                                               kExpr->left,
+                                                               kSv,
+                                                               kWs,
+                                                               kErr);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    // Check right subtree.
+    res = StateMachineAssembly::checkLocalElemInitExprs(kInitElem,
+                                                        kExpr->right,
+                                                        kSv,
+                                                        kWs,
+                                                        kErr);
+    if (res != SUCCESS)
+    {
+        return res;
     }
 
     return SUCCESS;
@@ -450,12 +554,163 @@ Result StateMachineAssembly::compileLocalStateVector(
 
 Result StateMachineAssembly::initLocalElementValues(
     const Ref<const StateMachineParse> kParse,
+    const Ref<StateVector> kSv,
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
-    (void) kParse;
-    (void) kWs;
-    (void) kErr; // rm later
+    // Assert that all the pointers we're about to dereference are non-null.
+    // This is guaranteed by prior assembly code.
+    SF_SAFE_ASSERT(kParse != nullptr);
+    SF_SAFE_ASSERT(kWs.localSvAsm != nullptr);
+    SF_SAFE_ASSERT(kWs.localSvAsm->get() != nullptr);
+
+    for (const StateMachineParse::LocalElementParse& elem : kParse->localElems)
+    {
+        // Validate element references in the initialization expression.
+        Result res = StateMachineAssembly::checkLocalElemInitExprs(
+            elem,
+            elem.initValExpr,
+            kSv,
+            kWs,
+            kErr);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+
+        // Look up element object so that we can get its type as an enum. Assert
+        // that this lookup succeeds, which is guaranteed by the prior local
+        // state vector compilation step.
+        IElement* const elemObj = kWs.elems[elem.tokName.str];
+        SF_SAFE_ASSERT(elemObj != nullptr);
+
+        // Compile element initial value expression.
+        Ref<const ExpressionAssembly> initExprAsm;
+        res = ExpressionAssembly::compile(elem.initValExpr,
+                                          {kWs.localSvAsm->get()},
+                                          elemObj->type(),
+                                          initExprAsm,
+                                          kErr);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+
+        // Assert that the pointers we're about to dereference are non-null.
+        // This is guaranteed by the expression assembly.
+        SF_SAFE_ASSERT(initExprAsm != nullptr);
+        IExpression* const iroot = initExprAsm->root().get();
+        SF_SAFE_ASSERT(iroot != nullptr);
+
+        // Evaluate expression and write to element. The element and expression
+        // pointers are narrowed to template instantiations matching the
+        // element's type. These casts are guaranteed valid by the element and
+        // expression implementations.
+        switch (elemObj->type())
+        {
+            case ElementType::INT8:
+            {
+                Element<I8>* const elem = static_cast<Element<I8>*>(elemObj);
+                IExprNode<I8>* const root = static_cast<IExprNode<I8>*>(iroot);
+                elem->write(root->evaluate());
+                break;
+            }
+
+            case ElementType::INT16:
+            {
+                Element<I16>* const elem = static_cast<Element<I16>*>(elemObj);
+                IExprNode<I16>* const root =
+                    static_cast<IExprNode<I16>*>(iroot);
+                elem->write(root->evaluate());
+                break;
+            }
+
+            case ElementType::INT32:
+            {
+                Element<I32>* const elem = static_cast<Element<I32>*>(elemObj);
+                IExprNode<I32>* const root =
+                    static_cast<IExprNode<I32>*>(iroot);
+                elem->write(root->evaluate());
+                break;
+            }
+
+            case ElementType::INT64:
+            {
+                Element<I64>* const elem = static_cast<Element<I64>*>(elemObj);
+                IExprNode<I64>* const root =
+                    static_cast<IExprNode<I64>*>(iroot);
+                elem->write(root->evaluate());
+                break;
+            }
+
+            case ElementType::UINT8:
+            {
+                Element<U8>* const elem = static_cast<Element<U8>*>(elemObj);
+                IExprNode<U8>* const root = static_cast<IExprNode<U8>*>(iroot);
+                elem->write(root->evaluate());
+                break;
+            }
+
+            case ElementType::UINT16:
+            {
+                Element<U16>* const elem = static_cast<Element<U16>*>(elemObj);
+                IExprNode<U16>* const root =
+                    static_cast<IExprNode<U16>*>(iroot);
+                elem->write(root->evaluate());
+                break;
+            }
+
+            case ElementType::UINT32:
+            {
+                Element<U32>* const elem = static_cast<Element<U32>*>(elemObj);
+                IExprNode<U32>* const root =
+                    static_cast<IExprNode<U32>*>(iroot);
+                elem->write(root->evaluate());
+                break;
+            }
+
+            case ElementType::UINT64:
+            {
+                Element<U64>* const elem = static_cast<Element<U64>*>(elemObj);
+                IExprNode<U64>* const root =
+                    static_cast<IExprNode<U64>*>(iroot);
+                elem->write(root->evaluate());
+                break;
+            }
+
+            case ElementType::FLOAT32:
+            {
+                Element<F32>* const elem = static_cast<Element<F32>*>(elemObj);
+                IExprNode<F32>* const root =
+                    static_cast<IExprNode<F32>*>(iroot);
+                elem->write(root->evaluate());
+                break;
+            }
+
+            case ElementType::FLOAT64:
+            {
+                Element<F64>* const elem = static_cast<Element<F64>*>(elemObj);
+                IExprNode<F64>* const root =
+                    static_cast<IExprNode<F64>*>(iroot);
+                elem->write(root->evaluate());
+                break;
+            }
+
+            case ElementType::BOOL:
+            {
+                Element<bool>* const elem =
+                    static_cast<Element<bool>*>(elemObj);
+                IExprNode<bool>* const root =
+                    static_cast<IExprNode<bool>*>(iroot);
+                elem->write(root->evaluate());
+                break;
+            }
+
+            default:
+                // Unreachable.
+                SF_SAFE_ASSERT(false);
+        }
+    }
 
     return SUCCESS;
 }

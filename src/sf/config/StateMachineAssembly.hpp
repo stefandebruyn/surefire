@@ -62,8 +62,16 @@ private:
         StateMachineAssembly::Workspace& kWs,
         ErrorInfo* const kErr);
 
+    static Result checkLocalElemInitExprs(
+        const StateMachineParse::LocalElementParse& kInitElem,
+        const Ref<const ExpressionParse> kExpr,
+        const Ref<StateVector> kSv,
+        StateMachineAssembly::Workspace& kWs,
+        ErrorInfo* const kErr);
+
     static Result initLocalElementValues(
         const Ref<const StateMachineParse> kParse,
+        const Ref<StateVector> kSv,
         StateMachineAssembly::Workspace& kWs,
         ErrorInfo* const kErr);
 

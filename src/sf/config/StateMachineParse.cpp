@@ -177,17 +177,34 @@ Result StateMachineParse::parseLocalSection(
             return E_SMP_EOF;
         }
 
-        // Check that current token, which should be the element initial value,
-        // is a constant.
-        if (kIt.type() != Token::CONSTANT)
+        // Find end of initial value expression on RHS of assignment operator.
+        // It may end with a newline or an annotation attached to the element.
+        const U32 idxEnd = kIt.next({Token::NEWLINE, Token::ANNOTATION});
+
+        // Slice a new iterator for the initial value expression and check that
+        // it's non-empty.
+        TokenIterator rhsIt = kIt.slice(kIt.idx(), idxEnd);
+        if (rhsIt.eof())
         {
-            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
-                                 "expected constant element initial value");
+            ConfigUtil::setError(kErr,
+                                 tokAsgOp,
+                                 gErrText,
+                                 "expected element initial value after `=`");
             return E_SMP_LOC_VAL;
         }
 
-        // Take element initial value.
-        elemParse.tokInitVal = kIt.take();
+        // Parse initial value expression.
+        const Result res = ExpressionParse::parse(rhsIt,
+                                                  elemParse.initValExpr,
+                                                  kErr);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+
+        // Jump to end of initial value expression.
+        kIt.seek(idxEnd);
+        kIt.eat();
 
         // Take annotations.
         while (kIt.type() == Token::ANNOTATION)

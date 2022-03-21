@@ -52,7 +52,7 @@ public:
     {
         Token tokType;
         Token tokName;
-        Token tokInitVal;
+        Ref<const ExpressionParse> initValExpr;
         bool readOnly;
     };
 

@@ -425,7 +425,7 @@ TEST(StateMachineAssembly, SpecialElements)
     CHECK_SV_ELEM("state", U32, 2);
 }
 
-TEST(StateMachineAssembly, RollAvgFunction)
+TEST(StateMachineAssembly, StatsFunctionUsingStateVectorElement)
 {
     INIT_SV(
         "[Foo]\n"
@@ -510,6 +510,72 @@ TEST(StateMachineAssembly, TransitionToCurrentState)
     CHECK_SV_ELEM("foo", I32, 1);
     CHECK_SV_ELEM("bar", I32, 1);
     CHECK_LOCAL_ELEM("T", U64, 0);
+}
+
+TEST(StateMachineAssembly, LocalElementInitialValues)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS=S\n"
+        "\n"
+        "[LOCAL]\n"
+        "I8 a = 1\n"
+        "I16 b = 2\n"
+        "I32 c = 3\n"
+        "I64 d = 4\n"
+        "U8 e = 5\n"
+        "U16 f = 6\n"
+        "U32 g = 7\n"
+        "U64 h = 8\n"
+        "F32 i = 9\n"
+        "F64 j = 10\n"
+        "BOOL k = TRUE\n"
+        "\n"
+        "[Initial]\n",
+        "state",
+        1);
+
+    CHECK_LOCAL_ELEM("a", I8, 1);
+    CHECK_LOCAL_ELEM("b", I16, 2);
+    CHECK_LOCAL_ELEM("c", I32, 3);
+    CHECK_LOCAL_ELEM("d", I64, 4);
+    CHECK_LOCAL_ELEM("e", U8, 5);
+    CHECK_LOCAL_ELEM("f", U16, 6);
+    CHECK_LOCAL_ELEM("g", U32, 7);
+    CHECK_LOCAL_ELEM("h", U64, 8);
+    CHECK_LOCAL_ELEM("i", F32, 9.0f);
+    CHECK_LOCAL_ELEM("j", F64, 10.0);
+    CHECK_LOCAL_ELEM("k", bool, true);
+}
+
+TEST(StateMachineAssembly, InitLocalElemsWithLocalElems)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS=S\n"
+        "\n"
+        "[LOCAL]\n"
+        "I32 foo = 1\n"
+        "I32 bar = foo + 1\n"
+        "I32 baz = bar + 1\n"
+        "\n"
+        "[Initial]\n",
+        "state",
+        1);
+
+    CHECK_LOCAL_ELEM("foo", I32, 1);
+    CHECK_LOCAL_ELEM("bar", I32, 2);
+    CHECK_LOCAL_ELEM("baz", I32, 3);
 }
 
 ///////////////////////////////// Error Tests //////////////////////////////////
@@ -1032,4 +1098,67 @@ TEST(StateMachineAssemblyErrors, Assertion)
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
     checkCompileError(smParse, sv, E_SMA_ASSERT, 7, 13);
+}
+
+TEST(StateMachineAssemblyErrors, LocalElementReferencesStateVectorElement)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n"
+        "I32 foo\n");
+    TOKENIZE(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS=S\n"
+        "I32 foo\n"
+        "\n"
+        "[LOCAL]\n"
+        "I32 bar = 1 + foo\n"
+        "\n"
+        "[Initial]\n");
+    Ref<const StateMachineParse> smParse;
+    CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
+    checkCompileError(smParse, sv, E_SMA_LOC_SV_REF, 7, 15);
+}
+
+TEST(StateMachineAssemblyErrors, LocalElementReferencesItself)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n");
+    TOKENIZE(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS=S\n"
+        "\n"
+        "[LOCAL]\n"
+        "I32 bar = 1 + bar\n"
+        "\n"
+        "[Initial]\n");
+    Ref<const StateMachineParse> smParse;
+    CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
+    checkCompileError(smParse, sv, E_SMA_SELF_REF, 6, 15);
+}
+
+TEST(StateMachineAssemblyErrors, LocalElementUseBeforeInitialization)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n");
+    TOKENIZE(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS=S\n"
+        "\n"
+        "[LOCAL]\n"
+        "I32 foo = bar + 1\n"
+        "I32 bar = 0\n"
+        "\n"
+        "[Initial]\n");
+    Ref<const StateMachineParse> smParse;
+    CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
+    checkCompileError(smParse, sv, E_SMA_UBI, 6, 11);
 }

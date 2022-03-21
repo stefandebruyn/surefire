@@ -120,6 +120,9 @@ enum : Result
     E_SMA_TR_EXIT = 460,
     E_SMA_ASSERT = 461,
     E_SMA_NULL = 462,
+    E_SMA_LOC_SV_REF = 463,
+    E_SMA_SELF_REF = 464,
+    E_SMA_UBI = 465,
 
     // ExpressionAssembly
     E_EXA_NULL = 480,

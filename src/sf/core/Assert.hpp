@@ -26,6 +26,7 @@ SF_ENABLE_CODE_COV;
 #    define SF_ASSERT(kExpr)
 #endif
 
+// TODO THIS WILL STOP WORKING ONCE EVERYTHING IS IN SF NAMESPACE
 #ifdef SF_SAFE_ASSERT_SAVES_FAIL_SITE
 #    define SF_SAVE_FAIL_SITE                                                  \
 ::Assert::failFile = __FILE__;                                                 \
