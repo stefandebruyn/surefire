@@ -38,7 +38,7 @@ static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
     CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
-                                              {sv},
+                                              {},
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -51,7 +51,7 @@ static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 }
 
 static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
-                              const Ref<StateVector> kSv,
+                              const Vec<Ref<StateVector>> kSvs,
                               const Result kRes,
                               const I32 kLineNum,
                               const I32 kColNum)
@@ -60,7 +60,7 @@ static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
     Ref<const ExpressionAssembly> exprAsm;
     ErrorInfo err;
     CHECK_ERROR(kRes, ExpressionAssembly::compile(kExprParse,
-                                                  {kSv},
+                                                  kSvs,
                                                   ElementType::FLOAT64,
                                                   exprAsm,
                                                   &err));
@@ -78,7 +78,7 @@ static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
 
     // A null error info pointer is not dereferenced.
     CHECK_ERROR(kRes, ExpressionAssembly::compile(kExprParse,
-                                                  {kSv},
+                                                  kSvs,
                                                   ElementType::FLOAT64,
                                                   exprAsm,
                                                   nullptr));
@@ -381,6 +381,51 @@ TEST(ExpressionAssembly, MultipleElements)
     elemBar->write(-10);
     elemBaz->write(4);
     CHECK_EQUAL(-27.0, root->evaluate());
+}
+
+TEST(ExpressionAssembly, MultipleStateVectors)
+{
+    // Parse expression and compile first state vector.
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> sv1Asm;
+    Ref<StateVector> sv1;
+    ::setup("foo * bar + 1",
+            "[Foo]\n"
+            "I32 foo\n",
+            exprParse,
+            sv1Asm,
+            sv1);
+
+    // Compile second state vector.
+    Ref<const StateVectorAssembly> sv2Asm;
+    std::stringstream sv2Config;
+    sv2Config << "[Bar]\n"
+              << "I32 bar\n" << std::endl;
+    CHECK_SUCCESS(StateVectorAssembly::compile(sv2Config, sv2Asm, nullptr));
+    Ref<StateVector> sv2 = sv2Asm->get();
+
+    // Compile expression using both state vectors.
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+                                              {sv1, sv2},
+                                              ElementType::FLOAT64,
+                                              exprAsm,
+                                              nullptr));
+
+    // Expression initially evaluates to 1.
+    CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
+    IExprNode<F64>* const root =
+        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
+    CHECK_EQUAL(1.0, root->evaluate());
+
+    // Set elements to new values and re-evaluate expression.
+    Element<I32>* elemFoo = nullptr;
+    Element<I32>* elemBar = nullptr;
+    CHECK_SUCCESS(sv1->getElement("foo", elemFoo));
+    CHECK_SUCCESS(sv2->getElement("bar", elemBar));
+    elemFoo->write(3);
+    elemBar->write(-10);
+    CHECK_EQUAL(-29.0, root->evaluate());
 }
 
 TEST(ExpressionAssembly, AllElementTypes)
@@ -785,7 +830,7 @@ TEST(ExpressionAssemblyErrors, UnknownElement)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("foo", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXA_ELEM, 1, 1);
+    checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 1);
 }
 
 TEST(ExpressionAssemblyErrors, OutOfRangeNumber)
@@ -803,7 +848,7 @@ TEST(ExpressionAssemblyErrors, OutOfRangeNumber)
             exprParse,
             svAsm,
             sv);
-    checkCompileError(exprParse, sv, E_EXA_OVFL, 1, 5);
+    checkCompileError(exprParse, {}, E_EXA_OVFL, 1, 5);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionArity)
@@ -812,7 +857,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionArity)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(1)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXA_ARITY, 1, 1);
+    checkCompileError(exprParse, {}, E_EXA_ARITY, 1, 1);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg1)
@@ -821,7 +866,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg1)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(foo, 4)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXA_ELEM, 1, 10);
+    checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 10);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg2)
@@ -830,7 +875,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg2)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, foo)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXA_ELEM, 1, 13);
+    checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionZeroWindowSize)
@@ -839,7 +884,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionZeroWindowSize)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 0)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXA_WIN, 1, 13);
+    checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionNegativeWindowSize)
@@ -848,7 +893,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionNegativeWindowSize)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, -1)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXA_WIN, 1, 13);
+    checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionNonIntegerWindowSize)
@@ -857,7 +902,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionNonIntegerWindowSize)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 1.5)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXA_WIN, 1, 13);
+    checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionNaNWindowSize)
@@ -866,7 +911,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionNaNWindowSize)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 1 / 0)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXA_WIN, 1, 15);
+    checkCompileError(exprParse, {}, E_EXA_WIN, 1, 15);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionWindowTooBig)
@@ -875,7 +920,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionWindowTooBig)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("ROLL_AVG(4, 100001)", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXA_WIN, 1, 13);
+    checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, UnknownFunction)
@@ -884,5 +929,14 @@ TEST(ExpressionAssemblyErrors, UnknownFunction)
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
     ::setup("FOO()", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, sv, E_EXA_FUNC, 1, 1);
+    checkCompileError(exprParse, {}, E_EXA_FUNC, 1, 1);
+}
+
+TEST(ExpressionAssemblyErrors, NullStateVector)
+{
+    Ref<const ExpressionParse> exprParse;
+    Ref<const StateVectorAssembly> svAsm;
+    Ref<StateVector> sv;
+    ::setup("1", "", exprParse, svAsm, sv);
+    checkCompileError(exprParse, {sv}, E_EXA_NULL, -1, -1);
 }

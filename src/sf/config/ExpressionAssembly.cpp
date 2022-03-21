@@ -24,6 +24,21 @@ Result ExpressionAssembly::compile(const Ref<const ExpressionParse> kParse,
         return E_EXA_NULL;
     }
 
+    // Check that all provided state vectors are non-null.
+    for (const Ref<StateVector>& sv : kSvs)
+    {
+        if (sv == nullptr)
+        {
+            if (kErr != nullptr)
+            {
+                kErr->text = gErrText;
+                kErr->subtext = "null state vector in expression compiler";
+            }
+
+            return E_EXA_NULL;
+        }
+    }
+
     // Compile expression starting at root.
     ExpressionAssembly::Workspace ws = {};
     Ref<IExprNode<F64>> root = nullptr;
@@ -541,23 +556,26 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
         SF_ASSERT(kParse->left == nullptr);
         SF_ASSERT(kParse->right == nullptr);
 
-        // Look up element in state vector.
+        // Look up element in provided state vectors.
         IElement* elemObj = nullptr;
         for (const Ref<StateVector> sv : kSvs)
         {
-            if (sv != nullptr)
+            // Assert that state vector is non-null. This is guaranteed by a
+            // previous validation.
+            SF_SAFE_ASSERT(sv != nullptr);
+
+            // Try element lookup and break on success.
+            const Result res = sv->getIElement(kParse->data.str.c_str(),
+                                               elemObj);
+            if (res == SUCCESS)
             {
-                const Result res = sv->getIElement(kParse->data.str.c_str(),
-                                                   elemObj);
-                if (res == SUCCESS)
-                {
-                    break;
-                }
+                break;
             }
         }
+
+        // Check that element was found.
         if (elemObj == nullptr)
         {
-            // Unknown element.
             ConfigUtil::setError(kErr, kParse->data, gErrText,
                                  "unknown element");
             return E_EXA_ELEM;
