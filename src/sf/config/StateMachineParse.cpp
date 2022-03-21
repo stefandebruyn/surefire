@@ -2,25 +2,26 @@
 
 #include "sf/config/ConfigUtil.hpp"
 #include "sf/config/ExpressionParse.hpp"
+#include "sf/config/LanguageConstants.hpp"
 #include "sf/config/StateMachineParse.hpp"
 #include "sf/core/Assert.hpp"
 
-static const char* const errText = "state machine config error";
+/////////////////////////////////// Globals ////////////////////////////////////
 
-static const std::regex aliasRegex("@ALIAS=([a-zA-Z][a-zA-Z0-9_]*)");
+static const char* const gErrText = "state machine config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
 Result StateMachineParse::parseStateSection(
     TokenIterator& kIt,
-    StateMachineParse::StateParse& kState,
+    StateMachineParse::StateParse& kParse,
     ErrorInfo* const kErr)
 {
     // Assert that iterator is currently positioned at a section.
     SF_ASSERT(kIt.type() == Token::SECTION);
 
     // Take section token.
-    kState.tokName = kIt.take();
+    kParse.tokName = kIt.take();
 
     while (!kIt.eof() && (kIt.type() != Token::SECTION))
     {
@@ -28,7 +29,7 @@ Result StateMachineParse::parseStateSection(
         const Token& tokLab = kIt.take();
         if (tokLab.type != Token::LABEL)
         {
-            ConfigUtil::setError(kErr, tokLab, errText, "expected label");
+            ConfigUtil::setError(kErr, tokLab, gErrText, "expected label");
             return E_SMP_LAB;
         }
 
@@ -47,32 +48,32 @@ Result StateMachineParse::parseStateSection(
         }
 
         // Assign label block to state based on label name.
-        if (tokLab.str == ".ENTRY")
+        if (tokLab.str == LangConst::labelEntry)
         {
-            if (kState.entry != nullptr)
+            if (kParse.entry != nullptr)
             {
                 // Multiple entry labels.
                 SF_ASSERT(false);
             }
-            kState.entry = label;
+            kParse.entry = label;
         }
-        else if (tokLab.str == ".STEP")
+        else if (tokLab.str == LangConst::labelStep)
         {
-            if (kState.step != nullptr)
+            if (kParse.step != nullptr)
             {
                 // Multiple entry labels.
                 SF_ASSERT(false);
             }
-            kState.step = label;
+            kParse.step = label;
         }
-        else if (tokLab.str == ".EXIT")
+        else if (tokLab.str == LangConst::labelExit)
         {
-            if (kState.exit != nullptr)
+            if (kParse.exit != nullptr)
             {
                 // Multiple entry labels.
                 SF_ASSERT(false);
             }
-            kState.exit = label;
+            kParse.exit = label;
         }
         else
         {
@@ -89,11 +90,12 @@ Result StateMachineParse::parseStateSection(
 
 Result StateMachineParse::parseLocalSection(
     TokenIterator& kIt,
-    Vec<StateMachineParse::LocalElementParse>& kElems,
+    Vec<StateMachineParse::LocalElementParse>& kParse,
     ErrorInfo* const kErr)
 {
     // Assert that iterator is currently positioned at the local section.
-    SF_ASSERT((kIt.type() == Token::SECTION) && (kIt.str() == "[LOCAL]"));
+    SF_ASSERT((kIt.type() == Token::SECTION)
+              && (kIt.str() == LangConst::sectionLocal));
 
     // Take section token.
     kIt.take();
@@ -107,7 +109,7 @@ Result StateMachineParse::parseLocalSection(
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
-            ConfigUtil::setError(kErr, kIt.tok(), errText,
+            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                  "expected element type");
             return E_SMP_ELEM_TYPE;
         }
@@ -116,7 +118,7 @@ Result StateMachineParse::parseLocalSection(
         elemParse.tokType = kIt.take();
 
         // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, elemParse.tokType, errText, kErr))
+        if (ConfigUtil::checkEof(kIt, elemParse.tokType, gErrText, kErr))
         {
             return E_SMP_EOF;
         }
@@ -125,7 +127,7 @@ Result StateMachineParse::parseLocalSection(
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
-            ConfigUtil::setError(kErr, kIt.tok(), errText,
+            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                  "expected element name after type");
             return E_SMP_ELEM_NAME;
         }
@@ -134,7 +136,7 @@ Result StateMachineParse::parseLocalSection(
         elemParse.tokName = kIt.take();
 
         // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, elemParse.tokName, errText, kErr))
+        if (ConfigUtil::checkEof(kIt, elemParse.tokName, gErrText, kErr))
         {
             return E_SMP_EOF;
         }
@@ -142,7 +144,7 @@ Result StateMachineParse::parseLocalSection(
         // Check that current token is an assignment operator.
         if ((kIt.type() != Token::OPERATOR) || (kIt.str() != "="))
         {
-            ConfigUtil::setError(kErr, kIt.tok(), errText,
+            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                  "expected `=` after element name");
             return E_SMP_LOC_OP;
         }
@@ -151,7 +153,7 @@ Result StateMachineParse::parseLocalSection(
         const Token& tokAsgOp = kIt.take();
 
         // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, tokAsgOp, errText, kErr))
+        if (ConfigUtil::checkEof(kIt, tokAsgOp, gErrText, kErr))
         {
             return E_SMP_EOF;
         }
@@ -160,7 +162,7 @@ Result StateMachineParse::parseLocalSection(
         // is a constant.
         if (kIt.type() != Token::CONSTANT)
         {
-            ConfigUtil::setError(kErr, kIt.tok(), errText,
+            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                  "expected constant element initial value");
             return E_SMP_LOC_VAL;
         }
@@ -171,14 +173,14 @@ Result StateMachineParse::parseLocalSection(
         // Take annotations.
         while (kIt.type() == Token::ANNOTATION)
         {
-            if (kIt.str() == "@READ_ONLY")
+            if (kIt.str() == LangConst::annotationReadOnly)
             {
                 // Read-only annotation.
 
                 // Check that element is not already marked read-only.
                 if (elemParse.readOnly)
                 {
-                    ConfigUtil::setError(kErr, kIt.tok(), errText,
+                    ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                          "redundant read-only annotation");
                     return E_SMP_RO_MULT;
                 }
@@ -189,14 +191,14 @@ Result StateMachineParse::parseLocalSection(
             else
             {
                 // Unknown annotation.
-                ConfigUtil::setError(kErr, kIt.tok(), errText,
+                ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                      "unknown annotation");
                 return E_SMP_ANNOT;
             }
         }
 
         // Add element to return vector.
-        kElems.push_back(elemParse);
+        kParse.push_back(elemParse);
     }
 
     return SUCCESS;
@@ -204,12 +206,12 @@ Result StateMachineParse::parseLocalSection(
 
 Result StateMachineParse::parseStateVectorSection(
     TokenIterator& kIt,
-    Vec<StateMachineParse::StateVectorElementParse>& kElems,
+    Vec<StateMachineParse::StateVectorElementParse>& kParse,
     ErrorInfo* const kErr)
 {
     // Assert that iterator is currently positioned at the state vector section.
     SF_ASSERT((kIt.type() == Token::SECTION)
-               && (kIt.str() == "[STATE_VECTOR]"));
+               && (kIt.str() == LangConst::sectionStateVector));
 
     // Take section token.
     kIt.take();
@@ -223,7 +225,7 @@ Result StateMachineParse::parseStateVectorSection(
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
-            ConfigUtil::setError(kErr, kIt.tok(), errText,
+            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                  "expected element type");
             return E_SMP_ELEM_TYPE;
         }
@@ -232,7 +234,7 @@ Result StateMachineParse::parseStateVectorSection(
         elemParse.tokType = kIt.take();
 
         // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, elemParse.tokType, errText, kErr))
+        if (ConfigUtil::checkEof(kIt, elemParse.tokType, gErrText, kErr))
         {
             return E_SMP_EOF;
         }
@@ -241,7 +243,7 @@ Result StateMachineParse::parseStateVectorSection(
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
-            ConfigUtil::setError(kErr, kIt.tok(), errText,
+            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                  "expected element name after type");
             return E_SMP_ELEM_NAME;
         }
@@ -253,14 +255,14 @@ Result StateMachineParse::parseStateVectorSection(
         while (kIt.type() == Token::ANNOTATION)
         {
             std::smatch match;
-            if (kIt.str() == "@READ_ONLY")
+            if (kIt.str() == LangConst::annotationReadOnly)
             {
                 // Read-only annotation.
 
                 // Check that element is not already marked read-only.
                 if (elemParse.readOnly)
                 {
-                    ConfigUtil::setError(kErr, kIt.tok(), errText,
+                    ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                          "redundant read-only annotation");
                     return E_SMP_RO_MULT;
                 }
@@ -269,14 +271,16 @@ Result StateMachineParse::parseStateVectorSection(
                 elemParse.readOnly = true;
                 kIt.take();
             }
-            else if (std::regex_match(kIt.str(), match, aliasRegex))
+            else if (std::regex_match(kIt.str(),
+                                      match,
+                                      LangConst::annotationAliasRegex))
             {
                 // Alias annotation.
 
                 // Check that element is not already aliased.
                 if (elemParse.alias.size() > 0)
                 {
-                    ConfigUtil::setError(kErr, kIt.tok(), errText,
+                    ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                          "an element may only have one alias");
                     return E_SMP_AL_MULT;
                 }
@@ -288,14 +292,14 @@ Result StateMachineParse::parseStateVectorSection(
             else
             {
                 // Unknown annotation.
-                ConfigUtil::setError(kErr, kIt.tok(), errText,
+                ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                      "unknown annotation");
                 return E_SMP_ANNOT;
             }
         }
 
         // Add element to parse.
-        kElems.push_back(elemParse);
+        kParse.push_back(elemParse);
     }
 
     return SUCCESS;
@@ -305,8 +309,10 @@ Result StateMachineParse::parse(const Vec<Token>& kToks,
                                 Ref<const StateMachineParse>& kParse,
                                 ErrorInfo* const kErr)
 {
+    // Create iterator for token vector.
     TokenIterator it(kToks.begin(), kToks.end());
 
+    // Data to be parsed.
     Vec<StateMachineParse::StateVectorElementParse> svElems;
     Vec<StateMachineParse::LocalElementParse> localElems;
     Vec<StateMachineParse::StateParse> states;
@@ -331,7 +337,7 @@ Result StateMachineParse::parse(const Vec<Token>& kToks,
                     if (hasStateVectorSection)
                     {
                         ConfigUtil::setError(
-                            kErr, it.tok(), errText,
+                            kErr, it.tok(), gErrText,
                             "more than one state vector section");
                         return E_SMP_SV_MULT;
                     }
@@ -350,7 +356,7 @@ Result StateMachineParse::parse(const Vec<Token>& kToks,
 
                     if (hasLocalSection)
                     {
-                        ConfigUtil::setError(kErr, it.tok(), errText,
+                        ConfigUtil::setError(kErr, it.tok(), gErrText,
                                              "more than one local section");
                         return E_SMP_LOC_MULT;
                     }
@@ -378,7 +384,7 @@ Result StateMachineParse::parse(const Vec<Token>& kToks,
 
             default:
                 // Unexpected token.
-                ConfigUtil::setError(kErr, it.tok(), errText,
+                ConfigUtil::setError(kErr, it.tok(), gErrText,
                                      "unexpected token");
                 return E_SMP_TOK;
         }
@@ -392,7 +398,7 @@ Result StateMachineParse::parse(const Vec<Token>& kToks,
 
 Result StateMachineParse::parseBlock(
     TokenIterator kIt,
-    Ref<const StateMachineParse::BlockParse>& kBlock,
+    Ref<const StateMachineParse::BlockParse>& kParse,
     ErrorInfo* const kErr)
 {
     Ref<StateMachineParse::MutBlockParse> mutBlock;
@@ -404,7 +410,7 @@ Result StateMachineParse::parseBlock(
 
     if (mutBlock != nullptr)
     {
-        mutBlock->toBlockParse(kBlock);
+        mutBlock->toBlockParse(kParse);
     }
 
     return SUCCESS;
@@ -438,14 +444,17 @@ void StateMachineParse::MutBlockParse::toBlockParse(
 
 Result StateMachineParse::parseAction(
     TokenIterator kIt,
-    Ref<const StateMachineParse::ActionParse>& kAction,
+    Ref<const StateMachineParse::ActionParse>& kParse,
     ErrorInfo* const kErr)
 {
+    // Data to parse that will eventually become members of the parsed action.
     Token tokRhs = {};
     Ref<const ExpressionParse> lhs;
     Token tokDestState = {};
 
+    // Look at first token to determine action type.
     const Token& tok = kIt.take();
+
     if (tok.type == Token::IDENTIFIER)
     {
         tokRhs = tok;
@@ -453,7 +462,7 @@ Result StateMachineParse::parseAction(
         // Check that tokens remain.
         if (kIt.eof())
         {
-            ConfigUtil::setError(kErr, tok, errText,
+            ConfigUtil::setError(kErr, tok, gErrText,
                                  "expected assignment after element name");
             return E_SMP_ACT_ELEM;
         }
@@ -462,7 +471,7 @@ Result StateMachineParse::parseAction(
         const Token& tokEq = kIt.take();
         if ((tokEq.type != Token::OPERATOR) || (tokEq.str != "="))
         {
-            ConfigUtil::setError(kErr, tokEq, errText,
+            ConfigUtil::setError(kErr, tokEq, gErrText,
                                  "expected assignment operator");
             return E_SMP_ACT_OP;
         }
@@ -471,7 +480,7 @@ Result StateMachineParse::parseAction(
         if (kIt.eof())
         {
             ConfigUtil::setError(
-                kErr, tokEq, errText,
+                kErr, tokEq, gErrText,
                 "expected expression after assignment operator");
             return E_SMP_ACT_EXPR;
         }
@@ -486,10 +495,10 @@ Result StateMachineParse::parseAction(
     }
     else if (tok.type == Token::OPERATOR)
     {
-        if (tok.str != "->")
+        if (tok.str != LangConst::keywordTransition)
         {
             // Unexpected operator.
-            ConfigUtil::setError(kErr, tok, errText,
+            ConfigUtil::setError(kErr, tok, gErrText,
                                  "unexpected operator");
             return E_SMP_TR_OP;
         }
@@ -497,16 +506,19 @@ Result StateMachineParse::parseAction(
         // Check that tokens remain.
         if (kIt.eof())
         {
-            ConfigUtil::setError(kErr, tok, errText,
-                                 "expected destination state after `->`");
+            std::stringstream ss;
+            ConfigUtil::setError(kErr, tok, gErrText,
+                                 "expected destination state after `"
+                                 + tok.str + "`");
             return E_SMP_TR_DEST;
         }
 
         if (kIt.type() != Token::IDENTIFIER)
         {
             // Unexpected token after transition operator.
-            ConfigUtil::setError(kErr, kIt.tok(), errText,
-                                 "expected destination state after `->`");
+            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
+                                 "expected destination state after `"
+                                 + tok.str + "`");
             return E_SMP_TR_TOK;
         }
 
@@ -516,34 +528,37 @@ Result StateMachineParse::parseAction(
         if (!kIt.eof())
         {
             // Unexpected token after destination state.
-            ConfigUtil::setError(kErr, kIt.tok(), errText,
-                                "unexpected token after transition");
+            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
+                                 "unexpected token after `" + tok.str + "`");
             return E_SMP_TR_JUNK;
         }
     }
     else
     {
         // Unexpected token in action.
-        ConfigUtil::setError(kErr, tok, errText,
-                             "expected element name or `->`");
+        ConfigUtil::setError(kErr, tok, gErrText,
+                             "expected element name for assignment or `"
+                             + LangConst::keywordTransition + "`");
         return E_SMP_ACT_TOK;
     }
 
-    kAction.reset(new StateMachineParse::ActionParse{tokRhs,
-                                                     lhs,
-                                                     tokDestState});
+    kParse.reset(new StateMachineParse::ActionParse{tokRhs,
+                                                    lhs,
+                                                    tokDestState});
 
     return SUCCESS;
 }
 
 Result StateMachineParse::parseBlockRec(
     TokenIterator kIt,
-    Ref<StateMachineParse::MutBlockParse>& kBlock,
+    Ref<StateMachineParse::MutBlockParse>& kParse,
     ErrorInfo* const kErr)
 {
+    Result res = SUCCESS;
+
+    // Data to parse that will eventually become members of the parsed block.
     Ref<StateMachineParse::MutBlockParse> block;
     Ref<StateMachineParse::MutBlockParse> firstBlock;
-    Result res = SUCCESS;
 
     while (!kIt.eof())
     {
@@ -590,7 +605,7 @@ Result StateMachineParse::parseBlockRec(
             // Parse guarded action or block of actions.
 
             // Take optional if.
-            if (kIt.str() == "IF")
+            if (kIt.str() == LangConst::keywordIf)
             {
                 kIt.take();
             }
@@ -598,7 +613,7 @@ Result StateMachineParse::parseBlockRec(
             // Check that guard expression contains at least 1 token.
             if (kIt.idx() >= idxEnd)
             {
-                ConfigUtil::setError(kErr, kIt.tok(), errText,
+                ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                      "expected guard");
                 return E_SMP_GUARD;
             }
@@ -644,7 +659,7 @@ Result StateMachineParse::parseBlockRec(
                 if (lvl != 0)
                 {
                     // Unbalanced braces.
-                    ConfigUtil::setError(kErr, kIt.tok(), errText,
+                    ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                          "unbalanced brace");
                     return E_SMP_BRACE;
                 }
@@ -672,7 +687,7 @@ Result StateMachineParse::parseBlockRec(
             kIt.seek(idxBlockEnd);
             kIt.take();
 
-            if (kIt.str() == "ELSE")
+            if (kIt.str() == LangConst::keywordElse)
             {
                 // Guard has an else branch.
 
@@ -707,7 +722,7 @@ Result StateMachineParse::parseBlockRec(
                     if (lvl != 0)
                     {
                         // Unbalanced braces.
-                        ConfigUtil::setError(kErr, kIt.tok(), errText,
+                        ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                              "unbalanced brace");
                         return E_SMP_BRACE;
                     }
@@ -724,7 +739,7 @@ Result StateMachineParse::parseBlockRec(
                 // Check that else branch contains at least 1 token.
                 if (kIt.idx() >= idxElseEnd)
                 {
-                    ConfigUtil::setError(kErr, tokAfterElse, errText,
+                    ConfigUtil::setError(kErr, tokAfterElse, gErrText,
                                          "expected logic after else");
                     return E_SMP_ELSE;
                 }
@@ -787,7 +802,7 @@ Result StateMachineParse::parseBlockRec(
     }
 
     // Return the root block.
-    kBlock = firstBlock;
+    kParse = firstBlock;
 
     return SUCCESS;
 }

@@ -94,6 +94,7 @@ enum : Result
     E_SVC_ELEM_TYPE = 418,
     E_SVC_RGN_DUPE = 419,
     E_SVC_ELEM_DUPE = 420,
+    E_SVC_NULL = 421,
 
     // StateMachineCompiler
     E_SMC_FILE = 448,
@@ -110,6 +111,7 @@ enum : Result
     E_SMC_ELEM_RO = 459,
     E_SMC_TR_EXIT = 460,
     E_SMC_ASSERT = 461,
+    E_SMC_NULL = 462,
 
     // ExpressionCompiler
     E_EXC_NULL = 480,

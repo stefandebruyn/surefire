@@ -17,8 +17,6 @@ public:
                           Ref<const ExpressionAssembly>& kAsm,
                           ErrorInfo* const kErr);
 
-    ~ExpressionAssembly();
-
     Ref<IExpression> root() const;
 
     Vec<Ref<IExpressionStats>> stats() const;
@@ -29,7 +27,8 @@ private:
     {
         Vec<Ref<IExpression>> exprNodes;
         Vec<Ref<IExpressionStats>> exprStats;
-        Vec<const char*> statArrs;
+        Vec<Ref<Vec<U8>>> statArrs;
+        Ref<IExpression> rootNode;
     };
 
     static Result tokenToF64(const Token& kTok,
@@ -61,18 +60,9 @@ private:
                               ExpressionAssembly::Workspace& kWs,
                               ErrorInfo* const kErr);
 
-    ExpressionAssembly(const Ref<IExpression> kRoot,
-                       const Vec<Ref<IExpression>>& kNodes,
-                       const Vec<Ref<IExpressionStats>>& kStats,
-                       const Vec<const char*>& kStatArrs);
+    const ExpressionAssembly::Workspace mWs;
 
-    const Ref<IExpression> mRoot;
-
-    const Vec<Ref<IExpression>> mNodes;
-
-    const Vec<Ref<IExpressionStats>> mStats;
-
-    const Vec<const char*> mStatArrs;
+    ExpressionAssembly(const ExpressionAssembly::Workspace& kWs);
 };
 
 #endif

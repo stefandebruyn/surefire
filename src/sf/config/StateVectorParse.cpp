@@ -2,7 +2,9 @@
 #include "sf/config/StateVectorParse.hpp"
 #include "sf/core/Assert.hpp"
 
-static const char* const errText = "state vector config error";
+/////////////////////////////////// Globals ////////////////////////////////////
+
+static const char* const gErrText = "state vector config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
@@ -85,7 +87,7 @@ Result StateVectorParse::parse(const Vec<Token>& kToks,
             // Specified region does not exist in config.
             if (kErr != nullptr)
             {
-                kErr->text = errText;
+                kErr->text = gErrText;
                 kErr->subtext =
                     "region `" + regionName + "` does not exist in config";
             }
@@ -128,7 +130,7 @@ Result StateVectorParse::parseRegion(TokenIterator& kIt,
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
-            ConfigUtil::setError(kErr, kIt.tok(), errText,
+            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                  "expected element type");
             return E_SVP_ELEM_TYPE;
         }
@@ -139,7 +141,7 @@ Result StateVectorParse::parseRegion(TokenIterator& kIt,
         // Check that tokens remain.
         if (kIt.eof())
         {
-            ConfigUtil::setError(kErr, elem.tokType, errText,
+            ConfigUtil::setError(kErr, elem.tokType, gErrText,
                                  "expected element name after type");
             return E_SVP_ELEM_NAME;
         }
@@ -148,7 +150,7 @@ Result StateVectorParse::parseRegion(TokenIterator& kIt,
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
-            ConfigUtil::setError(kErr, kIt.tok(), errText,
+            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                  "expected element type");
             return E_SVP_ELEM_NAME;
         }

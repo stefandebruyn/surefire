@@ -66,7 +66,7 @@ public:
                         ErrorInfo* const kErr);
 
     static Result parseBlock(TokenIterator kIt,
-                             Ref<const StateMachineParse::BlockParse>& kBlock,
+                             Ref<const StateMachineParse::BlockParse>& kParse,
                              ErrorInfo* const kErr);
 
     /// @note PUBLIC FOR TESTING PURPOSES ONLY.
@@ -83,7 +83,7 @@ public:
 
     /// @note PUBLIC FOR TESTING PURPOSES ONLY.
     static Result parseStateSection(TokenIterator& kIt,
-                                    StateMachineParse::StateParse& kState,
+                                    StateMachineParse::StateParse& kParse,
                                     ErrorInfo* const kErr);
 
 private:
@@ -102,11 +102,11 @@ private:
 
     static Result parseAction(
         TokenIterator kIt,
-        Ref<const StateMachineParse::ActionParse>& kAction,
+        Ref<const StateMachineParse::ActionParse>& kParse,
         ErrorInfo* const kErr);
 
     static Result parseBlockRec(TokenIterator kIt,
-                                Ref<StateMachineParse::MutBlockParse>& kBlock,
+                                Ref<StateMachineParse::MutBlockParse>& kParse,
                                 ErrorInfo* const kErr);
 
 

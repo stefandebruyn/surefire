@@ -31,7 +31,7 @@ public:
 
 private:
 
-    const Ref<StateVector> mObj;
+    const Ref<StateVector> mSv;
 
     const StateVector::Config mConfig;
 
@@ -43,7 +43,7 @@ private:
                                 StateVector::ElementConfig& kElemInfo,
                                 char*& kBumpPtr);
 
-    StateVectorAssembly(const Ref<StateVector> kObj,
+    StateVectorAssembly(const Ref<StateVector> kSv,
                         const StateVector::Config kConfig,
                         const Ref<const StateVectorParse> kParse,
                         const char* const kBacking);

@@ -2,17 +2,14 @@
 
 #include "sf/config/ConfigUtil.hpp"
 #include "sf/config/ExpressionAssembly.hpp"
+#include "sf/config/LanguageConstants.hpp"
 #include "sf/config/StateMachineAssembly.hpp"
 #include "sf/config/StateVectorAssembly.hpp"
 #include "sf/core/Assert.hpp"
 
-static const char* const errText = "state machine config error";
+/////////////////////////////////// Globals ////////////////////////////////////
 
-static const String elemStateTimeName = "T";
-
-static const String elemGlobalTimeName = "G";
-
-static const String elemStateName = "S";
+static const char* const gErrText = "state machine config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
@@ -56,7 +53,7 @@ Result StateMachineAssembly::compile(std::istream& kIs,
     {
         if (kErr != nullptr)
         {
-            kErr->text = errText;
+            kErr->text = gErrText;
         }
         return res;
     }
@@ -68,7 +65,7 @@ Result StateMachineAssembly::compile(std::istream& kIs,
     {
         if (kErr != nullptr)
         {
-            kErr->text = errText;
+            kErr->text = gErrText;
         }
         return res;
     }
@@ -82,6 +79,12 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
                                      Ref<const StateMachineAssembly>& kAsm,
                                      ErrorInfo* const kErr)
 {
+    // Check that state machine parse is non-null.
+    if (kParse == nullptr)
+    {
+        return E_SMC_NULL;
+    }
+
     // Initialize a blank workspace for the compilation.
     StateMachineAssembly::Workspace ws = {};
 
@@ -146,14 +149,14 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     // memory is twice-wrapped in a vector and then a shared pointer to
     // automatically handle deallocation. (C++11 shared pointers are not
     // specialized for native arrays, so a vector is used instead.)
-    const Ref<Vec<IExpressionStats*>> exprStatArr(new Vec<IExpressionStats*>());
+    ws.exprStatArr.reset(new Vec<IExpressionStats*>());
     for (const Ref<IExpressionStats> exprStats : allExprStats)
     {
-        exprStatArr->push_back(exprStats.get());
+        ws.exprStatArr->push_back(exprStats.get());
     }
 
     // Add expression stats array null terminator required by state machine.
-    exprStatArr->push_back(nullptr);
+    ws.exprStatArr->push_back(nullptr);
 
     // Add null terminator to state config vector required by state machine. The
     // memory underlying this vector will be directly provided to the state
@@ -170,48 +173,50 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     // the global/local state vector assemblies.
     const StateMachine::Config smConfig =
     {
-        static_cast<Element<U32>*>(ws.elems["S"]),
-        static_cast<Element<U64>*>(ws.elems["T"]),
-        static_cast<Element<U64>*>(ws.elems["G"]),
+        static_cast<Element<U32>*>(ws.elems[LangConst::elemNameState]),
+        static_cast<Element<U64>*>(ws.elems[LangConst::elemNameStateTime]),
+        static_cast<Element<U64>*>(ws.elems[LangConst::elemNameGlobalTime]),
         ws.stateConfigs->data(),
-        exprStatArr->data()
+        ws.exprStatArr->data()
     };
-    const Ref<StateMachine> sm(new StateMachine());
-    res = StateMachine::create(smConfig, *sm);
+    ws.sm.reset(new StateMachine());
+    res = StateMachine::create(smConfig, *ws.sm);
     SF_ASSERT(res == SUCCESS);
 
+    // Compilation is done- clear the workspace of unneeded data before we pass
+    // it to the final assembly.
+    ws.elems.clear();
+    ws.stateIds.clear();
+    ws.readOnlyElems.clear();
+
+    // Put the state machine parse in the workspace so that the original parse
+    // which became the state machine can be recalled.
+    ws.smParse = kParse;
+
     // Create the final assembly.
-    kAsm.reset(new StateMachineAssembly(sm,
-                                        smConfig,
-                                        kParse,
-                                        ws.localSvAsm,
-                                        ws.exprAsms,
-                                        ws.stateConfigs,
-                                        exprStatArr,
-                                        ws.blocks,
-                                        ws.actions));
+    kAsm.reset(new StateMachineAssembly(ws));
 
     return SUCCESS;
 }
 
 Ref<StateMachine> StateMachineAssembly::get() const
 {
-    return mObj;
+    return mWs.sm;
 }
 
 StateMachine::Config StateMachineAssembly::config() const
 {
-    return mConfig;
+    return mWs.smConfig;
 }
 
 Ref<const StateMachineParse> StateMachineAssembly::parse() const
 {
-    return mParse;
+    return mWs.smParse;
 }
 
 Ref<StateVector> StateMachineAssembly::localStateVector() const
 {
-    return mLocalSvAsm->get();
+    return mWs.localSvAsm->get();
 }
 
 /////////////////////////////////// Private ////////////////////////////////////
@@ -233,7 +238,7 @@ Result StateMachineAssembly::checkStateVector(
         if (kSv->getIElement(elem.tokName.str.c_str(), elemObj) != SUCCESS)
         {
             // Element does not exist in state vector.
-            ConfigUtil::setError(kErr, elem.tokName, errText,
+            ConfigUtil::setError(kErr, elem.tokName, gErrText,
                                  "element `" + elem.tokName.str + "` does not "
                                  "exist in state vector");
             return E_SMC_SV_ELEM;
@@ -245,7 +250,7 @@ Result StateMachineAssembly::checkStateVector(
         if (smTypeInfoIt == ElementTypeInfo::fromName.end())
         {
             // Unknown type.
-            ConfigUtil::setError(kErr, elem.tokType, errText,
+            ConfigUtil::setError(kErr, elem.tokType, gErrText,
                                  "unknown type `" + elem.tokType.str + "`");
             return E_SMC_TYPE;
         }
@@ -266,14 +271,14 @@ Result StateMachineAssembly::checkStateVector(
             ss << "element `" << elem.tokName.str << "` is type "
                << typeInfo.name << " in the state vector but type "
                << smTypeInfo.name << " here";
-            ConfigUtil::setError(kErr, elem.tokType, errText, ss.str());
+            ConfigUtil::setError(kErr, elem.tokType, gErrText, ss.str());
             return E_SMC_TYPE_MISM;
         }
 
         // Check that element does not appear twice in the state machine.
         if (kWs.elems.find(elem.tokName.str) != kWs.elems.end())
         {
-            ConfigUtil::setError(kErr, elem.tokName, errText,
+            ConfigUtil::setError(kErr, elem.tokName, gErrText,
                                  "element `" + elem.tokName.str + "` is listed "
                                  "more than once");
             return E_SMC_ELEM_DUPE;
@@ -287,8 +292,8 @@ Result StateMachineAssembly::checkStateVector(
         bool elemReadOnly = elem.readOnly;
 
         // Check that global time element is the correct type.
-        if ((elem.tokName.str == elemGlobalTimeName)
-            || (elem.alias == elemGlobalTimeName))
+        if ((elem.tokName.str == LangConst::elemNameGlobalTime)
+            || (elem.alias == LangConst::elemNameGlobalTime))
         {
             // Global time element is automatically read-only.
             elemReadOnly = true;
@@ -297,16 +302,16 @@ Result StateMachineAssembly::checkStateVector(
             {
                 // Global time element is not U64.
                 std::stringstream ss;
-                ss << "`" << elemGlobalTimeName << "` must be type U64 ("
-                   << elem.tokType.str << " here)";
-                ConfigUtil::setError(kErr, elem.tokName, errText, ss.str());
+                ss << "`" << LangConst::elemNameGlobalTime
+                   << "` must be type U64 (" << elem.tokType.str << " here)";
+                ConfigUtil::setError(kErr, elem.tokName, gErrText, ss.str());
                 return E_SMC_G_TYPE;
             }
         }
 
         // Check that state element is the correct type.
-        if ((elem.tokName.str == elemStateName)
-            || (elem.alias == elemStateName))
+        if ((elem.tokName.str == LangConst::elemNameState)
+            || (elem.alias == LangConst::elemNameState))
         {
             // State element is automatically read-only.
             elemReadOnly = true;
@@ -315,9 +320,9 @@ Result StateMachineAssembly::checkStateVector(
             {
                 // State element is not U32.
                 std::stringstream ss;
-                ss << "`" << elemStateName << "` must be type U32 ("
+                ss << "`" << LangConst::elemNameState << "` must be type U32 ("
                    << elem.tokType.str << " here)";
-                ConfigUtil::setError(kErr, elem.tokName, errText, ss.str());
+                ConfigUtil::setError(kErr, elem.tokName, gErrText, ss.str());
                 return E_SMC_S_TYPE;
             }
         }
@@ -339,26 +344,26 @@ Result StateMachineAssembly::checkStateVector(
         }
     }
 
-    if (kWs.elems.find(elemGlobalTimeName) == kWs.elems.end())
+    if (kWs.elems.find(LangConst::elemNameGlobalTime) == kWs.elems.end())
     {
         // No global time element provided.
         if (kErr != nullptr)
         {
-            kErr->text = errText;
+            kErr->text = gErrText;
             kErr->subtext = "no global time element aliased to `"
-                            + elemGlobalTimeName + "`";
+                            + LangConst::elemNameGlobalTime + "`";
         }
         return E_SMC_NO_G;
     }
 
-    if (kWs.elems.find(elemStateName) == kWs.elems.end())
+    if (kWs.elems.find(LangConst::elemNameState) == kWs.elems.end())
     {
         // No state element provided.
         if (kErr != nullptr)
         {
-            kErr->text = errText;
-            kErr->subtext = "no state element aliased to `" + elemStateName
-                            + "`";
+            kErr->text = gErrText;
+            kErr->subtext = "no state element aliased to `"
+                            + LangConst::elemNameState + "`";
         }
         return E_SMC_NO_S;
     }
@@ -372,11 +377,11 @@ Result StateMachineAssembly::compileLocalStateVector(
     ErrorInfo* const kErr)
 {
     std::stringstream localSvConfig;
-    localSvConfig << "[LOCAL]\n"
-                  << "U64 " << elemStateTimeName << "\n";
+    localSvConfig << LangConst::sectionLocal << "\n"
+                  << "U64 " << LangConst::elemNameStateTime << "\n";
 
     // State time element is automatically read-only.
-    kWs.readOnlyElems.insert(elemStateTimeName);
+    kWs.readOnlyElems.insert(LangConst::elemNameStateTime);
 
     for (U32 i = 0; i < kParse->localElems.size(); ++i)
     {
@@ -397,7 +402,7 @@ Result StateMachineAssembly::compileLocalStateVector(
                 ss << "reuse of element name `" << elem.tokName.str
                    << "` (previously used on line " << svElem.tokName.lineNum
                    << ")";
-                ConfigUtil::setError(kErr, elem.tokName, errText, ss.str());
+                ConfigUtil::setError(kErr, elem.tokName, gErrText, ss.str());
                 return E_SMC_ELEM_DUPE;
             }
         }
@@ -473,7 +478,7 @@ Result StateMachineAssembly::compileAction(
         {
             // Unknown element.
             ConfigUtil::setError(
-                kErr, kParse->tokRhs, errText,
+                kErr, kParse->tokRhs, gErrText,
                 "unknown element `" + kParse->tokRhs.str + "`");
             return E_SMC_ASG_ELEM;
         }
@@ -481,13 +486,10 @@ Result StateMachineAssembly::compileAction(
 
         // Check that RHS element is not read-only. This includes elements
         // marked read-only by the user and reserved elements.
-        if ((kWs.readOnlyElems.find(kParse->tokRhs.str) !=
-             kWs.readOnlyElems.end())
-            || (kParse->tokRhs.str == elemGlobalTimeName)
-            || (kParse->tokRhs.str == elemStateTimeName)
-            || (kParse->tokRhs.str == elemStateName))
+        if (kWs.readOnlyElems.find(kParse->tokRhs.str)
+            != kWs.readOnlyElems.end())
         {
-            ConfigUtil::setError(kErr, kParse->tokRhs, errText,
+            ConfigUtil::setError(kErr, kParse->tokRhs, gErrText,
                                  "element `" + kParse->tokRhs.str + "` is "
                                  "read-only");
             return E_SMC_ELEM_RO;
@@ -506,7 +508,7 @@ Result StateMachineAssembly::compileAction(
             // state machine compiler error messages.
             if (kErr != nullptr)
             {
-                kErr->text = errText;
+                kErr->text = gErrText;
             }
 
             return res;
@@ -598,7 +600,7 @@ Result StateMachineAssembly::compileAction(
         if (kInExitLabel)
         {
             // Illegal transition in exit label.
-            ConfigUtil::setError(kErr, kParse->tokDestState, errText,
+            ConfigUtil::setError(kErr, kParse->tokDestState, gErrText,
                                  "illegal transition in exit label");
             return E_SMC_TR_EXIT;
         }
@@ -607,7 +609,7 @@ Result StateMachineAssembly::compileAction(
         if (stateIdIt == kWs.stateIds.end())
         {
             // Unknown destination state.
-            ConfigUtil::setError(kErr, kParse->tokDestState, errText,
+            ConfigUtil::setError(kErr, kParse->tokDestState, gErrText,
                                  "unknown state `" + kParse->tokDestState.str
                                  + "`");
             return E_SMC_STATE;
@@ -647,7 +649,7 @@ Result StateMachineAssembly::compileBlock(
 
         ConfigUtil::setError(kErr,
                              node->data,
-                             errText,
+                             gErrText,
                              "state machines may not contain assertions");
         return E_SMC_ASSERT;
     }
@@ -672,7 +674,7 @@ Result StateMachineAssembly::compileBlock(
             // state machine compiler error messages.
             if (kErr != nullptr)
             {
-                kErr->text = errText;
+                kErr->text = gErrText;
             }
 
             return res;
@@ -847,23 +849,6 @@ Result StateMachineAssembly::compileState(
 }
 
 StateMachineAssembly::StateMachineAssembly(
-    const Ref<StateMachine> kObj,
-    const StateMachine::Config kConfig,
-    const Ref<const StateMachineParse> kParse,
-    const Ref<const StateVectorAssembly> kLocalSvAsm,
-    const Vec<Ref<const ExpressionAssembly>>& kExprAsms,
-    const Ref<Vec<StateMachine::StateConfig>> kStateConfigs,
-    const Ref<Vec<IExpressionStats*>> kExprStats,
-    const Vec<Ref<StateMachine::Block>>& kBlocks,
-    const Vec<Ref<IAction>>& kActions) :
-    mObj(kObj),
-    mConfig(kConfig),
-    mParse(kParse),
-    mLocalSvAsm(kLocalSvAsm),
-    mExprAsms(kExprAsms),
-    mStateConfigs(kStateConfigs),
-    mExprStats(kExprStats),
-    mBlocks(kBlocks),
-    mActions(kActions)
+    const StateMachineAssembly::Workspace& kWs) : mWs(kWs)
 {
 }

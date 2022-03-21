@@ -41,16 +41,15 @@ private:
         Map<String, U32> stateIds;
         Set<String> readOnlyElems;
 
+        Ref<const StateMachineParse> smParse;
         Ref<const StateVectorAssembly> localSvAsm;
         Vec<Ref<const ExpressionAssembly>> exprAsms;
         Ref<Vec<StateMachine::StateConfig>> stateConfigs;
         Vec<Ref<StateMachine::Block>> blocks;
         Vec<Ref<IAction>> actions;
-
-        Workspace(const Workspace&) = delete;
-        Workspace(Workspace&&) = delete;
-        Workspace& operator=(const Workspace&) = delete;
-        Workspace& operator=(Workspace&&) = delete;
+        Ref<Vec<IExpressionStats*>> exprStatArr;
+        StateMachine::Config smConfig;
+        Ref<StateMachine> sm;
     };
 
     static Result checkStateVector(const Ref<const StateMachineParse> kParse,
@@ -89,26 +88,9 @@ private:
                                StateMachineAssembly::Workspace& kWs,
                                ErrorInfo* const kErr);
 
-    const Ref<StateMachine> mObj;
-    const StateMachine::Config mConfig;
-    const Ref<const StateMachineParse> mParse;
-    const Ref<const StateVectorAssembly> mLocalSvAsm;
-    const Vec<Ref<const ExpressionAssembly>> mExprAsms;
-    const Ref<Vec<StateMachine::StateConfig>> mStateConfigs;
-    const Ref<Vec<IExpressionStats*>> mExprStats;
-    const Vec<Ref<StateMachine::Block>> mBlocks;
-    const Vec<Ref<IAction>> mActions;
+    const StateMachineAssembly::Workspace mWs;
 
-    StateMachineAssembly(
-        const Ref<StateMachine> kObj,
-        const StateMachine::Config kConfig,
-        const Ref<const StateMachineParse> kParse,
-        const Ref<const StateVectorAssembly> kLocalSvAsm,
-        const Vec<Ref<const ExpressionAssembly>>& kExprAsms,
-        const Ref<Vec<StateMachine::StateConfig>> kStateConfigs,
-        const Ref<Vec<IExpressionStats*>> kExprStats,
-        const Vec<Ref<StateMachine::Block>>& kBlocks,
-        const Vec<Ref<IAction>>& kActions);
+    StateMachineAssembly(const StateMachineAssembly::Workspace& kWs);
 };
 
 #endif

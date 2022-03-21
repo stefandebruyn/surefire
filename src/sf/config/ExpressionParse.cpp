@@ -4,7 +4,9 @@
 #include "sf/config/ExpressionParse.hpp"
 #include "sf/core/Assert.hpp"
 
-const char* const errText = "error";
+/////////////////////////////////// Globals ////////////////////////////////////
+
+static const char* const gErrText = "expression error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
@@ -44,7 +46,7 @@ Result ExpressionParse::parse(TokenIterator kIt,
             if (lvl < 0)
             {
                 // Unbalanced parentheses.
-                ConfigUtil::setError(kErr, tok, errText,
+                ConfigUtil::setError(kErr, tok, gErrText,
                                      "unbalanced parenthese");
                 return E_EXP_PAREN;
             }
@@ -55,7 +57,7 @@ Result ExpressionParse::parse(TokenIterator kIt,
     {
         // Unbalanced parentheses.
         SF_ASSERT(tokLastLvl0Paren != nullptr);
-        ConfigUtil::setError(kErr, *tokLastLvl0Paren, errText,
+        ConfigUtil::setError(kErr, *tokLastLvl0Paren, gErrText,
                              "unbalanced parenthese");
         return E_EXP_PAREN;
     }
@@ -92,7 +94,7 @@ Result ExpressionParse::parse(TokenIterator kIt,
             && (tok.type != Token::COMMA))
         {
             // Unexpected token in expression.
-            ConfigUtil::setError(kErr, tok, errText,
+            ConfigUtil::setError(kErr, tok, gErrText,
                                  "unexpected token in expression");
             return E_EXP_TOK;
         }
@@ -102,7 +104,7 @@ Result ExpressionParse::parse(TokenIterator kIt,
     // contains only known operators, and contains no unexpected token types.
     // So, the only errors to check for herein are syntax errors.
 
-    Ref<ExpressionParse::Node> root;
+    Ref<ExpressionParse::MutNode> root;
     const Result res = parseImpl(kIt, root, kErr);
     if (res != SUCCESS)
     {
@@ -118,7 +120,7 @@ Result ExpressionParse::parse(TokenIterator kIt,
 
 Result ExpressionParse::popSubexpression(
     std::stack<Token>& kStack,
-    std::stack<Ref<ExpressionParse::Node>>& kNodes,
+    std::stack<Ref<ExpressionParse::MutNode>>& kNodes,
     ErrorInfo* const kErr)
 {
     // Pop operator off stack.
@@ -127,7 +129,7 @@ Result ExpressionParse::popSubexpression(
     if (op.type != Token::OPERATOR)
     {
         // Expected an operator.
-        ConfigUtil::setError(kErr, op, errText, "invalid syntax");
+        ConfigUtil::setError(kErr, op, gErrText, "invalid syntax");
         return E_EXP_SYNTAX;
     }
 
@@ -140,10 +142,10 @@ Result ExpressionParse::popSubexpression(
     if (kNodes.empty())
     {
         // Expected an RHS.
-        ConfigUtil::setError(kErr, op, errText, "invalid syntax");
+        ConfigUtil::setError(kErr, op, gErrText, "invalid syntax");
         return E_EXP_SYNTAX;
     }
-    const Ref<ExpressionParse::Node> right = kNodes.top();
+    const Ref<ExpressionParse::MutNode> right = kNodes.top();
     kNodes.pop();
 
     // Check that RHS comes before the operator in the expression.
@@ -151,18 +153,18 @@ Result ExpressionParse::popSubexpression(
     {
         // "RHS" is actually to the left of the operator. This
         // usually indicates a syntax error with a unary operator.
-        ConfigUtil::setError(kErr, op, errText, "invalid syntax");
+        ConfigUtil::setError(kErr, op, gErrText, "invalid syntax");
         return E_EXP_SYNTAX;
     }
 
-    Ref<ExpressionParse::Node> left;
+    Ref<ExpressionParse::MutNode> left;
     if (!opInfo.unary)
     {
         // Pop LHS from stack.
         if (kNodes.empty())
         {
             // Expected an LHS.
-            ConfigUtil::setError(kErr, op, errText, "invalid syntax");
+            ConfigUtil::setError(kErr, op, gErrText, "invalid syntax");
             return E_EXP_SYNTAX;
         }
         left = kNodes.top();
@@ -170,14 +172,14 @@ Result ExpressionParse::popSubexpression(
     }
 
     // Push operation onto expression.
-    kNodes.push(Ref<ExpressionParse::Node>(
-        new ExpressionParse::Node{op, left, right, false}));
+    kNodes.push(Ref<ExpressionParse::MutNode>(
+        new ExpressionParse::MutNode{op, left, right, false}));
 
     return SUCCESS;
 }
 
 Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
-                                          Ref<ExpressionParse::Node>& kNode,
+                                          Ref<ExpressionParse::MutNode>& kNode,
                                           ErrorInfo* const kErr)
 {
     // Assert that token sequence is an identifier followed by an open
@@ -219,7 +221,7 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
             if (((idxArgStart != 2) || (kIt.idx() != (kIt.size() - 1)))
                 && emptyArg)
             {
-                ConfigUtil::setError(kErr, kIt.tok(), errText,
+                ConfigUtil::setError(kErr, kIt.tok(), gErrText,
                                      "invalid syntax");
                 return E_EXP_SYNTAX;
             }
@@ -238,16 +240,16 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
     }
 
     // First token in the function call tree contains the function name.
-    kNode.reset(new ExpressionParse::Node{kIt[0], nullptr, nullptr, true});
+    kNode.reset(new ExpressionParse::MutNode{kIt[0], nullptr, nullptr, true});
 
     // Parse argument expressions and chain them down the left subtree of
     // the function call node. The left child of each argument node is the next
     // argument, and the right child is the argument expression.
-    Ref<ExpressionParse::Node> node = kNode;
+    Ref<ExpressionParse::MutNode> node = kNode;
     for (TokenIterator& argIt : argExprs)
     {
         node->left.reset(
-            new ExpressionParse::Node{{}, nullptr, nullptr, false});
+            new ExpressionParse::MutNode{{}, nullptr, nullptr, false});
         const Result res =
             ExpressionParse::parseImpl(argIt, node->left->right, kErr);
         if (res != SUCCESS)
@@ -260,7 +262,7 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
     return SUCCESS;
 }
 
-void ExpressionParse::expandDoubleIneq(const Ref<ExpressionParse::Node> kNode)
+void ExpressionParse::expandDoubleIneq(const Ref<ExpressionParse::MutNode> kNode)
 {
     // Recursion base case.
     if (kNode == nullptr)
@@ -281,9 +283,9 @@ void ExpressionParse::expandDoubleIneq(const Ref<ExpressionParse::Node> kNode)
             if (OperatorInfo::relOps.find(kNode->left->data.str)
                 != OperatorInfo::relOps.end())
             {
-                kNode->right.reset(new ExpressionParse::Node{
+                kNode->right.reset(new ExpressionParse::MutNode{
                     kNode->data, kNode->left->right, kNode->right, false});
-                kNode->data = {Token::OPERATOR, "AND", -1, -1};
+                kNode->data = {Token::OPERATOR, OperatorInfo::land.str, -1, -1};
             }
         }
     }
@@ -294,7 +296,7 @@ void ExpressionParse::expandDoubleIneq(const Ref<ExpressionParse::Node> kNode)
 }
 
 Result ExpressionParse::parseImpl(TokenIterator& kIt,
-                                  Ref<ExpressionParse::Node>& kNode,
+                                  Ref<ExpressionParse::MutNode>& kNode,
                                   ErrorInfo* const kErr)
 {
     // Copy token sequence, minus newlines, into a vector of tokens enclosed in
@@ -309,7 +311,7 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
     toks.push_back({Token::RPAREN, ")", -1, -1});
 
     // Stack of expression nodes yet to be installed in the binary tree.
-    std::stack<Ref<ExpressionParse::Node>> nodes;
+    std::stack<Ref<ExpressionParse::MutNode>> nodes;
 
     // Operator and operand stack.
     std::stack<Token> stack;
@@ -354,7 +356,7 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
                 }
 
                 // Parse function and push onto tree.
-                Ref<ExpressionParse::Node> funcNode;
+                Ref<ExpressionParse::MutNode> funcNode;
                 TokenIterator funcIt((toks.begin() + i),
                                      (toks.begin() + j + 1));
                 const Result res =
@@ -372,8 +374,11 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
             else
             {
                 // Token is a variable or constant.
-                nodes.push(Ref<ExpressionParse::Node>(
-                    new ExpressionParse::Node{tok, nullptr, nullptr, false}));
+                nodes.push(Ref<ExpressionParse::MutNode>(
+                    new ExpressionParse::MutNode{tok,
+                                                 nullptr,
+                                                 nullptr,
+                                                 false}));
             }
         }
         else if (tok.type == Token::OPERATOR)
@@ -453,7 +458,7 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
     // Check that stack is empty.
     if (stack.size() != 0)
     {
-        ConfigUtil::setError(kErr, stack.top(), errText,
+        ConfigUtil::setError(kErr, stack.top(), gErrText,
                              "invalid expression");
         return E_EXP_SYNTAX;
     }
@@ -461,14 +466,14 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
     // Check that expression tree contains at least 1 node.
     if (nodes.size() == 0)
     {
-        ConfigUtil::setError(kErr, kIt[0], errText, "invalid expression");
+        ConfigUtil::setError(kErr, kIt[0], gErrText, "invalid expression");
         return E_EXP_EMPTY;
     }
 
     // Check that there is exactly 1 node on the stack (root node).
     if (nodes.size() != 1)
     {
-        ConfigUtil::setError(kErr, nodes.top()->data, errText,
+        ConfigUtil::setError(kErr, nodes.top()->data, gErrText,
                              "invalid syntax");
         return E_EXP_SYNTAX;
     }
@@ -482,7 +487,7 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
     return SUCCESS;
 }
 
-void ExpressionParse::convertTree(Ref<ExpressionParse::Node> kFrom,
+void ExpressionParse::convertTree(Ref<ExpressionParse::MutNode> kFrom,
                                   Ref<const ExpressionParse>& kTo)
 {
     if (kFrom == nullptr)

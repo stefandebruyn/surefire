@@ -4,7 +4,9 @@
 #include "sf/config/StateVectorAssembly.hpp"
 #include "sf/core/Assert.hpp"
 
-const char* const errText = "state vector config error";
+/////////////////////////////////// Globals ////////////////////////////////////
+
+extern const char* const gErrText = "state vector config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
@@ -41,7 +43,7 @@ Result StateVectorAssembly::compile(std::istream& kIs,
     {
         if (kErr != nullptr)
         {
-            kErr->text = errText;
+            kErr->text = gErrText;
         }
         return res;
     }
@@ -52,7 +54,7 @@ Result StateVectorAssembly::compile(std::istream& kIs,
     {
         if (kErr != nullptr)
         {
-            kErr->text = errText;
+            kErr->text = gErrText;
         }
         return res;
     }
@@ -64,6 +66,12 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
                                     Ref<const StateVectorAssembly>& kAsm,
                                     ErrorInfo* const kErr)
 {
+    // Check that state vector parse is non-null.
+    if (kParse == nullptr)
+    {
+        return E_SVC_NULL;
+    }
+
     // Check that region names are unique. While we do this, collect all the
     // elements in a list so that we can check element name uniqueness.
     Vec<const StateVectorParse::ElementParse*> elems;
@@ -76,7 +84,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
                 std::stringstream ss;
                 ss << "reuse of region name `" << j.plainName
                    << "` (previously used on line " << i.tokName.lineNum << ")";
-                ConfigUtil::setError(kErr, j.tokName, errText, ss.str());
+                ConfigUtil::setError(kErr, j.tokName, gErrText, ss.str());
                 return E_SVC_RGN_DUPE;
             }
         }
@@ -99,7 +107,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
                    << "` (previously used on line "
                    << elems[i]->tokName.lineNum << ")";
                 ConfigUtil::setError(
-                    kErr, elems[j]->tokName, errText, ss.str());
+                    kErr, elems[j]->tokName, gErrText, ss.str());
                 return E_SVC_ELEM_DUPE;
             }
         }
@@ -114,7 +122,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
         // Check that region contains at least 1 element.
         if (region.elems.size() == 0)
         {
-            ConfigUtil::setError(kErr, region.tokName, errText,
+            ConfigUtil::setError(kErr, region.tokName, gErrText,
                                  "region is empty");
             return E_SVC_RGN_EMPTY;
         }
@@ -129,7 +137,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
             if (typeInfoIt == ElementTypeInfo::fromName.end())
             {
                 // Unknown element type.
-                ConfigUtil::setError(kErr, elem.tokType, errText,
+                ConfigUtil::setError(kErr, elem.tokType, gErrText,
                                      "unknown type");
                 return E_SVC_ELEM_TYPE;
             }
@@ -232,7 +240,7 @@ StateVectorAssembly::~StateVectorAssembly()
 
 Ref<StateVector> StateVectorAssembly::get() const
 {
-    return mObj;
+    return mSv;
 }
 
 StateVector::Config StateVectorAssembly::config() const
@@ -361,10 +369,10 @@ void StateVectorAssembly::allocateElement(
 }
 
 StateVectorAssembly::StateVectorAssembly(
-    const Ref<StateVector> kObj,
+    const Ref<StateVector> kSv,
     const StateVector::Config kConfig,
     const Ref<const StateVectorParse> kParse,
     const char* const kBacking) :
-    mObj(kObj), mConfig(kConfig), mParse(kParse), mBacking(kBacking)
+    mSv(kSv), mConfig(kConfig), mParse(kParse), mBacking(kBacking)
 {
 }

@@ -3,21 +3,12 @@
 
 #include "sf/config/ConfigUtil.hpp"
 #include "sf/config/ExpressionAssembly.hpp"
+#include "sf/config/LanguageConstants.hpp"
 #include "sf/core/Assert.hpp"
 
-static const char* const errText = "expression error";
+/////////////////////////////////// Globals ////////////////////////////////////
 
-static const char* const rollAvgFuncName = "ROLL_AVG";
-
-static const char* const rollMedianFuncName = "ROLL_MEDIAN";
-
-static const char* const rollMinFuncName = "ROLL_MIN";
-
-static const char* const rollMaxFuncName = "ROLL_MAX";
-
-static const char* const rollRangeFuncName = "ROLL_RANGE";
-
-static const U32 maxRollWindowSize = 100000;
+static const char* const gErrText = "expression error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
@@ -43,11 +34,6 @@ Result ExpressionAssembly::compile(const Ref<const ExpressionParse> kParse,
                                                        kErr);
     if (res != SUCCESS)
     {
-        for (const char* const arr : ws.statArrs)
-        {
-            delete[] arr;
-        }
-
         return res;
     }
 
@@ -117,32 +103,23 @@ Result ExpressionAssembly::compile(const Ref<const ExpressionParse> kParse,
 
     ws.exprNodes.push_back(newRoot);
 
-    // Return compiled expression assembly.
-    kAsm.reset(new ExpressionAssembly(newRoot,
-                                      ws.exprNodes,
-                                      ws.exprStats,
-                                      ws.statArrs));
+    // Add root node to workspace.
+    ws.rootNode = newRoot;
+
+    // Create the final assembly.
+    kAsm.reset(new ExpressionAssembly(ws));
 
     return SUCCESS;
 }
 
-ExpressionAssembly::~ExpressionAssembly()
-{
-    // THIS IS BAD AAAAAAAAAAA
-    for (const char* const arr : mStatArrs)
-    {
-        delete[] arr;
-    }
-}
-
 Ref<IExpression> ExpressionAssembly::root() const
 {
-    return mRoot;
+    return mWs.rootNode;
 }
 
 Vec<Ref<IExpressionStats>> ExpressionAssembly::stats() const
 {
-    return mStats;
+    return mWs.exprStats;
 }
 
 /////////////////////////////////// Private ////////////////////////////////////
@@ -159,14 +136,14 @@ Result ExpressionAssembly::tokenToF64(const Token& kTok,
     if (end == str)
     {
         // Invalid numeric constant.
-        ConfigUtil::setError(kErr, kTok, errText, "invalid number");
+        ConfigUtil::setError(kErr, kTok, gErrText, "invalid number");
         return E_EXC_NUM;
     }
 
     if (val == HUGE_VAL)
     {
         // Numeric constant is out of range.
-        ConfigUtil::setError(kErr, kTok, errText,
+        ConfigUtil::setError(kErr, kTok, gErrText,
                              "number is outside the representable range");
         return E_EXC_OVFL;
     }
@@ -195,13 +172,13 @@ Result ExpressionAssembly::compileExprStatsFunc(
         node = node->left;
     }
 
+    // Check function arity.
     if (argNodes.size() != 2)
     {
-        // Wrong arity.
         std::stringstream ss;
         ss << "`" << kParse->data.str << + "` expects 2 arguments, got "
            << argNodes.size();
-        ConfigUtil::setError(kErr, kParse->data, errText, ss.str());
+        ConfigUtil::setError(kErr, kParse->data, gErrText, ss.str());
         return E_EXC_ARITY;
     }
 
@@ -239,50 +216,54 @@ Result ExpressionAssembly::compileExprStatsFunc(
         || (windowSizeFp <= 0)                        // Negative or zero
         || (std::ceil(windowSizeFp) != windowSizeFp)) // Non-integer
     {
-        ConfigUtil::setError(kErr, argNodes[1]->right->data, errText,
+        ConfigUtil::setError(kErr, argNodes[1]->right->data, gErrText,
                              "rolling window size must be an integer > 0");
         return E_EXC_WIN;
     }
 
     // Enforce maximum window size.
     const U32 windowSize = safeCast<U32, F64>(windowSizeFp);
-    if (windowSize > maxRollWindowSize)
+    if (windowSize > LangConst::rollWindowMaxSize)
     {
         std::stringstream ss;
-        ss << "rolling window size must be <= " << maxRollWindowSize;
-        ConfigUtil::setError(kErr, argNodes[1]->right->data, errText, ss.str());
+        ss << "rolling window size must be <= "
+           << LangConst::rollWindowMaxSize;
+        ConfigUtil::setError(kErr, argNodes[1]->right->data, gErrText, ss.str());
         return E_EXC_WIN;
     }
 
-    // Allocate storage arrays needed by expression stats.
-    const U32 statsBytes = (windowSize * sizeof(F64));
-    char* const statsArrA = new char[statsBytes];
-    char* const statsArrB = new char[statsBytes];
+    // Allocate storage arrays needed by expression stats and add them to the
+    // workspace.
+    const U32 statsArrSizeBytes = (windowSize * sizeof(F64));
+    Ref<Vec<U8>> statsArrA(new Vec<U8>(statsArrSizeBytes));
+    Ref<Vec<U8>> statsArrB(new Vec<U8>(statsArrSizeBytes));
     kWs.statArrs.push_back(statsArrA);
     kWs.statArrs.push_back(statsArrB);
 
-    // Create expression stats for first argument expression.
+    // Create expression stats for first argument expression and add it to the
+    // workspace. The expression stats is given raw pointers to the arrays we
+    // just allocated.
     const Ref<ExpressionStats<F64>> exprStats(
         new ExpressionStats<F64>(*arg1Node,
-                                 reinterpret_cast<F64*>(statsArrA),
-                                 reinterpret_cast<F64*>(statsArrB),
+                                 reinterpret_cast<F64*>(statsArrA->data()),
+                                 reinterpret_cast<F64*>(statsArrB->data()),
                                  windowSize));
     kWs.exprStats.push_back(exprStats);
 
     // Create node which returns the desired stat.
-    if (kParse->data.str == rollAvgFuncName)
+    if (kParse->data.str == LangConst::funcNameRollAvg)
     {
         kNode.reset(new RollAvgNode(*exprStats));
     }
-    else if (kParse->data.str == rollMedianFuncName)
+    else if (kParse->data.str == LangConst::funcNameRollMedian)
     {
         kNode.reset(new RollMedianNode(*exprStats));
     }
-    else if (kParse->data.str == rollMinFuncName)
+    else if (kParse->data.str == LangConst::funcNameRollMin)
     {
         kNode.reset(new RollMinNode(*exprStats));
     }
-    else if (kParse->data.str == rollMaxFuncName)
+    else if (kParse->data.str == LangConst::funcNameRollMax)
     {
         kNode.reset(new RollMaxNode(*exprStats));
     }
@@ -291,6 +272,7 @@ Result ExpressionAssembly::compileExprStatsFunc(
         kNode.reset(new RollRangeNode(*exprStats));
     }
 
+    // Add compiled function node to workspace.
     kWs.exprNodes.push_back(kNode);
 
     return SUCCESS;
@@ -305,11 +287,11 @@ Result ExpressionAssembly::compileFunction(
 {
     SF_ASSERT(kParse != nullptr);
 
-    if ((kParse->data.str == rollAvgFuncName)
-        || (kParse->data.str == rollMedianFuncName)
-        || (kParse->data.str == rollMinFuncName)
-        || (kParse->data.str == rollMaxFuncName)
-        || (kParse->data.str == rollRangeFuncName))
+    if ((kParse->data.str == LangConst::funcNameRollAvg)
+        || (kParse->data.str == LangConst::funcNameRollMedian)
+        || (kParse->data.str == LangConst::funcNameRollMin)
+        || (kParse->data.str == LangConst::funcNameRollMax)
+        || (kParse->data.str == LangConst::funcNameRollRange))
     {
         // Compile expression stats function.
         return ExpressionAssembly::compileExprStatsFunc(kParse,
@@ -322,7 +304,7 @@ Result ExpressionAssembly::compileFunction(
     // Other functions may be added by chaining off the above `if`!
 
     // If we got this far, the function is not recognized.
-    ConfigUtil::setError(kErr, kParse->data, errText,
+    ConfigUtil::setError(kErr, kParse->data, gErrText,
                          "unknown function `" + kParse->data.str + "`");
     return E_EXC_FUNC;
 }
@@ -488,7 +470,7 @@ Result ExpressionAssembly::compileOperator(
             SF_ASSERT(false);
     }
 
-    // Track the allocated node.
+    // Add compiled node to workspace.
     kWs.exprNodes.push_back(kNode);
 
     return SUCCESS;
@@ -524,12 +506,12 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
         SF_ASSERT(kParse->left == nullptr);
         SF_ASSERT(kParse->right == nullptr);
 
-        if (kParse->data.str == "TRUE")
+        if (kParse->data.str == LangConst::constantTrue)
         {
             // True boolean constant.
             kNode.reset(new ConstExprNode<F64>(1.0));
         }
-        else if (kParse->data.str == "FALSE")
+        else if (kParse->data.str == LangConst::constantFalse)
         {
             // False boolean constant.
             kNode.reset(new ConstExprNode<F64>(0.0));
@@ -548,6 +530,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
             kNode.reset(new ConstExprNode<F64>(val));
         }
 
+        // Add compiled node to workspace.
         kWs.exprNodes.push_back(kNode);
     }
     else if (kParse->data.type == Token::IDENTIFIER)
@@ -576,7 +559,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
         if (elemObj == nullptr)
         {
             // Unknown element.
-            ConfigUtil::setError(kErr, kParse->data, errText,
+            ConfigUtil::setError(kErr, kParse->data, gErrText,
                                  "unknown element");
             return E_EXC_ELEM;
         }
@@ -689,11 +672,13 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
+
+            default:
+                SF_ASSERT(false);
         }
 
-        // Assert that element type was recognized.
+        // Add compiled node to workspace.
         SF_ASSERT(kNode != nullptr);
-
         kWs.exprNodes.push_back(kNode);
     }
     else
@@ -713,10 +698,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
     return SUCCESS;
 }
 
-ExpressionAssembly::ExpressionAssembly(const Ref<IExpression> kRoot,
-                                       const Vec<Ref<IExpression>>& kNodes,
-                                       const Vec<Ref<IExpressionStats>>& kStats,
-                                       const Vec<const char*>& kStatArrs) :
-    mRoot(kRoot), mNodes(kNodes), mStats(kStats), mStatArrs(kStatArrs)
+ExpressionAssembly::ExpressionAssembly(
+    const ExpressionAssembly::Workspace& kWs) : mWs(kWs)
 {
 }

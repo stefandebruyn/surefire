@@ -3,20 +3,12 @@
 
 #include "sf/config/Tokenizer.hpp"
 
-/////////////////////////////////// Private ////////////////////////////////////
+/////////////////////////////////// Helpers ////////////////////////////////////
 
-namespace Tokenizer
-{
-    Result tokenizeLine(const String& kLine,
-                        const U32 kLineNum,
-                        Vec<Token>& kToks,
-                        ErrorInfo* const kErr);
-}
-
-Result Tokenizer::tokenizeLine(const String& kLine,
-                               const U32 kLineNum,
-                               Vec<Token>& kToks,
-                               ErrorInfo* const kErr)
+static Result tokenizeLine(const String& kLine,
+                           const U32 kLineNum,
+                           Vec<Token>& kToks,
+                           ErrorInfo* const kErr)
 {
     // Index at which we'll try to match a token in the line. This index will
     // be bumped along as we parse tokens.

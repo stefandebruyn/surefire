@@ -24,30 +24,30 @@ public:
 
 private:
 
-    struct Node final
+    struct MutNode final
     {
         Token data;
-        Ref<Node> left;
-        Ref<Node> right;
+        Ref<ExpressionParse::MutNode> left;
+        Ref<ExpressionParse::MutNode> right;
         bool func;
     };
 
     static Result popSubexpression(
         std::stack<Token>& kStack,
-        std::stack<Ref<ExpressionParse::Node>>& kNodes,
+        std::stack<Ref<ExpressionParse::MutNode>>& kNodes,
         ErrorInfo* const kErr);
 
     static Result parseFunctionCall(TokenIterator kIt,
-                                    Ref<ExpressionParse::Node>& kNode,
+                                    Ref<ExpressionParse::MutNode>& kNode,
                                     ErrorInfo* const kErr);
 
-    static void expandDoubleIneq(const Ref<ExpressionParse::Node> kNode);
+    static void expandDoubleIneq(const Ref<ExpressionParse::MutNode> kNode);
 
     static Result parseImpl(TokenIterator& kIt,
-                            Ref<ExpressionParse::Node>& kParse,
+                            Ref<ExpressionParse::MutNode>& kParse,
                             ErrorInfo* const kErr);
 
-    static void convertTree(Ref<ExpressionParse::Node> kFrom,
+    static void convertTree(Ref<ExpressionParse::MutNode> kFrom,
                             Ref<const ExpressionParse>& kTo);
 
     ExpressionParse(const Token kData,
