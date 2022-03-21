@@ -46,7 +46,13 @@ TEST(StateScriptParse, EmptySection)
     CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
     CHECK_EQUAL(1, parse->sections.size());
     CHECK_EQUAL(parse->sections[0].tokName, toks[0]);
-    CHECK_TRUE(parse->sections[0].block == nullptr);
+    CHECK_TRUE(parse->sections[0].block != nullptr);
+    CHECK_TRUE(parse->sections[0].block->guard == nullptr);
+    CHECK_TRUE(parse->sections[0].block->action == nullptr);
+    CHECK_TRUE(parse->sections[0].block->ifBlock == nullptr);
+    CHECK_TRUE(parse->sections[0].block->elseBlock == nullptr);
+    CHECK_TRUE(parse->sections[0].block->next == nullptr);
+    CHECK_TRUE(parse->sections[0].block->assertion == nullptr);
 }
 
 TEST(StateScriptParse, OneSection)

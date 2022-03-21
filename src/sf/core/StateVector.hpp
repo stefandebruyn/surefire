@@ -35,7 +35,7 @@ public:
     template<typename T>
     Result getElement(const char* const kName, Element<T>*& kELem);
 
-    Result getIElement(const char* const kName, IElement*& kElem) const;
+    Result getIElement(const char* const kName, IElement*& kElem);
 
     Result getRegion(const char* const kName, Region*& kRegion);
 

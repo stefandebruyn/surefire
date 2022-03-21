@@ -13,7 +13,7 @@ static const char* const gErrText = "expression error";
 /////////////////////////////////// Public /////////////////////////////////////
 
 Result ExpressionAssembly::compile(const Ref<const ExpressionParse> kParse,
-                                   const Vec<Ref<const StateVector>> kSvs,
+                                   const Vec<Ref<StateVector>> kSvs,
                                    const ElementType kEvalType,
                                    Ref<const ExpressionAssembly>& kAsm,
                                    ErrorInfo* const kErr)
@@ -156,7 +156,7 @@ Result ExpressionAssembly::tokenToF64(const Token& kTok,
 
 Result ExpressionAssembly::compileExprStatsFunc(
     const Ref<const ExpressionParse> kParse,
-    const Vec<Ref<const StateVector>> kSvs,
+    const Vec<Ref<StateVector>> kSvs,
     Ref<IExprNode<F64>>& kNode,
     ExpressionAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
@@ -280,7 +280,7 @@ Result ExpressionAssembly::compileExprStatsFunc(
 
 Result ExpressionAssembly::compileFunction(
     const Ref<const ExpressionParse> kParse,
-    const Vec<Ref<const StateVector>> kSvs,
+    const Vec<Ref<StateVector>> kSvs,
     Ref<IExprNode<F64>>& kNode,
     ExpressionAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
@@ -311,7 +311,7 @@ Result ExpressionAssembly::compileFunction(
 
 Result ExpressionAssembly::compileOperator(
     const Ref<const ExpressionParse> kParse,
-    const Vec<Ref<const StateVector>> kSvs,
+    const Vec<Ref<StateVector>> kSvs,
     Ref<IExprNode<F64>>& kNode,
     ExpressionAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
@@ -476,7 +476,7 @@ Result ExpressionAssembly::compileOperator(
 }
 
 Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
-                                       const Vec<Ref<const StateVector>> kSvs,
+                                       const Vec<Ref<StateVector>> kSvs,
                                        Ref<IExprNode<F64>>& kNode,
                                        ExpressionAssembly::Workspace& kWs,
                                        ErrorInfo* const kErr)
@@ -543,7 +543,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
 
         // Look up element in state vector.
         IElement* elemObj = nullptr;
-        for (const Ref<const StateVector> sv : kSvs)
+        for (const Ref<StateVector> sv : kSvs)
         {
             if (sv != nullptr)
             {

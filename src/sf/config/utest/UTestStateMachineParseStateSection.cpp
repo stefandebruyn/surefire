@@ -1034,10 +1034,30 @@ TEST(StateMachineParseStateSection, EmptyLabels)
     // State name was parsed correctly.
     CHECK_EQUAL(toks[0], parse.tokName);
 
-    // No labels were parsed.
-    CHECK_TRUE(parse.entry == nullptr);
-    CHECK_TRUE(parse.step == nullptr);
-    CHECK_TRUE(parse.exit == nullptr);
+    // Empty labels were parsed.
+    CHECK_TRUE(parse.entry != nullptr);
+    CHECK_TRUE(parse.entry->guard == nullptr);
+    CHECK_TRUE(parse.entry->action == nullptr);
+    CHECK_TRUE(parse.entry->ifBlock == nullptr);
+    CHECK_TRUE(parse.entry->elseBlock == nullptr);
+    CHECK_TRUE(parse.entry->next == nullptr);
+    CHECK_TRUE(parse.entry->assertion == nullptr);
+
+    CHECK_TRUE(parse.step != nullptr);
+    CHECK_TRUE(parse.step->guard == nullptr);
+    CHECK_TRUE(parse.step->action == nullptr);
+    CHECK_TRUE(parse.step->ifBlock == nullptr);
+    CHECK_TRUE(parse.step->elseBlock == nullptr);
+    CHECK_TRUE(parse.step->next == nullptr);
+    CHECK_TRUE(parse.step->assertion == nullptr);
+
+    CHECK_TRUE(parse.exit != nullptr);
+    CHECK_TRUE(parse.exit->guard == nullptr);
+    CHECK_TRUE(parse.exit->action == nullptr);
+    CHECK_TRUE(parse.exit->ifBlock == nullptr);
+    CHECK_TRUE(parse.exit->elseBlock == nullptr);
+    CHECK_TRUE(parse.exit->next == nullptr);
+    CHECK_TRUE(parse.exit->assertion == nullptr);
 }
 
 ///////////////////////////////// Error Tests //////////////////////////////////
