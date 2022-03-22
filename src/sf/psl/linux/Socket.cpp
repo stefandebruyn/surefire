@@ -52,8 +52,7 @@ Result Socket::create(const IPv4Address kIp,
         return E_SOK_BIND;
     }
 
-    // If we got this far, socket is ready- set the FD so that its interface
-    // is usable.
+    // Socket is ready- set FD.
     kSock.mFd = fd;
 
     return SUCCESS;

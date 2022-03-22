@@ -97,12 +97,6 @@ static Result checkTransitions(const StateMachine::Config kConfig)
 
 U32 StateMachine::Block::execute()
 {
-    // Assert that guard blocks don't have actions.
-    SF_ASSERT(((guard == nullptr) && (action == nullptr))
-               || ((guard == nullptr) ^ (action == nullptr)));
-    // Assert that an else block requires an if block.
-    SF_ASSERT((elseBlock == nullptr) || (ifBlock != nullptr));
-
     // Evaluate guard.
     if (guard != nullptr)
     {
@@ -131,8 +125,9 @@ U32 StateMachine::Block::execute()
             }
         }
     }
+
     // Execute action for this block.
-    else if (action != nullptr)
+    if (action != nullptr)
     {
         const bool trans = action->execute();
         if (trans)
@@ -141,7 +136,7 @@ U32 StateMachine::Block::execute()
         }
     }
 
-    // Move to next block.
+    // Execute next block.
     if (next != nullptr)
     {
         return next->execute();
@@ -229,11 +224,10 @@ Result StateMachine::step()
         return E_SM_UNINIT;
     }
 
-    // Assert that all the pointers dereferenced in this method are non-null.
-    SF_ASSERT(mConfig.elemState != nullptr);
-    SF_ASSERT(mConfig.elemStateTime != nullptr);
-    SF_ASSERT(mConfig.elemGlobalTime != nullptr);
-    SF_ASSERT(mConfig.states != nullptr);
+    SF_SAFE_ASSERT(mConfig.elemState != nullptr);
+    SF_SAFE_ASSERT(mConfig.elemStateTime != nullptr);
+    SF_SAFE_ASSERT(mConfig.elemGlobalTime != nullptr);
+    SF_SAFE_ASSERT(mConfig.states != nullptr);
 
     // Check that the global time is valid and monotonic.
     const U64 tCur = mConfig.elemGlobalTime->read();
@@ -302,7 +296,7 @@ Result StateMachine::step()
         }
 
         // Assert that the destination state was found.
-        SF_ASSERT(mStateCur->id == destState);
+        SF_SAFE_ASSERT(mStateCur->id == destState);
     }
 
     // Update last step time.

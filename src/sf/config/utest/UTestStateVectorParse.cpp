@@ -214,6 +214,14 @@ TEST_GROUP(StateVectorParseErrors)
 {
 };
 
+TEST(StateVectorParseErrors, UnexpectedTokenOutsideSection)
+{
+    TOKENIZE(
+        "@Foo\n"
+        "I32 foo\n");
+    checkParseError(toks, E_SVP_TOK, 1, 1);
+}
+
 TEST(StateVectorParseErrors, NonIdentifierForElementType)
 {
     TOKENIZE(

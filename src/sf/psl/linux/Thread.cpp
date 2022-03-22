@@ -126,8 +126,7 @@ Result Thread::create(const Function kFunc,
         return E_THR_CREATE;
     }
 
-    // If we got this far, thread was successfully created- set thread as
-    // initialized so that its interface is usable.
+    // Thread successfully created- initialize thread handle.
     kThread.mInit = true;
 
     // Destroy thread attributes since we're done with them. This should never

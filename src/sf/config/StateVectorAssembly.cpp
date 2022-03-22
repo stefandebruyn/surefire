@@ -14,11 +14,7 @@ Result StateVectorAssembly::compile(const String kFilePath,
                                     Ref<const StateVectorAssembly>& kAsm,
                                     ErrorInfo* const kErr)
 {
-    if (kErr != nullptr)
-    {
-        kErr->filePath = kFilePath;
-    }
-
+    // Open file input stream.
     std::ifstream ifs(kFilePath);
     if (!ifs.is_open())
     {
@@ -30,6 +26,14 @@ Result StateVectorAssembly::compile(const String kFilePath,
         return E_SMA_FILE;
     }
 
+    // Set the error info file path for error messages generated further into
+    // compilation.
+    if (kErr != nullptr)
+    {
+        kErr->filePath = kFilePath;
+    }
+
+    // Send input stream into the next compilation phase.
     return StateVectorAssembly::compile(ifs, kAsm, kErr);
 }
 
@@ -37,6 +41,7 @@ Result StateVectorAssembly::compile(std::istream& kIs,
                                     Ref<const StateVectorAssembly>& kAsm,
                                     ErrorInfo* const kErr)
 {
+    // Tokenize the input stream.
     Vec<Token> toks;
     Result res = Tokenizer::tokenize(kIs, toks, kErr);
     if (res != SUCCESS)
@@ -48,6 +53,7 @@ Result StateVectorAssembly::compile(std::istream& kIs,
         return res;
     }
 
+    // Parse the state machine config.
     Ref<const StateVectorParse> parse;
     res = StateVectorParse::parse(toks, parse, kErr);
     if (res != SUCCESS)
@@ -59,6 +65,7 @@ Result StateVectorAssembly::compile(std::istream& kIs,
         return res;
     }
 
+    // Send state machine config into the next compilation phase.
     return StateVectorAssembly::compile(parse, kAsm, kErr);
 }
 
@@ -100,14 +107,18 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
     {
         for (U32 j = (i + 1); j < elems.size(); ++j)
         {
+            SF_SAFE_ASSERT(elems[i] != nullptr);
+            SF_SAFE_ASSERT(elems[j] != nullptr);
             if (elems[i]->tokName.str == elems[j]->tokName.str)
             {
                 std::stringstream ss;
                 ss << "reuse of element name `" << elems[j]->tokName.str
                    << "` (previously used on line "
                    << elems[i]->tokName.lineNum << ")";
-                ConfigUtil::setError(
-                    kErr, elems[j]->tokName, gErrText, ss.str());
+                ConfigUtil::setError(kErr,
+                                     elems[j]->tokName,
+                                     gErrText,
+                                     ss.str());
                 return E_SVA_ELEM_DUPE;
             }
         }
@@ -122,7 +133,9 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
         // Check that region contains at least 1 element.
         if (region.elems.size() == 0)
         {
-            ConfigUtil::setError(kErr, region.tokName, gErrText,
+            ConfigUtil::setError(kErr,
+                                 region.tokName,
+                                 gErrText,
                                  "region is empty");
             return E_SVA_RGN_EMPTY;
         }
@@ -133,14 +146,18 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
         // Add element sizes into byte count.
         for (const StateVectorParse::ElementParse& elem : region.elems)
         {
+            // Look up element type info.
             auto typeInfoIt = TypeInfo::fromName.find(elem.tokType.str);
             if (typeInfoIt == TypeInfo::fromName.end())
             {
                 // Unknown element type.
-                ConfigUtil::setError(kErr, elem.tokType, gErrText,
+                ConfigUtil::setError(kErr,
+                                     elem.tokType,
+                                     gErrText,
                                      "unknown type");
                 return E_SVA_ELEM_TYPE;
             }
+
             const TypeInfo& typeInfo = (*typeInfoIt).second;
             svSizeBytes += typeInfo.sizeBytes;
         }
@@ -149,22 +166,17 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
     // Initialize a blank workspace for the compilation.
     StateVectorAssembly::Workspace ws = {};
 
-    // Put the state vector parse in the workspace so that the original parse
-    // which became the state vector can be recalled.
+    // Put the state vector parse in the workspace so that it can be recalled
+    // later.
     ws.svParse = kParse;
 
-    // Allocate vector for storing element configs. The memory underlying this
-    // vector will be directly given to the state vector config. (A vector is
-    // used instead of a native array since C++11 shared pointers are not
-    // specialized for native arrays.)
+    // Allocate array for element configs.
     ws.elemConfigs.reset(new Vec<StateVector::ElementConfig>(elemCnt + 1));
 
     // Set null terminator for element config array required by state vector.
     (*ws.elemConfigs)[elemCnt] = {nullptr, nullptr};
 
-    // Allocate vector for storing region configs. As with the element configs,
-    // the memory underlying this vector will be given to the state vector
-    // config in raw pointer form.
+    // Allocate array for region configs.
     ws.regionConfigs.reset(new Vec<StateVector::RegionConfig>(regionCnt + 1));
 
     // Set null terminator for region config array required by state vector.
@@ -172,7 +184,9 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
 
     // Allocate backing storage for state vector. This memory will be
     // automatically zeroed out by the vector implementation, ensuring that
-    // state vector elements default to zero.
+    // state vector elements default to zero. (A vector is used instead of a
+    // native array since C++11 shared pointers are not specialized for native
+    // arrays.)
     ws.svBacking.reset(new Vec<U8>(svSizeBytes));
 
     // Now to initialize the members of the element and region config arrays.
@@ -218,12 +232,12 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
         // Add region name to workspace.
         ws.configStrings.push_back(regionNameCpy);
 
-        // Compute the size of the region. Since the `allocateElement` calls
-        // above will have bumped the bump pointer to the end of the region,
-        // we compute the region size as the difference between the bump pointer
-        // and the region pointer we saved at the top of the loop.
-        const U64 regionSizeBytes =
-            (reinterpret_cast<U64>(bumpPtr) - reinterpret_cast<U64>(regionPtr));
+        // Compute the size of the region. Since the element allocations will
+        // have bumped the bump pointer to the end of the region, we compute the
+        // region size as the difference between the bump pointer and the region
+        // pointer we saved at the top of the loop.
+        const U64 regionSizeBytes = (reinterpret_cast<U64>(bumpPtr)
+                                     - reinterpret_cast<U64>(regionPtr));
 
         // Allocate region object, add it to the workspace, and put raw pointers
         // to the region name and object in the region config array.
@@ -268,7 +282,6 @@ Result StateVectorAssembly::allocateElement(
     StateVector::ElementConfig& kElemConfig,
     U8*& kBumpPtr)
 {
-    // Assert that bump pointer is not null.
     SF_SAFE_ASSERT(kBumpPtr != nullptr);
 
     // Allocate a copy of the element name, add it to the workspace, and put the
@@ -277,9 +290,7 @@ Result StateVectorAssembly::allocateElement(
     kWs.configStrings.push_back(elemNameCpy);
     kElemConfig.name = elemNameCpy->c_str();
 
-    // Get element type info. Assert that type info is attached to the element
-    // type token. This is guaranteed by the tokenizer and previous validation
-    // of element types appearing in the state vector config.
+    // Get element type info.
     SF_SAFE_ASSERT(kElem.tokType.typeInfo != nullptr);
     const TypeInfo& typeInfo = *kElem.tokType.typeInfo;
 

@@ -55,6 +55,8 @@ Result ExpressionAssembly::compile(const Ref<const ExpressionParse> kParse,
     // Add cast to target evaluation type. We do this even when both types are
     // F64 so that NaNs can be eliminated by safe-casting.
     Ref<IExpression> newRoot = nullptr;
+    SF_SAFE_ASSERT(root != nullptr);
+    SF_SAFE_ASSERT(root->type() == ElementType::FLOAT64);
     switch (kEvalType)
     {
         case ElementType::INT8:
@@ -113,12 +115,12 @@ Result ExpressionAssembly::compile(const Ref<const ExpressionParse> kParse,
             break;
 
         default:
-            SF_ASSERT(false);
+            // Unreachable.
+            SF_SAFE_ASSERT(false);
     }
 
-    ws.exprNodes.push_back(newRoot);
-
     // Add root node to workspace.
+    ws.exprNodes.push_back(newRoot);
     ws.rootNode = newRoot;
 
     // Create the final assembly.
@@ -158,7 +160,9 @@ Result ExpressionAssembly::tokenToF64(const Token& kTok,
     if (val == HUGE_VAL)
     {
         // Numeric constant is out of range.
-        ConfigUtil::setError(kErr, kTok, gErrText,
+        ConfigUtil::setError(kErr,
+                             kTok,
+                             gErrText,
                              "number is outside the representable range");
         return E_EXA_OVFL;
     }
@@ -176,7 +180,7 @@ Result ExpressionAssembly::compileExprStatsFunc(
     ExpressionAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
-    SF_ASSERT(kParse != nullptr);
+    SF_SAFE_ASSERT(kParse != nullptr);
 
     // Collect argument expression nodes.
     Vec<Ref<const ExpressionParse>> argNodes;
@@ -225,13 +229,18 @@ Result ExpressionAssembly::compileExprStatsFunc(
     }
 
     // Validate the window size.
+    SF_SAFE_ASSERT(arg2Asm != nullptr);
+    SF_SAFE_ASSERT(arg2Asm->root() != nullptr);
+    SF_SAFE_ASSERT(arg2Asm->root()->type() == ElementType::FLOAT64);
     const F64 windowSizeFp =
         static_cast<IExprNode<F64>*>(arg2Asm->root().get())->evaluate();
     if ((windowSizeFp != windowSizeFp)                // NaN
         || (windowSizeFp <= 0)                        // Negative or zero
         || (std::ceil(windowSizeFp) != windowSizeFp)) // Non-integer
     {
-        ConfigUtil::setError(kErr, argNodes[1]->right->data, gErrText,
+        ConfigUtil::setError(kErr,
+                             argNodes[1]->right->data,
+                             gErrText,
                              "rolling window size must be an integer > 0");
         return E_EXA_WIN;
     }
@@ -243,7 +252,10 @@ Result ExpressionAssembly::compileExprStatsFunc(
         std::stringstream ss;
         ss << "rolling window size must be <= "
            << LangConst::rollWindowMaxSize;
-        ConfigUtil::setError(kErr, argNodes[1]->right->data, gErrText, ss.str());
+        ConfigUtil::setError(kErr,
+                             argNodes[1]->right->data,
+                             gErrText,
+                             ss.str());
         return E_EXA_WIN;
     }
 
@@ -258,6 +270,7 @@ Result ExpressionAssembly::compileExprStatsFunc(
     // Create expression stats for first argument expression and add it to the
     // workspace. The expression stats is given raw pointers to the arrays we
     // just allocated.
+    SF_SAFE_ASSERT(arg1Node != nullptr);
     const Ref<ExpressionStats<F64>> exprStats(
         new ExpressionStats<F64>(*arg1Node,
                                  reinterpret_cast<F64*>(statsArrA->data()),
@@ -300,7 +313,7 @@ Result ExpressionAssembly::compileFunction(
     ExpressionAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
-    SF_ASSERT(kParse != nullptr);
+    SF_SAFE_ASSERT(kParse != nullptr);
 
     if ((kParse->data.str == LangConst::funcNameRollAvg)
         || (kParse->data.str == LangConst::funcNameRollMedian)
@@ -319,7 +332,9 @@ Result ExpressionAssembly::compileFunction(
     // Other functions may be added by chaining off the above `if`!
 
     // If we got this far, the function is not recognized.
-    ConfigUtil::setError(kErr, kParse->data, gErrText,
+    ConfigUtil::setError(kErr,
+                         kParse->data,
+                         gErrText,
                          "unknown function `" + kParse->data.str + "`");
     return E_EXA_FUNC;
 }
@@ -331,14 +346,13 @@ Result ExpressionAssembly::compileOperator(
     ExpressionAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
-    SF_ASSERT(kParse != nullptr);
+    SF_SAFE_ASSERT(kParse != nullptr);
 
     // Get operator info.
-    SF_ASSERT(kParse->data.opInfo != nullptr);
+    SF_SAFE_ASSERT(kParse->data.opInfo != nullptr);
     const OpInfo& opInfo = *kParse->data.opInfo;
 
     // Compile right subtree.
-    SF_ASSERT(kParse->right != nullptr);
     Ref<IExprNode<F64>> nodeRight;
     Result res = ExpressionAssembly::compileImpl(kParse->right,
                                                  kSvs,
@@ -349,13 +363,12 @@ Result ExpressionAssembly::compileOperator(
     {
         return res;
     }
-    SF_ASSERT(nodeRight != nullptr);
+    SF_SAFE_ASSERT(nodeRight != nullptr);
 
     // If a binary operator, compile left subtree.
     Ref<IExprNode<F64>> nodeLeft;
     if (!opInfo.unary)
     {
-        SF_ASSERT(kParse->left != nullptr);
         res = ExpressionAssembly::compileImpl(kParse->left,
                                               kSvs,
                                               nodeLeft,
@@ -365,7 +378,7 @@ Result ExpressionAssembly::compileOperator(
         {
             return res;
         }
-        SF_ASSERT(nodeLeft != nullptr);
+        SF_SAFE_ASSERT(nodeLeft != nullptr);
     }
 
     // Create operator node.
@@ -480,8 +493,8 @@ Result ExpressionAssembly::compileOperator(
         }
 
         default:
-            // Unreachable; would indicate an error in the operator info LUT.
-            SF_ASSERT(false);
+            // Unreachable.
+            SF_SAFE_ASSERT(false);
     }
 
     // Add compiled node to workspace.
@@ -513,12 +526,11 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
     }
     else if (kParse->data.type == Token::CONSTANT)
     {
-        // Expression node is a constant element.
+        // Expression node is a constant value.
 
-        // Assert that node has no left or right subtrees. This is guaranteed by
-        // the expression parser.
-        SF_ASSERT(kParse->left == nullptr);
-        SF_ASSERT(kParse->right == nullptr);
+        // Assert that node is a leaf.
+        SF_SAFE_ASSERT(kParse->left == nullptr);
+        SF_SAFE_ASSERT(kParse->right == nullptr);
 
         if (kParse->data.str == LangConst::constantTrue)
         {
@@ -541,6 +553,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 return res;
             }
+
             kNode.reset(new ConstExprNode<F64>(val));
         }
 
@@ -551,20 +564,16 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
     {
         // Expression node is a state vector element.
 
-        // Assert that node has no left or right subtrees. This is guaranteed by
-        // the expression parser.
-        SF_ASSERT(kParse->left == nullptr);
-        SF_ASSERT(kParse->right == nullptr);
+        // Assert that node is a leaf.
+        SF_SAFE_ASSERT(kParse->left == nullptr);
+        SF_SAFE_ASSERT(kParse->right == nullptr);
 
         // Look up element in provided state vectors.
         IElement* elemObj = nullptr;
         for (const Ref<StateVector> sv : kSvs)
         {
-            // Assert that state vector is non-null. This is guaranteed by a
-            // previous validation.
-            SF_SAFE_ASSERT(sv != nullptr);
-
             // Try element lookup and break on success.
+            SF_SAFE_ASSERT(sv != nullptr);
             const Result res = sv->getIElement(kParse->data.str.c_str(),
                                                elemObj);
             if (res == SUCCESS)
@@ -576,7 +585,9 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
         // Check that element was found.
         if (elemObj == nullptr)
         {
-            ConfigUtil::setError(kErr, kParse->data, gErrText,
+            ConfigUtil::setError(kErr,
+                                 kParse->data,
+                                 gErrText,
                                  "unknown element");
             return E_EXA_ELEM;
         }
@@ -676,9 +687,14 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
             }
 
             case ElementType::FLOAT64:
-                kNode.reset(new ElementExprNode<F64>(
+            {
+                const Ref<IExprNode<F64>> nodeElem(new ElementExprNode<F64>(
                     *static_cast<const Element<F64>*>(elemObj)));
+                kNode.reset(new UnaryOpExprNode<F64, F64>(safeCast<F64, F64>,
+                                                          *nodeElem));
+                kWs.exprNodes.push_back(nodeElem);
                 break;
+            }
 
             case ElementType::BOOL:
             {
@@ -691,11 +707,11 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
             }
 
             default:
-                SF_ASSERT(false);
+                // Unreachable.
+                SF_SAFE_ASSERT(false);
         }
 
         // Add compiled node to workspace.
-        SF_ASSERT(kNode != nullptr);
         kWs.exprNodes.push_back(kNode);
     }
     else

@@ -15,14 +15,18 @@ Result StateVectorParse::parse(const Vec<Token>& kToks,
                                ErrorInfo* const kErr,
                                const Vec<String> kRegions)
 {
-    Vec<StateVectorParse::RegionParse> regions;
+    // Create iterator for token vector.
     TokenIterator it(kToks.begin(), kToks.end());
+
+    // Vector of parsed regions.
+    Vec<StateVectorParse::RegionParse> regions;
 
     while (!it.eof())
     {
         switch (it.type())
         {
             case Token::NEWLINE:
+                // Eat newlines.
                 it.take();
                 break;
 
@@ -64,7 +68,11 @@ Result StateVectorParse::parse(const Vec<Token>& kToks,
 
             default:
                 // Unexpected token.
-                SF_ASSERT(false);
+                ConfigUtil::setError(kErr,
+                                     it.tok(),
+                                     gErrText,
+                                     "unexpected token");
+                return E_SVP_TOK;
         }
     }
 
@@ -88,15 +96,15 @@ Result StateVectorParse::parse(const Vec<Token>& kToks,
             if (kErr != nullptr)
             {
                 kErr->text = gErrText;
-                kErr->subtext =
-                    "region `" + regionName + "` does not exist in config";
+                kErr->subtext = ("region `" + regionName
+                                 + "` does not exist in config");
             }
 
             return E_SVP_RGN;
         }
     }
 
-    // If we got this far, parse is valid- return it.
+    // Return final parse.
     kParse.reset(new StateVectorParse(regions));
 
     return SUCCESS;
@@ -114,7 +122,7 @@ Result StateVectorParse::parseRegion(TokenIterator& kIt,
                                      ErrorInfo* const kErr)
 {
     // Assert that token iterator is currently positioned at a section.
-    SF_ASSERT(kIt.type() == Token::SECTION);
+    SF_SAFE_ASSERT(kIt.type() == Token::SECTION);
 
     // Take section name.
     kRegion.tokName = kIt.take();
@@ -130,7 +138,9 @@ Result StateVectorParse::parseRegion(TokenIterator& kIt,
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
-            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
+            ConfigUtil::setError(kErr,
+                                 kIt.tok(),
+                                 gErrText,
                                  "expected element type");
             return E_SVP_ELEM_TYPE;
         }
@@ -141,7 +151,9 @@ Result StateVectorParse::parseRegion(TokenIterator& kIt,
         // Check that tokens remain.
         if (kIt.eof())
         {
-            ConfigUtil::setError(kErr, elem.tokType, gErrText,
+            ConfigUtil::setError(kErr,
+                                 elem.tokType,
+                                 gErrText,
                                  "expected element name after type");
             return E_SVP_ELEM_NAME;
         }
@@ -150,7 +162,9 @@ Result StateVectorParse::parseRegion(TokenIterator& kIt,
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
-            ConfigUtil::setError(kErr, kIt.tok(), gErrText,
+            ConfigUtil::setError(kErr,
+                                 kIt.tok(),
+                                 gErrText,
                                  "expected element type");
             return E_SVP_ELEM_NAME;
         }

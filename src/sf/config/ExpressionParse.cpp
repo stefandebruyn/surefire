@@ -14,8 +14,8 @@ Result ExpressionParse::parse(TokenIterator kIt,
                               Ref<const ExpressionParse>& kParse,
                               ErrorInfo* const kErr)
 {
-    // Assert that the iterator is at index zero.
-    SF_ASSERT(kIt.idx() == 0);
+    // Assert that iterator is at the start of the expression.
+    SF_SAFE_ASSERT(kIt.idx() == 0);
 
     // Check that token sequence is not empty.
     if (kIt.size() == 0)
@@ -58,7 +58,7 @@ Result ExpressionParse::parse(TokenIterator kIt,
     // Check that parentheses are balanced.
     if (lvl != 0)
     {
-        SF_ASSERT(tokLastLvl0Paren != nullptr);
+        SF_SAFE_ASSERT(tokLastLvl0Paren != nullptr);
         ConfigUtil::setError(kErr,
                              *tokLastLvl0Paren,
                              gErrText,
@@ -98,7 +98,7 @@ Result ExpressionParse::parse(TokenIterator kIt,
         return res;
     }
 
-    // Convert tree to one of user-facing public node type.
+    // Convert tree to the public, const type.
     ExpressionParse::convertTree(root, kParse);
 
     return SUCCESS;
@@ -122,7 +122,7 @@ Result ExpressionParse::popSubexpression(
     }
 
     // Get operator info.
-    SF_ASSERT(op.opInfo != nullptr);
+    SF_SAFE_ASSERT(op.opInfo != nullptr);
     const OpInfo& opInfo = *op.opInfo;
 
     // Pop RHS from stack.
@@ -136,6 +136,7 @@ Result ExpressionParse::popSubexpression(
     kNodes.pop();
 
     // Check that RHS comes before the operator in the expression.
+    SF_SAFE_ASSERT(right != nullptr);
     if ((right->data.lineNum < op.lineNum) || (right->data.colNum < op.colNum))
     {
         // "RHS" is actually to the left of the operator. This
@@ -171,12 +172,12 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
 {
     // Assert that token sequence is an identifier followed by an open
     // parenthese and ending with a close parenthese.
-    SF_ASSERT(kIt.size() >= 3);
-    SF_ASSERT(kIt[0].type == Token::IDENTIFIER);
-    SF_ASSERT(kIt[1].type == Token::LPAREN);
-    SF_ASSERT(kIt[kIt.size() - 1].type == Token::RPAREN);
+    SF_SAFE_ASSERT(kIt.size() >= 3);
+    SF_SAFE_ASSERT(kIt[0].type == Token::IDENTIFIER);
+    SF_SAFE_ASSERT(kIt[1].type == Token::LPAREN);
+    SF_SAFE_ASSERT(kIt[kIt.size() - 1].type == Token::RPAREN);
 
-    // Stores iterators for each argument expression in the function call.
+    // Vector of iterators for each argument expression in the function call.
     Vec<TokenIterator> argExprs;
 
     // Parenthese level.
@@ -188,10 +189,15 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
 
     while (!kIt.eof())
     {
+        // Increment parenthese level on open parenthese.
         if (kIt.type() == Token::LPAREN)
         {
             ++lvl;
         }
+
+        // Decrement parenthese level on close parenthese. Ignore the final
+        // close parenthese, which is a special case that marks the end of the
+        // last function argument.
         else if ((kIt.idx() != (kIt.size() - 1))
                  && (kIt.type() == Token::RPAREN))
         {
@@ -210,7 +216,9 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
             if (((idxArgStart != 2) || (kIt.idx() != (kIt.size() - 1)))
                 && emptyArg)
             {
-                ConfigUtil::setError(kErr, kIt.tok(), gErrText,
+                ConfigUtil::setError(kErr,
+                                     kIt.tok(),
+                                     gErrText,
                                      "invalid syntax");
                 return E_EXP_SYNTAX;
             }
@@ -219,12 +227,14 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
             {
                 // Slice iterator for parsing the argument expression later.
                 argExprs.push_back(kIt.slice(idxArgStart, kIt.idx()));
+
                 // Bump starting index of next argument expression to after the
                 // comma.
                 idxArgStart = (kIt.idx() + 1);
             }
         }
 
+        // Go to next token.
         kIt.take();
     }
 
@@ -237,10 +247,13 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
     Ref<ExpressionParse::MutNode> node = kNode;
     for (TokenIterator& argIt : argExprs)
     {
-        node->left.reset(
-            new ExpressionParse::MutNode{{}, nullptr, nullptr, false});
-        const Result res =
-            ExpressionParse::parseImpl(argIt, node->left->right, kErr);
+        node->left.reset(new ExpressionParse::MutNode{{},
+                                                      nullptr,
+                                                      nullptr,
+                                                      false});
+        const Result res = ExpressionParse::parseImpl(argIt,
+                                                      node->left->right,
+                                                      kErr);
         if (res != SUCCESS)
         {
             return res;
@@ -251,18 +264,19 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
     return SUCCESS;
 }
 
-void ExpressionParse::expandDoubleIneq(const Ref<ExpressionParse::MutNode> kNode)
+void ExpressionParse::expandDoubleIneq(
+    const Ref<ExpressionParse::MutNode> kNode)
 {
-    // Recursion base case.
+    // Base case: node is null, so we fell off the tree.
     if (kNode == nullptr)
     {
         return;
     }
 
+    // Skip nodes without left and right subtrees (which can't be operators).
     if ((kNode->left != nullptr) && (kNode->right != nullptr))
     {
-        if (OpInfo::relOps.find(kNode->data.str)
-            != OpInfo::relOps.end())
+        if (OpInfo::relOps.find(kNode->data.str) != OpInfo::relOps.end())
         {
             // If this node and the left node contain a relational operator,
             // this is a double inequality. It's impossible for the right node
@@ -272,6 +286,7 @@ void ExpressionParse::expandDoubleIneq(const Ref<ExpressionParse::MutNode> kNode
             if (OpInfo::relOps.find(kNode->left->data.str)
                 != OpInfo::relOps.end())
             {
+                // Join inequalities with an AND operator.
                 kNode->right.reset(new ExpressionParse::MutNode{
                     kNode->data, kNode->left->right, kNode->right, false});
                 kNode->data =
@@ -307,10 +322,10 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
     }
     toks.push_back({Token::RPAREN, ")", -1, -1, nullptr, nullptr});
 
-    // Stack of expression nodes yet to be installed in the binary tree.
+    // Stack of expression tree nodes.
     std::stack<Ref<ExpressionParse::MutNode>> nodes;
 
-    // Operator and operand stack.
+    // Stack of nodes not yet installed in the expression tree.
     std::stack<Token> stack;
 
     U32 i = 0;
@@ -352,12 +367,17 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
                     }
                 }
 
+                // Assert that parenthese level is zero since balanced
+                // parentheses was validated previously.
+                SF_SAFE_ASSERT(lvl == 0);
+
                 // Parse function and push onto tree.
                 Ref<ExpressionParse::MutNode> funcNode;
                 TokenIterator funcIt((toks.begin() + i),
                                      (toks.begin() + j + 1));
-                const Result res =
-                    ExpressionParse::parseFunctionCall(funcIt, funcNode, kErr);
+                const Result res = ExpressionParse::parseFunctionCall(funcIt,
+                                                                      funcNode,
+                                                                      kErr);
                 if (res != SUCCESS)
                 {
                     return res;
@@ -381,19 +401,20 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
         else if (tok.type == Token::OPERATOR)
         {
             // Get operator info.
-            SF_ASSERT(tok.opInfo != nullptr);
+            SF_SAFE_ASSERT(tok.opInfo != nullptr);
             const OpInfo& opInfo = *tok.opInfo;
 
             while (!stack.empty())
             {
-                // Look up operator info of last item on stack.
+                // If last node on stack is not an operator, keep going.
                 const Token& tokLast = stack.top();
                 if (tokLast.type != Token::OPERATOR)
                 {
-                    // Last item on stack is not an operator; keep going.
                     break;
                 }
-                SF_ASSERT(tokLast.opInfo != nullptr);
+
+                // Get operator info for last operator.
+                SF_SAFE_ASSERT(tokLast.opInfo != nullptr);
                 const OpInfo& lastOpInfo = *tokLast.opInfo;
 
                 // Determine whether to process the subexpression currently on
@@ -410,8 +431,9 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
                 {
                     // This operator is lower precedence than the last one; add
                     // last operator subexpression onto the expression tree.
-                    const Result res =
-                        ExpressionParse::popSubexpression(stack, nodes, kErr);
+                    const Result res = ExpressionParse::popSubexpression(stack,
+                                                                         nodes,
+                                                                         kErr);
                     if (res != SUCCESS)
                     {
                         return res;
@@ -436,8 +458,9 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
             // Process subexpression on stack.
             while (stack.top().type != Token::LPAREN)
             {
-                const Result res =
-                    ExpressionParse::popSubexpression(stack, nodes, kErr);
+                const Result res = ExpressionParse::popSubexpression(stack,
+                                                                     nodes,
+                                                                     kErr);
                 if (res != SUCCESS)
                 {
                     return res;
@@ -445,7 +468,7 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
             }
 
             // Pop left parenthese.
-            SF_ASSERT(stack.top().type == Token::LPAREN);
+            SF_SAFE_ASSERT(stack.top().type == Token::LPAREN);
             stack.pop();
         }
 
@@ -455,22 +478,26 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
     // Check that stack is empty.
     if (stack.size() != 0)
     {
-        ConfigUtil::setError(kErr, stack.top(), gErrText,
-                             "invalid expression");
+        ConfigUtil::setError(kErr,
+                             stack.top(),
+                             gErrText,
+                             "invalid syntax");
         return E_EXP_SYNTAX;
     }
 
     // Check that expression tree contains at least 1 node.
     if (nodes.size() == 0)
     {
-        ConfigUtil::setError(kErr, kIt[0], gErrText, "invalid expression");
+        ConfigUtil::setError(kErr, kIt[0], gErrText, "invalid syntax");
         return E_EXP_EMPTY;
     }
 
     // Check that there is exactly 1 node on the stack (root node).
     if (nodes.size() != 1)
     {
-        ConfigUtil::setError(kErr, nodes.top()->data, gErrText,
+        ConfigUtil::setError(kErr,
+                             nodes.top()->data,
+                             gErrText,
                              "invalid syntax");
         return E_EXP_SYNTAX;
     }
@@ -487,20 +514,20 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
 void ExpressionParse::convertTree(Ref<ExpressionParse::MutNode> kFrom,
                                   Ref<const ExpressionParse>& kTo)
 {
+    // Base case: node is null, so we fell off the tree.
     if (kFrom == nullptr)
     {
         return;
     }
 
+    // Convert left and right subtrees.
     Ref<const ExpressionParse> left;
     Ref<const ExpressionParse> right;
     ExpressionParse::convertTree(kFrom->left, left);
     ExpressionParse::convertTree(kFrom->right, right);
 
-    kTo.reset(new ExpressionParse(kFrom->data,
-                                  left,
-                                  right,
-                                  kFrom->func));
+    // Convert current node.
+    kTo.reset(new ExpressionParse(kFrom->data, left, right, kFrom->func));
 }
 
 ExpressionParse::ExpressionParse(const Token kData,

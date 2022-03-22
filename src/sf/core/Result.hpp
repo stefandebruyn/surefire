@@ -54,6 +54,7 @@ enum : Result
     E_SVP_ELEM_NAME = 288,
     E_SVP_ELEM_TYPE = 289,
     E_SVP_RGN = 290,
+    E_SVP_TOK = 291,
 
     // StateMachineParse
     E_SMP_SEC = 320,

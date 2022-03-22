@@ -18,13 +18,6 @@ Result StateMachineAssembly::compile(const String kFilePath,
                                     Ref<const StateMachineAssembly>& kAsm,
                                     ErrorInfo* const kErr)
 {
-    // Set the error info file path so that error messages generated further
-    // into compilation have the file path.
-    if (kErr != nullptr)
-    {
-        kErr->filePath = kFilePath;
-    }
-
     // Open file input stream.
     std::ifstream ifs(kFilePath);
     if (!ifs.is_open())
@@ -35,6 +28,13 @@ Result StateMachineAssembly::compile(const String kFilePath,
             kErr->subtext = "failed to open file `" + kFilePath + "`";
         }
         return E_SMA_FILE;
+    }
+
+    // Set the error info file path for error messages generated further into
+    // compilation.
+    if (kErr != nullptr)
+    {
+        kErr->filePath = kFilePath;
     }
 
     // Send input stream into the next compilation phase.
@@ -88,11 +88,11 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     // Initialize a blank workspace for the compilation.
     StateMachineAssembly::Workspace ws = {};
 
-    // Put the state machine parse in the workspace so that the original parse
-    // which became the state machine can be recalled.
+    // Put the state machine parse in the workspace so that it can be recalled
+    // later.
     ws.smParse = kParse;
 
-    // Allocate a vector for storing state machine configs.
+    // Allocate state machine state config array.
     ws.stateConfigs.reset(new Vec<StateMachine::StateConfig>());
 
     // Validate the state machine state vector. This will partially populate
@@ -148,11 +148,7 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
                             exprAsmStats.end());
     }
 
-    // Copy addresses of expression stats into a vector. The memory underlying
-    // this vector will be directly provided to the state machine config. The
-    // memory is twice-wrapped in a vector and then a shared pointer to
-    // automatically handle deallocation. (C++11 shared pointers are not
-    // specialized for native arrays, so a vector is used instead.)
+    // Allocate array for expression stats pointers.
     ws.exprStatArr.reset(new Vec<IExpressionStats*>());
     for (const Ref<IExpressionStats> exprStats : allExprStats)
     {
@@ -162,19 +158,25 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     // Add expression stats array null terminator required by state machine.
     ws.exprStatArr->push_back(nullptr);
 
-    // Add null terminator to state config vector required by state machine. The
-    // memory underlying this vector will be directly provided to the state
-    // machine config.
+    // Add null terminator to state config vector required by state machine.
     ws.stateConfigs->push_back({StateMachine::NO_STATE,
                                 nullptr,
                                 nullptr,
                                 nullptr});
 
     // Config is done- create new state machine with it. The config is given the
-    // raw pointers of the state config and expression stats arrays underlying
-    // the previously allocated vectors, as well as raw pointers of certain
-    // state vector elements. The lifetimes of these elements are managed by
-    // the global/local state vector assemblies.
+    // raw pointers underlying the previously allocated state config and
+    // expression stats vectors, as well as raw pointers of certain state vector
+    // elements.
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameState] != nullptr);
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameStateTime] != nullptr);
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameGlobalTime] != nullptr);
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameState]->type()
+                   == ElementType::UINT32);
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameStateTime]->type()
+                   == ElementType::UINT64);
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameGlobalTime]->type()
+                   == ElementType::UINT64);
     const StateMachine::Config smConfig =
     {
         static_cast<Element<U32>*>(ws.elems[LangConst::elemNameState]),
@@ -244,9 +246,11 @@ Result StateMachineAssembly::checkStateVector(
         if (kSv->getIElement(elem.tokName.str.c_str(), elemObj) != SUCCESS)
         {
             // Element does not exist in state vector.
-            ConfigUtil::setError(kErr, elem.tokName, gErrText,
-                                 "element `" + elem.tokName.str + "` does not "
-                                 "exist in state vector");
+            ConfigUtil::setError(kErr,
+                                 elem.tokName,
+                                 gErrText,
+                                 ("element `" + elem.tokName.str
+                                  + "` does not exist in state vector"));
             return E_SMA_SV_ELEM;
         }
         SF_SAFE_ASSERT(elemObj != nullptr);
@@ -256,8 +260,10 @@ Result StateMachineAssembly::checkStateVector(
         if (smTypeInfoIt == TypeInfo::fromName.end())
         {
             // Unknown type.
-            ConfigUtil::setError(kErr, elem.tokType, gErrText,
-                                 "unknown type `" + elem.tokType.str + "`");
+            ConfigUtil::setError(kErr,
+                                 elem.tokType,
+                                 gErrText,
+                                 ("unknown type `" + elem.tokType.str + "`"));
             return E_SMA_TYPE;
         }
         const TypeInfo& smTypeInfo = (*smTypeInfoIt).second;
@@ -295,16 +301,16 @@ Result StateMachineAssembly::checkStateVector(
         // change in special cases.
         bool elemReadOnly = elem.readOnly;
 
-        // Check that global time element is the correct type.
+        // Check for global time element.
         if ((elem.tokName.str == LangConst::elemNameGlobalTime)
             || (elem.alias == LangConst::elemNameGlobalTime))
         {
-            // Global time element is automatically read-only.
+            // Global time element is implicitly read-only.
             elemReadOnly = true;
 
+            // Check that global time element is U64.
             if (smTypeInfo.enumVal != ElementType::UINT64)
             {
-                // Global time element is not U64.
                 std::stringstream ss;
                 ss << "`" << LangConst::elemNameGlobalTime
                    << "` must be type U64 (" << elem.tokType.str << " here)";
@@ -313,16 +319,16 @@ Result StateMachineAssembly::checkStateVector(
             }
         }
 
-        // Check that state element is the correct type.
+        // Check for state element.
         if ((elem.tokName.str == LangConst::elemNameState)
             || (elem.alias == LangConst::elemNameState))
         {
-            // State element is automatically read-only.
+            // State element is implicitly read-only.
             elemReadOnly = true;
 
+            // Check that state element is U32.
             if (smTypeInfo.enumVal != ElementType::UINT32)
             {
-                // State element is not U32.
                 std::stringstream ss;
                 ss << "`" << LangConst::elemNameState << "` must be type U32 ("
                    << elem.tokType.str << " here)";
@@ -331,7 +337,7 @@ Result StateMachineAssembly::checkStateVector(
             }
         }
 
-        // If the element is aliased, add the alias to the symbol table too.
+        // If the element is aliased, add the alias to the symbol table as well.
         if (elem.alias.size() > 0)
         {
             kWs.elems[elem.alias] = elemObj;
@@ -348,26 +354,26 @@ Result StateMachineAssembly::checkStateVector(
         }
     }
 
+    // Check that a global time element was provided.
     if (kWs.elems.find(LangConst::elemNameGlobalTime) == kWs.elems.end())
     {
-        // No global time element provided.
         if (kErr != nullptr)
         {
             kErr->text = gErrText;
-            kErr->subtext = "no global time element aliased to `"
-                            + LangConst::elemNameGlobalTime + "`";
+            kErr->subtext = ("no global time element aliased to `"
+                             + LangConst::elemNameGlobalTime + "`");
         }
         return E_SMA_NO_G;
     }
 
+    // Check that a state element was provided.
     if (kWs.elems.find(LangConst::elemNameState) == kWs.elems.end())
     {
-        // No state element provided.
         if (kErr != nullptr)
         {
             kErr->text = gErrText;
-            kErr->subtext = "no state element aliased to `"
-                            + LangConst::elemNameState + "`";
+            kErr->subtext = ("no state element aliased to `"
+                             + LangConst::elemNameState + "`");
         }
         return E_SMA_NO_S;
     }
@@ -380,13 +386,20 @@ Result StateMachineAssembly::compileLocalStateVector(
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
+    SF_SAFE_ASSERT(kParse != nullptr);
+
+    // The local state vector will be compiled from a manually-built config
+    // in a string stream. All elements are configured in a single region.
+
+    // Add region and built-in state time element.
     std::stringstream localSvConfig;
     localSvConfig << LangConst::sectionLocal << "\n"
                   << "U64 " << LangConst::elemNameStateTime << "\n";
 
-    // State time element is automatically read-only.
+    // State time element is implicitly read-only.
     kWs.readOnlyElems.insert(LangConst::elemNameStateTime);
 
+    // Add user-configured local elements.
     for (U32 i = 0; i < kParse->localElems.size(); ++i)
     {
         const StateMachineParse::LocalElementParse& elem =
@@ -421,9 +434,9 @@ Result StateMachineAssembly::compileLocalStateVector(
         }
     }
 
-    // Compile the local state vector. Since the local state vector parse is at
-    // least syntatically correct, there are very few potential errors that the
-    // state vector compiler can generate here.
+    // Compile the local state vector. We know local state vector config is at
+    // least syntatically correct, so the only errors that can occur here would
+    // be caused by the user-configured local elements.
     Result res = StateVectorAssembly::compile(localSvConfig,
                                               kWs.localSvAsm,
                                               kErr);
@@ -432,16 +445,10 @@ Result StateMachineAssembly::compileLocalStateVector(
         return res;
     }
 
-    // Assert that local state vector assembly contains exactly one region. This
-    // is guaranteed by the configuration above.
-    SF_SAFE_ASSERT(kWs.localSvAsm->parse()->regions.size() == 1);
-
-    // Assert that the pointers we're about to dereference are non-null. This is
-    // guaranteed by prior assembly code.
+    // Add local state vector elements to element symbol table.
     SF_SAFE_ASSERT(kWs.localSvAsm != nullptr);
     SF_SAFE_ASSERT(kWs.localSvAsm->parse() != nullptr);
-
-    // Add local state vector elements to element symbol table.
+    SF_SAFE_ASSERT(kWs.localSvAsm->parse()->regions.size() == 1);
     for (const StateVectorParse::ElementParse& elem :
          kWs.localSvAsm->parse()->regions[0].elems)
     {
@@ -449,9 +456,6 @@ Result StateMachineAssembly::compileLocalStateVector(
         IElement* elemObj = nullptr;
         res = kWs.localSvAsm->get()->getIElement(elem.tokName.str.c_str(),
                                                  elemObj);
-
-        // Assert that lookup succeeded. This is guaranteed by the local state
-        // vector configuration above.
         SF_SAFE_ASSERT(res == SUCCESS);
         SF_SAFE_ASSERT(elemObj != nullptr);
 
@@ -491,7 +495,7 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
             return E_SMA_SELF_REF;
         }
 
-        // Check that element is not a (non-local) state vector element.
+        // Check that element is not a non-local state vector element.
         IElement* elemObj = nullptr;
         if (kSv->getIElement(kExpr->data.str.c_str(), elemObj) == SUCCESS)
         {
@@ -502,11 +506,8 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
             return E_SMA_LOC_SV_REF;
         }
 
-        // Assert that the state machine parse in the workspace is non-null.
-        // This is guaranteed by earlier assembly code.
-        SF_ASSERT(kWs.smParse != nullptr);
-
         // Check that element is not used before it's initialized.
+        SF_SAFE_ASSERT(kWs.smParse != nullptr);
         for (const StateMachineParse::LocalElementParse& elem :
              kWs.smParse->localElems)
         {
@@ -520,8 +521,7 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
             // before running into the element being initialized, then that's
             // a use-before-initialization error. Technically this would be
             // well-defined since elements default to zero even before being
-            // initialized, but we still consider it unsafe to let the user do
-            // this.
+            // initialized, but we still consider it unsafe.
             if (elem.tokName.str == kInitElem.tokName.str)
             {
                 std::stringstream ss;
@@ -564,8 +564,6 @@ Result StateMachineAssembly::initLocalElementValues(
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
-    // Assert that all the pointers we're about to dereference are non-null.
-    // This is guaranteed by prior assembly code.
     SF_SAFE_ASSERT(kParse != nullptr);
     SF_SAFE_ASSERT(kWs.localSvAsm != nullptr);
     SF_SAFE_ASSERT(kWs.localSvAsm->get() != nullptr);
@@ -584,9 +582,7 @@ Result StateMachineAssembly::initLocalElementValues(
             return res;
         }
 
-        // Look up element object so that we can get its type as an enum. Assert
-        // that this lookup succeeds, which is guaranteed by the prior local
-        // state vector compilation.
+        // Look up element object so that we can get its type as an enum.
         IElement* const elemObj = kWs.elems[elem.tokName.str];
         SF_SAFE_ASSERT(elemObj != nullptr);
 
@@ -602,16 +598,13 @@ Result StateMachineAssembly::initLocalElementValues(
             return res;
         }
 
-        // Assert that the pointers we're about to dereference are non-null.
-        // This is guaranteed by the expression compiler.
-        SF_SAFE_ASSERT(initExprAsm != nullptr);
-        IExpression* const iroot = initExprAsm->root().get();
-        SF_SAFE_ASSERT(iroot != nullptr);
-
         // Evaluate expression and write to element. The element and expression
         // pointers are narrowed to template instantiations matching the
         // element's type. These casts are guaranteed valid by the element and
         // expression implementations.
+        SF_SAFE_ASSERT(initExprAsm != nullptr);
+        IExpression* const iroot = initExprAsm->root().get();
+        SF_SAFE_ASSERT(iroot != nullptr);
         switch (elemObj->type())
         {
             case ElementType::INT8:
@@ -740,6 +733,8 @@ Result StateMachineAssembly::compileAction(
     Ref<IAction>& kAction,
     ErrorInfo* const kErr)
 {
+    SF_SAFE_ASSERT(kParse != nullptr);
+
     Result res = SUCCESS;
 
     if (kParse->lhs != nullptr)
@@ -751,26 +746,30 @@ Result StateMachineAssembly::compileAction(
         if (elemIt == kWs.elems.end())
         {
             // Unknown element.
-            ConfigUtil::setError(
-                kErr, kParse->tokRhs, gErrText,
-                "unknown element `" + kParse->tokRhs.str + "`");
+            ConfigUtil::setError(kErr,
+                                 kParse->tokRhs,
+                                 gErrText,
+                                 ("unknown element `" + kParse->tokRhs.str
+                                  + "`"));
             return E_SMA_ASG_ELEM;
         }
         IElement* const elemObj = (*elemIt).second;
 
-        // Check that RHS element is not read-only. This includes elements
-        // marked read-only by the user and reserved elements.
+        // Check that RHS element is not read-only.
         if (kWs.readOnlyElems.find(kParse->tokRhs.str)
             != kWs.readOnlyElems.end())
         {
-            ConfigUtil::setError(kErr, kParse->tokRhs, gErrText,
-                                 "element `" + kParse->tokRhs.str + "` is "
-                                 "read-only");
+            ConfigUtil::setError(kErr,
+                                 kParse->tokRhs,
+                                 gErrText,
+                                 ("element `" + kParse->tokRhs.str
+                                  + "` is read-only"));
             return E_SMA_ELEM_RO;
         }
 
         // Compile LHS expression.
         Ref<const ExpressionAssembly> lhsAsm;
+        SF_SAFE_ASSERT(elemObj != nullptr);
         res = ExpressionAssembly::compile(kParse->lhs,
                                           {kSv, kWs.localSvAsm->get()},
                                           elemObj->type(),
@@ -795,105 +794,124 @@ Result StateMachineAssembly::compileAction(
         // and LHS root nodes are narrowed to template instantiations that match
         // the element type. These casts are guaranteed correct in this context
         // by the element and expression compiler implementations.
+        SF_SAFE_ASSERT(lhsAsm != nullptr);
+        SF_SAFE_ASSERT(lhsAsm->root() != nullptr);
         switch (elemObj->type())
         {
             case ElementType::INT8:
+                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::INT8);
                 kAction.reset(new AssignmentAction<I8>(
                     *static_cast<Element<I8>*>(elemObj),
                     *static_cast<IExprNode<I8>*>(lhsAsm->root().get())));
                 break;
 
             case ElementType::INT16:
+                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::INT16);
                 kAction.reset(new AssignmentAction<I16>(
                     *static_cast<Element<I16>*>(elemObj),
                     *static_cast<IExprNode<I16>*>(lhsAsm->root().get())));
                 break;
 
             case ElementType::INT32:
+                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::INT32);
                 kAction.reset(new AssignmentAction<I32>(
                     *static_cast<Element<I32>*>(elemObj),
                     *static_cast<IExprNode<I32>*>(lhsAsm->root().get())));
                 break;
 
             case ElementType::INT64:
+                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::INT64);
                 kAction.reset(new AssignmentAction<I64>(
                     *static_cast<Element<I64>*>(elemObj),
                     *static_cast<IExprNode<I64>*>(lhsAsm->root().get())));
                 break;
 
             case ElementType::UINT8:
+                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::UINT8);
                 kAction.reset(new AssignmentAction<U8>(
                     *static_cast<Element<U8>*>(elemObj),
                     *static_cast<IExprNode<U8>*>(lhsAsm->root().get())));
                 break;
 
             case ElementType::UINT16:
+                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::UINT16);
                 kAction.reset(new AssignmentAction<U16>(
                     *static_cast<Element<U16>*>(elemObj),
                     *static_cast<IExprNode<U16>*>(lhsAsm->root().get())));
                 break;
 
             case ElementType::UINT32:
+                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::UINT32);
                 kAction.reset(new AssignmentAction<U32>(
                     *static_cast<Element<U32>*>(elemObj),
                     *static_cast<IExprNode<U32>*>(lhsAsm->root().get())));
                 break;
 
             case ElementType::UINT64:
+                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::UINT64);
                 kAction.reset(new AssignmentAction<U64>(
                     *static_cast<Element<U64>*>(elemObj),
                     *static_cast<IExprNode<U64>*>(lhsAsm->root().get())));
                 break;
 
             case ElementType::FLOAT32:
+                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::FLOAT32);
                 kAction.reset(new AssignmentAction<F32>(
                     *static_cast<Element<F32>*>(elemObj),
                     *static_cast<IExprNode<F32>*>(lhsAsm->root().get())));
                 break;
 
             case ElementType::FLOAT64:
+                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::FLOAT64);
                 kAction.reset(new AssignmentAction<F64>(
                     *static_cast<Element<F64>*>(elemObj),
                     *static_cast<IExprNode<F64>*>(lhsAsm->root().get())));
                 break;
 
             case ElementType::BOOL:
+                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::BOOL);
                 kAction.reset(new AssignmentAction<bool>(
                     *static_cast<Element<bool>*>(elemObj),
                     *static_cast<IExprNode<bool>*>(lhsAsm->root().get())));
                 break;
 
             default:
-                SF_ASSERT(false);
+                // Unreachable.
+                SF_SAFE_ASSERT(false);
         }
     }
     else
     {
         // Compile transition action.
 
+        // Check that transition is not in an exit label.
         if (kInExitLabel)
         {
-            // Illegal transition in exit label.
-            ConfigUtil::setError(kErr, kParse->tokTransitionKeyword, gErrText,
+            ConfigUtil::setError(kErr,
+                                 kParse->tokTransitionKeyword,
+                                 gErrText,
                                  "illegal transition in exit label");
             return E_SMA_TR_EXIT;
         }
 
+        // Validate destination state.
         auto stateIdIt = kWs.stateIds.find(kParse->tokDestState.str);
         if (stateIdIt == kWs.stateIds.end())
         {
-            // Unknown destination state.
-            ConfigUtil::setError(kErr, kParse->tokDestState, gErrText,
-                                 "unknown state `" + kParse->tokDestState.str
-                                 + "`");
+            ConfigUtil::setError(kErr,
+                                 kParse->tokDestState,
+                                 gErrText,
+                                 ("unknown state `" + kParse->tokDestState.str
+                                  + "`"));
             return E_SMA_STATE;
         }
+
+        // Create transition action with destination state.
         const U32 destState = (*stateIdIt).second;
         kAction.reset(new TransitionAction(destState));
     }
 
     // Add compiled action to the workspace.
-    SF_ASSERT(kAction != nullptr);
     kWs.actions.push_back(kAction);
 
     return SUCCESS;
@@ -907,10 +925,11 @@ Result StateMachineAssembly::compileBlock(
     Ref<StateMachine::Block>& kBlock,
     ErrorInfo* const kErr)
 {
-    SF_ASSERT(kParse != nullptr);
-    SF_ASSERT(kSv != nullptr);
+    SF_SAFE_ASSERT(kParse != nullptr);
+    SF_SAFE_ASSERT(kSv != nullptr);
 
-    // Assertions are only allowed in state scripts, not state machines.
+    // Check that an assertion (which is only allowed in state scripts) is not
+    // being used in the state machine.
     if (kParse->assertion != nullptr)
     {
         // Error message will point to the first token in the assertion
@@ -958,6 +977,9 @@ Result StateMachineAssembly::compileBlock(
         kWs.exprAsms.push_back(guardAsm);
 
         // Put compiled guard raw pointer in owning block.
+        SF_SAFE_ASSERT(guardAsm != nullptr);
+        SF_SAFE_ASSERT(guardAsm->root() != nullptr);
+        SF_SAFE_ASSERT(guardAsm->root()->type() == ElementType::BOOL);
         kBlock->guard = static_cast<IExprNode<bool>*>(guardAsm->root().get());
 
         if (kParse->ifBlock != nullptr)
@@ -976,6 +998,7 @@ Result StateMachineAssembly::compileBlock(
             }
 
             // Put compiled block raw pointer in owning block.
+            SF_SAFE_ASSERT(block != nullptr);
             kBlock->ifBlock = block.get();
         }
 
@@ -983,18 +1006,19 @@ Result StateMachineAssembly::compileBlock(
         {
             // Compile else branch block.
             Ref<StateMachine::Block> block;
-            res = compileBlock(kParse->elseBlock,
-                               kSv,
-                               kWs,
-                               kInExitLabel,
-                               block,
-                               kErr);
+            res = StateMachineAssembly::compileBlock(kParse->elseBlock,
+                                                     kSv,
+                                                     kWs,
+                                                     kInExitLabel,
+                                                     block,
+                                                     kErr);
             if (res != SUCCESS)
             {
                 return res;
             }
 
             // Put compiled block raw pointer in owning block.
+            SF_SAFE_ASSERT(block != nullptr);
             kBlock->elseBlock = block.get();
         }
     }
@@ -1015,6 +1039,7 @@ Result StateMachineAssembly::compileBlock(
         }
 
         // Put compiled action raw pointer in block struct.
+        SF_SAFE_ASSERT(action != nullptr);
         kBlock->action = action.get();
     }
 
@@ -1034,6 +1059,7 @@ Result StateMachineAssembly::compileBlock(
         }
 
         // Put compiled block raw pointer in owning block.
+        SF_SAFE_ASSERT(block != nullptr);
         kBlock->next = block.get();
     }
 
@@ -1046,7 +1072,7 @@ Result StateMachineAssembly::compileState(
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
-    SF_ASSERT(kWs.stateConfigs != nullptr);
+    SF_SAFE_ASSERT(kWs.stateConfigs != nullptr);
 
     // State ID is the current number of compiled states + 1 so that state IDs
     // begin at 1.
@@ -1075,6 +1101,7 @@ Result StateMachineAssembly::compileState(
         }
 
         // Put compiled block raw pointer in owning state.
+        SF_SAFE_ASSERT(entryBlock != nullptr);
         stateConfig.entry = entryBlock.get();
     }
 
@@ -1094,6 +1121,7 @@ Result StateMachineAssembly::compileState(
         }
 
         // Put compiled block raw pointer in owning state.
+        SF_SAFE_ASSERT(stepBlock != nullptr);
         stateConfig.step = stepBlock.get();
     }
 
@@ -1113,6 +1141,7 @@ Result StateMachineAssembly::compileState(
         }
 
         // Put compiled block raw pointer in owning state.
+        SF_SAFE_ASSERT(exitBlock != nullptr);
         stateConfig.exit = exitBlock.get();
     }
 

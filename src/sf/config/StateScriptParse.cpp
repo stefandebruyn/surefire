@@ -12,7 +12,10 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
                                Ref<const StateScriptParse>& kParse,
                                ErrorInfo* const kErr)
 {
+    // Create iterator for token vector.
     TokenIterator it(kToks.begin(), kToks.end());
+
+    // Vector of parsed sections.
     Vec<StateScriptParse::SectionParse> sections;
 
     // Consume any leading newlines.
@@ -54,7 +57,7 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
         it.seek(idxEnd);
     }
 
-    // If we got this far, the parse is valid- return it.
+    // Return final parse.
     kParse.reset(new StateScriptParse(sections));
 
     return SUCCESS;
