@@ -940,3 +940,15 @@ TEST(ExpressionAssemblyErrors, NullStateVector)
     ::setup("1", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, {sv}, E_EXA_NULL, -1, -1);
 }
+
+TEST(ExpressionAssemblyErrors, NullParse)
+{
+    const Ref<const ExpressionParse> exprParse;
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_ERROR(E_EXA_NULL, ExpressionAssembly::compile(exprParse,
+                                                        {},
+                                                        ElementType::FLOAT64,
+                                                        exprAsm,
+                                                        nullptr));
+    CHECK_TRUE(exprAsm == nullptr);
+}

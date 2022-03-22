@@ -1168,3 +1168,14 @@ TEST(StateMachineAssemblyErrors, LocalElementUseBeforeInitialization)
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
     checkCompileError(smParse, sv, E_SMA_UBI, 6, 11);
 }
+
+TEST(StateMachineAssemblyErrors, NullParse)
+{
+    const Ref<const StateMachineParse> smParse;
+    Ref<const StateMachineAssembly> smAsm;
+    CHECK_ERROR(E_SMA_NULL, StateMachineAssembly::compile(smParse,
+                                                          nullptr,
+                                                          smAsm,
+                                                          nullptr));
+    CHECK_TRUE(smAsm == nullptr);
+}

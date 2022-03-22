@@ -469,3 +469,13 @@ TEST(StateVectorAssemblyErrors, UnknownElementType)
         "I33 foo\n");
     checkCompileError(toks, E_SVA_ELEM_TYPE, 2, 1);
 }
+
+TEST(StateVectorAssemblyErrors, NullParse)
+{
+    const Ref<const StateVectorParse> smParse;
+    Ref<const StateVectorAssembly> smAsm;
+    CHECK_ERROR(E_SVA_NULL, StateVectorAssembly::compile(smParse,
+                                                         smAsm,
+                                                         nullptr));
+    CHECK_TRUE(smAsm == nullptr);
+}
