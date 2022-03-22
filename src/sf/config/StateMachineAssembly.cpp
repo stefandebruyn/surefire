@@ -185,7 +185,13 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     };
     ws.sm.reset(new StateMachine());
     res = StateMachine::create(smConfig, *ws.sm);
-    SF_ASSERT(res == SUCCESS);
+    if (res != SUCCESS)
+    {
+        // Since the state machine config is known correct, the most likely
+        // error here is that the user didn't set a valid initial state in the
+        // state element.
+        return res;
+    }
 
     // Compilation is done- clear the workspace of unneeded data before we pass
     // it to the final assembly.
