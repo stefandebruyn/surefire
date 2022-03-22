@@ -910,7 +910,7 @@ TEST(ExpressionAssemblyErrors, StatsFunctionNaNWindowSize)
     Ref<const ExpressionParse> exprParse;
     Ref<const StateVectorAssembly> svAsm;
     Ref<StateVector> sv;
-    ::setup("ROLL_AVG(4, 1 / 0)", "", exprParse, svAsm, sv);
+    ::setup("ROLL_AVG(4, 0 / 0)", "", exprParse, svAsm, sv);
     checkCompileError(exprParse, {}, E_EXA_WIN, 1, 15);
 }
 

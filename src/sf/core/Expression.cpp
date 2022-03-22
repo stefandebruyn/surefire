@@ -241,17 +241,24 @@ I64 safeCast<I64, F64>(const F64 kRhs)
         return 0;
     }
 
-    if (kRhs < Limits::min<I64>())
+    // Note the <= and >= in this function in constrast to the usual < and >.
+    // This accounts for when precision lost in the implicit F64-to-I64
+    // conversion added by the compiler causes the RHS I64 value, which is
+    // numerically larger than the LHS F64 value, to become equal to the LHS.
+    // This also relies on the fact that when this precision loss occurs, the
+    // magnitude of the cast result always goes down, not up.
+
+    if (kRhs <= Limits::min<I64>())
     {
         return Limits::min<I64>();
     }
 
-    if (kRhs > Limits::max<I64>())
+    if (kRhs >= Limits::max<I64>())
     {
         return Limits::max<I64>();
     }
 
-    return static_cast<F64>(kRhs);
+    return static_cast<I64>(kRhs);
 }
 
 template<>
@@ -330,7 +337,9 @@ U64 safeCast<U64, F64>(const F64 kRhs)
         return Limits::min<U64>();
     }
 
-    if (kRhs > Limits::max<U64>())
+    // Note the >= here in constrast to the usual >. This is the same case as
+    // noted in `safeCast<I64, F64>`.
+    if (kRhs >= Limits::max<U64>())
     {
         return Limits::max<U64>();
     }
@@ -341,6 +350,11 @@ U64 safeCast<U64, F64>(const F64 kRhs)
 template<>
 F32 safeCast<F32, F64>(const F64 kRhs)
 {
+    if (kRhs != kRhs)
+    {
+        return 0.0f;
+    }
+
     return static_cast<F64>(kRhs);
 }
 
