@@ -6,34 +6,14 @@
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
-static void setup(const char* const kExprSrc,
-                  const char* const kSvSrc,
-                  Ref<const ExpressionParse>& kExprParse,
-                  Ref<const StateVectorAssembly>& kSvAsm,
-                  Ref<StateVector>& kSv)
-{
-    // Parse expression.
-    Vec<Token> exprToks;
-    std::stringstream exprSs(kExprSrc);
-    CHECK_SUCCESS(Tokenizer::tokenize(exprSs, exprToks, nullptr));
-    TokenIterator exprIt(exprToks.begin(), exprToks.end());
-    CHECK_SUCCESS(ExpressionParse::parse(exprIt, kExprParse, nullptr));
-
-    // Compile state vector.
-    if (std::strlen(kSvSrc) > 0)
-    {
-        std::stringstream svSs(kSvSrc);
-        CHECK_SUCCESS(StateVectorAssembly::compile(svSs, kSvAsm, nullptr));
-        kSv = kSvAsm->get();
-    }
-}
+#define PARSE_EXPR(kExprSrc)                                                   \
+    TOKENIZE(kExprSrc);                                                        \
+    Ref<const ExpressionParse> exprParse;                                      \
+    CHECK_SUCCESS(ExpressionParse::parse(it, exprParse, nullptr));
 
 static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    setup(kExprSrc, "", exprParse, svAsm, sv);
+    PARSE_EXPR(kExprSrc);
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
@@ -51,7 +31,7 @@ static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 }
 
 static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
-                              const Vec<Ref<StateVector>> kSvs,
+                              const Map<String, IElement*> kBindings,
                               const Result kRes,
                               const I32 kLineNum,
                               const I32 kColNum)
@@ -60,7 +40,7 @@ static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
     Ref<const ExpressionAssembly> exprAsm;
     ErrorInfo err;
     CHECK_ERROR(kRes, ExpressionAssembly::compile(kExprParse,
-                                                  kSvs,
+                                                  kBindings,
                                                   ElementType::FLOAT64,
                                                   exprAsm,
                                                   &err));
@@ -78,7 +58,7 @@ static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
 
     // A null error info pointer is not dereferenced.
     CHECK_ERROR(kRes, ExpressionAssembly::compile(kExprParse,
-                                                  kSvs,
+                                                  kBindings,
                                                   ElementType::FLOAT64,
                                                   exprAsm,
                                                   nullptr));
@@ -311,20 +291,21 @@ TEST(ExpressionAssembly, TripleInequality)
 
 TEST(ExpressionAssembly, OnlyElement)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("foo",
-            "[Foo]\n"
-            "I32 foo\n",
-            exprParse,
-            svAsm,
-            sv);
+    // Parse expression.
+    PARSE_EXPR("foo");
+
+    // Create element bindings.
+    I32 foo = 0;
+    Element<I32> elemFoo(foo);
+    const Map<String, IElement*> bindings =
+    {
+        {"foo", &elemFoo}
+    };
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
     CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
-                                              {sv},
+                                              bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -336,30 +317,33 @@ TEST(ExpressionAssembly, OnlyElement)
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set `foo` to a new value and re-evaluate expression.
-    Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
-    elemFoo->write(3);
+    elemFoo.write(3);
     CHECK_EQUAL(3.0, root->evaluate());
 }
 
 TEST(ExpressionAssembly, MultipleElements)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("(foo + bar) * baz + 1",
-            "[Foo]\n"
-            "I32 foo\n"
-            "I32 bar\n"
-            "I32 baz\n",
-            exprParse,
-            svAsm,
-            sv);
+    // Parse expression.
+    PARSE_EXPR("(foo + bar) * baz + 1");
+
+    // Create element bindings.
+    I32 foo = 0;
+    I32 bar = 0;
+    I32 baz = 0;
+    Element<I32> elemFoo(foo);
+    Element<I32> elemBar(bar);
+    Element<I32> elemBaz(baz);
+    const Map<String, IElement*> bindings =
+    {
+        {"foo", &elemFoo},
+        {"bar", &elemBar},
+        {"baz", &elemBaz}
+    };
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
     CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
-                                              {sv},
+                                              bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -371,89 +355,59 @@ TEST(ExpressionAssembly, MultipleElements)
     CHECK_EQUAL(1.0, root->evaluate());
 
     // Set elements to new values and re-evaluate expression.
-    Element<I32>* elemFoo = nullptr;
-    Element<I32>* elemBar = nullptr;
-    Element<I32>* elemBaz = nullptr;
-    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
-    CHECK_SUCCESS(sv->getElement("bar", elemBar));
-    CHECK_SUCCESS(sv->getElement("baz", elemBaz));
-    elemFoo->write(3);
-    elemBar->write(-10);
-    elemBaz->write(4);
+    elemFoo.write(3);
+    elemBar.write(-10);
+    elemBaz.write(4);
     CHECK_EQUAL(-27.0, root->evaluate());
-}
-
-TEST(ExpressionAssembly, MultipleStateVectors)
-{
-    // Parse expression and compile first state vector.
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> sv1Asm;
-    Ref<StateVector> sv1;
-    ::setup("foo * bar + 1",
-            "[Foo]\n"
-            "I32 foo\n",
-            exprParse,
-            sv1Asm,
-            sv1);
-
-    // Compile second state vector.
-    Ref<const StateVectorAssembly> sv2Asm;
-    std::stringstream sv2Config;
-    sv2Config << "[Bar]\n"
-              << "I32 bar\n" << std::endl;
-    CHECK_SUCCESS(StateVectorAssembly::compile(sv2Config, sv2Asm, nullptr));
-    Ref<StateVector> sv2 = sv2Asm->get();
-
-    // Compile expression using both state vectors.
-    Ref<const ExpressionAssembly> exprAsm;
-    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
-                                              {sv1, sv2},
-                                              ElementType::FLOAT64,
-                                              exprAsm,
-                                              nullptr));
-
-    // Expression initially evaluates to 1.
-    CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
-    IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
-    CHECK_EQUAL(1.0, root->evaluate());
-
-    // Set elements to new values and re-evaluate expression.
-    Element<I32>* elemFoo = nullptr;
-    Element<I32>* elemBar = nullptr;
-    CHECK_SUCCESS(sv1->getElement("foo", elemFoo));
-    CHECK_SUCCESS(sv2->getElement("bar", elemBar));
-    elemFoo->write(3);
-    elemBar->write(-10);
-    CHECK_EQUAL(-29.0, root->evaluate());
 }
 
 TEST(ExpressionAssembly, AllElementTypes)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("a + b + c + d + e + f + g + h + i + j + k",
-            "[Foo]\n"
-            "I8 a\n"
-            "I16 b\n"
-            "I32 c\n"
-            "I64 d\n"
-            "U8 e\n"
-            "U16 f\n"
-            "U32 g\n"
-            "U64 h\n"
-            "F32 i\n"
-            "F64 j\n"
-            "BOOL k\n",
-            exprParse,
-            svAsm,
-            sv);
+    // Parse expression.
+    PARSE_EXPR("a + b + c + d + e + f + g + h + i + j + k");
+
+    // Create element bindings.
+    I8 a = 0;
+    I16 b = 0;
+    I32 c = 0;
+    I64 d = 0;
+    U8 e = 0;
+    U16 f = 0;
+    U32 g = 0;
+    U64 h = 0;
+    F32 i = 0;
+    F64 j = 0;
+    bool k = 0;
+    Element<I8> elemA(a);
+    Element<I16> elemB(b);
+    Element<I32> elemC(c);
+    Element<I64> elemD(d);
+    Element<U8> elemE(e);
+    Element<U16> elemF(f);
+    Element<U32> elemG(g);
+    Element<U64> elemH(h);
+    Element<F32> elemI(i);
+    Element<F64> elemJ(j);
+    Element<bool> elemK(k);
+    const Map<String, IElement*> bindings =
+    {
+        {"a", &elemA},
+        {"b", &elemB},
+        {"c", &elemC},
+        {"d", &elemD},
+        {"e", &elemE},
+        {"f", &elemF},
+        {"g", &elemG},
+        {"h", &elemH},
+        {"i", &elemI},
+        {"j", &elemJ},
+        {"k", &elemK}
+    };
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
     CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
-                                              {sv},
+                                              bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -465,58 +419,37 @@ TEST(ExpressionAssembly, AllElementTypes)
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set elements to new values and re-evaluate expression.
-    Element<I8>* elemA = nullptr;
-    Element<I16>* elemB = nullptr;
-    Element<I32>* elemC = nullptr;
-    Element<I64>* elemD = nullptr;
-    Element<U8>* elemE = nullptr;
-    Element<U16>* elemF = nullptr;
-    Element<U32>* elemG = nullptr;
-    Element<U64>* elemH = nullptr;
-    Element<F32>* elemI = nullptr;
-    Element<F64>* elemJ = nullptr;
-    Element<bool>* elemK = nullptr;
-    CHECK_SUCCESS(sv->getElement("a", elemA));
-    CHECK_SUCCESS(sv->getElement("b", elemB));
-    CHECK_SUCCESS(sv->getElement("c", elemC));
-    CHECK_SUCCESS(sv->getElement("d", elemD));
-    CHECK_SUCCESS(sv->getElement("e", elemE));
-    CHECK_SUCCESS(sv->getElement("f", elemF));
-    CHECK_SUCCESS(sv->getElement("g", elemG));
-    CHECK_SUCCESS(sv->getElement("h", elemH));
-    CHECK_SUCCESS(sv->getElement("i", elemI));
-    CHECK_SUCCESS(sv->getElement("j", elemJ));
-    CHECK_SUCCESS(sv->getElement("k", elemK));
-    elemA->write(1);
-    elemB->write(1);
-    elemC->write(1);
-    elemD->write(1);
-    elemE->write(1);
-    elemF->write(1);
-    elemG->write(1);
-    elemH->write(1);
-    elemI->write(1.0f);
-    elemJ->write(1.0);
-    elemK->write(true);
-    CHECK_EQUAL(11.0, root->evaluate());
+    elemA.write(11);
+    elemB.write(10);
+    elemC.write(9);
+    elemD.write(8);
+    elemE.write(7);
+    elemF.write(6);
+    elemG.write(5);
+    elemH.write(4);
+    elemI.write(3.0f);
+    elemJ.write(2.0);
+    elemK.write(true);
+    CHECK_EQUAL(66.0, root->evaluate());
 }
 
 TEST(ExpressionAssembly, RollAvgFunction)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_AVG(foo, 2)",
-            "[Foo]\n"
-            "I32 foo\n",
-            exprParse,
-            svAsm,
-            sv);
+    // Parse expression.
+    PARSE_EXPR("ROLL_AVG(foo, 2)");
+
+    // Create element bindings.
+    I32 foo = 0;
+    Element<I32> elemFoo(foo);
+    const Map<String, IElement*> bindings =
+    {
+        {"foo", &elemFoo}
+    };
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
     CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
-                                              {sv},
+                                              bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -533,40 +466,39 @@ TEST(ExpressionAssembly, RollAvgFunction)
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to 2 and update stats. Rolling average becomes 2.
-    Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
-    elemFoo->write(2);
+    elemFoo.write(2);
     stats.update();
     CHECK_EQUAL(2.0, root->evaluate());
 
     // Set `foo` to 4 and update stats. Rolling average becomes 3.
-    elemFoo->write(4);
+    elemFoo.write(4);
     stats.update();
     CHECK_EQUAL(3.0, root->evaluate());
 
     // Set `foo` to 6 and update stats. Rolling average becomes 5 since the
     // oldest value (2) falls out of the window.
-    elemFoo->write(6);
+    elemFoo.write(6);
     stats.update();
     CHECK_EQUAL(5.0, root->evaluate());
 }
 
 TEST(ExpressionAssembly, RollMedianFunction)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_MEDIAN(foo, 3)",
-            "[Foo]\n"
-            "I32 foo\n",
-            exprParse,
-            svAsm,
-            sv);
+    // Parse expression.
+    PARSE_EXPR("ROLL_MEDIAN(foo, 3)");
+
+    // Create element bindings.
+    I32 foo = 0;
+    Element<I32> elemFoo(foo);
+    const Map<String, IElement*> bindings =
+    {
+        {"foo", &elemFoo}
+    };
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
     CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
-                                              {sv},
+                                              bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -583,45 +515,44 @@ TEST(ExpressionAssembly, RollMedianFunction)
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to 2 and update stats. Rolling median becomes 2.
-    Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
-    elemFoo->write(2);
+    elemFoo.write(2);
     stats.update();
     CHECK_EQUAL(2.0, root->evaluate());
 
     // Set `foo` to 4 and update stats. Rolling median becomes 3.
-    elemFoo->write(4);
+    elemFoo.write(4);
     stats.update();
     CHECK_EQUAL(3.0, root->evaluate());
 
     // Set `foo` to 6 and update stats. Rolling median becomes 4.
-    elemFoo->write(6);
+    elemFoo.write(6);
     stats.update();
     CHECK_EQUAL(4.0, root->evaluate());
 
     // Set `foo` to 7 and update stats. Rolling median becomes 6 since the
     // oldest value (2) falls out of the window.
-    elemFoo->write(7);
+    elemFoo.write(7);
     stats.update();
     CHECK_EQUAL(6.0, root->evaluate());
 }
 
 TEST(ExpressionAssembly, RollMinFunction)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_MIN(foo, 2)",
-            "[Foo]\n"
-            "I32 foo\n",
-            exprParse,
-            svAsm,
-            sv);
+    // Parse expression.
+    PARSE_EXPR("ROLL_MIN(foo, 2)");
+
+    // Create element bindings.
+    I32 foo = 0;
+    Element<I32> elemFoo(foo);
+    const Map<String, IElement*> bindings =
+    {
+        {"foo", &elemFoo}
+    };
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
     CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
-                                              {sv},
+                                              bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -638,40 +569,39 @@ TEST(ExpressionAssembly, RollMinFunction)
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to -3 and update stats. Rolling min becomes -3.
-    Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
-    elemFoo->write(-3);
+    elemFoo.write(-3);
     stats.update();
     CHECK_EQUAL(-3.0, root->evaluate());
 
     // Set `foo` to 1 and update stats. Rolling min stays -3.
-    elemFoo->write(1);
+    elemFoo.write(1);
     stats.update();
     CHECK_EQUAL(-3.0, root->evaluate());
 
     // Set `foo` to 2 and update stats. Rolling min becomes 1 since the oldest
     // value (-3) falls out of the window.
-    elemFoo->write(2);
+    elemFoo.write(2);
     stats.update();
     CHECK_EQUAL(1.0, root->evaluate());
 }
 
 TEST(ExpressionAssembly, RollMaxFunction)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_MAX(foo, 2)",
-            "[Foo]\n"
-            "I32 foo\n",
-            exprParse,
-            svAsm,
-            sv);
+    // Parse expression.
+    PARSE_EXPR("ROLL_MAX(foo, 2)");
+
+    // Create element bindings.
+    I32 foo = 0;
+    Element<I32> elemFoo(foo);
+    const Map<String, IElement*> bindings =
+    {
+        {"foo", &elemFoo}
+    };
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
     CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
-                                              {sv},
+                                              bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -688,40 +618,39 @@ TEST(ExpressionAssembly, RollMaxFunction)
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to 3 and update stats. Rolling max becomes 3.
-    Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
-    elemFoo->write(3);
+    elemFoo.write(3);
     stats.update();
     CHECK_EQUAL(3.0, root->evaluate());
 
     // Set `foo` to 1 and update stats. Rolling max stays 3.
-    elemFoo->write(1);
+    elemFoo.write(1);
     stats.update();
     CHECK_EQUAL(3.0, root->evaluate());
 
     // Set `foo` to 2 and update stats. Rolling max becomes 2 since the oldest
     // value (3) falls out of the window.
-    elemFoo->write(2);
+    elemFoo.write(2);
     stats.update();
     CHECK_EQUAL(2.0, root->evaluate());
 }
 
 TEST(ExpressionAssembly, RollRangeFunction)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_RANGE(foo, 2)",
-            "[Foo]\n"
-            "I32 foo\n",
-            exprParse,
-            svAsm,
-            sv);
+    // Parse expression.
+    PARSE_EXPR("ROLL_RANGE(foo, 2)");
+
+    // Create element bindings.
+    I32 foo = 0;
+    Element<I32> elemFoo(foo);
+    const Map<String, IElement*> bindings =
+    {
+        {"foo", &elemFoo}
+    };
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
     CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
-                                              {sv},
+                                              bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
@@ -739,54 +668,53 @@ TEST(ExpressionAssembly, RollRangeFunction)
 
     // Set element `foo` to 3 and update stats. Rolling range stays 0 since
     // there's only 1 value in the window.
-    Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
-    elemFoo->write(3);
+    elemFoo.write(3);
     stats.update();
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set `foo` to 1 and update stats. Rolling range becomes 2.
-    elemFoo->write(1);
+    elemFoo.write(1);
     stats.update();
     CHECK_EQUAL(2.0, root->evaluate());
 
     // Set `foo` to 5 and update stats. Rolling range becomes 4 since the oldest
     // value (3) falls out of the window.
-    elemFoo->write(5);
+    elemFoo.write(5);
     stats.update();
     CHECK_EQUAL(4.0, root->evaluate());
 }
 
 TEST(ExpressionAssembly, StatsFunctionExpressionArgs)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_MIN(foo + 1, bar * -1)",
-            "[Foo]\n"
-            "I32 foo\n"
-            "I32 bar\n",
-            exprParse,
-            svAsm,
-            sv);
+    // Parse expression.
+    PARSE_EXPR("ROLL_MIN(foo + 1, bar * -1)");
 
-    // Set element `bar` to -2. This causes the `ROLL_MIN` call to use a window
+    // Create element bindings.
+    I32 foo = 0;
+    I32 bar = 0;
+    Element<I32> elemFoo(foo);
+    Element<I32> elemBar(bar);
+    const Map<String, IElement*> bindings =
+    {
+        {"foo", &elemFoo},
+        {"bar", &elemBar}
+    };
+
+    // Set element `bar` to -2. This causes the function call to use a window
     // size of 2.
-    Element<I32>* elemBar = nullptr;
-    CHECK_SUCCESS(sv->getElement("bar", elemBar));
-    elemBar->write(-2);
+    elemBar.write(-2);
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
     CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
-                                              {sv},
+                                              bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
                                               nullptr));
 
     // Set `bar` to something else. This doesn't affect the expression since the
     // `ROLL_MIN` window size is evaluated at compile time.
-    elemBar->write(10);
+    elemBar.write(10);
 
     // Get expression stats used by function.
     const Vec<Ref<IExpressionStats>> statsVec = exprAsm->stats();
@@ -800,20 +728,18 @@ TEST(ExpressionAssembly, StatsFunctionExpressionArgs)
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to -3 and update stats. Rolling min becomes -2.
-    Element<I32>* elemFoo = nullptr;
-    CHECK_SUCCESS(sv->getElement("foo", elemFoo));
-    elemFoo->write(-3);
+    elemFoo.write(-3);
     stats.update();
     CHECK_EQUAL(-2.0, root->evaluate());
 
     // Set `foo` to 1 and update stats. Rolling min stays -2.
-    elemFoo->write(1);
+    elemFoo.write(1);
     stats.update();
     CHECK_EQUAL(-2.0, root->evaluate());
 
     // Set `foo` to 2 and update stats. Rolling min becomes 2 since the oldest
     // value (-2) falls out of the window.
-    elemFoo->write(2);
+    elemFoo.write(2);
     stats.update();
     CHECK_EQUAL(2.0, root->evaluate());
 }
@@ -826,119 +752,88 @@ TEST_GROUP(ExpressionAssemblyErrors)
 
 TEST(ExpressionAssemblyErrors, UnknownElement)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("foo", "", exprParse, svAsm, sv);
+    PARSE_EXPR("foo");
     checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 1);
 }
 
 TEST(ExpressionAssemblyErrors, OutOfRangeNumber)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("1 + 9999999999999999999999999999999999999999999999999999999999999"
-            "99999999999999999999999999999999999999999999999999999999999999999"
-            "99999999999999999999999999999999999999999999999999999999999999999"
-            "99999999999999999999999999999999999999999999999999999999999999999"
-            "99999999999999999999999999999999999999999999999999999999999999999"
-            "99999999999999999999999999999999999999999999999999999999999999999",
-            "",
-            exprParse,
-            svAsm,
-            sv);
+    PARSE_EXPR("1 + 999999999999999999999999999999999999999999999999999999999"
+               "9999999999999999999999999999999999999999999999999999999999999"
+               "9999999999999999999999999999999999999999999999999999999999999"
+               "9999999999999999999999999999999999999999999999999999999999999"
+               "9999999999999999999999999999999999999999999999999999999999999"
+               "9999999999999999999999999999999999999999999999999999999999999"
+               "9999999999999999999999999999999999999999999999999999999999999"
+               "9999999999999999999999999999999999999999999999999999999999999");
     checkCompileError(exprParse, {}, E_EXA_OVFL, 1, 5);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionArity)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_AVG(1)", "", exprParse, svAsm, sv);
+    PARSE_EXPR("ROLL_AVG(1)");
     checkCompileError(exprParse, {}, E_EXA_ARITY, 1, 1);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg1)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_AVG(foo, 4)", "", exprParse, svAsm, sv);
+    PARSE_EXPR("ROLL_AVG(foo, 4)");
     checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 10);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg2)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_AVG(4, foo)", "", exprParse, svAsm, sv);
+    PARSE_EXPR("ROLL_AVG(4, foo)");
     checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionZeroWindowSize)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_AVG(4, 0)", "", exprParse, svAsm, sv);
+    PARSE_EXPR("ROLL_AVG(4, 0)");
     checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionNegativeWindowSize)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_AVG(4, -1)", "", exprParse, svAsm, sv);
+    PARSE_EXPR("ROLL_AVG(4, -1)");
     checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionNonIntegerWindowSize)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_AVG(4, 1.5)", "", exprParse, svAsm, sv);
+    PARSE_EXPR("ROLL_AVG(4, 1.5)");
     checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionNaNWindowSize)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_AVG(4, 0 / 0)", "", exprParse, svAsm, sv);
+    PARSE_EXPR("ROLL_AVG(4, 0 / 0)");
     checkCompileError(exprParse, {}, E_EXA_WIN, 1, 15);
 }
 
 TEST(ExpressionAssemblyErrors, StatsFunctionWindowTooBig)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("ROLL_AVG(4, 100001)", "", exprParse, svAsm, sv);
+    PARSE_EXPR("ROLL_AVG(4, 100001)");
     checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
 TEST(ExpressionAssemblyErrors, UnknownFunction)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("FOO()", "", exprParse, svAsm, sv);
+    PARSE_EXPR("FOO()");
     checkCompileError(exprParse, {}, E_EXA_FUNC, 1, 1);
 }
 
-TEST(ExpressionAssemblyErrors, NullStateVector)
+TEST(ExpressionAssemblyErrors, NullElementInBindings)
 {
-    Ref<const ExpressionParse> exprParse;
-    Ref<const StateVectorAssembly> svAsm;
-    Ref<StateVector> sv;
-    ::setup("1", "", exprParse, svAsm, sv);
-    checkCompileError(exprParse, {sv}, E_EXA_NULL, -1, -1);
+    PARSE_EXPR("foo");
+    const Map<String, IElement*> bindings = {{"foo", nullptr}};
+    Ref<const ExpressionAssembly> exprAsm;
+    CHECK_ERROR(E_EXA_ELEM_NULL,
+                ExpressionAssembly::compile(exprParse,
+                                            bindings,
+                                            ElementType::FLOAT64,
+                                            exprAsm,
+                                            nullptr));
 }
 
 TEST(ExpressionAssemblyErrors, NullParse)

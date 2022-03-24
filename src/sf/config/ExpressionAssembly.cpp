@@ -13,7 +13,7 @@ static const char* const gErrText = "expression error";
 /////////////////////////////////// Public /////////////////////////////////////
 
 Result ExpressionAssembly::compile(const Ref<const ExpressionParse> kParse,
-                                   const Vec<Ref<StateVector>> kSvs,
+                                   const Map<String, IElement*> kBindings,
                                    const ElementType kEvalType,
                                    Ref<const ExpressionAssembly>& kAsm,
                                    ErrorInfo* const kErr)
@@ -24,26 +24,11 @@ Result ExpressionAssembly::compile(const Ref<const ExpressionParse> kParse,
         return E_EXA_NULL;
     }
 
-    // Check that all provided state vectors are non-null.
-    for (const Ref<StateVector>& sv : kSvs)
-    {
-        if (sv == nullptr)
-        {
-            if (kErr != nullptr)
-            {
-                kErr->text = gErrText;
-                kErr->subtext = "null state vector in expression compiler";
-            }
-
-            return E_EXA_NULL;
-        }
-    }
-
     // Compile expression starting at root.
     ExpressionAssembly::Workspace ws = {};
     Ref<IExprNode<F64>> root = nullptr;
     const Result res = ExpressionAssembly::compileImpl(kParse,
-                                                       kSvs,
+                                                       kBindings,
                                                        root,
                                                        ws,
                                                        kErr);
@@ -175,7 +160,7 @@ Result ExpressionAssembly::tokenToF64(const Token& kTok,
 
 Result ExpressionAssembly::compileExprStatsFunc(
     const Ref<const ExpressionParse> kParse,
-    const Vec<Ref<StateVector>> kSvs,
+    const Map<String, IElement*>& kBindings,
     Ref<IExprNode<F64>>& kNode,
     ExpressionAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
@@ -205,7 +190,7 @@ Result ExpressionAssembly::compileExprStatsFunc(
     // calculated for.
     Ref<IExprNode<F64>> arg1Node = nullptr;
     Result res = ExpressionAssembly::compileImpl(argNodes[0]->right,
-                                                 kSvs,
+                                                 kBindings,
                                                  arg1Node,
                                                  kWs,
                                                  kErr);
@@ -219,7 +204,7 @@ Result ExpressionAssembly::compileExprStatsFunc(
     // evaluate it here and get a constant value for the window size.
     Ref<const ExpressionAssembly> arg2Asm;
     res = ExpressionAssembly::compile(argNodes[1]->right,
-                                      kSvs,
+                                      kBindings,
                                       ElementType::FLOAT64,
                                       arg2Asm,
                                       kErr);
@@ -308,7 +293,7 @@ Result ExpressionAssembly::compileExprStatsFunc(
 
 Result ExpressionAssembly::compileFunction(
     const Ref<const ExpressionParse> kParse,
-    const Vec<Ref<StateVector>> kSvs,
+    const Map<String, IElement*>& kBindings,
     Ref<IExprNode<F64>>& kNode,
     ExpressionAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
@@ -323,7 +308,7 @@ Result ExpressionAssembly::compileFunction(
     {
         // Compile expression stats function.
         return ExpressionAssembly::compileExprStatsFunc(kParse,
-                                                        kSvs,
+                                                        kBindings,
                                                         kNode,
                                                         kWs,
                                                         kErr);
@@ -341,7 +326,7 @@ Result ExpressionAssembly::compileFunction(
 
 Result ExpressionAssembly::compileOperator(
     const Ref<const ExpressionParse> kParse,
-    const Vec<Ref<StateVector>> kSvs,
+    const Map<String, IElement*>& kBindings,
     Ref<IExprNode<F64>>& kNode,
     ExpressionAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
@@ -355,7 +340,7 @@ Result ExpressionAssembly::compileOperator(
     // Compile right subtree.
     Ref<IExprNode<F64>> nodeRight;
     Result res = ExpressionAssembly::compileImpl(kParse->right,
-                                                 kSvs,
+                                                 kBindings,
                                                  nodeRight,
                                                  kWs,
                                                  kErr);
@@ -370,7 +355,7 @@ Result ExpressionAssembly::compileOperator(
     if (!opInfo.unary)
     {
         res = ExpressionAssembly::compileImpl(kParse->left,
-                                              kSvs,
+                                              kBindings,
                                               nodeLeft,
                                               kWs,
                                               kErr);
@@ -504,7 +489,7 @@ Result ExpressionAssembly::compileOperator(
 }
 
 Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
-                                       const Vec<Ref<StateVector>> kSvs,
+                                       const Map<String, IElement*>& kBindings,
                                        Ref<IExprNode<F64>>& kNode,
                                        ExpressionAssembly::Workspace& kWs,
                                        ErrorInfo* const kErr)
@@ -519,7 +504,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
     {
         // Expression node is a function call.
         return ExpressionAssembly::compileFunction(kParse,
-                                                   kSvs,
+                                                   kBindings,
                                                    kNode,
                                                    kWs,
                                                    kErr);
@@ -568,28 +553,22 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
         SF_SAFE_ASSERT(kParse->left == nullptr);
         SF_SAFE_ASSERT(kParse->right == nullptr);
 
-        // Look up element in provided state vectors.
-        IElement* elemObj = nullptr;
-        for (const Ref<StateVector> sv : kSvs)
-        {
-            // Try element lookup and break on success.
-            SF_SAFE_ASSERT(sv != nullptr);
-            const Result res = sv->getIElement(kParse->data.str.c_str(),
-                                               elemObj);
-            if (res == SUCCESS)
-            {
-                break;
-            }
-        }
-
-        // Check that element was found.
-        if (elemObj == nullptr)
+        // Look up element bound to identifier.
+        auto elemIt = kBindings.find(kParse->data.str);
+        if (elemIt == kBindings.end())
         {
             ConfigUtil::setError(kErr,
                                  kParse->data,
                                  gErrText,
                                  "unknown element");
             return E_EXA_ELEM;
+        }
+        IElement* const elemObj = (*elemIt).second;
+
+        // Check that element is non-null.
+        if (elemObj == nullptr)
+        {
+            return E_EXA_ELEM_NULL;
         }
 
         // Narrow the element pointer to a template instantiation of the
@@ -718,7 +697,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
     {
         // Compile operator expression node.
         const Result res = ExpressionAssembly::compileOperator(kParse,
-                                                               kSvs,
+                                                               kBindings,
                                                                kNode,
                                                                kWs,
                                                                kErr);

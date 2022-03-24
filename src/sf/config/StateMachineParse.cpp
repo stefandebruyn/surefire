@@ -519,7 +519,7 @@ void StateMachineParse::MutBlockParse::toBlockParse(
                                                    ifBlock,
                                                    elseBlock,
                                                    next,
-                                                   this->assertion});
+                                                   this->assert});
 }
 
 Result StateMachineParse::parseAction(
@@ -867,16 +867,16 @@ Result StateMachineParse::parseBlockRec(
         }
         else
         {
-            // If the next token is an assertion annotation, then this is an
-            // assertion annotation in a state script.
+            // If the next token is an assert annotation, then it marks an
+            // assert expression in a state script.
             if (kIt.type() == Token::ANNOTATION && (kIt.str() == "@ASSERT"))
             {
                 // Take annotation.
                 kIt.take();
 
-                // Parse assertion expression.
+                // Parse assert expression.
                 res = ExpressionParse::parse(kIt.slice(kIt.idx(), idxEnd),
-                                             block->assertion,
+                                             block->assert,
                                              kErr);
                 if (res != SUCCESS)
                 {
@@ -885,7 +885,7 @@ Result StateMachineParse::parseBlockRec(
             }
             else
             {
-                // Not an assertion, so an unguarded action.
+                // Not an assert, so an unguarded action.
                 res = StateMachineParse::parseAction(
                     kIt.slice(kIt.idx(), idxEnd),
                     block->action,

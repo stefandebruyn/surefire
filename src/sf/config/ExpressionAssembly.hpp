@@ -12,7 +12,7 @@ class ExpressionAssembly final
 public:
 
     static Result compile(const Ref<const ExpressionParse> kParse,
-                          const Vec<Ref<StateVector>> kSvs,
+                          const Map<String, IElement*> kBindings,
                           const ElementType kEvalType,
                           Ref<const ExpressionAssembly>& kAsm,
                           ErrorInfo* const kErr);
@@ -37,25 +37,25 @@ private:
 
     static Result compileExprStatsFunc(
         const Ref<const ExpressionParse> kParse,
-        const Vec<Ref<StateVector>> kSvs,
+        const Map<String, IElement*>& kBindings,
         Ref<IExprNode<F64>>& kNode,
         ExpressionAssembly::Workspace& kWs,
         ErrorInfo* const kErr);
 
     static Result compileFunction(const Ref<const ExpressionParse> kParse,
-                                  const Vec<Ref<StateVector>> kSvs,
+                                  const Map<String, IElement*>& kBindings,
                                   Ref<IExprNode<F64>>& kNode,
                                   ExpressionAssembly::Workspace& kWs,
                                   ErrorInfo* const kErr);
 
     static Result compileOperator(const Ref<const ExpressionParse> kParse,
-                                  const Vec<Ref<StateVector>> kSvs,
+                                  const Map<String, IElement*>& kBindings,
                                   Ref<IExprNode<F64>>& kNode,
                                   ExpressionAssembly::Workspace& kWs,
                                   ErrorInfo* const kErr);
 
     static Result compileImpl(const Ref<const ExpressionParse> kParse,
-                              const Vec<Ref<StateVector>> kSvs,
+                              const Map<String, IElement*>& kBindings,
                               Ref<IExprNode<F64>>& kNode,
                               ExpressionAssembly::Workspace& kWs,
                               ErrorInfo* const kErr);

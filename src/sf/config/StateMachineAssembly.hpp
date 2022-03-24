@@ -11,17 +11,17 @@ class StateMachineAssembly final
 public:
 
     static Result compile(const String kFilePath,
-                          const Ref<StateVector> kSv,
+                          const Ref<const StateVectorAssembly> kSvAsm,
                           Ref<const StateMachineAssembly>& kAsm,
                           ErrorInfo* const kErr);
 
     static Result compile(std::istream& kIs,
-                          const Ref<StateVector> kSv,
+                          const Ref<const StateVectorAssembly> kSvAsm,
                           Ref<const StateMachineAssembly>& kAsm,
                           ErrorInfo* const kErr);
 
     static Result compile(const Ref<const StateMachineParse> kParse,
-                          const Ref<StateVector> kSv,
+                          const Ref<const StateVectorAssembly> kSvAsm,
                           Ref<const StateMachineAssembly>& kAsm,
                           ErrorInfo* const kErr);
 
@@ -41,6 +41,7 @@ private:
         Map<String, U32> stateIds;
         Set<String> readOnlyElems;
 
+        Ref<const StateVectorAssembly> svAsm;
         Ref<const StateVectorAssembly> localSvAsm;
         Vec<Ref<const ExpressionAssembly>> exprAsms;
         Ref<Vec<StateMachine::StateConfig>> stateConfigs;
@@ -53,8 +54,9 @@ private:
         Ref<const StateMachineParse> smParse;
     };
 
+    friend class StateScriptAssembly;
+
     static Result checkStateVector(const Ref<const StateMachineParse> kParse,
-                                   const Ref<StateVector> kSv,
                                    StateMachineAssembly::Workspace& kWs,
                                    ErrorInfo* const kErr);
 
@@ -66,19 +68,16 @@ private:
     static Result checkLocalElemInitExprs(
         const StateMachineParse::LocalElementParse& kInitElem,
         const Ref<const ExpressionParse> kExpr,
-        const Ref<StateVector> kSv,
         StateMachineAssembly::Workspace& kWs,
         ErrorInfo* const kErr);
 
     static Result initLocalElementValues(
         const Ref<const StateMachineParse> kParse,
-        const Ref<StateVector> kSv,
         StateMachineAssembly::Workspace& kWs,
         ErrorInfo* const kErr);
 
     static Result compileAction(
         const Ref<const StateMachineParse::ActionParse> kParse,
-        const Ref<StateVector> kSv,
         StateMachineAssembly::Workspace& kWs,
         const bool kInExitLabel,
         Ref<IAction>& kAction,
@@ -86,14 +85,12 @@ private:
 
     static Result compileBlock(
         const Ref<const StateMachineParse::BlockParse> kParse,
-        const Ref<StateVector> kSv,
         StateMachineAssembly::Workspace& kWs,
         const bool kInExitLabel,
         Ref<StateMachine::Block>& kBlock,
         ErrorInfo* const kErr);
 
     static Result compileState(const StateMachineParse::StateParse& kParse,
-                               Ref<StateVector> kSv,
                                StateMachineAssembly::Workspace& kWs,
                                ErrorInfo* const kErr);
 

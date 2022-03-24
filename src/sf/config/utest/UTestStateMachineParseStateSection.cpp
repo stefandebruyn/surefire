@@ -61,10 +61,10 @@ TEST(StateMachineParseStateSection, EntryLabel)
     CHECK_TRUE(parse.entry->next == nullptr);
 
     // a = 10
-    CHECK_EQUAL(toks[4], parse.entry->action->tokRhs);
-    CHECK_EQUAL(toks[6], parse.entry->action->lhs->data);
-    CHECK_TRUE(parse.entry->action->lhs->left == nullptr);
-    CHECK_TRUE(parse.entry->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[4], parse.entry->action->tokLhs);
+    CHECK_EQUAL(toks[6], parse.entry->action->rhs->data);
+    CHECK_TRUE(parse.entry->action->rhs->left == nullptr);
+    CHECK_TRUE(parse.entry->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, StepLabel)
@@ -94,10 +94,10 @@ TEST(StateMachineParseStateSection, StepLabel)
     CHECK_TRUE(parse.step->next == nullptr);
 
     // a = 10
-    CHECK_EQUAL(toks[4], parse.step->action->tokRhs);
-    CHECK_EQUAL(toks[6], parse.step->action->lhs->data);
-    CHECK_TRUE(parse.step->action->lhs->left == nullptr);
-    CHECK_TRUE(parse.step->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[4], parse.step->action->tokLhs);
+    CHECK_EQUAL(toks[6], parse.step->action->rhs->data);
+    CHECK_TRUE(parse.step->action->rhs->left == nullptr);
+    CHECK_TRUE(parse.step->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, ExitLabel)
@@ -127,10 +127,10 @@ TEST(StateMachineParseStateSection, ExitLabel)
     CHECK_TRUE(parse.exit->next == nullptr);
 
     // a = 10
-    CHECK_EQUAL(toks[4], parse.exit->action->tokRhs);
-    CHECK_EQUAL(toks[6], parse.exit->action->lhs->data);
-    CHECK_TRUE(parse.exit->action->lhs->left == nullptr);
-    CHECK_TRUE(parse.exit->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[4], parse.exit->action->tokLhs);
+    CHECK_EQUAL(toks[6], parse.exit->action->rhs->data);
+    CHECK_TRUE(parse.exit->action->rhs->left == nullptr);
+    CHECK_TRUE(parse.exit->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, Transition)
@@ -160,7 +160,7 @@ TEST(StateMachineParseStateSection, Transition)
     CHECK_TRUE(parse.entry->next == nullptr);
 
     // -> Bar
-    CHECK_TRUE(parse.entry->action->lhs == nullptr);
+    CHECK_TRUE(parse.entry->action->rhs == nullptr);
     CHECK_EQUAL(toks[5], parse.entry->action->tokDestState);
     CHECK_EQUAL(toks[4], parse.entry->action->tokTransitionKeyword);
 }
@@ -192,10 +192,10 @@ TEST(StateMachineParseStateSection, MultipleUnguardedActions)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next != nullptr);
-    CHECK_EQUAL(toks[4], block->action->tokRhs);
-    CHECK_EQUAL(toks[6], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[4], block->action->tokLhs);
+    CHECK_EQUAL(toks[6], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // b = 2
     block = parse.entry->next;
@@ -204,10 +204,10 @@ TEST(StateMachineParseStateSection, MultipleUnguardedActions)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[8], block->action->tokRhs);
-    CHECK_EQUAL(toks[10], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[8], block->action->tokLhs);
+    CHECK_EQUAL(toks[10], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, IfAction)
@@ -259,10 +259,10 @@ TEST(StateMachineParseStateSection, IfAction)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[8], block->action->tokRhs);
-    CHECK_EQUAL(toks[10], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[8], block->action->tokLhs);
+    CHECK_EQUAL(toks[10], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, IfActionElseAction)
@@ -315,10 +315,10 @@ TEST(StateMachineParseStateSection, IfActionElseAction)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[8], block->action->tokRhs);
-    CHECK_EQUAL(toks[10], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[8], block->action->tokLhs);
+    CHECK_EQUAL(toks[10], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // c = 3
     block = parse.entry->elseBlock;
@@ -327,10 +327,10 @@ TEST(StateMachineParseStateSection, IfActionElseAction)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[14], block->action->tokRhs);
-    CHECK_EQUAL(toks[16], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[14], block->action->tokLhs);
+    CHECK_EQUAL(toks[16], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, IfMultipleActions)
@@ -385,10 +385,10 @@ TEST(StateMachineParseStateSection, IfMultipleActions)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next != nullptr);
-    CHECK_EQUAL(toks[9], block->action->tokRhs);
-    CHECK_EQUAL(toks[11], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[9], block->action->tokLhs);
+    CHECK_EQUAL(toks[11], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // c = 3
     block = parse.entry->ifBlock->next;
@@ -397,10 +397,10 @@ TEST(StateMachineParseStateSection, IfMultipleActions)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[13], block->action->tokRhs);
-    CHECK_EQUAL(toks[15], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[13], block->action->tokLhs);
+    CHECK_EQUAL(toks[15], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, IfMultipleActionsElseAction)
@@ -456,10 +456,10 @@ TEST(StateMachineParseStateSection, IfMultipleActionsElseAction)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next != nullptr);
-    CHECK_EQUAL(toks[9], block->action->tokRhs);
-    CHECK_EQUAL(toks[11], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[9], block->action->tokLhs);
+    CHECK_EQUAL(toks[11], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // c = 3
     block = parse.entry->ifBlock->next;
@@ -468,10 +468,10 @@ TEST(StateMachineParseStateSection, IfMultipleActionsElseAction)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[13], block->action->tokRhs);
-    CHECK_EQUAL(toks[15], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[13], block->action->tokLhs);
+    CHECK_EQUAL(toks[15], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // d = 4
     block = parse.entry->elseBlock;
@@ -480,10 +480,10 @@ TEST(StateMachineParseStateSection, IfMultipleActionsElseAction)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[21], block->action->tokRhs);
-    CHECK_EQUAL(toks[23], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[21], block->action->tokLhs);
+    CHECK_EQUAL(toks[23], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, IfMultipleActionsElseMultipleActions)
@@ -542,10 +542,10 @@ TEST(StateMachineParseStateSection, IfMultipleActionsElseMultipleActions)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next != nullptr);
-    CHECK_EQUAL(toks[9], block->action->tokRhs);
-    CHECK_EQUAL(toks[11], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[9], block->action->tokLhs);
+    CHECK_EQUAL(toks[11], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // c = 3
     block = parse.entry->ifBlock->next;
@@ -554,10 +554,10 @@ TEST(StateMachineParseStateSection, IfMultipleActionsElseMultipleActions)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[13], block->action->tokRhs);
-    CHECK_EQUAL(toks[15], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[13], block->action->tokLhs);
+    CHECK_EQUAL(toks[15], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // d = 4
     block = parse.entry->elseBlock;
@@ -566,10 +566,10 @@ TEST(StateMachineParseStateSection, IfMultipleActionsElseMultipleActions)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next != nullptr);
-    CHECK_EQUAL(toks[22], block->action->tokRhs);
-    CHECK_EQUAL(toks[24], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[22], block->action->tokLhs);
+    CHECK_EQUAL(toks[24], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // e = 5
     block = parse.entry->elseBlock->next;
@@ -578,10 +578,10 @@ TEST(StateMachineParseStateSection, IfMultipleActionsElseMultipleActions)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[26], block->action->tokRhs);
-    CHECK_EQUAL(toks[28], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[26], block->action->tokLhs);
+    CHECK_EQUAL(toks[28], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, NestedColonGuards)
@@ -656,10 +656,10 @@ TEST(StateMachineParseStateSection, NestedColonGuards)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[12], block->action->tokRhs);
-    CHECK_EQUAL(toks[14], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[12], block->action->tokLhs);
+    CHECK_EQUAL(toks[14], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, NestedBraceGuards)
@@ -738,10 +738,10 @@ TEST(StateMachineParseStateSection, NestedBraceGuards)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[14], block->action->tokRhs);
-    CHECK_EQUAL(toks[16], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[14], block->action->tokLhs);
+    CHECK_EQUAL(toks[16], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, ColonGuardFollowedByAction)
@@ -794,10 +794,10 @@ TEST(StateMachineParseStateSection, ColonGuardFollowedByAction)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[8], block->action->tokRhs);
-    CHECK_EQUAL(toks[10], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[8], block->action->tokLhs);
+    CHECK_EQUAL(toks[10], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // c = 2
     block = parse.entry->next;
@@ -806,10 +806,10 @@ TEST(StateMachineParseStateSection, ColonGuardFollowedByAction)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[12], block->action->tokRhs);
-    CHECK_EQUAL(toks[14], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[12], block->action->tokLhs);
+    CHECK_EQUAL(toks[14], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, BraceGuardFollowedByAction)
@@ -862,10 +862,10 @@ TEST(StateMachineParseStateSection, BraceGuardFollowedByAction)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[8], block->action->tokRhs);
-    CHECK_EQUAL(toks[10], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[8], block->action->tokLhs);
+    CHECK_EQUAL(toks[10], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // c = 2
     block = parse.entry->next;
@@ -874,10 +874,10 @@ TEST(StateMachineParseStateSection, BraceGuardFollowedByAction)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[13], block->action->tokRhs);
-    CHECK_EQUAL(toks[15], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[13], block->action->tokLhs);
+    CHECK_EQUAL(toks[15], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, NewlineAgnosticExceptForGuardsAndActions)
@@ -930,10 +930,10 @@ TEST(StateMachineParseStateSection, NewlineAgnosticExceptForGuardsAndActions)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[14], block->action->tokRhs);
-    CHECK_EQUAL(toks[16], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[14], block->action->tokLhs);
+    CHECK_EQUAL(toks[16], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // c = 2
     block = parse.entry->next;
@@ -942,10 +942,10 @@ TEST(StateMachineParseStateSection, NewlineAgnosticExceptForGuardsAndActions)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[21], block->action->tokRhs);
-    CHECK_EQUAL(toks[23], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[21], block->action->tokLhs);
+    CHECK_EQUAL(toks[23], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, ActionInEveryLabel)
@@ -978,10 +978,10 @@ TEST(StateMachineParseStateSection, ActionInEveryLabel)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[4], block->action->tokRhs);
-    CHECK_EQUAL(toks[6], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[4], block->action->tokLhs);
+    CHECK_EQUAL(toks[6], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // b = 2
     block = parse.step;
@@ -990,10 +990,10 @@ TEST(StateMachineParseStateSection, ActionInEveryLabel)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[10], block->action->tokRhs);
-    CHECK_EQUAL(toks[12], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[10], block->action->tokLhs);
+    CHECK_EQUAL(toks[12], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 
     // c = 3
     block = parse.exit;
@@ -1002,10 +1002,10 @@ TEST(StateMachineParseStateSection, ActionInEveryLabel)
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->action != nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_EQUAL(toks[16], block->action->tokRhs);
-    CHECK_EQUAL(toks[18], block->action->lhs->data);
-    CHECK_TRUE(block->action->lhs->left == nullptr);
-    CHECK_TRUE(block->action->lhs->right == nullptr);
+    CHECK_EQUAL(toks[16], block->action->tokLhs);
+    CHECK_EQUAL(toks[18], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
 TEST(StateMachineParseStateSection, EmptyState)
@@ -1047,7 +1047,7 @@ TEST(StateMachineParseStateSection, EmptyLabels)
     CHECK_TRUE(parse.entry->ifBlock == nullptr);
     CHECK_TRUE(parse.entry->elseBlock == nullptr);
     CHECK_TRUE(parse.entry->next == nullptr);
-    CHECK_TRUE(parse.entry->assertion == nullptr);
+    CHECK_TRUE(parse.entry->assert == nullptr);
 
     CHECK_TRUE(parse.step != nullptr);
     CHECK_TRUE(parse.step->guard == nullptr);
@@ -1055,7 +1055,7 @@ TEST(StateMachineParseStateSection, EmptyLabels)
     CHECK_TRUE(parse.step->ifBlock == nullptr);
     CHECK_TRUE(parse.step->elseBlock == nullptr);
     CHECK_TRUE(parse.step->next == nullptr);
-    CHECK_TRUE(parse.step->assertion == nullptr);
+    CHECK_TRUE(parse.step->assert == nullptr);
 
     CHECK_TRUE(parse.exit != nullptr);
     CHECK_TRUE(parse.exit->guard == nullptr);
@@ -1063,7 +1063,7 @@ TEST(StateMachineParseStateSection, EmptyLabels)
     CHECK_TRUE(parse.exit->ifBlock == nullptr);
     CHECK_TRUE(parse.exit->elseBlock == nullptr);
     CHECK_TRUE(parse.exit->next == nullptr);
-    CHECK_TRUE(parse.exit->assertion == nullptr);
+    CHECK_TRUE(parse.exit->assert == nullptr);
 }
 
 ///////////////////////////////// Error Tests //////////////////////////////////

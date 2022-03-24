@@ -55,7 +55,7 @@ TEST(StateScriptParse, EmptySection)
     CHECK_TRUE(parse->sections[0].block->ifBlock == nullptr);
     CHECK_TRUE(parse->sections[0].block->elseBlock == nullptr);
     CHECK_TRUE(parse->sections[0].block->next == nullptr);
-    CHECK_TRUE(parse->sections[0].block->assertion == nullptr);
+    CHECK_TRUE(parse->sections[0].block->assert == nullptr);
 }
 
 TEST(StateScriptParse, OneSection)
@@ -81,8 +81,8 @@ TEST(StateScriptParse, OneSection)
     CHECK_TRUE(block->next != nullptr);
 
     // `foo = 1` action
-    CHECK_EQUAL(block->action->tokRhs, toks[2]);
-    Ref<const ExpressionParse> node = block->action->lhs;
+    CHECK_EQUAL(block->action->tokLhs, toks[2]);
+    Ref<const ExpressionParse> node = block->action->rhs;
     CHECK_EQUAL(node->data, toks[4]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
@@ -96,8 +96,8 @@ TEST(StateScriptParse, OneSection)
     CHECK_TRUE(block->next == nullptr);
 
     // `bar = 2` action
-    CHECK_EQUAL(block->action->tokRhs, toks[6]);
-    node = block->action->lhs;
+    CHECK_EQUAL(block->action->tokLhs, toks[6]);
+    node = block->action->rhs;
     CHECK_EQUAL(node->data, toks[8]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
@@ -130,8 +130,8 @@ TEST(StateScriptParse, TwoSections)
     CHECK_TRUE(block->next != nullptr);
 
     // `foo = 1` action
-    CHECK_EQUAL(block->action->tokRhs, toks[2]);
-    Ref<const ExpressionParse> node = block->action->lhs;
+    CHECK_EQUAL(block->action->tokLhs, toks[2]);
+    Ref<const ExpressionParse> node = block->action->rhs;
     CHECK_EQUAL(node->data, toks[4]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
@@ -145,8 +145,8 @@ TEST(StateScriptParse, TwoSections)
     CHECK_TRUE(block->next == nullptr);
 
     // `bar = 2` action
-    CHECK_EQUAL(block->action->tokRhs, toks[6]);
-    node = block->action->lhs;
+    CHECK_EQUAL(block->action->tokLhs, toks[6]);
+    node = block->action->rhs;
     CHECK_EQUAL(node->data, toks[8]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
@@ -164,8 +164,8 @@ TEST(StateScriptParse, TwoSections)
     CHECK_TRUE(block->next != nullptr);
 
     // `baz = 3` action
-    CHECK_EQUAL(block->action->tokRhs, toks[13]);
-    node = block->action->lhs;
+    CHECK_EQUAL(block->action->tokLhs, toks[13]);
+    node = block->action->rhs;
     CHECK_EQUAL(node->data, toks[15]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
@@ -179,8 +179,8 @@ TEST(StateScriptParse, TwoSections)
     CHECK_TRUE(block->next == nullptr);
 
     // `qux = 4` action
-    CHECK_EQUAL(block->action->tokRhs, toks[17]);
-    node = block->action->lhs;
+    CHECK_EQUAL(block->action->tokLhs, toks[17]);
+    node = block->action->rhs;
     CHECK_EQUAL(node->data, toks[19]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
@@ -207,18 +207,18 @@ TEST(StateScriptParse, Assertion)
     CHECK_TRUE(block->ifBlock == nullptr);
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->next != nullptr);
-    CHECK_TRUE(block->assertion != nullptr);
+    CHECK_TRUE(block->assert != nullptr);
 
     // `foo == 1` assertion
-    Ref<const ExpressionParse> node = block->assertion;
+    Ref<const ExpressionParse> node = block->assert;
     CHECK_EQUAL(node->data, toks[4]);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
-    node = block->assertion->left;
+    node = block->assert->left;
     CHECK_EQUAL(node->data, toks[3]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
-    node = block->assertion->right;
+    node = block->assert->right;
     CHECK_EQUAL(node->data, toks[5]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
@@ -230,11 +230,11 @@ TEST(StateScriptParse, Assertion)
     CHECK_TRUE(block->ifBlock == nullptr);
     CHECK_TRUE(block->elseBlock == nullptr);
     CHECK_TRUE(block->next == nullptr);
-    CHECK_TRUE(block->assertion == nullptr);
+    CHECK_TRUE(block->assert == nullptr);
 
     // `bar = 2` action
-    CHECK_EQUAL(block->action->tokRhs, toks[7]);
-    node = block->action->lhs;
+    CHECK_EQUAL(block->action->tokLhs, toks[7]);
+    node = block->action->rhs;
     CHECK_EQUAL(node->data, toks[9]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);

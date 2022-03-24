@@ -15,8 +15,8 @@ public:
 
     struct ActionParse
     {
-        Token tokRhs;
-        Ref<const ExpressionParse> lhs;
+        Token tokLhs;
+        Ref<const ExpressionParse> rhs;
         Token tokDestState;
         Token tokTransitionKeyword;
     };
@@ -28,7 +28,7 @@ public:
         Ref<const StateMachineParse::BlockParse> ifBlock;
         Ref<const StateMachineParse::BlockParse> elseBlock;
         Ref<const StateMachineParse::BlockParse> next;
-        Ref<const ExpressionParse> assertion;
+        Ref<const ExpressionParse> assert;
     };
 
     struct StateParse final
@@ -96,7 +96,7 @@ private:
         Ref<StateMachineParse::MutBlockParse> ifBlock;
         Ref<StateMachineParse::MutBlockParse> elseBlock;
         Ref<StateMachineParse::MutBlockParse> next;
-        Ref<const ExpressionParse> assertion;
+        Ref<const ExpressionParse> assert;
 
         void toBlockParse(Ref<const StateMachineParse::BlockParse>& kParse);
     };

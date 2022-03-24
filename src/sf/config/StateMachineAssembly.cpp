@@ -13,10 +13,11 @@ static const char* const gErrText = "state machine config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-Result StateMachineAssembly::compile(const String kFilePath,
-                                    const Ref<StateVector> kSv,
-                                    Ref<const StateMachineAssembly>& kAsm,
-                                    ErrorInfo* const kErr)
+Result StateMachineAssembly::compile(
+    const String kFilePath,
+    const Ref<const StateVectorAssembly> kSvAsm,
+    Ref<const StateMachineAssembly>& kAsm,
+    ErrorInfo* const kErr)
 {
     // Open file input stream.
     std::ifstream ifs(kFilePath);
@@ -38,13 +39,14 @@ Result StateMachineAssembly::compile(const String kFilePath,
     }
 
     // Send input stream into the next compilation phase.
-    return StateMachineAssembly::compile(ifs, kSv, kAsm, kErr);
+    return StateMachineAssembly::compile(ifs, kSvAsm, kAsm, kErr);
 }
 
-Result StateMachineAssembly::compile(std::istream& kIs,
-                                     const Ref<StateVector> kSv,
-                                     Ref<const StateMachineAssembly>& kAsm,
-                                     ErrorInfo* const kErr)
+Result StateMachineAssembly::compile(
+    std::istream& kIs,
+    const Ref<const StateVectorAssembly> kSvAsm,
+    Ref<const StateMachineAssembly>& kAsm,
+    ErrorInfo* const kErr)
 {
     // Tokenize the input stream.
     Vec<Token> toks;
@@ -71,13 +73,14 @@ Result StateMachineAssembly::compile(std::istream& kIs,
     }
 
     // Send state machine config into the next compilation phase.
-    return StateMachineAssembly::compile(parse, kSv, kAsm, kErr);
+    return StateMachineAssembly::compile(parse, kSvAsm, kAsm, kErr);
 }
 
-Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
-                                     const Ref<StateVector> kSv,
-                                     Ref<const StateMachineAssembly>& kAsm,
-                                     ErrorInfo* const kErr)
+Result StateMachineAssembly::compile(
+    const Ref<const StateMachineParse> kParse,
+    const Ref<const StateVectorAssembly> kSvAsm,
+    Ref<const StateMachineAssembly>& kAsm,
+    ErrorInfo* const kErr)
 {
     // Check that state machine parse is non-null.
     if (kParse == nullptr)
@@ -92,12 +95,16 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     // later.
     ws.smParse = kParse;
 
+    // Put the state vector assembly in the workspace so that it can be recalled
+    // later.
+    ws.svAsm = kSvAsm;
+
     // Allocate state machine state config array.
     ws.stateConfigs.reset(new Vec<StateMachine::StateConfig>());
 
     // Validate the state machine state vector. This will partially populate
     // the element symbol table in the compiler state.
-    Result res = StateMachineAssembly::checkStateVector(kParse, kSv, ws, kErr);
+    Result res = StateMachineAssembly::checkStateVector(kParse, ws, kErr);
     if (res != SUCCESS)
     {
         return res;
@@ -112,7 +119,7 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     }
 
     // Set local element initial values.
-    res = StateMachineAssembly::initLocalElementValues(kParse, kSv, ws, kErr);
+    res = StateMachineAssembly::initLocalElementValues(kParse, ws, kErr);
     if (res != SUCCESS)
     {
         return res;
@@ -130,7 +137,7 @@ Result StateMachineAssembly::compile(const Ref<const StateMachineParse> kParse,
     // Compile each state machine state.
     for (const StateMachineParse::StateParse& state : kParse->states)
     {
-        res = StateMachineAssembly::compileState(state, kSv, ws, kErr);
+        res = StateMachineAssembly::compileState(state, ws, kErr);
         if (res != SUCCESS)
         {
             return res;
@@ -231,19 +238,21 @@ Ref<StateVector> StateMachineAssembly::localStateVector() const
 
 Result StateMachineAssembly::checkStateVector(
     const Ref<const StateMachineParse> kParse,
-    const Ref<StateVector> kSv,
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
     SF_SAFE_ASSERT(kParse != nullptr);
-    SF_SAFE_ASSERT(kSv != nullptr);
+    SF_SAFE_ASSERT(kWs.svAsm != nullptr);
+    SF_SAFE_ASSERT(kWs.svAsm->get() != nullptr);
 
     for (const StateMachineParse::StateVectorElementParse& elem :
          kParse->svElems)
     {
         // Get element object from state vector.
         IElement* elemObj = nullptr;
-        if (kSv->getIElement(elem.tokName.str.c_str(), elemObj) != SUCCESS)
+        const Ref<StateVector> sv = kWs.svAsm->get();
+        SF_SAFE_ASSERT(sv != nullptr);
+        if (sv->getIElement(elem.tokName.str.c_str(), elemObj) != SUCCESS)
         {
             // Element does not exist in state vector.
             ConfigUtil::setError(kErr,
@@ -469,11 +478,10 @@ Result StateMachineAssembly::compileLocalStateVector(
 Result StateMachineAssembly::checkLocalElemInitExprs(
     const StateMachineParse::LocalElementParse& kInitElem,
     const Ref<const ExpressionParse> kExpr,
-    const Ref<StateVector> kSv,
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
-    SF_SAFE_ASSERT(kSv != nullptr);
+    SF_SAFE_ASSERT(kWs.svAsm != nullptr);
 
     // Base case: node is null, so we fell off the tree.
     if (kExpr == nullptr)
@@ -497,7 +505,9 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
 
         // Check that element is not a non-local state vector element.
         IElement* elemObj = nullptr;
-        if (kSv->getIElement(kExpr->data.str.c_str(), elemObj) == SUCCESS)
+        const Ref<StateVector> sv = kWs.svAsm->get();
+        SF_SAFE_ASSERT(sv != nullptr);
+        if (sv->getIElement(kExpr->data.str.c_str(), elemObj) == SUCCESS)
         {
             std::stringstream ss;
             ss << "illegal reference to non-local element `"
@@ -536,7 +546,6 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
     // Check left subtree.
     Result res = StateMachineAssembly::checkLocalElemInitExprs(kInitElem,
                                                                kExpr->left,
-                                                               kSv,
                                                                kWs,
                                                                kErr);
     if (res != SUCCESS)
@@ -547,7 +556,6 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
     // Check right subtree.
     res = StateMachineAssembly::checkLocalElemInitExprs(kInitElem,
                                                         kExpr->right,
-                                                        kSv,
                                                         kWs,
                                                         kErr);
     if (res != SUCCESS)
@@ -560,7 +568,6 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
 
 Result StateMachineAssembly::initLocalElementValues(
     const Ref<const StateMachineParse> kParse,
-    const Ref<StateVector> kSv,
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
@@ -574,7 +581,6 @@ Result StateMachineAssembly::initLocalElementValues(
         Result res = StateMachineAssembly::checkLocalElemInitExprs(
             elem,
             elem.initValExpr,
-            kSv,
             kWs,
             kErr);
         if (res != SUCCESS)
@@ -589,7 +595,7 @@ Result StateMachineAssembly::initLocalElementValues(
         // Compile element initial value expression.
         Ref<const ExpressionAssembly> initExprAsm;
         res = ExpressionAssembly::compile(elem.initValExpr,
-                                          {kWs.localSvAsm->get()},
+                                          kWs.elems,
                                           elemObj->type(),
                                           initExprAsm,
                                           kErr);
@@ -727,7 +733,6 @@ Result StateMachineAssembly::initLocalElementValues(
 
 Result StateMachineAssembly::compileAction(
     const Ref<const StateMachineParse::ActionParse> kParse,
-    Ref<StateVector> kSv,
     StateMachineAssembly::Workspace& kWs,
     const bool kInExitLabel,
     Ref<IAction>& kAction,
@@ -737,43 +742,43 @@ Result StateMachineAssembly::compileAction(
 
     Result res = SUCCESS;
 
-    if (kParse->lhs != nullptr)
+    if (kParse->rhs != nullptr)
     {
         // Compile assignment action.
 
-        // Look up RHS element.
-        auto elemIt = kWs.elems.find(kParse->tokRhs.str);
+        // Look up LHS element.
+        auto elemIt = kWs.elems.find(kParse->tokLhs.str);
         if (elemIt == kWs.elems.end())
         {
             // Unknown element.
             ConfigUtil::setError(kErr,
-                                 kParse->tokRhs,
+                                 kParse->tokLhs,
                                  gErrText,
-                                 ("unknown element `" + kParse->tokRhs.str
+                                 ("unknown element `" + kParse->tokLhs.str
                                   + "`"));
             return E_SMA_ASG_ELEM;
         }
         IElement* const elemObj = (*elemIt).second;
 
-        // Check that RHS element is not read-only.
-        if (kWs.readOnlyElems.find(kParse->tokRhs.str)
+        // Check that LHS element is not read-only.
+        if (kWs.readOnlyElems.find(kParse->tokLhs.str)
             != kWs.readOnlyElems.end())
         {
             ConfigUtil::setError(kErr,
-                                 kParse->tokRhs,
+                                 kParse->tokLhs,
                                  gErrText,
-                                 ("element `" + kParse->tokRhs.str
+                                 ("element `" + kParse->tokLhs.str
                                   + "` is read-only"));
             return E_SMA_ELEM_RO;
         }
 
-        // Compile LHS expression.
-        Ref<const ExpressionAssembly> lhsAsm;
+        // Compile RHS expression.
+        Ref<const ExpressionAssembly> rhsAsm;
         SF_SAFE_ASSERT(elemObj != nullptr);
-        res = ExpressionAssembly::compile(kParse->lhs,
-                                          {kSv, kWs.localSvAsm->get()},
+        res = ExpressionAssembly::compile(kParse->rhs,
+                                          kWs.elems,
                                           elemObj->type(),
-                                          lhsAsm,
+                                          rhsAsm,
                                           kErr);
         if (res != SUCCESS)
         {
@@ -788,91 +793,91 @@ Result StateMachineAssembly::compileAction(
         }
 
         // Add compiled expression to the workspace.
-        kWs.exprAsms.push_back(lhsAsm);
+        kWs.exprAsms.push_back(rhsAsm);
 
         // Create assignment action based on element type. The element object
         // and LHS root nodes are narrowed to template instantiations that match
         // the element type. These casts are guaranteed correct in this context
         // by the element and expression compiler implementations.
-        SF_SAFE_ASSERT(lhsAsm != nullptr);
-        SF_SAFE_ASSERT(lhsAsm->root() != nullptr);
+        SF_SAFE_ASSERT(rhsAsm != nullptr);
+        SF_SAFE_ASSERT(rhsAsm->root() != nullptr);
         switch (elemObj->type())
         {
             case ElementType::INT8:
-                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::INT8);
+                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::INT8);
                 kAction.reset(new AssignmentAction<I8>(
                     *static_cast<Element<I8>*>(elemObj),
-                    *static_cast<IExprNode<I8>*>(lhsAsm->root().get())));
+                    *static_cast<IExprNode<I8>*>(rhsAsm->root().get())));
                 break;
 
             case ElementType::INT16:
-                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::INT16);
+                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::INT16);
                 kAction.reset(new AssignmentAction<I16>(
                     *static_cast<Element<I16>*>(elemObj),
-                    *static_cast<IExprNode<I16>*>(lhsAsm->root().get())));
+                    *static_cast<IExprNode<I16>*>(rhsAsm->root().get())));
                 break;
 
             case ElementType::INT32:
-                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::INT32);
+                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::INT32);
                 kAction.reset(new AssignmentAction<I32>(
                     *static_cast<Element<I32>*>(elemObj),
-                    *static_cast<IExprNode<I32>*>(lhsAsm->root().get())));
+                    *static_cast<IExprNode<I32>*>(rhsAsm->root().get())));
                 break;
 
             case ElementType::INT64:
-                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::INT64);
+                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::INT64);
                 kAction.reset(new AssignmentAction<I64>(
                     *static_cast<Element<I64>*>(elemObj),
-                    *static_cast<IExprNode<I64>*>(lhsAsm->root().get())));
+                    *static_cast<IExprNode<I64>*>(rhsAsm->root().get())));
                 break;
 
             case ElementType::UINT8:
-                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::UINT8);
+                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::UINT8);
                 kAction.reset(new AssignmentAction<U8>(
                     *static_cast<Element<U8>*>(elemObj),
-                    *static_cast<IExprNode<U8>*>(lhsAsm->root().get())));
+                    *static_cast<IExprNode<U8>*>(rhsAsm->root().get())));
                 break;
 
             case ElementType::UINT16:
-                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::UINT16);
+                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::UINT16);
                 kAction.reset(new AssignmentAction<U16>(
                     *static_cast<Element<U16>*>(elemObj),
-                    *static_cast<IExprNode<U16>*>(lhsAsm->root().get())));
+                    *static_cast<IExprNode<U16>*>(rhsAsm->root().get())));
                 break;
 
             case ElementType::UINT32:
-                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::UINT32);
+                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::UINT32);
                 kAction.reset(new AssignmentAction<U32>(
                     *static_cast<Element<U32>*>(elemObj),
-                    *static_cast<IExprNode<U32>*>(lhsAsm->root().get())));
+                    *static_cast<IExprNode<U32>*>(rhsAsm->root().get())));
                 break;
 
             case ElementType::UINT64:
-                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::UINT64);
+                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::UINT64);
                 kAction.reset(new AssignmentAction<U64>(
                     *static_cast<Element<U64>*>(elemObj),
-                    *static_cast<IExprNode<U64>*>(lhsAsm->root().get())));
+                    *static_cast<IExprNode<U64>*>(rhsAsm->root().get())));
                 break;
 
             case ElementType::FLOAT32:
-                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::FLOAT32);
+                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::FLOAT32);
                 kAction.reset(new AssignmentAction<F32>(
                     *static_cast<Element<F32>*>(elemObj),
-                    *static_cast<IExprNode<F32>*>(lhsAsm->root().get())));
+                    *static_cast<IExprNode<F32>*>(rhsAsm->root().get())));
                 break;
 
             case ElementType::FLOAT64:
-                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::FLOAT64);
+                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::FLOAT64);
                 kAction.reset(new AssignmentAction<F64>(
                     *static_cast<Element<F64>*>(elemObj),
-                    *static_cast<IExprNode<F64>*>(lhsAsm->root().get())));
+                    *static_cast<IExprNode<F64>*>(rhsAsm->root().get())));
                 break;
 
             case ElementType::BOOL:
-                SF_SAFE_ASSERT(lhsAsm->root()->type() == ElementType::BOOL);
+                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::BOOL);
                 kAction.reset(new AssignmentAction<bool>(
                     *static_cast<Element<bool>*>(elemObj),
-                    *static_cast<IExprNode<bool>*>(lhsAsm->root().get())));
+                    *static_cast<IExprNode<bool>*>(rhsAsm->root().get())));
                 break;
 
             default:
@@ -919,22 +924,20 @@ Result StateMachineAssembly::compileAction(
 
 Result StateMachineAssembly::compileBlock(
     const Ref<const StateMachineParse::BlockParse> kParse,
-    const Ref<StateVector> kSv,
     StateMachineAssembly::Workspace& kWs,
     const bool kInExitLabel,
     Ref<StateMachine::Block>& kBlock,
     ErrorInfo* const kErr)
 {
     SF_SAFE_ASSERT(kParse != nullptr);
-    SF_SAFE_ASSERT(kSv != nullptr);
 
     // Check that an assertion (which is only allowed in state scripts) is not
     // being used in the state machine.
-    if (kParse->assertion != nullptr)
+    if (kParse->assert != nullptr)
     {
         // Error message will point to the first token in the assertion
         // expression, or the leftmost leaf in the tree.
-        Ref<const ExpressionParse> node = kParse->assertion;
+        Ref<const ExpressionParse> node = kParse->assert;
         while (node->left != nullptr)
         {
             node = node->left;
@@ -957,7 +960,7 @@ Result StateMachineAssembly::compileBlock(
         // Compile block guard.
         Ref<const ExpressionAssembly> guardAsm;
         res = ExpressionAssembly::compile(kParse->guard,
-                                          {kSv, kWs.localSvAsm->get()},
+                                          kWs.elems,
                                           ElementType::BOOL,
                                           guardAsm,
                                           kErr);
@@ -987,7 +990,6 @@ Result StateMachineAssembly::compileBlock(
             // Compile if branch block.
             Ref<StateMachine::Block> block;
             res = StateMachineAssembly::compileBlock(kParse->ifBlock,
-                                                     kSv,
                                                      kWs,
                                                      kInExitLabel,
                                                      block,
@@ -1007,7 +1009,6 @@ Result StateMachineAssembly::compileBlock(
             // Compile else branch block.
             Ref<StateMachine::Block> block;
             res = StateMachineAssembly::compileBlock(kParse->elseBlock,
-                                                     kSv,
                                                      kWs,
                                                      kInExitLabel,
                                                      block,
@@ -1028,7 +1029,6 @@ Result StateMachineAssembly::compileBlock(
         // Compile action.
         Ref<IAction> action;
         res = StateMachineAssembly::compileAction(kParse->action,
-                                                  kSv,
                                                   kWs,
                                                   kInExitLabel,
                                                   action,
@@ -1048,7 +1048,6 @@ Result StateMachineAssembly::compileBlock(
         // Compile next block.
         Ref<StateMachine::Block> block;
         res = StateMachineAssembly::compileBlock(kParse->next,
-                                                 kSv,
                                                  kWs,
                                                  kInExitLabel,
                                                  block,
@@ -1068,7 +1067,6 @@ Result StateMachineAssembly::compileBlock(
 
 Result StateMachineAssembly::compileState(
     const StateMachineParse::StateParse& kParse,
-    Ref<StateVector> kSv,
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
 {
@@ -1090,7 +1088,6 @@ Result StateMachineAssembly::compileState(
         // Compile entry label.
         Ref<StateMachine::Block> entryBlock;
         res = StateMachineAssembly::compileBlock(kParse.entry,
-                                                 kSv,
                                                  kWs,
                                                  false,
                                                  entryBlock,
@@ -1110,7 +1107,6 @@ Result StateMachineAssembly::compileState(
         // Compile step label.
         Ref<StateMachine::Block> stepBlock;
         res = StateMachineAssembly::compileBlock(kParse.step,
-                                                 kSv,
                                                  kWs,
                                                  false,
                                                  stepBlock,
@@ -1130,7 +1126,6 @@ Result StateMachineAssembly::compileState(
         // Compile exit label.
         Ref<StateMachine::Block> exitBlock;
         res = StateMachineAssembly::compileBlock(kParse.exit,
-                                                 kSv,
                                                  kWs,
                                                  true,
                                                  exitBlock,

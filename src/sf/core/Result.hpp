@@ -134,6 +134,7 @@ enum : Result
     E_EXA_ARITY = 485,
     E_EXA_FUNC = 486,
     E_EXA_WIN = 487,
+    E_EXA_ELEM_NULL = 488,
 
     // StateScriptParse
     E_SSP_SEC = 512,

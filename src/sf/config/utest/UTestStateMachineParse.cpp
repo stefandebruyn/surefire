@@ -82,12 +82,12 @@ TEST(StateMachineParse, AllSections)
     CHECK_TRUE(parse->states[0].entry->next == nullptr);
 
     // foo = 0
-    CHECK_EQUAL(toks[18], parse->states[0].entry->action->tokRhs);
-    const Ref<const ExpressionParse> lhs = parse->states[0].entry->action->lhs;
-    CHECK_TRUE(lhs != nullptr);
-    CHECK_EQUAL(toks[20], lhs->data);
-    CHECK_TRUE(lhs->left == nullptr);
-    CHECK_TRUE(lhs->right == nullptr);
+    CHECK_EQUAL(toks[18], parse->states[0].entry->action->tokLhs);
+    const Ref<const ExpressionParse> rhs = parse->states[0].entry->action->rhs;
+    CHECK_TRUE(rhs != nullptr);
+    CHECK_EQUAL(toks[20], rhs->data);
+    CHECK_TRUE(rhs->left == nullptr);
+    CHECK_TRUE(rhs->right == nullptr);
 }
 
 TEST(StateMachineParse, EmptySections)

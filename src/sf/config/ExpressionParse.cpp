@@ -287,8 +287,11 @@ void ExpressionParse::expandDoubleIneq(
                 != OpInfo::relOps.end())
             {
                 // Join inequalities with an AND operator.
-                kNode->right.reset(new ExpressionParse::MutNode{
-                    kNode->data, kNode->left->right, kNode->right, false});
+                kNode->right.reset(
+                    new ExpressionParse::MutNode{kNode->data,
+                                                 kNode->left->right,
+                                                 kNode->right,
+                                                 false});
                 kNode->data =
                 {
                     Token::OPERATOR,
@@ -478,10 +481,7 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
     // Check that stack is empty.
     if (stack.size() != 0)
     {
-        ConfigUtil::setError(kErr,
-                             stack.top(),
-                             gErrText,
-                             "invalid syntax");
+        ConfigUtil::setError(kErr, stack.top(), gErrText, "invalid syntax");
         return E_EXP_SYNTAX;
     }
 
