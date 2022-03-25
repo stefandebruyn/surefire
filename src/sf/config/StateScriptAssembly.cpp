@@ -366,12 +366,18 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
         SF_SAFE_ASSERT(stateTime != Clock::NO_TIME);
         elemStateTime.write(stateTime);
 
+        // Forcibly update the state element, for the same reason as above;
+        // normally this happens when the state machine steps, but we need it to
+        // happen slightly earlier so that the value is seen when evaluating
+        // guards.
+        elemState.write(sm.nextState());
+
         // Collect inputs and asserts for the current step based on the current
         // state and guard evaluations.
         for (StateScriptAssembly::Section& section : mSections)
         {
             if ((section.stateId == StateMachine::NO_STATE)
-                || (section.stateId == elemState.read()))
+                || (section.stateId == sm.nextState()))
             {
                 // Collect inputs.
                 for (StateScriptAssembly::Input& input : section.inputs)
@@ -459,9 +465,9 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
     // and passed asserts.
     std::stringstream reportText;
     reportText << "state script ran for " << Console::cyan << kReport.steps
-               << Console::reset << ((kReport.steps == 1) ? "step" : "steps")
+               << Console::reset << ((kReport.steps == 1) ? " step" : " steps")
                << "\n" << Console::green << kReport.asserts << Console::reset
-               << ((kReport.asserts == 1) ? "assert" : "asserts")
+               << ((kReport.asserts == 1) ? " assert" : " asserts")
                << " passed\n";
 
     // If an assert failed, include an error message using the error info from
@@ -478,6 +484,7 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
     }
 
     // Conclude report text with the final state vector.
+    reportText << "final state vector:\n";
     res = this->printStateVector(reportText);
     if (res != SUCCESS)
     {
@@ -566,12 +573,12 @@ Result StateScriptAssembly::printStateVector(std::ostream& kOs)
                     break;
 
                 case ElementType::FLOAT32:
-                    kOs <<
+                    kOs << std::fixed <<
                         static_cast<const Element<F32>*>(elemObj)->read();
                     break;
 
                 case ElementType::FLOAT64:
-                    kOs <<
+                    kOs << std::fixed <<
                         static_cast<const Element<F64>*>(elemObj)->read();
                     break;
 

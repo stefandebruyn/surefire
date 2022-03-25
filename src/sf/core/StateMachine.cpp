@@ -305,7 +305,7 @@ Result StateMachine::step()
     return SUCCESS;
 }
 
-Result StateMachine::getNextStateTime(U64& kT)
+Result StateMachine::getNextStateTime(U64& kT) const
 {
     if (mTimeStateStart == Clock::NO_TIME)
     {
@@ -318,4 +318,9 @@ Result StateMachine::getNextStateTime(U64& kT)
     }
 
     return SUCCESS;
+}
+
+U32 StateMachine::nextState() const
+{
+    return mStateCur->id;
 }
