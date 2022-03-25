@@ -13,7 +13,14 @@ public:
         Ref<const StateMachineParse::BlockParse> block;
     };
 
+    struct Config final
+    {
+        U64 deltaT;
+    };
+
     Vec<StateScriptParse::SectionParse> sections;
+
+    StateScriptParse::Config config;
 
     static Result parse(const Vec<Token>& kToks,
                         Ref<const StateScriptParse>& kParse,
@@ -21,7 +28,8 @@ public:
 
 private:
 
-    StateScriptParse(const Vec<StateScriptParse::SectionParse>& kSections);
+    StateScriptParse(const Vec<StateScriptParse::SectionParse>& kSections,
+                     const StateScriptParse::Config& kConfig);
 };
 
 #endif

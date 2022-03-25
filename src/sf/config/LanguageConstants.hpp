@@ -38,6 +38,8 @@ namespace LangConst
 
     extern const std::regex annotationAliasRegex;
 
+    extern const std::regex annotationDeltaTRegex;
+
     extern const String annotationReadOnly;
 
     extern const String annotationStop;
@@ -47,6 +49,8 @@ namespace LangConst
     extern const String sectionLocal;
 
     extern const String sectionAllStates;
+
+    extern const String sectionConfig;
 
     extern const String keywordIf;
 

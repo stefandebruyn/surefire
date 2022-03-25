@@ -139,6 +139,8 @@ enum : Result
 
     // StateScriptParse
     E_SSP_SEC = 512,
+    E_SSP_DT = 513,
+    E_SSP_CONFIG = 514,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 

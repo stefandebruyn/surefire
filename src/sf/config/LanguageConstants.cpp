@@ -29,6 +29,8 @@ const String LangConst::annotationAssert = "@ASSERT";
 const std::regex LangConst::annotationAliasRegex(
     "@ALIAS=([a-zA-Z][a-zA-Z0-9_]*)");
 
+const std::regex LangConst::annotationDeltaTRegex("@DELTA_T=([0-9]+)");
+
 const String LangConst::annotationReadOnly = "@READ_ONLY";
 
 const String LangConst::annotationStop = "@STOP";
@@ -38,6 +40,8 @@ const String LangConst::sectionStateVector = "[STATE_VECTOR]";
 const String LangConst::sectionLocal = "[LOCAL]";
 
 const String LangConst::sectionAllStates = "[ALL_STATES]";
+
+const String LangConst::sectionConfig = "[CONFIG]";
 
 const String LangConst::keywordIf = "IF";
 
