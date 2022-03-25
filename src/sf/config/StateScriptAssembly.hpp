@@ -46,9 +46,12 @@ private:
 
     Vec<Ref<const ExpressionAssembly>> mExprAsms;
 
+    StateScriptParse::Config mConfig;
+
     StateScriptAssembly(const Vec<StateScriptAssembly::Section>& kSections,
                         const Ref<const StateMachineAssembly> kSmAsm,
-                        const Vec<Ref<const ExpressionAssembly>> kExprAsms);
+                        const Vec<Ref<const ExpressionAssembly>> kExprAsms,
+                        const StateScriptParse::Config& kConfig);
 
     Result printStateVector(std::ostream& kOs);
 };

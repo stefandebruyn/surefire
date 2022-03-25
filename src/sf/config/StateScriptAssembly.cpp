@@ -205,7 +205,10 @@ Result StateScriptAssembly::compile(
     }
 
     // Create final assembly.
-    kAsm.reset(new StateScriptAssembly(sections, kSmAsm, exprAsms));
+    kAsm.reset(new StateScriptAssembly(sections,
+                                       kSmAsm,
+                                       exprAsms,
+                                       kParse->config));
 
     return SUCCESS;
 }
@@ -236,7 +239,13 @@ Result StateScriptAssembly::run(bool& kPass,
     SF_SAFE_ASSERT(elemObj->type() == ElementType::UINT64);
     Element<U64>& elemStateTime = *static_cast<Element<U64>*>(elemObj);
 
-    (void) elemStateTime;
+    // Get global time element.
+    elemIt = mSmAsm->mWs.elems.find("G");
+    SF_SAFE_ASSERT(elemIt != mSmAsm->mWs.elems.end());
+    elemObj = (*elemIt).second;
+    SF_SAFE_ASSERT(elemObj != nullptr);
+    SF_SAFE_ASSERT(elemObj->type() == ElementType::UINT64);
+    Element<U64>& elemGlobalTime = *static_cast<Element<U64>*>(elemObj);
 
     // The inputs and asserts to run in a given step will be collected in these
     // vectors.
@@ -245,6 +254,9 @@ Result StateScriptAssembly::run(bool& kPass,
 
     // Number of assert passes.
     U32 assertPasses = 0;
+
+    // Global time starts at zero.
+    elemGlobalTime.write(0);
 
     // Loop until stop annotation of assert failure.
     Result res = SUCCESS;
@@ -356,6 +368,17 @@ Result StateScriptAssembly::run(bool& kPass,
         // Clear active inputs and asserts.
         activeInputs.clear();
         activeAsserts.clear();
+
+        // Increment global time by the configured delta T.
+        SF_SAFE_ASSERT(mConfig.deltaT > 0);
+        const U64 lastGlobalTime = elemGlobalTime.read();
+        elemGlobalTime.write(lastGlobalTime + mConfig.deltaT);
+
+        // Check for overflow of the global clock.
+        if (elemGlobalTime.read() <= lastGlobalTime)
+        {
+            SF_ASSERT(false);
+        }
     }
 
     // If we got this far, the state script passed. Print report.
@@ -376,8 +399,9 @@ Result StateScriptAssembly::run(bool& kPass,
 StateScriptAssembly::StateScriptAssembly(
     const Vec<StateScriptAssembly::Section>& kSections,
     const Ref<const StateMachineAssembly> kSmAsm,
-    const Vec<Ref<const ExpressionAssembly>> kExprAsms) :
-    mSections(kSections), mSmAsm(kSmAsm), mExprAsms(kExprAsms)
+    const Vec<Ref<const ExpressionAssembly>> kExprAsms,
+    const StateScriptParse::Config& kConfig) :
+    mSections(kSections), mSmAsm(kSmAsm), mExprAsms(kExprAsms), mConfig(kConfig)
 {
 }
 
