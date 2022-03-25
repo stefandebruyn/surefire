@@ -519,7 +519,9 @@ void StateMachineParse::MutBlockParse::toBlockParse(
                                                    ifBlock,
                                                    elseBlock,
                                                    next,
-                                                   this->assert});
+                                                   this->assert,
+                                                   this->tokAssert,
+                                                   this->tokStop});
 }
 
 Result StateMachineParse::parseAction(
@@ -869,10 +871,12 @@ Result StateMachineParse::parseBlockRec(
         {
             // If the next token is an assert annotation, then it marks an
             // assert expression in a state script.
-            if (kIt.type() == Token::ANNOTATION && (kIt.str() == "@ASSERT"))
+            if (kIt.str() == LangConst::annotationAssert)
             {
-                // Take annotation.
-                kIt.take();
+                SF_SAFE_ASSERT(kIt.type() == Token::ANNOTATION);
+
+                // Take assert annotation.
+                block->tokAssert = kIt.take();
 
                 // Parse assert expression.
                 res = ExpressionParse::parse(kIt.slice(kIt.idx(), idxEnd),
@@ -883,9 +887,19 @@ Result StateMachineParse::parseBlockRec(
                     return res;
                 }
             }
+            // If the next token is a stop annotation, then it marks an exit
+            // point for a state script.
+            else if (kIt.str() == LangConst::annotationStop)
+            {
+                SF_SAFE_ASSERT(kIt.type() == Token::ANNOTATION);
+
+                // Take stop annotation.
+                block->tokStop = kIt.take();
+            }
+            // Not a state script assert or stop, so an unguarded state machine
+            // action or state script input.
             else
             {
-                // Not an assert, so an unguarded action.
                 res = StateMachineParse::parseAction(
                     kIt.slice(kIt.idx(), idxEnd),
                     block->action,

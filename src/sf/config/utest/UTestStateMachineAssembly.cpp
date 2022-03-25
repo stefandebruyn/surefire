@@ -1093,7 +1093,7 @@ TEST(StateMachineAssemblyErrors, TransitionInExitLabel)
     checkCompileError(smParse, svAsm, E_SMA_TR_EXIT, 7, 5);
 }
 
-TEST(StateMachineAssemblyErrors, Assertion)
+TEST(StateMachineAssemblyErrors, IllegalAssert)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1110,6 +1110,25 @@ TEST(StateMachineAssemblyErrors, Assertion)
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
     checkCompileError(smParse, svAsm, E_SMA_ASSERT, 7, 13);
+}
+
+TEST(StateMachineAssemblyErrors, IllegalStopAnnotation)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n");
+    TOKENIZE(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS=S\n"
+        "\n"
+        "[Initial]\n"
+        ".ENTRY\n"
+        "    @STOP\n");
+    Ref<const StateMachineParse> smParse;
+    CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
+    checkCompileError(smParse, svAsm, E_SMA_STOP, 7, 5);
 }
 
 TEST(StateMachineAssemblyErrors, LocalElementReferencesStateVectorElement)

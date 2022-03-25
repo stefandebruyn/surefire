@@ -124,6 +124,7 @@ enum : Result
     E_SMA_LOC_SV_REF = 463,
     E_SMA_SELF_REF = 464,
     E_SMA_UBI = 465,
+    E_SMA_STOP = 466,
 
     // ExpressionAssembly
     E_EXA_NULL = 480,

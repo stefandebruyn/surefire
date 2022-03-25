@@ -46,6 +46,8 @@ namespace LangConst
 
     extern const String sectionLocal;
 
+    extern const String sectionAllStates;
+
     extern const String keywordIf;
 
     extern const String keywordElse;

@@ -731,6 +731,153 @@ Result StateMachineAssembly::initLocalElementValues(
     return SUCCESS;
 }
 
+Result StateMachineAssembly::compileAssignmentAction(
+    const Ref<const StateMachineParse::ActionParse> kParse,
+    const Map<String, IElement*>& kBindings,
+    const Set<String>& kReadOnlyElems,
+    Ref<IAction>& kAction,
+    Ref<const ExpressionAssembly>& kRhsAsm,
+    ErrorInfo* const kErr)
+{
+    SF_SAFE_ASSERT(kParse != nullptr);
+
+    // Look up LHS element.
+    auto elemIt = kBindings.find(kParse->tokLhs.str);
+    if (elemIt == kBindings.end())
+    {
+        // Unknown element.
+        ConfigUtil::setError(kErr,
+                             kParse->tokLhs,
+                             gErrText,
+                             ("unknown element `" + kParse->tokLhs.str
+                              + "`"));
+        return E_SMA_ASG_ELEM;
+    }
+    IElement* const elemObj = (*elemIt).second;
+    SF_SAFE_ASSERT(elemObj != nullptr);
+
+    // Check that LHS element is not read-only.
+    if (kReadOnlyElems.find(kParse->tokLhs.str) != kReadOnlyElems.end())
+    {
+        ConfigUtil::setError(kErr,
+                             kParse->tokLhs,
+                             gErrText,
+                             ("element `" + kParse->tokLhs.str
+                              + "` is read-only"));
+        return E_SMA_ELEM_RO;
+    }
+
+    // Compile RHS expression.
+    const Result res = ExpressionAssembly::compile(kParse->rhs,
+                                                   kBindings,
+                                                   elemObj->type(),
+                                                   kRhsAsm,
+                                                   kErr);
+    if (res != SUCCESS)
+    {
+        // Override error text set by expression compiler for consistent state
+        // machine compiler error messages.
+        if (kErr != nullptr)
+        {
+            kErr->text = gErrText;
+        }
+
+        return res;
+    }
+
+    // Create assignment action based on element type. The LHS element object
+    // and RHS root node are narrowed to template instantiations that match
+    // the element type. These casts are guaranteed correct in this context
+    // by the element and expression compiler implementations.
+    SF_SAFE_ASSERT(kRhsAsm != nullptr);
+    SF_SAFE_ASSERT(kRhsAsm->root() != nullptr);
+    switch (elemObj->type())
+    {
+        case ElementType::INT8:
+            SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::INT8);
+            kAction.reset(new AssignmentAction<I8>(
+                *static_cast<Element<I8>*>(elemObj),
+                *static_cast<IExprNode<I8>*>(kRhsAsm->root().get())));
+            break;
+
+        case ElementType::INT16:
+            SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::INT16);
+            kAction.reset(new AssignmentAction<I16>(
+                *static_cast<Element<I16>*>(elemObj),
+                *static_cast<IExprNode<I16>*>(kRhsAsm->root().get())));
+            break;
+
+        case ElementType::INT32:
+            SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::INT32);
+            kAction.reset(new AssignmentAction<I32>(
+                *static_cast<Element<I32>*>(elemObj),
+                *static_cast<IExprNode<I32>*>(kRhsAsm->root().get())));
+            break;
+
+        case ElementType::INT64:
+            SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::INT64);
+            kAction.reset(new AssignmentAction<I64>(
+                *static_cast<Element<I64>*>(elemObj),
+                *static_cast<IExprNode<I64>*>(kRhsAsm->root().get())));
+            break;
+
+        case ElementType::UINT8:
+            SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::UINT8);
+            kAction.reset(new AssignmentAction<U8>(
+                *static_cast<Element<U8>*>(elemObj),
+                *static_cast<IExprNode<U8>*>(kRhsAsm->root().get())));
+            break;
+
+        case ElementType::UINT16:
+            SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::UINT16);
+            kAction.reset(new AssignmentAction<U16>(
+                *static_cast<Element<U16>*>(elemObj),
+                *static_cast<IExprNode<U16>*>(kRhsAsm->root().get())));
+            break;
+
+        case ElementType::UINT32:
+            SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::UINT32);
+            kAction.reset(new AssignmentAction<U32>(
+                *static_cast<Element<U32>*>(elemObj),
+                *static_cast<IExprNode<U32>*>(kRhsAsm->root().get())));
+            break;
+
+        case ElementType::UINT64:
+            SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::UINT64);
+            kAction.reset(new AssignmentAction<U64>(
+                *static_cast<Element<U64>*>(elemObj),
+                *static_cast<IExprNode<U64>*>(kRhsAsm->root().get())));
+            break;
+
+        case ElementType::FLOAT32:
+            SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::FLOAT32);
+            kAction.reset(new AssignmentAction<F32>(
+                *static_cast<Element<F32>*>(elemObj),
+                *static_cast<IExprNode<F32>*>(kRhsAsm->root().get())));
+            break;
+
+        case ElementType::FLOAT64:
+            SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::FLOAT64);
+            kAction.reset(new AssignmentAction<F64>(
+                *static_cast<Element<F64>*>(elemObj),
+                *static_cast<IExprNode<F64>*>(kRhsAsm->root().get())));
+            break;
+
+        case ElementType::BOOL:
+            SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::BOOL);
+            kAction.reset(new AssignmentAction<bool>(
+                *static_cast<Element<bool>*>(elemObj),
+                *static_cast<IExprNode<bool>*>(kRhsAsm->root().get())));
+            break;
+
+        default:
+            // Unreachable.
+            SF_SAFE_ASSERT(false);
+    }
+
+    return SUCCESS;
+}
+
 Result StateMachineAssembly::compileAction(
     const Ref<const StateMachineParse::ActionParse> kParse,
     StateMachineAssembly::Workspace& kWs,
@@ -745,145 +892,20 @@ Result StateMachineAssembly::compileAction(
     if (kParse->rhs != nullptr)
     {
         // Compile assignment action.
-
-        // Look up LHS element.
-        auto elemIt = kWs.elems.find(kParse->tokLhs.str);
-        if (elemIt == kWs.elems.end())
-        {
-            // Unknown element.
-            ConfigUtil::setError(kErr,
-                                 kParse->tokLhs,
-                                 gErrText,
-                                 ("unknown element `" + kParse->tokLhs.str
-                                  + "`"));
-            return E_SMA_ASG_ELEM;
-        }
-        IElement* const elemObj = (*elemIt).second;
-
-        // Check that LHS element is not read-only.
-        if (kWs.readOnlyElems.find(kParse->tokLhs.str)
-            != kWs.readOnlyElems.end())
-        {
-            ConfigUtil::setError(kErr,
-                                 kParse->tokLhs,
-                                 gErrText,
-                                 ("element `" + kParse->tokLhs.str
-                                  + "` is read-only"));
-            return E_SMA_ELEM_RO;
-        }
-
-        // Compile RHS expression.
         Ref<const ExpressionAssembly> rhsAsm;
-        SF_SAFE_ASSERT(elemObj != nullptr);
-        res = ExpressionAssembly::compile(kParse->rhs,
-                                          kWs.elems,
-                                          elemObj->type(),
-                                          rhsAsm,
-                                          kErr);
+        res = StateMachineAssembly::compileAssignmentAction(kParse,
+                                                            kWs.elems,
+                                                            kWs.readOnlyElems,
+                                                            kAction,
+                                                            rhsAsm,
+                                                            kErr);
         if (res != SUCCESS)
         {
-            // Override error text set by expression compiler for consistent
-            // state machine compiler error messages.
-            if (kErr != nullptr)
-            {
-                kErr->text = gErrText;
-            }
-
             return res;
         }
 
-        // Add compiled expression to the workspace.
+        // Add compiled RHS expression to the workspace.
         kWs.exprAsms.push_back(rhsAsm);
-
-        // Create assignment action based on element type. The element object
-        // and LHS root nodes are narrowed to template instantiations that match
-        // the element type. These casts are guaranteed correct in this context
-        // by the element and expression compiler implementations.
-        SF_SAFE_ASSERT(rhsAsm != nullptr);
-        SF_SAFE_ASSERT(rhsAsm->root() != nullptr);
-        switch (elemObj->type())
-        {
-            case ElementType::INT8:
-                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::INT8);
-                kAction.reset(new AssignmentAction<I8>(
-                    *static_cast<Element<I8>*>(elemObj),
-                    *static_cast<IExprNode<I8>*>(rhsAsm->root().get())));
-                break;
-
-            case ElementType::INT16:
-                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::INT16);
-                kAction.reset(new AssignmentAction<I16>(
-                    *static_cast<Element<I16>*>(elemObj),
-                    *static_cast<IExprNode<I16>*>(rhsAsm->root().get())));
-                break;
-
-            case ElementType::INT32:
-                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::INT32);
-                kAction.reset(new AssignmentAction<I32>(
-                    *static_cast<Element<I32>*>(elemObj),
-                    *static_cast<IExprNode<I32>*>(rhsAsm->root().get())));
-                break;
-
-            case ElementType::INT64:
-                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::INT64);
-                kAction.reset(new AssignmentAction<I64>(
-                    *static_cast<Element<I64>*>(elemObj),
-                    *static_cast<IExprNode<I64>*>(rhsAsm->root().get())));
-                break;
-
-            case ElementType::UINT8:
-                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::UINT8);
-                kAction.reset(new AssignmentAction<U8>(
-                    *static_cast<Element<U8>*>(elemObj),
-                    *static_cast<IExprNode<U8>*>(rhsAsm->root().get())));
-                break;
-
-            case ElementType::UINT16:
-                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::UINT16);
-                kAction.reset(new AssignmentAction<U16>(
-                    *static_cast<Element<U16>*>(elemObj),
-                    *static_cast<IExprNode<U16>*>(rhsAsm->root().get())));
-                break;
-
-            case ElementType::UINT32:
-                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::UINT32);
-                kAction.reset(new AssignmentAction<U32>(
-                    *static_cast<Element<U32>*>(elemObj),
-                    *static_cast<IExprNode<U32>*>(rhsAsm->root().get())));
-                break;
-
-            case ElementType::UINT64:
-                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::UINT64);
-                kAction.reset(new AssignmentAction<U64>(
-                    *static_cast<Element<U64>*>(elemObj),
-                    *static_cast<IExprNode<U64>*>(rhsAsm->root().get())));
-                break;
-
-            case ElementType::FLOAT32:
-                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::FLOAT32);
-                kAction.reset(new AssignmentAction<F32>(
-                    *static_cast<Element<F32>*>(elemObj),
-                    *static_cast<IExprNode<F32>*>(rhsAsm->root().get())));
-                break;
-
-            case ElementType::FLOAT64:
-                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::FLOAT64);
-                kAction.reset(new AssignmentAction<F64>(
-                    *static_cast<Element<F64>*>(elemObj),
-                    *static_cast<IExprNode<F64>*>(rhsAsm->root().get())));
-                break;
-
-            case ElementType::BOOL:
-                SF_SAFE_ASSERT(rhsAsm->root()->type() == ElementType::BOOL);
-                kAction.reset(new AssignmentAction<bool>(
-                    *static_cast<Element<bool>*>(elemObj),
-                    *static_cast<IExprNode<bool>*>(rhsAsm->root().get())));
-                break;
-
-            default:
-                // Unreachable.
-                SF_SAFE_ASSERT(false);
-        }
     }
     else
     {
@@ -931,23 +953,28 @@ Result StateMachineAssembly::compileBlock(
 {
     SF_SAFE_ASSERT(kParse != nullptr);
 
-    // Check that an assertion (which is only allowed in state scripts) is not
+    // Check that an assertion, which is only allowed in state scripts, is not
     // being used in the state machine.
     if (kParse->assert != nullptr)
     {
-        // Error message will point to the first token in the assertion
-        // expression, or the leftmost leaf in the tree.
-        Ref<const ExpressionParse> node = kParse->assert;
-        while (node->left != nullptr)
-        {
-            node = node->left;
-        }
-
         ConfigUtil::setError(kErr,
-                             node->data,
+                             kParse->tokAssert,
                              gErrText,
-                             "state machines may not contain assertions");
+                             ("`" + kParse->tokAssert.str + "` may only be used"
+                              " in state scripts"));
         return E_SMA_ASSERT;
+    }
+
+    // Check that a stop annotation, which is only allowed in state scripts, is
+    // not being used in the state machine.
+    if (kParse->tokStop.str.size() > 0)
+    {
+        ConfigUtil::setError(kErr,
+                             kParse->tokStop,
+                             gErrText,
+                             ("`" + kParse->tokStop.str + "` may only be used "
+                              "in state scripts"));
+        return E_SMA_STOP;
     }
 
     // Allocate new block and add to workspace.

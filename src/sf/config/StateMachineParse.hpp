@@ -29,6 +29,8 @@ public:
         Ref<const StateMachineParse::BlockParse> elseBlock;
         Ref<const StateMachineParse::BlockParse> next;
         Ref<const ExpressionParse> assert;
+        Token tokAssert;
+        Token tokStop;
     };
 
     struct StateParse final
@@ -97,6 +99,8 @@ private:
         Ref<StateMachineParse::MutBlockParse> elseBlock;
         Ref<StateMachineParse::MutBlockParse> next;
         Ref<const ExpressionParse> assert;
+        Token tokAssert;
+        Token tokStop;
 
         void toBlockParse(Ref<const StateMachineParse::BlockParse>& kParse);
     };

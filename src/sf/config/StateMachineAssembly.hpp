@@ -76,6 +76,14 @@ private:
         StateMachineAssembly::Workspace& kWs,
         ErrorInfo* const kErr);
 
+    static Result compileAssignmentAction(
+        const Ref<const StateMachineParse::ActionParse> kParse,
+        const Map<String, IElement*>& kBindings,
+        const Set<String>& kReadOnlyElems,
+        Ref<IAction>& kAction,
+        Ref<const ExpressionAssembly>& kRhsAsm,
+        ErrorInfo* const kErr);
+
     static Result compileAction(
         const Ref<const StateMachineParse::ActionParse> kParse,
         StateMachineAssembly::Workspace& kWs,

@@ -304,3 +304,18 @@ Result StateMachine::step()
 
     return SUCCESS;
 }
+
+Result StateMachine::getNextStateTime(U64& kT)
+{
+    if (mTimeStateStart == Clock::NO_TIME)
+    {
+        kT = 0;
+    }
+    else
+    {
+        SF_SAFE_ASSERT(mConfig.elemGlobalTime != nullptr);
+        kT = (mConfig.elemGlobalTime->read() - mTimeStateStart);
+    }
+
+    return SUCCESS;
+}

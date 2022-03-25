@@ -37,6 +37,8 @@ const String LangConst::sectionStateVector = "[STATE_VECTOR]";
 
 const String LangConst::sectionLocal = "[LOCAL]";
 
+const String LangConst::sectionAllStates = "[ALL_STATES]";
+
 const String LangConst::keywordIf = "IF";
 
 const String LangConst::keywordElse = "ELSE";

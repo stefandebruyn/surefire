@@ -48,6 +48,8 @@ public:
 
     Result step();
 
+    Result getNextStateTime(U64& kT);
+
 private:
 
     Config mConfig;
