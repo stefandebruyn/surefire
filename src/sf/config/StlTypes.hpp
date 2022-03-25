@@ -1,6 +1,7 @@
 #ifndef SF_STL_TYPES_HPP
 #define SF_STL_TYPES_HPP
 
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -19,10 +20,16 @@ using Ref = std::shared_ptr<T>;
 using String = std::string;
 
 ///
-/// @brief Alias for a hash map.
+/// @brief Alias for an unordered (hash) map.
 ///
 template<typename TKey, typename TVal, typename THash = std::hash<TKey>>
 using Map = std::unordered_map<TKey, TVal, THash>;
+
+///
+/// @brief Alias for an ordered (tree) map.
+///
+template<typename TKey, typename TVal, typename TCompare = std::less<TKey>>
+using OrderedMap = std::map<TKey, TVal, TCompare>;
 
 ///
 /// @brief Alias for a hash set.

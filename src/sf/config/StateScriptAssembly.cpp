@@ -1,15 +1,80 @@
+#include <fstream>
+
 #include "sf/config/StateScriptAssembly.hpp"
 #include "sf/core/Assert.hpp"
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/Console.hpp"
-
-#include <iostream> // rm later
 
 /////////////////////////////////// Globals ////////////////////////////////////
 
 static const char* const gErrText = "state script error";
 
 /////////////////////////////////// Public /////////////////////////////////////
+
+Result StateScriptAssembly::compile(
+    const String kFilePath,
+    const Ref<const StateMachineAssembly> kSmAsm,
+    Ref<StateScriptAssembly>& kAsm,
+    ErrorInfo* const kErr)
+{
+    // Open file input stream.
+    std::ifstream ifs(kFilePath);
+    if (!ifs.is_open())
+    {
+        if (kErr != nullptr)
+        {
+            kErr->text = "error";
+            kErr->subtext = "failed to open file `" + kFilePath + "`";
+        }
+        return E_SMA_FILE;
+    }
+
+    // Set the error info file path for error messages generated further into
+    // compilation.
+    if (kErr != nullptr)
+    {
+        kErr->filePath = kFilePath;
+    }
+
+    // Send input stream into the next compilation phase.
+    return StateScriptAssembly::compile(ifs, kSmAsm, kAsm, kErr);
+}
+
+Result StateScriptAssembly::compile(
+    std::istream& kIs,
+    const Ref<const StateMachineAssembly> kSmAsm,
+    Ref<StateScriptAssembly>& kAsm,
+    ErrorInfo* const kErr)
+{
+    // Tokenize the input stream.
+    Vec<Token> toks;
+    Result res = Tokenizer::tokenize(kIs, toks, kErr);
+    if (res != SUCCESS)
+    {
+        if (kErr != nullptr)
+        {
+            kErr->text = gErrText;
+        }
+
+        return res;
+    }
+
+    // Parse the state script.
+    Ref<const StateScriptParse> parse;
+    res = StateScriptParse::parse(toks, parse, kErr);
+    if (res != SUCCESS)
+    {
+        if (kErr != nullptr)
+        {
+            kErr->text = gErrText;
+        }
+
+        return res;
+    }
+
+    // Send input stream into the next compilation phase.
+    return StateScriptAssembly::compile(parse, kSmAsm, kAsm, kErr);
+}
 
 Result StateScriptAssembly::compile(
     const Ref<const StateScriptParse> kParse,
@@ -40,7 +105,6 @@ Result StateScriptAssembly::compile(
     for (const StateScriptParse::SectionParse& sectionParse : kParse->sections)
     {
         StateScriptAssembly::Section section{};
-        Ref<const StateMachineParse::BlockParse> block = sectionParse.block;
 
         if (sectionParse.tokName.str == LangConst::sectionAllStates)
         {
@@ -72,128 +136,152 @@ Result StateScriptAssembly::compile(
             section.stateId = (*stateIdIt).second;
         }
 
-        // Check that block has a guard. This is the condition under which the
-        // inputs and assertions occur.
-        if (block->guard == nullptr)
-        {
-            SF_ASSERT(false);
-        }
-
-        // Compile guard.
-        Ref<const ExpressionAssembly> guardAsm;
-        res = ExpressionAssembly::compile(block->guard,
-                                          kSmAsm->mWs.elems,
-                                          ElementType::BOOL,
-                                          guardAsm,
-                                          kErr);
-        if (res != SUCCESS)
-        {
-            return res;
-        }
-        exprAsms.push_back(guardAsm);
-
-        // Flag for if a stop annotation has been encountered in this section.
-        bool foundSectionStop = false;
-
         // Compile all blocks in section.
-        Ref<const StateMachineParse::BlockParse> innerBlock = block->ifBlock;
-        while (innerBlock != nullptr)
+        Ref<const StateMachineParse::BlockParse> block = sectionParse.block;
+        while (block != nullptr)
         {
-            // Check that inner block has no nested guards, which are disallowed
-            // in state scripts.
-            if (innerBlock->guard != nullptr)
+            // Check that block has a guard. This is the condition under which the
+            // inputs and assertions occur.
+            if (block->guard == nullptr)
             {
                 SF_ASSERT(false);
             }
 
-            // Check that block is not occurring after a step annotation (in
-            // which case it can never execute).
-            if (foundSectionStop)
+            // Check that block has no else branch, which is disallowed in state
+            // scripts.
+            if (block->elseBlock != nullptr)
             {
                 SF_ASSERT(false);
             }
 
-            // Check that block is well-formed. Expect it to have no if or else
-            // branch blocks.
-            SF_SAFE_ASSERT(innerBlock->ifBlock == nullptr);
-            SF_SAFE_ASSERT(innerBlock->elseBlock == nullptr);
-
-            if (innerBlock->tokStop.str.size() > 0)
+            // Compile guard.
+            Ref<const ExpressionAssembly> guardAsm;
+            res = ExpressionAssembly::compile(block->guard,
+                                              kSmAsm->mWs.elems,
+                                              ElementType::BOOL,
+                                              guardAsm,
+                                              kErr);
+            if (res != SUCCESS)
             {
-                // Block is a stop annotation.
-                foundSectionStop = true;
-                foundScriptStop = true;
+                return res;
+            }
+            exprAsms.push_back(guardAsm);
 
-                // Expect stop block to have no other data.
-                SF_SAFE_ASSERT(innerBlock->action == nullptr);
+            // Flag for if a stop annotation has been encountered in this section.
+            bool foundSectionStop = false;
+
+            // Compile all blocks under guard.
+            Ref<const StateMachineParse::BlockParse> innerBlock =
+                block->ifBlock;
+            while (innerBlock != nullptr)
+            {
+                // Check that inner block has no nested guards, which are
+                // disallowed in state scripts.
+                if (innerBlock->guard != nullptr)
+                {
+                    SF_ASSERT(false);
+                }
+
+                // Check that block is not occurring after a step annotation (in
+                // which case it can never execute).
+                if (foundSectionStop)
+                {
+                    SF_ASSERT(false);
+                }
+
+                // Check that block is well-formed. Expect it to have no if or
+                // else branch blocks.
                 SF_SAFE_ASSERT(innerBlock->ifBlock == nullptr);
                 SF_SAFE_ASSERT(innerBlock->elseBlock == nullptr);
-                SF_SAFE_ASSERT(innerBlock->next == nullptr);
-                SF_SAFE_ASSERT(innerBlock->assert == nullptr);
 
-                // Stop is represented as an all-null assert.
-                section.asserts.push_back({nullptr, nullptr, {}});
-            }
-            else if (innerBlock->assert != nullptr)
-            {
-                // Block is an assert.
-
-                // Expect assert block to not have an action.
-                SF_SAFE_ASSERT(innerBlock->action == nullptr);
-
-                // Compile assert expression.
-                Ref<const ExpressionAssembly> assertAsm;
-                res  = ExpressionAssembly::compile(innerBlock->assert,
-                                                   kSmAsm->mWs.elems,
-                                                   ElementType::BOOL,
-                                                   assertAsm,
-                                                   kErr);
-                if (res != SUCCESS)
+                if (innerBlock->tokStop.str.size() > 0)
                 {
-                    return res;
+                    // Block is a stop annotation.
+                    foundSectionStop = true;
+                    foundScriptStop = true;
+
+                    // Expect stop block to have no other data.
+                    SF_SAFE_ASSERT(innerBlock->action == nullptr);
+                    SF_SAFE_ASSERT(innerBlock->ifBlock == nullptr);
+                    SF_SAFE_ASSERT(innerBlock->elseBlock == nullptr);
+                    SF_SAFE_ASSERT(innerBlock->next == nullptr);
+                    SF_SAFE_ASSERT(innerBlock->assert == nullptr);
+
+                    // Add stop to section with the previously compiled guard.
+                    // Stop is represented by an assert with a null assert
+                    // expression.
+                    StateScriptAssembly::Assert stop
+                    {
+                        static_cast<IExprNode<bool>*>(guardAsm->root().get()),
+                        nullptr,
+                        {}
+                    };
+                    section.asserts.push_back(stop);
                 }
-                exprAsms.push_back(assertAsm);
-
-                // Add assert to section with the previously compiled guard.
-                StateScriptAssembly::Assert assert
+                else if (innerBlock->assert != nullptr)
                 {
-                    static_cast<IExprNode<bool>*>(guardAsm->root().get()),
-                    static_cast<IExprNode<bool>*>(assertAsm->root().get()),
-                    innerBlock->tokAssert
-                };
-                section.asserts.push_back(assert);
-            }
-            else
-            {
-                // Block is an input.
+                    // Block is an assert.
 
-                // Expect input block to have an action.
-                SF_SAFE_ASSERT(innerBlock->action != nullptr);
+                    // Expect assert block to not have an action.
+                    SF_SAFE_ASSERT(innerBlock->action == nullptr);
 
-                // Compile input.
-                StateScriptAssembly::Input input
-                {
-                    static_cast<IExprNode<bool>*>(guardAsm->root().get()),
-                    nullptr
-                };
-                Ref<const ExpressionAssembly> rhsAsm;
-                res = StateMachineAssembly::compileAssignmentAction(
-                    innerBlock->action,
-                    kSmAsm->mWs.elems,
-                    kSmAsm->mWs.readOnlyElems,
-                    input.action,
-                    rhsAsm,
-                    kErr);
-                if (res != SUCCESS)
-                {
-                    return res;
+                    // Compile assert expression.
+                    Ref<const ExpressionAssembly> assertAsm;
+                    res  = ExpressionAssembly::compile(innerBlock->assert,
+                                                       kSmAsm->mWs.elems,
+                                                       ElementType::BOOL,
+                                                       assertAsm,
+                                                       kErr);
+                    if (res != SUCCESS)
+                    {
+                        return res;
+                    }
+                    exprAsms.push_back(assertAsm);
+
+                    // Add assert to section with the previously compiled guard.
+                    StateScriptAssembly::Assert assert
+                    {
+                        static_cast<IExprNode<bool>*>(guardAsm->root().get()),
+                        static_cast<IExprNode<bool>*>(assertAsm->root().get()),
+                        innerBlock->tokAssert
+                    };
+                    section.asserts.push_back(assert);
                 }
-                exprAsms.push_back(rhsAsm);
-                section.inputs.push_back(input);
+                else
+                {
+                    // Block is an input.
+
+                    // Expect input block to have an action.
+                    SF_SAFE_ASSERT(innerBlock->action != nullptr);
+
+                    // Compile input.
+                    StateScriptAssembly::Input input
+                    {
+                        static_cast<IExprNode<bool>*>(guardAsm->root().get()),
+                        nullptr
+                    };
+                    Ref<const ExpressionAssembly> rhsAsm;
+                    res = StateMachineAssembly::compileAssignmentAction(
+                        innerBlock->action,
+                        kSmAsm->mWs.elems,
+                        kSmAsm->mWs.readOnlyElems,
+                        input.action,
+                        rhsAsm,
+                        kErr);
+                    if (res != SUCCESS)
+                    {
+                        return res;
+                    }
+                    exprAsms.push_back(rhsAsm);
+                    section.inputs.push_back(input);
+                }
+
+                // Go to next inner block.
+                innerBlock = innerBlock->next;
             }
 
-            // Go to next block.
-            innerBlock = innerBlock->next;
+            // Go to next outer block.
+            block = block->next;
         }
 
         // Add section to assembly.
@@ -216,28 +304,22 @@ Result StateScriptAssembly::compile(
     return SUCCESS;
 }
 
-Result StateScriptAssembly::run(bool& kPass,
-                                ErrorInfo& kParseInfo,
-                                std::ostream& kOs)
+Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
+                                StateScriptAssembly::Report& kReport)
 {
+    // Zero out the report.
+    kReport = {false, 0, 0, ""};
+
     // Get state machine from assembly.
     SF_SAFE_ASSERT(mSmAsm != nullptr);
     Ref<StateMachine> smRef = mSmAsm->get();
     SF_SAFE_ASSERT(smRef != nullptr);
     StateMachine& sm = *smRef;
 
-    // Get state element.
-    auto elemIt = mSmAsm->mWs.elems.find("S");
+    // Get state time element.
+    auto elemIt = mSmAsm->mWs.elems.find("T");
     SF_SAFE_ASSERT(elemIt != mSmAsm->mWs.elems.end());
     IElement* elemObj = (*elemIt).second;
-    SF_SAFE_ASSERT(elemObj != nullptr);
-    SF_SAFE_ASSERT(elemObj->type() == ElementType::UINT32);
-    Element<U32>& elemState = *static_cast<Element<U32>*>(elemObj);
-
-    // Get state time element.
-    elemIt = mSmAsm->mWs.elems.find("T");
-    SF_SAFE_ASSERT(elemIt != mSmAsm->mWs.elems.end());
-    elemObj = (*elemIt).second;
     SF_SAFE_ASSERT(elemObj != nullptr);
     SF_SAFE_ASSERT(elemObj->type() == ElementType::UINT64);
     Element<U64>& elemStateTime = *static_cast<Element<U64>*>(elemObj);
@@ -250,21 +332,32 @@ Result StateScriptAssembly::run(bool& kPass,
     SF_SAFE_ASSERT(elemObj->type() == ElementType::UINT64);
     Element<U64>& elemGlobalTime = *static_cast<Element<U64>*>(elemObj);
 
+    // Get state element.
+    elemIt = mSmAsm->mWs.elems.find("S");
+    SF_SAFE_ASSERT(elemIt != mSmAsm->mWs.elems.end());
+    elemObj = (*elemIt).second;
+    SF_SAFE_ASSERT(elemObj != nullptr);
+    SF_SAFE_ASSERT(elemObj->type() == ElementType::UINT32);
+    Element<U32>& elemState = *static_cast<Element<U32>*>(elemObj);
+
     // The inputs and asserts to run in a given step will be collected in these
     // vectors.
     Vec<StateScriptAssembly::Input*> activeInputs;
     Vec<StateScriptAssembly::Assert*> activeAsserts;
 
-    // Number of assert passes.
-    U32 assertPasses = 0;
-
     // Global time starts at zero.
     elemGlobalTime.write(0);
+
+    // On fail, stores the address of the failed assert.
+    const StateScriptAssembly::Assert* failAssert = nullptr;
 
     // Loop until stop annotation of assert failure.
     Result res = SUCCESS;
     while (true)
     {
+        // Increment state script step count.
+        ++kReport.steps;
+
         // Update the state elapsed time. Normally this happens when the state
         // machine steps, but we force it to happen now so that state script
         // guards referencing the state time element behave as expected.
@@ -291,11 +384,10 @@ Result StateScriptAssembly::run(bool& kPass,
                 }
 
                 // Collect asserts.
-                for (StateScriptAssembly::Assert& assert :
-                     section.asserts)
+                for (StateScriptAssembly::Assert& assert : section.asserts)
                 {
-                    // Note: null assert represents a stop.
-                    if ((assert.guard == nullptr) || assert.guard->evaluate())
+                    SF_SAFE_ASSERT(assert.guard != nullptr);
+                    if (assert.guard->evaluate())
                     {
                         activeAsserts.push_back(&assert);
                     }
@@ -315,7 +407,6 @@ Result StateScriptAssembly::run(bool& kPass,
         sm.step();
 
         // Evaluate asserts.
-        StateScriptAssembly::Assert* failAssert = nullptr;
         bool stop = false;
         for (StateScriptAssembly::Assert* const assert : activeAsserts)
         {
@@ -335,37 +426,14 @@ Result StateScriptAssembly::run(bool& kPass,
                 break;
             }
 
-            ++assertPasses;
+            // Assert passed.
+            ++kReport.asserts;
         }
 
-        // Break loop when stop is encountered.
-        if (stop)
+        // Break loop when an assert fails or stop is encountered.
+        if ((failAssert != nullptr) || stop)
         {
             break;
-        }
-
-        // On assert fail, print report and return.
-        if (failAssert != nullptr)
-        {
-            // Print error message using the error info from the original state
-            // script parse, so that we can point to the failing assert token.
-            kParseInfo.text = "assertion failure";
-            kParseInfo.subtext = "assertion failed";
-            kParseInfo.lineNum = failAssert->tokAssert.lineNum;
-            kParseInfo.colNum = failAssert->tokAssert.colNum;
-            kOs << kParseInfo.prettifyError() << std::endl;
-
-            // Print final state.
-            kOs << "final state vector:\n";
-            res = this->printStateVector(kOs);
-            if (res != SUCCESS)
-            {
-                return res;
-            }
-
-            // Return failure.
-            kPass = false;
-            return SUCCESS;
         }
 
         // Clear active inputs and asserts.
@@ -384,16 +452,39 @@ Result StateScriptAssembly::run(bool& kPass,
         }
     }
 
-    // If we got this far, the state script passed. Print report.
-    kOs << Console::green << assertPasses << " assert(s) passed"
-        << Console::reset << "\n";
-    res = this->printStateVector(kOs);
+    // State script completed- generate report.
+    kReport.pass = (failAssert == nullptr);
+
+    // Report text always starts with a "header" that shows the number of steps
+    // and passed asserts.
+    std::stringstream reportText;
+    reportText << "state script ran for " << Console::cyan << kReport.steps
+               << Console::reset << ((kReport.steps == 1) ? "step" : "steps")
+               << "\n" << Console::green << kReport.asserts << Console::reset
+               << ((kReport.asserts == 1) ? "assert" : "asserts")
+               << " passed\n";
+
+    // If an assert failed, include an error message using the error info from
+    // the tokenization step. This error info contains the original plaintext
+    // of the state script, so we can point to the exact location of the failed
+    // assert.
+    if (failAssert != nullptr)
+    {
+        kTokInfo.text = "assertion failure";
+        kTokInfo.subtext = "assertion failed";
+        kTokInfo.lineNum = failAssert->tokAssert.lineNum;
+        kTokInfo.colNum = failAssert->tokAssert.colNum;
+        reportText << kTokInfo.prettifyError() << "\n";
+    }
+
+    // Conclude report text with the final state vector.
+    res = this->printStateVector(reportText);
     if (res != SUCCESS)
     {
         return res;
     }
+    kReport.text = reportText.str();
 
-    kPass = true;
     return SUCCESS;
 }
 
@@ -435,63 +526,63 @@ Result StateScriptAssembly::printStateVector(std::ostream& kOs)
             switch (elemObj->type())
             {
                 case ElementType::INT8:
-                    std::cout << static_cast<I32>(
+                    kOs << static_cast<I32>(
                         static_cast<const Element<I8>*>(elemObj)->read());
                     break;
 
                 case ElementType::INT16:
-                    std::cout <<
+                    kOs <<
                         static_cast<const Element<I16>*>(elemObj)->read();
                     break;
 
                 case ElementType::INT32:
-                    std::cout <<
+                    kOs <<
                         static_cast<const Element<I32>*>(elemObj)->read();
                     break;
 
                 case ElementType::INT64:
-                    std::cout <<
+                    kOs <<
                         static_cast<const Element<I64>*>(elemObj)->read();
                     break;
 
                 case ElementType::UINT8:
-                    std::cout << static_cast<I32>(
+                    kOs << static_cast<I32>(
                         static_cast<const Element<U8>*>(elemObj)->read());
                     break;
 
                 case ElementType::UINT16:
-                    std::cout <<
+                    kOs <<
                         static_cast<const Element<U16>*>(elemObj)->read();
                     break;
 
                 case ElementType::UINT32:
-                    std::cout <<
+                    kOs <<
                         static_cast<const Element<U32>*>(elemObj)->read();
                     break;
 
                 case ElementType::UINT64:
-                    std::cout <<
+                    kOs <<
                         static_cast<const Element<U64>*>(elemObj)->read();
                     break;
 
                 case ElementType::FLOAT32:
-                    std::cout <<
+                    kOs <<
                         static_cast<const Element<F32>*>(elemObj)->read();
                     break;
 
                 case ElementType::FLOAT64:
-                    std::cout <<
+                    kOs <<
                         static_cast<const Element<F64>*>(elemObj)->read();
                     break;
 
                 case ElementType::BOOL:
                     if (static_cast<const Element<bool>*>(elemObj)->read())
                     {
-                        std::cout << LangConst::constantTrue;
+                        kOs << LangConst::constantTrue;
                     }
                     else
                     {
-                        std::cout << LangConst::constantFalse;
+                        kOs << LangConst::constantFalse;
                     }
                     break;
 

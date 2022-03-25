@@ -50,6 +50,7 @@ Result StateVectorAssembly::compile(std::istream& kIs,
         {
             kErr->text = gErrText;
         }
+
         return res;
     }
 
@@ -62,6 +63,7 @@ Result StateVectorAssembly::compile(std::istream& kIs,
         {
             kErr->text = gErrText;
         }
+
         return res;
     }
 
