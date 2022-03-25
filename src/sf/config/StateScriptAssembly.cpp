@@ -3,16 +3,18 @@
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/Console.hpp"
 
+#include <iostream> // rm later
+
 /////////////////////////////////// Globals ////////////////////////////////////
 
-extern const char* const gErrText = "state script error";
+static const char* const gErrText = "state script error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
 Result StateScriptAssembly::compile(
     const Ref<const StateScriptParse> kParse,
     const Ref<const StateMachineAssembly> kSmAsm,
-    Ref<const StateScriptAssembly>& kAsm,
+    Ref<StateScriptAssembly>& kAsm,
     ErrorInfo* const kErr)
 {
     // Check that parse and state machine assembly are non-null.
@@ -153,7 +155,7 @@ Result StateScriptAssembly::compile(
                 exprAsms.push_back(assertAsm);
 
                 // Add assert to section with the previously compiled guard.
-                const StateScriptAssembly::Assert assert
+                StateScriptAssembly::Assert assert
                 {
                     static_cast<IExprNode<bool>*>(guardAsm->root().get()),
                     static_cast<IExprNode<bool>*>(assertAsm->root().get()),
@@ -187,6 +189,7 @@ Result StateScriptAssembly::compile(
                     return res;
                 }
                 exprAsms.push_back(rhsAsm);
+                section.inputs.push_back(input);
             }
 
             // Go to next block.
@@ -249,8 +252,8 @@ Result StateScriptAssembly::run(bool& kPass,
 
     // The inputs and asserts to run in a given step will be collected in these
     // vectors.
-    Vec<const StateScriptAssembly::Input*> activeInputs;
-    Vec<const StateScriptAssembly::Assert*> activeAsserts;
+    Vec<StateScriptAssembly::Input*> activeInputs;
+    Vec<StateScriptAssembly::Assert*> activeAsserts;
 
     // Number of assert passes.
     U32 assertPasses = 0;
@@ -266,19 +269,19 @@ Result StateScriptAssembly::run(bool& kPass,
         // machine steps, but we force it to happen now so that state script
         // guards referencing the state time element behave as expected.
         U64 stateTime = Clock::NO_TIME;
-        SF_SAFE_ASSERT(sm.getNextStateTime(stateTime));
+        SF_SAFE_ASSERT(sm.getNextStateTime(stateTime) == SUCCESS);
         SF_SAFE_ASSERT(stateTime != Clock::NO_TIME);
         elemStateTime.write(stateTime);
 
         // Collect inputs and asserts for the current step based on the current
         // state and guard evaluations.
-        for (const StateScriptAssembly::Section& section : mSections)
+        for (StateScriptAssembly::Section& section : mSections)
         {
             if ((section.stateId == StateMachine::NO_STATE)
                 || (section.stateId == elemState.read()))
             {
                 // Collect inputs.
-                for (const StateScriptAssembly::Input& input : section.inputs)
+                for (StateScriptAssembly::Input& input : section.inputs)
                 {
                     SF_SAFE_ASSERT(input.guard != nullptr);
                     if (input.guard->evaluate())
@@ -288,11 +291,11 @@ Result StateScriptAssembly::run(bool& kPass,
                 }
 
                 // Collect asserts.
-                for (const StateScriptAssembly::Assert& assert :
+                for (StateScriptAssembly::Assert& assert :
                      section.asserts)
                 {
-                    SF_SAFE_ASSERT(assert.guard != nullptr);
-                    if (assert.guard->evaluate())
+                    // Note: null assert represents a stop.
+                    if ((assert.guard == nullptr) || assert.guard->evaluate())
                     {
                         activeAsserts.push_back(&assert);
                     }
@@ -301,7 +304,7 @@ Result StateScriptAssembly::run(bool& kPass,
         }
 
         // Execute inputs.
-        for (const StateScriptAssembly::Input* const input : activeInputs)
+        for (StateScriptAssembly::Input* const input : activeInputs)
         {
             SF_SAFE_ASSERT(input != nullptr);
             SF_SAFE_ASSERT(input->action != nullptr);
@@ -312,9 +315,9 @@ Result StateScriptAssembly::run(bool& kPass,
         sm.step();
 
         // Evaluate asserts.
-        const StateScriptAssembly::Assert* failAssert = nullptr;
+        StateScriptAssembly::Assert* failAssert = nullptr;
         bool stop = false;
-        for (const StateScriptAssembly::Assert* const assert : activeAsserts)
+        for (StateScriptAssembly::Assert* const assert : activeAsserts)
         {
             SF_SAFE_ASSERT(assert != nullptr);
 
@@ -421,18 +424,19 @@ Result StateScriptAssembly::printStateVector(std::ostream& kOs)
         const String elemName = elem.first;
         const IElement* const elemObj = elem.second;
 
-        // Print element name and equal sign.
-        kOs << "    " << Console::cyan << elemName << Console::reset << " = "
-            << Console::cyan;
-
         // Print element if not already printed.
         if (printedElems.find(elemObj) == printedElems.end())
         {
+            // Print element name and equal sign.
+            kOs << "    " << Console::cyan << elemName << Console::reset
+                << " = " << Console::cyan;
+
+            // Print element value.
             switch (elemObj->type())
             {
                 case ElementType::INT8:
-                    std::cout <<
-                        static_cast<const Element<I8>*>(elemObj)->read();
+                    std::cout << static_cast<I32>(
+                        static_cast<const Element<I8>*>(elemObj)->read());
                     break;
 
                 case ElementType::INT16:
@@ -451,8 +455,8 @@ Result StateScriptAssembly::printStateVector(std::ostream& kOs)
                     break;
 
                 case ElementType::UINT8:
-                    std::cout <<
-                        static_cast<const Element<U8>*>(elemObj)->read();
+                    std::cout << static_cast<I32>(
+                        static_cast<const Element<U8>*>(elemObj)->read());
                     break;
 
                 case ElementType::UINT16:
@@ -495,10 +499,10 @@ Result StateScriptAssembly::printStateVector(std::ostream& kOs)
                     // Unreachable.
                     SF_SAFE_ASSERT(false);
             }
-        }
 
-        // Reset console color and cap line with a newline.
-        kOs << Console::reset << std::endl;
+            // Reset console color and cap line with a newline.
+            kOs << Console::reset << std::endl;
+        }
 
         // Add element to printed set.
         printedElems.insert(elemObj);

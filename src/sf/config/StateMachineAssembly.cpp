@@ -130,6 +130,7 @@ Result StateMachineAssembly::compile(
     for (U32 i = 0; i < kParse->states.size(); ++i)
     {
         const String& tokNameStr = kParse->states[i].tokName.str;
+        SF_SAFE_ASSERT(tokNameStr.size() >= 3);
         const String stateName = tokNameStr.substr(1, (tokNameStr.size() - 2));
         ws.stateIds[stateName] = (i + 1);
     }
@@ -201,12 +202,6 @@ Result StateMachineAssembly::compile(
         // state element.
         return res;
     }
-
-    // Compilation is done- clear the workspace of unneeded data before we pass
-    // it to the final assembly.
-    ws.elems.clear();
-    ws.stateIds.clear();
-    ws.readOnlyElems.clear();
 
     // Create the final assembly.
     kAsm.reset(new StateMachineAssembly(ws));

@@ -10,11 +10,10 @@ class StateScriptAssembly final
 {
 public:
 
-    static Result compile(
-        const Ref<const StateScriptParse> kParse,
-        const Ref<const StateMachineAssembly> kSmAsm,
-        Ref<const StateScriptAssembly>& kAsm,
-        ErrorInfo* const kErr);
+    static Result compile(const Ref<const StateScriptParse> kParse,
+                          const Ref<const StateMachineAssembly> kSmAsm,
+                          Ref<StateScriptAssembly>& kAsm,
+                          ErrorInfo* const kErr);
 
     Result run(bool& kPass, ErrorInfo& kParseInfo, std::ostream& kOs);
 
