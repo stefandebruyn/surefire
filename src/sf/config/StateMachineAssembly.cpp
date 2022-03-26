@@ -89,7 +89,7 @@ Result StateMachineAssembly::compile(
     }
 
     // Initialize a blank workspace for the compilation.
-    StateMachineAssembly::Workspace ws = {};
+    StateMachineAssembly::Workspace ws{};
 
     // Put the state machine parse in the workspace so that it can be recalled
     // later.
@@ -235,6 +235,12 @@ Ref<StateVector> StateMachineAssembly::localStateVector() const
 }
 
 /////////////////////////////////// Private ////////////////////////////////////
+
+bool StateMachineAssembly::stateNameReserved(const Token& kTokSection)
+{
+    return ((kTokSection.str == LangConst::sectionAllStates)
+            || (kTokSection.str == LangConst::sectionConfig));
+}
 
 Result StateMachineAssembly::checkStateVector(
     const Ref<const StateMachineParse> kParse,
@@ -1098,6 +1104,14 @@ Result StateMachineAssembly::compileState(
     ErrorInfo* const kErr)
 {
     SF_SAFE_ASSERT(kWs.stateConfigs != nullptr);
+
+    // Check that state name is not reserved.
+    if (StateMachineAssembly::stateNameReserved(kParse.tokName))
+    {
+        ConfigUtil::setError(kErr, kParse.tokName, gErrText,
+                             "state name is reserved");
+        return E_SMA_RSVD;
+    }
 
     // State ID is the current number of compiled states + 1 so that state IDs
     // begin at 1.

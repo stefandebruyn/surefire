@@ -1204,3 +1204,37 @@ TEST(StateMachineAssemblyErrors, NullParse)
                                                           nullptr));
     CHECK_TRUE(smAsm == nullptr);
 }
+
+TEST(StateMachineAssemblyErrors, AllStatesSectionNameReserved)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n");
+    TOKENIZE(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
+        "\n"
+        "[ALL_STATES]\n");
+    Ref<const StateMachineParse> smParse;
+    CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
+    checkCompileError(smParse, svAsm, E_SMA_RSVD, 5, 1);
+}
+
+TEST(StateMachineAssemblyErrors, ConfigSectionNameReserved)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n");
+    TOKENIZE(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
+        "\n"
+        "[CONFIG]\n");
+    Ref<const StateMachineParse> smParse;
+    CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
+    checkCompileError(smParse, svAsm, E_SMA_RSVD, 5, 1);
+}

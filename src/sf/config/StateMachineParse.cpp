@@ -123,7 +123,7 @@ Result StateMachineParse::parseLocalSection(
     // Loop until end of token stream or another section.
     while (!kIt.eof() && (kIt.type() != Token::SECTION))
     {
-        StateMachineParse::LocalElementParse elemParse = {};
+        StateMachineParse::LocalElementParse elemParse{};
 
         // Check that current token, which should be an element type, is an
         // identifier.
@@ -266,7 +266,7 @@ Result StateMachineParse::parseStateVectorSection(
     // Loop until end of token stream or another section.
     while (!kIt.eof() && (kIt.type() != Token::SECTION))
     {
-        StateMachineParse::StateVectorElementParse elemParse = {};
+        StateMachineParse::StateVectorElementParse elemParse{};
 
         // Check that current token, which should be the element type, is an
         // identifier.
@@ -447,7 +447,7 @@ Result StateMachineParse::parse(const Vec<Token>& kToks,
                 else
                 {
                     // Parse  State section.
-                    StateMachineParse::StateParse state = {};
+                    StateMachineParse::StateParse state{};
                     res = StateMachineParse::parseStateSection(it, state, kErr);
                     if (res != SUCCESS)
                     {
@@ -541,10 +541,10 @@ Result StateMachineParse::parseAction(
     ErrorInfo* const kErr)
 {
     // Data to parse that will become members of the parsed action.
-    Token tokRhs = {};
+    Token tokRhs{};
     Ref<const ExpressionParse> lhs;
-    Token tokDestState = {};
-    Token tokTransitionKeyword = {};
+    Token tokDestState{};
+    Token tokTransitionKeyword{};
 
     // Look at first token to determine action type.
     const Token& tok = kIt.take();

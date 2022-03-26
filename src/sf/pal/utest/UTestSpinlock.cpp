@@ -64,7 +64,7 @@ TEST(Spinlock, ErrorReinitialize)
 TEST(Spinlock, MutualExclusion)
 {
     // Thread will increment the counter once.
-    ThreadArgs args = {};
+    ThreadArgs args{};
     args.increments = 1;
 
     // Create spinlock and acquire it.
@@ -103,7 +103,7 @@ TEST(Spinlock, MutualExclusion)
 TEST(Spinlock, AtomicUpdates)
 {
     // Each thread will increment the counter 1000000 times.
-    ThreadArgs args = {};
+    ThreadArgs args{};
     args.increments = 1000000;
 
     // Create spinlock and acquire it.

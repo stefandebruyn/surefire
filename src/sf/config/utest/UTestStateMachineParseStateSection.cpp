@@ -10,7 +10,7 @@ static void checkParseError(TokenIterator& kIt,
 {
     // Got expected return code from parser.
     ErrorInfo err;
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     TokenIterator itCpy = kIt;
     CHECK_ERROR(kRes, StateMachineParse::parseStateSection(kIt, parse, &err));
 
@@ -41,7 +41,7 @@ TEST(StateMachineParseStateSection, EntryLabel)
         "[Foo]\n"
         ".ENTRY\n"
         "    a = 10\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -74,7 +74,7 @@ TEST(StateMachineParseStateSection, StepLabel)
         "[Foo]\n"
         ".STEP\n"
         "    a = 10\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -107,7 +107,7 @@ TEST(StateMachineParseStateSection, ExitLabel)
         "[Foo]\n"
         ".EXIT\n"
         "    a = 10\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -140,7 +140,7 @@ TEST(StateMachineParseStateSection, Transition)
         "[Foo]\n"
         ".ENTRY\n"
         "    -> Bar\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -173,7 +173,7 @@ TEST(StateMachineParseStateSection, MultipleUnguardedActions)
         ".ENTRY\n"
         "    a = 1\n"
         "    b = 2\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -217,7 +217,7 @@ TEST(StateMachineParseStateSection, IfAction)
         "[Foo]\n"
         ".ENTRY\n"
         "    a == 1: b = 2\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -273,7 +273,7 @@ TEST(StateMachineParseStateSection, IfActionElseAction)
         ".ENTRY\n"
         "    a == 1: b = 2\n"
         "    ELSE: c = 3\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -343,7 +343,7 @@ TEST(StateMachineParseStateSection, IfMultipleActions)
         "        b = 2\n"
         "        c = 3\n"
         "    }\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -414,7 +414,7 @@ TEST(StateMachineParseStateSection, IfMultipleActionsElseAction)
         "        c = 3\n"
         "    }\n"
         "    ELSE: d = 4\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -500,7 +500,7 @@ TEST(StateMachineParseStateSection, IfMultipleActionsElseMultipleActions)
         "        d = 4\n"
         "        e = 5\n"
         "    }\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -591,7 +591,7 @@ TEST(StateMachineParseStateSection, NestedColonGuards)
         "[Foo]\n"
         ".ENTRY\n"
         "    a == 1: b == 2: c = 3\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -673,7 +673,7 @@ TEST(StateMachineParseStateSection, NestedBraceGuards)
         "            c = 3\n"
         "        }\n"
         "    }\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -752,7 +752,7 @@ TEST(StateMachineParseStateSection, ColonGuardFollowedByAction)
         ".ENTRY\n"
         "    a == 1: b = 2\n"
         "    c = 3\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -820,7 +820,7 @@ TEST(StateMachineParseStateSection, BraceGuardFollowedByAction)
         ".ENTRY\n"
         "    a == 1 { b = 2 }\n"
         "    c = 3\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -888,7 +888,7 @@ TEST(StateMachineParseStateSection, NewlineAgnosticExceptForGuardsAndActions)
         ".ENTRY\n\n"
         "a == 1\n\n{\n\nb = 2\n}\n\n"
         "c = 3\n\n\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -959,7 +959,7 @@ TEST(StateMachineParseStateSection, ActionInEveryLabel)
         "    b = 2\n"
         ".EXIT\n"
         "    c = 3\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -1012,7 +1012,7 @@ TEST(StateMachineParseStateSection, EmptyState)
 {
     // Parse state.
     TOKENIZE("[Foo]");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 
@@ -1033,7 +1033,7 @@ TEST(StateMachineParseStateSection, EmptyLabels)
         ".ENTRY\n"
         ".STEP\n"
         ".EXIT\n");
-    StateMachineParse::StateParse parse = {};
+    StateMachineParse::StateParse parse{};
     CHECK_SUCCESS(StateMachineParse::parseStateSection(it, parse, nullptr));
     CHECK_TRUE(it.eof());
 

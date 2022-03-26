@@ -1025,6 +1025,50 @@ TEST(StateScriptAssembly, ConfigInitialState)
     CHECK_SV_ELEM("foo", bool, false);
 }
 
+TEST(StateScriptAssembly, EmptyStateSection)
+{
+    // General logic: states `Foo` and `Bar` are terminal states. `Foo` sets
+    // element `foo` to true. The state script specifies `Bar` as the initial
+    // state and stops immediately. Expect state machine to end in `Bar` with
+    // `foo` remaining false.
+
+    // Compile objects.
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
+        "\n"
+        "[Foo]\n"
+        "\n"
+        "[Bar]\n");
+    INIT_SS(
+        "[CONFIG]\n"
+        "DELTA_T 1\n"
+        "\n"
+        "[Foo]\n"
+        "\n"
+        "[ALL_STATES]\n"
+        "TRUE: @STOP\n");
+
+    // Run state script.
+    StateScriptAssembly::Report report{};
+    CHECK_SUCCESS(ssAsm->run(ssTokInfo, report));
+
+    // Report contains expected data.
+    CHECK_EQUAL(true, report.pass);
+    CHECK_EQUAL(1, report.steps);
+    CHECK_EQUAL(0, report.asserts);
+    CHECK_TRUE(report.text.size() > 0);
+
+    // Final state vector contains expected values.
+    CHECK_SV_ELEM("state", U32, 1);
+    CHECK_SV_ELEM("time", U64, 0);
+}
+
 ///////////////////////////////// Error Tests //////////////////////////////////
 
 TEST_GROUP(StateScriptAssemblyErrors)

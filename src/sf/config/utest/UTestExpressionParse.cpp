@@ -1191,3 +1191,9 @@ TEST(ExpressionParseErrors, SyntaxAdjacentBinaryOperators)
     TOKENIZE("a + + b");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
+
+TEST(ExpressionParseErrors, IllegalAssignmentOperator)
+{
+    TOKENIZE("a = b");
+    checkParseError(it, E_EXP_OP, 1, 3);
+}

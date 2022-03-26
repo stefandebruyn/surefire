@@ -12,7 +12,7 @@ TEST(Region, ReadWrite)
         I32 i32;
         F64 f64;
         bool b;
-    } foo = {343, 1.522, true}, bar = {};
+    } foo{343, 1.522, true}, bar{};
 
     Region regionBar(&bar, sizeof(bar));
 

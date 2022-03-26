@@ -66,6 +66,21 @@ Result ExpressionParse::parse(TokenIterator kIt,
         return E_EXP_PAREN;
     }
 
+    // Check that expression contains no assignment operators, which is the one
+    // operator that may not appear in expressions.
+    kIt.seek(0);
+    while (!kIt.eof())
+    {
+        const Token& tok = kIt.take();
+        if (tok.str == "=")
+        {
+            ConfigUtil::setError(
+                kErr, tok, gErrText,
+                "invalid operator in expression (did you mean `==`?)");
+            return E_EXP_OP;
+        }
+    }
+
     // Check that expression contains only identifier, constant, operator,
     // parenthese, and comma tokens.
     kIt.seek(0);

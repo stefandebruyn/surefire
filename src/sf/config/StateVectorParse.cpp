@@ -35,7 +35,7 @@ Result StateVectorParse::parse(const Vec<Token>& kToks,
                 // Region section.
 
                 // Extract plain name of region (without the section brakets).
-                StateVectorParse::RegionParse region = {};
+                StateVectorParse::RegionParse region{};
                 region.plainName = it.str().substr(1, (it.str().size() - 2));
 
                 // Only parse region if all regions were selected for parsing or
