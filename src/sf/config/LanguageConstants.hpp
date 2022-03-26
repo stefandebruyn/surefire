@@ -1,8 +1,6 @@
 #ifndef SF_LANGUAGE_CONSTANTS_HPP
 #define SF_LANGUAGE_CONSTANTS_HPP
 
-#include <regex>
-
 #include "sf/config/EnumHash.hpp"
 #include "sf/config/StlTypes.hpp"
 #include "sf/core/BasicTypes.hpp"
@@ -10,27 +8,27 @@
 
 namespace LangConst
 {
-    extern const String funcNameRollAvg;
+    extern const String funcRollAvg;
 
-    extern const String funcNameRollMedian;
+    extern const String funcRollMedian;
 
-    extern const String funcNameRollMin;
+    extern const String funcRollMin;
 
-    extern const String funcNameRollMax;
+    extern const String funcRollMax;
 
-    extern const String funcNameRollRange;
+    extern const String funcRollRange;
 
     extern const U32 rollWindowMaxSize;
 
-    extern const String elemNameStateTime;
+    extern const String elemStateTime;
 
-    extern const String elemNameGlobalTime;
+    extern const String elemGlobalTime;
 
-    extern const String elemNameState;
+    extern const String elemState;
 
-    extern const String optNameDeltaT;
+    extern const String optDeltaT;
 
-    extern const String optNameInitState;
+    extern const String optInitState;
 
     extern const String labelEntry;
 
@@ -40,7 +38,7 @@ namespace LangConst
 
     extern const String annotationAssert;
 
-    extern const std::regex annotationAliasRegex;
+    extern const String annotationAlias;
 
     extern const String annotationReadOnly;
 

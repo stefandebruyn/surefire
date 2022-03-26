@@ -2,8 +2,8 @@
 I32 foo
 F64 bar
 BOOL baz
-U32 state @ALIAS=S
-U64 time @ALIAS=G
+U32 state @ALIAS S
+U64 time @ALIAS G
 
 [LOCAL]
 I32 qux = 0

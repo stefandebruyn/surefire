@@ -61,7 +61,6 @@ TEST(StateMachineParse, AllSections)
     // foo
     CHECK_EQUAL(toks[2], parse->svElems[0].tokType);
     CHECK_EQUAL(toks[3], parse->svElems[0].tokName);
-    CHECK_EQUAL("", parse->svElems[0].alias);
     CHECK_TRUE(!parse->svElems[0].readOnly);
 
     // bar

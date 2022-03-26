@@ -107,8 +107,8 @@ TEST(StateScriptAssembly, SingleStepPass)
         "BOOL foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "BOOL foo\n"
         "\n"
         "[LOCAL]\n"
@@ -159,8 +159,8 @@ TEST(StateScriptAssembly, SingleStepFail)
         "BOOL foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "BOOL foo\n"
         "\n"
         "[LOCAL]\n"
@@ -216,8 +216,8 @@ TEST(StateScriptAssembly, MultiStepPass)
         "BOOL foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "BOOL foo\n"
         "\n"
         "[LOCAL]\n"
@@ -289,8 +289,8 @@ TEST(StateScriptAssembly, MultiStepFail)
         "BOOL foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "BOOL foo\n"
         "\n"
         "[LOCAL]\n"
@@ -366,8 +366,8 @@ TEST(StateScriptAssembly, DeltaT)
         "U64 time\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[LOCAL]\n"
         "U64 sum = 0\n"
@@ -413,8 +413,8 @@ TEST(StateScriptAssembly, StateTime)
         "U64 time\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[LOCAL]\n"
         "BOOL foo = FALSE\n"
@@ -465,8 +465,8 @@ TEST(StateScriptAssembly, StateTimeFail)
         "U64 time\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[LOCAL]\n"
         "BOOL foo = FALSE\n"
@@ -530,8 +530,8 @@ TEST(StateScriptAssembly, MultiState)
         "BOOL trans\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "BOOL trans\n"
         "\n"
         "[LOCAL]\n"
@@ -617,8 +617,8 @@ TEST(StateScriptAssembly, MultiStateFailInStateSection)
         "BOOL trans\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "BOOL trans\n"
         "\n"
         "[LOCAL]\n"
@@ -708,8 +708,8 @@ TEST(StateScriptAssembly, MultiStateFailInAllStatesSection)
         "BOOL trans\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "BOOL trans\n"
         "\n"
         "[LOCAL]\n"
@@ -799,9 +799,9 @@ TEST(StateScriptAssembly, UseAliasInAssert)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
-        "I32 foo @ALIAS=bar\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
+        "I32 foo @ALIAS bar\n"
         "\n"
         "[Initial]\n"
         ".STEP\n"
@@ -846,9 +846,9 @@ TEST(StateScriptAssembly, UseAliasInInput)
         "BOOL bar\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
-        "BOOL foo @ALIAS=baz\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
+        "BOOL foo @ALIAS baz\n"
         "BOOL bar\n"
         "\n"
         "[Initial]\n"
@@ -895,9 +895,9 @@ TEST(StateScriptAssembly, UseAliasInGuard)
         "BOOL foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
-        "BOOL foo @ALIAS=bar\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
+        "BOOL foo @ALIAS bar\n"
         "\n"
         "[Initial]\n"
         ".STEP\n"
@@ -942,8 +942,8 @@ TEST(StateScriptAssembly, UpdateExpressionStats)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
@@ -992,8 +992,8 @@ TEST(StateScriptAssembly, ConfigInitialState)
         "BOOL foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "BOOL foo\n"
         "\n"
         "[Foo]\n"
@@ -1039,8 +1039,8 @@ TEST(StateScriptAssemblyErrors, NullParse)
         "U64 time\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[Foo]\n");
     Ref<StateScriptAssembly> ssAsm;
@@ -1060,8 +1060,8 @@ TEST(StateScriptAssemblyErrors, DupeSection)
         "U64 time\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
@@ -1081,8 +1081,8 @@ TEST(StateScriptAssemblyErrors, UnknownState)
         "U64 time\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
@@ -1102,8 +1102,8 @@ TEST(StateScriptAssemblyErrors, UnguardedInput)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
@@ -1125,8 +1125,8 @@ TEST(StateScriptAssemblyErrors, UnguardedAssert)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
@@ -1148,8 +1148,8 @@ TEST(StateScriptAssemblyErrors, UnguardedStop)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
@@ -1171,8 +1171,8 @@ TEST(StateScriptAssemblyErrors, IllegalElse)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
@@ -1195,8 +1195,8 @@ TEST(StateScriptAssemblyErrors, SurfaceErrorInGuardExpression)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
@@ -1218,8 +1218,8 @@ TEST(StateScriptAssemblyErrors, NestedGuard)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
@@ -1241,8 +1241,8 @@ TEST(StateScriptAssemblyErrors, UnreachableInput)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
@@ -1267,8 +1267,8 @@ TEST(StateScriptAssemblyErrors, UnreachableAssert)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
@@ -1293,8 +1293,8 @@ TEST(StateScriptAssemblyErrors, SurfaceErrorInAssertExpression)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
@@ -1316,8 +1316,8 @@ TEST(StateScriptAssemblyErrors, SurfaceErrorInAction)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
@@ -1339,8 +1339,8 @@ TEST(StateScriptAssemblyErrors, NoStop)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
@@ -1362,8 +1362,8 @@ TEST(StateScriptAssemblyErrors, GlobalClockOverflow)
         "U64 time\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[Initial]\n");
     INIT_SS(
@@ -1386,8 +1386,8 @@ TEST(StateScriptAssemblyErrors, DeltaTFloating)
         "U64 time\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
@@ -1407,8 +1407,8 @@ TEST(StateScriptAssemblyErrors, DeltaTNegative)
         "U64 time\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
@@ -1428,8 +1428,8 @@ TEST(StateScriptAssemblyErrors, DeltaTTooLarge)
         "U64 time\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
@@ -1449,8 +1449,8 @@ TEST(StateScriptAssemblyErrors, UnknownInitialState)
         "U64 time\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
-        "U64 time @ALIAS=G\n"
+        "U32 state @ALIAS S\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(

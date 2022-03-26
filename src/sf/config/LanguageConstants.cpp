@@ -1,26 +1,26 @@
 #include "sf/config/LanguageConstants.hpp"
 
-const String LangConst::funcNameRollAvg = "ROLL_AVG";
+const String LangConst::funcRollAvg = "ROLL_AVG";
 
-const String LangConst::funcNameRollMedian = "ROLL_MEDIAN";
+const String LangConst::funcRollMedian = "ROLL_MEDIAN";
 
-const String LangConst::funcNameRollMin = "ROLL_MIN";
+const String LangConst::funcRollMin = "ROLL_MIN";
 
-const String LangConst::funcNameRollMax = "ROLL_MAX";
+const String LangConst::funcRollMax = "ROLL_MAX";
 
-const String LangConst::funcNameRollRange = "ROLL_RANGE";
+const String LangConst::funcRollRange = "ROLL_RANGE";
 
 const U32 LangConst::rollWindowMaxSize = 100000;
 
-const String LangConst::elemNameStateTime = "T";
+const String LangConst::elemStateTime = "T";
 
-const String LangConst::elemNameGlobalTime = "G";
+const String LangConst::elemGlobalTime = "G";
 
-const String LangConst::elemNameState = "S";
+const String LangConst::elemState = "S";
 
-const String LangConst::optNameDeltaT = "DELTA_T";
+const String LangConst::optDeltaT = "DELTA_T";
 
-const String LangConst::optNameInitState = "INIT_STATE";
+const String LangConst::optInitState = "INIT_STATE";
 
 const String LangConst::labelEntry = ".ENTRY";
 
@@ -30,8 +30,7 @@ const String LangConst::labelExit = ".EXIT";
 
 const String LangConst::annotationAssert = "@ASSERT";
 
-const std::regex LangConst::annotationAliasRegex(
-    "@ALIAS=([a-zA-Z][a-zA-Z0-9_]*)");
+const String LangConst::annotationAlias = "@ALIAS";
 
 const String LangConst::annotationReadOnly = "@READ_ONLY";
 

@@ -47,7 +47,6 @@ public:
         Token tokType;
         Token tokName;
         Token tokAlias;
-        String alias;
         bool readOnly;
     };
 

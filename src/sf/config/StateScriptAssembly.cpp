@@ -660,7 +660,7 @@ Result StateScriptAssembly::compileConfig(
         {
             kErr->text = gErrText;
             std::stringstream ss;
-            ss << "`" << LangConst::optNameDeltaT << "` not specified in `"
+            ss << "`" << LangConst::optDeltaT << "` not specified in `"
                << LangConst::sectionConfig << "` section";
             kErr->subtext = ss.str();
         }
@@ -686,7 +686,7 @@ Result StateScriptAssembly::compileConfig(
     {
         ConfigUtil::setError(
             kErr, kParse.tokDeltaT, gErrText,
-            ("`" + LangConst::optNameDeltaT + "` must be an integer > 0"));
+            ("`" + LangConst::optDeltaT + "` must be an integer > 0"));
         return E_SSA_DT;
     }
 

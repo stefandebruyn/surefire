@@ -175,20 +175,20 @@ Result StateMachineAssembly::compile(
     // Put together the final state machine config. The config is given the raw
     // pointers underlying the previously allocated state config and expression
     // stats vectors, as well as raw pointers of certain state vector elements.
-    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameState] != nullptr);
-    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameStateTime] != nullptr);
-    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameGlobalTime] != nullptr);
-    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameState]->type()
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemState] != nullptr);
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemStateTime] != nullptr);
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemGlobalTime] != nullptr);
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemState]->type()
                    == ElementType::UINT32);
-    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameStateTime]->type()
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemStateTime]->type()
                    == ElementType::UINT64);
-    SF_SAFE_ASSERT(ws.elems[LangConst::elemNameGlobalTime]->type()
+    SF_SAFE_ASSERT(ws.elems[LangConst::elemGlobalTime]->type()
                    == ElementType::UINT64);
     const StateMachine::Config smConfig =
     {
-        static_cast<Element<U32>*>(ws.elems[LangConst::elemNameState]),
-        static_cast<Element<U64>*>(ws.elems[LangConst::elemNameStateTime]),
-        static_cast<Element<U64>*>(ws.elems[LangConst::elemNameGlobalTime]),
+        static_cast<Element<U32>*>(ws.elems[LangConst::elemState]),
+        static_cast<Element<U64>*>(ws.elems[LangConst::elemStateTime]),
+        static_cast<Element<U64>*>(ws.elems[LangConst::elemGlobalTime]),
         ws.stateConfigs->data(),
         ws.exprStatArr->data()
     };
@@ -311,8 +311,8 @@ Result StateMachineAssembly::checkStateVector(
         bool elemReadOnly = elem.readOnly;
 
         // Check for global time element.
-        if ((elem.tokName.str == LangConst::elemNameGlobalTime)
-            || (elem.alias == LangConst::elemNameGlobalTime))
+        if ((elem.tokName.str == LangConst::elemGlobalTime)
+            || (elem.tokAlias.str == LangConst::elemGlobalTime))
         {
             // Global time element is implicitly read-only.
             elemReadOnly = true;
@@ -321,7 +321,7 @@ Result StateMachineAssembly::checkStateVector(
             if (smTypeInfo.enumVal != ElementType::UINT64)
             {
                 std::stringstream ss;
-                ss << "`" << LangConst::elemNameGlobalTime
+                ss << "`" << LangConst::elemGlobalTime
                    << "` must be type U64 (" << elem.tokType.str << " here)";
                 ConfigUtil::setError(kErr, elem.tokName, gErrText, ss.str());
                 return E_SMA_G_TYPE;
@@ -329,8 +329,8 @@ Result StateMachineAssembly::checkStateVector(
         }
 
         // Check for state element.
-        if ((elem.tokName.str == LangConst::elemNameState)
-            || (elem.alias == LangConst::elemNameState))
+        if ((elem.tokName.str == LangConst::elemState)
+            || (elem.tokAlias.str == LangConst::elemState))
         {
             // State element is implicitly read-only.
             elemReadOnly = true;
@@ -339,7 +339,7 @@ Result StateMachineAssembly::checkStateVector(
             if (smTypeInfo.enumVal != ElementType::UINT32)
             {
                 std::stringstream ss;
-                ss << "`" << LangConst::elemNameState << "` must be type U32 ("
+                ss << "`" << LangConst::elemState << "` must be type U32 ("
                    << elem.tokType.str << " here)";
                 ConfigUtil::setError(kErr, elem.tokName, gErrText, ss.str());
                 return E_SMA_S_TYPE;
@@ -347,42 +347,42 @@ Result StateMachineAssembly::checkStateVector(
         }
 
         // If the element is aliased, add the alias to the symbol table as well.
-        if (elem.alias.size() > 0)
+        if (elem.tokAlias.str.size() > 0)
         {
-            kWs.elems[elem.alias] = elemObj;
+            kWs.elems[elem.tokAlias.str] = elemObj;
         }
 
         // If element is read-only, add its name and alias to read-only set.
         if (elemReadOnly)
         {
             kWs.readOnlyElems.insert(elem.tokName.str);
-            if (elem.alias.size() > 0)
+            if (elem.tokAlias.str.size() > 0)
             {
-                kWs.readOnlyElems.insert(elem.alias);
+                kWs.readOnlyElems.insert(elem.tokAlias.str);
             }
         }
     }
 
     // Check that a global time element was provided.
-    if (kWs.elems.find(LangConst::elemNameGlobalTime) == kWs.elems.end())
+    if (kWs.elems.find(LangConst::elemGlobalTime) == kWs.elems.end())
     {
         if (kErr != nullptr)
         {
             kErr->text = gErrText;
             kErr->subtext = ("no global time element aliased to `"
-                             + LangConst::elemNameGlobalTime + "`");
+                             + LangConst::elemGlobalTime + "`");
         }
         return E_SMA_NO_G;
     }
 
     // Check that a state element was provided.
-    if (kWs.elems.find(LangConst::elemNameState) == kWs.elems.end())
+    if (kWs.elems.find(LangConst::elemState) == kWs.elems.end())
     {
         if (kErr != nullptr)
         {
             kErr->text = gErrText;
             kErr->subtext = ("no state element aliased to `"
-                             + LangConst::elemNameState + "`");
+                             + LangConst::elemState + "`");
         }
         return E_SMA_NO_S;
     }
@@ -403,10 +403,10 @@ Result StateMachineAssembly::compileLocalStateVector(
     // Add region and built-in state time element.
     std::stringstream localSvConfig;
     localSvConfig << LangConst::sectionLocal << "\n"
-                  << "U64 " << LangConst::elemNameStateTime << "\n";
+                  << "U64 " << LangConst::elemStateTime << "\n";
 
     // State time element is implicitly read-only.
-    kWs.readOnlyElems.insert(LangConst::elemNameStateTime);
+    kWs.readOnlyElems.insert(LangConst::elemStateTime);
 
     // Add user-configured local elements.
     for (U32 i = 0; i < kParse->localElems.size(); ++i)
@@ -421,8 +421,8 @@ Result StateMachineAssembly::compileLocalStateVector(
              kParse->svElems)
         {
             if ((elem.tokName.str == svElem.tokName.str)
-                || ((svElem.alias.size() > 0)
-                    && (elem.tokName.str == svElem.alias)))
+                || ((svElem.tokAlias.str.size() > 0)
+                    && (elem.tokName.str == svElem.tokAlias.str)))
             {
                 std::stringstream ss;
                 ss << "reuse of element name `" << elem.tokName.str

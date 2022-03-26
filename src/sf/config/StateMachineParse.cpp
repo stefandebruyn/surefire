@@ -324,14 +324,12 @@ Result StateMachineParse::parseStateVectorSection(
                 elemParse.readOnly = true;
                 kIt.take();
             }
-            else if (std::regex_match(kIt.str(),
-                                      match,
-                                      LangConst::annotationAliasRegex))
+            else if (kIt.str() == LangConst::annotationAlias)
             {
                 // Alias annotation.
 
                 // Check that element is not already aliased.
-                if (elemParse.alias.size() > 0)
+                if (elemParse.tokAlias.str.size() > 0)
                 {
                     ConfigUtil::setError(kErr,
                                          kIt.tok(),
@@ -340,9 +338,21 @@ Result StateMachineParse::parseStateVectorSection(
                     return E_SMP_AL_MULT;
                 }
 
+                // Take alias annotation.
+                const Token& tokAnnot = kIt.take();
+
+                // Check that next token, which should be the alias name, is an
+                // identifier.
+                if (kIt.type() != Token::IDENTIFIER)
+                {
+                    ConfigUtil::setError(
+                        kErr, tokAnnot, gErrText,
+                        ("expected alias name after `" + tokAnnot.str + "`"));
+                    return E_SMP_ALIAS;
+                }
+
                 // Take alias.
                 elemParse.tokAlias = kIt.take();
-                elemParse.alias = match[1].str();
             }
             else
             {

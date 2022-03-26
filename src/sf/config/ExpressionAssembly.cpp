@@ -264,19 +264,19 @@ Result ExpressionAssembly::compileExprStatsFunc(
     kWs.exprStats.push_back(exprStats);
 
     // Create node which returns the desired stat.
-    if (kParse->data.str == LangConst::funcNameRollAvg)
+    if (kParse->data.str == LangConst::funcRollAvg)
     {
         kNode.reset(new RollAvgNode(*exprStats));
     }
-    else if (kParse->data.str == LangConst::funcNameRollMedian)
+    else if (kParse->data.str == LangConst::funcRollMedian)
     {
         kNode.reset(new RollMedianNode(*exprStats));
     }
-    else if (kParse->data.str == LangConst::funcNameRollMin)
+    else if (kParse->data.str == LangConst::funcRollMin)
     {
         kNode.reset(new RollMinNode(*exprStats));
     }
-    else if (kParse->data.str == LangConst::funcNameRollMax)
+    else if (kParse->data.str == LangConst::funcRollMax)
     {
         kNode.reset(new RollMaxNode(*exprStats));
     }
@@ -300,11 +300,11 @@ Result ExpressionAssembly::compileFunction(
 {
     SF_SAFE_ASSERT(kParse != nullptr);
 
-    if ((kParse->data.str == LangConst::funcNameRollAvg)
-        || (kParse->data.str == LangConst::funcNameRollMedian)
-        || (kParse->data.str == LangConst::funcNameRollMin)
-        || (kParse->data.str == LangConst::funcNameRollMax)
-        || (kParse->data.str == LangConst::funcNameRollRange))
+    if ((kParse->data.str == LangConst::funcRollAvg)
+        || (kParse->data.str == LangConst::funcRollMedian)
+        || (kParse->data.str == LangConst::funcRollMin)
+        || (kParse->data.str == LangConst::funcRollMax)
+        || (kParse->data.str == LangConst::funcRollRange))
     {
         // Compile expression stats function.
         return ExpressionAssembly::compileExprStatsFunc(kParse,

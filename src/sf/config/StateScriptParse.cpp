@@ -46,7 +46,7 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
             // by other tokens.
             while (it.type() == Token::IDENTIFIER)
             {
-                if (it.str() == LangConst::optNameDeltaT)
+                if (it.str() == LangConst::optDeltaT)
                 {
                     // Delta T option.
 
@@ -68,7 +68,7 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
                     // Take delta T value.
                     config.tokDeltaT = it.take();
                 }
-                else if (it.str() == LangConst::optNameInitState)
+                else if (it.str() == LangConst::optInitState)
                 {
                     // Initial state option.
 

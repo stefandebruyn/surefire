@@ -98,8 +98,8 @@ TEST(StateMachineAssembly, EntryLabel)
         "U32 state\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G \n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G \n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[LOCAL]\n"
         "I32 foo = 0\n"
@@ -125,8 +125,8 @@ TEST(StateMachineAssembly, StepLabel)
         "U32 state\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[LOCAL]\n"
         "I32 foo = 0\n"
@@ -152,8 +152,8 @@ TEST(StateMachineAssembly, TransitionInEntryDoExitLabel)
         "U32 state\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[LOCAL]\n"
         "I32 foo = 0\n"
@@ -188,8 +188,8 @@ TEST(StateMachineAssembly, TransitionInStepDoExitLabel)
         "U32 state\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[LOCAL]\n"
         "I32 foo = 0\n"
@@ -225,8 +225,8 @@ TEST(StateMachineAssembly, GuardTakeIfBranch)
         "U32 state\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[LOCAL]\n"
         "I32 foo = 0\n"
@@ -256,8 +256,8 @@ TEST(StateMachineAssembly, GuardTakeElseBranch)
         "U32 state\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[LOCAL]\n"
         "I32 foo = 0\n"
@@ -289,10 +289,10 @@ TEST(StateMachineAssembly, UseAlias)
         "I32 baz\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
-        "I32 foo @ALIAS=bar\n"
-        "I32 baz @ALIAS=qux\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
+        "I32 foo @ALIAS bar\n"
+        "I32 baz @ALIAS qux\n"
         "\n"
         "[Initial]\n"
         ".ENTRY\n"
@@ -326,8 +326,8 @@ TEST(StateMachineAssembly, AllElementTypes)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I8 a\n"
         "I16 b\n"
         "I32 c\n"
@@ -397,8 +397,8 @@ TEST(StateMachineAssembly, SpecialElements)
         "U32 state\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n"
         ".STEP\n"
@@ -446,8 +446,8 @@ TEST(StateMachineAssembly, StatsFunctionUsingStateVectorElement)
         "I32 foo\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I32 foo\n"
         "\n"
         "[LOCAL]\n"
@@ -484,8 +484,8 @@ TEST(StateMachineAssembly, TransitionToCurrentState)
         "I32 bar\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I32 foo\n"
         "I32 bar\n"
         "\n"
@@ -532,8 +532,8 @@ TEST(StateMachineAssembly, LocalElementInitialValues)
         "U32 state\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[LOCAL]\n"
         "I8 a = 1\n"
@@ -573,8 +573,8 @@ TEST(StateMachineAssembly, InitLocalElemsWithLocalElems)
         "U32 state\n");
     INIT_SM(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[LOCAL]\n"
         "I32 foo = 1\n"
@@ -664,7 +664,7 @@ TEST(StateMachineAssemblyErrors, GlobalTimeElementWrongType)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS=G\n"
+        "I32 foo @ALIAS G\n"
         "\n"
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
@@ -679,7 +679,7 @@ TEST(StateMachineAssemblyErrors, StateElementWrongType)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS=S\n"
+        "I32 foo @ALIAS S\n"
         "\n"
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
@@ -696,8 +696,8 @@ TEST(StateMachineAssemblyErrors, LocalElementReusesSvElementName)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I32 foo\n"
         "\n"
         "[LOCAL]\n"
@@ -717,8 +717,8 @@ TEST(StateMachineAssemblyErrors, AssignmentActionUnknownElement)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n"
         ".ENTRY\n"
@@ -737,8 +737,8 @@ TEST(StateMachineAssemblyErrors, ErrorInAssignmentActionExpression)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
@@ -757,8 +757,8 @@ TEST(StateMachineAssemblyErrors, TransitionToUnknownState)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n"
         ".ENTRY\n"
@@ -777,8 +777,8 @@ TEST(StateMachineAssemblyErrors, ErrorInGuardExpression)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
@@ -798,8 +798,8 @@ TEST(StateMachineAssemblyErrors, ErrorInIfBranch)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
@@ -819,8 +819,8 @@ TEST(StateMachineAssemblyErrors, ErrorInElseBranch)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
@@ -841,8 +841,8 @@ TEST(StateMachineAssemblyErrors, ErrorInNextBlock)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
@@ -863,8 +863,8 @@ TEST(StateMachineAssemblyErrors, ErrorInStepLabel)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n"
         ".STEP\n"
@@ -882,8 +882,8 @@ TEST(StateMachineAssemblyErrors, ErrorInExitLabel)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n"
         ".EXIT\n"
@@ -902,8 +902,8 @@ TEST(StateMachineAssemblyErrors, ErrorInNonInitialState)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
@@ -927,7 +927,7 @@ TEST(StateMachineAssemblyErrors, NoGlobalTimeElement)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U32 state @ALIAS=S\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
@@ -943,7 +943,7 @@ TEST(StateMachineAssemblyErrors, NoStateElement)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
+        "U64 time @ALIAS G\n"
         "\n"
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
@@ -960,8 +960,8 @@ TEST(StateMachineAssemblyErrors, WriteReadOnlyStateVectorElement)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I32 foo @READ_ONLY\n"
         "\n"
         "[Initial]\n"
@@ -981,9 +981,9 @@ TEST(StateMachineAssemblyErrors, WriteReadOnlyStateVectorElementAlias)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
-        "I32 foo @READ_ONLY @ALIAS=bar\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
+        "I32 foo @READ_ONLY @ALIAS bar\n"
         "\n"
         "[Initial]\n"
         ".ENTRY\n"
@@ -1001,8 +1001,8 @@ TEST(StateMachineAssemblyErrors, WriteReadOnlyLocalElement)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[LOCAL]\n"
         "I32 foo = 0 @READ_ONLY\n"
@@ -1023,8 +1023,8 @@ TEST(StateMachineAssemblyErrors, WriteGlobalTimeElement)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n"
         ".ENTRY\n"
@@ -1042,8 +1042,8 @@ TEST(StateMachineAssemblyErrors, WriteLocalTimeElement)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n"
         ".ENTRY\n"
@@ -1061,8 +1061,8 @@ TEST(StateMachineAssemblyErrors, WriteStateElement)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n"
         ".ENTRY\n"
@@ -1080,8 +1080,8 @@ TEST(StateMachineAssemblyErrors, TransitionInExitLabel)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n"
         ".EXIT\n"
@@ -1101,8 +1101,8 @@ TEST(StateMachineAssemblyErrors, IllegalAssert)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n"
         ".ENTRY\n"
@@ -1120,8 +1120,8 @@ TEST(StateMachineAssemblyErrors, IllegalStopAnnotation)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[Initial]\n"
         ".ENTRY\n"
@@ -1140,8 +1140,8 @@ TEST(StateMachineAssemblyErrors, LocalElementReferencesStateVectorElement)
         "I32 foo\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "I32 foo\n"
         "\n"
         "[LOCAL]\n"
@@ -1161,8 +1161,8 @@ TEST(StateMachineAssemblyErrors, LocalElementReferencesItself)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[LOCAL]\n"
         "I32 bar = 1 + bar\n"
@@ -1181,8 +1181,8 @@ TEST(StateMachineAssemblyErrors, LocalElementUseBeforeInitialization)
         "U32 state\n");
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
         "\n"
         "[LOCAL]\n"
         "I32 foo = bar + 1\n"

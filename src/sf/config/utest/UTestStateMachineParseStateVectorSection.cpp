@@ -72,7 +72,6 @@ TEST(StateMachineParseStateVectorSection, OneElement)
 
     CHECK_TRUE(parse[0].tokType == toks[2]);
     CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_EQUAL(0, parse[0].alias.size());
     CHECK_EQUAL(false, parse[0].readOnly);
 }
 
@@ -90,7 +89,6 @@ TEST(StateMachineParseStateVectorSection, ReadOnlyAnnotation)
 
     CHECK_TRUE(parse[0].tokType == toks[2]);
     CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_EQUAL(0, parse[0].alias.size());
     CHECK_EQUAL(true, parse[0].readOnly);
 }
 
@@ -98,7 +96,7 @@ TEST(StateMachineParseStateVectorSection, AliasAnnotation)
 {
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS=bar\n");
+        "I32 foo @ALIAS bar\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
         StateMachineParse::parseStateVectorSection(it, parse, nullptr));
@@ -106,10 +104,9 @@ TEST(StateMachineParseStateVectorSection, AliasAnnotation)
     CHECK_EQUAL(1, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
-    CHECK_TRUE(parse[0].tokType == toks[2]);
-    CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_TRUE(parse[0].tokAlias == toks[4]);
-    CHECK_EQUAL("bar", parse[0].alias);
+    CHECK_EQUAL(toks[2], parse[0].tokType);
+    CHECK_EQUAL(toks[3], parse[0].tokName);
+    CHECK_EQUAL(toks[5], parse[0].tokAlias);
     CHECK_EQUAL(false, parse[0].readOnly);
 }
 
@@ -117,7 +114,7 @@ TEST(StateMachineParseStateVectorSection, MultipleAnnotations)
 {
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS=bar @READ_ONLY\n");
+        "I32 foo @ALIAS bar @READ_ONLY\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
         StateMachineParse::parseStateVectorSection(it, parse, nullptr));
@@ -125,10 +122,9 @@ TEST(StateMachineParseStateVectorSection, MultipleAnnotations)
     CHECK_EQUAL(1, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
 
-    CHECK_TRUE(parse[0].tokType == toks[2]);
-    CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_TRUE(parse[0].tokAlias == toks[4]);
-    CHECK_EQUAL("bar", parse[0].alias);
+    CHECK_EQUAL(toks[2], parse[0].tokType);
+    CHECK_EQUAL(toks[3], parse[0].tokName);
+    CHECK_EQUAL(toks[5], parse[0].tokAlias);
     CHECK_EQUAL(true, parse[0].readOnly);
 }
 
@@ -148,17 +144,14 @@ TEST(StateMachineParseStateVectorSection, MultipleElements)
 
     CHECK_TRUE(parse[0].tokType == toks[2]);
     CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_EQUAL(0, parse[0].alias.size());
     CHECK_EQUAL(false, parse[0].readOnly);
 
     CHECK_TRUE(parse[1].tokType == toks[5]);
     CHECK_TRUE(parse[1].tokName == toks[6]);
-    CHECK_EQUAL(0, parse[1].alias.size());
     CHECK_EQUAL(false, parse[1].readOnly);
 
     CHECK_TRUE(parse[2].tokType == toks[8]);
     CHECK_TRUE(parse[2].tokName == toks[9]);
-    CHECK_EQUAL(0, parse[2].alias.size());
     CHECK_EQUAL(false, parse[2].readOnly);
 }
 
@@ -186,57 +179,46 @@ TEST(StateMachineParseStateVectorSection, AllElementTypes)
 
     CHECK_TRUE(parse[0].tokType == toks[2]);
     CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_EQUAL(0, parse[0].alias.size());
     CHECK_EQUAL(false, parse[0].readOnly);
 
     CHECK_TRUE(parse[1].tokType == toks[5]);
     CHECK_TRUE(parse[1].tokName == toks[6]);
-    CHECK_EQUAL(0, parse[1].alias.size());
     CHECK_EQUAL(false, parse[1].readOnly);
 
     CHECK_TRUE(parse[2].tokType == toks[8]);
     CHECK_TRUE(parse[2].tokName == toks[9]);
-    CHECK_EQUAL(0, parse[2].alias.size());
     CHECK_EQUAL(false, parse[2].readOnly);
 
     CHECK_TRUE(parse[3].tokType == toks[11]);
     CHECK_TRUE(parse[3].tokName == toks[12]);
-    CHECK_EQUAL(0, parse[3].alias.size());
     CHECK_EQUAL(false, parse[3].readOnly);
 
     CHECK_TRUE(parse[4].tokType == toks[14]);
     CHECK_TRUE(parse[4].tokName == toks[15]);
-    CHECK_EQUAL(0, parse[4].alias.size());
     CHECK_EQUAL(false, parse[4].readOnly);
 
     CHECK_TRUE(parse[5].tokType == toks[17]);
     CHECK_TRUE(parse[5].tokName == toks[18]);
-    CHECK_EQUAL(0, parse[5].alias.size());
     CHECK_EQUAL(false, parse[5].readOnly);
 
     CHECK_TRUE(parse[6].tokType == toks[20]);
     CHECK_TRUE(parse[6].tokName == toks[21]);
-    CHECK_EQUAL(0, parse[6].alias.size());
     CHECK_EQUAL(false, parse[6].readOnly);
 
     CHECK_TRUE(parse[7].tokType == toks[23]);
     CHECK_TRUE(parse[7].tokName == toks[24]);
-    CHECK_EQUAL(0, parse[7].alias.size());
     CHECK_EQUAL(false, parse[7].readOnly);
 
     CHECK_TRUE(parse[8].tokType == toks[26]);
     CHECK_TRUE(parse[8].tokName == toks[27]);
-    CHECK_EQUAL(0, parse[8].alias.size());
     CHECK_EQUAL(false, parse[8].readOnly);
 
     CHECK_TRUE(parse[9].tokType == toks[29]);
     CHECK_TRUE(parse[9].tokName == toks[30]);
-    CHECK_EQUAL(0, parse[9].alias.size());
     CHECK_EQUAL(false, parse[9].readOnly);
 
     CHECK_TRUE(parse[10].tokType == toks[32]);
     CHECK_TRUE(parse[10].tokName == toks[33]);
-    CHECK_EQUAL(0, parse[10].alias.size());
     CHECK_EQUAL(false, parse[10].readOnly);
 }
 
@@ -246,7 +228,7 @@ TEST(StateMachineParseStateVectorSection, MultipleElementsWithAnnotations)
         "[STATE_VECTOR]\n"
         "I32 foo\n"
         "F64 bar @READ_ONLY\n"
-        "bool baz @ALIAS=qux\n");
+        "bool baz @ALIAS qux\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
         StateMachineParse::parseStateVectorSection(it, parse, nullptr));
@@ -256,18 +238,15 @@ TEST(StateMachineParseStateVectorSection, MultipleElementsWithAnnotations)
 
     CHECK_TRUE(parse[0].tokType == toks[2]);
     CHECK_TRUE(parse[0].tokName == toks[3]);
-    CHECK_EQUAL(0, parse[0].alias.size());
     CHECK_EQUAL(false, parse[0].readOnly);
 
     CHECK_TRUE(parse[1].tokType == toks[5]);
     CHECK_TRUE(parse[1].tokName == toks[6]);
-    CHECK_EQUAL(0, parse[1].alias.size());
     CHECK_EQUAL(true, parse[1].readOnly);
 
     CHECK_TRUE(parse[2].tokType == toks[9]);
     CHECK_TRUE(parse[2].tokName == toks[10]);
-    CHECK_TRUE(parse[2].tokAlias == toks[11]);
-    CHECK_EQUAL("qux", parse[2].alias);
+    CHECK_TRUE(parse[2].tokAlias == toks[12]);
     CHECK_EQUAL(false, parse[2].readOnly);
 }
 
@@ -289,8 +268,24 @@ TEST(StateMachineParseStateVectorSectionErrors, MultipleAliasAnnotations)
 {
     TOKENIZE(
         "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS=bar @ALIAS=baz\n");
+        "I32 foo @ALIAS bar @ALIAS baz\n");
     checkParseError(it, E_SMP_AL_MULT, 2, 20);
+}
+
+TEST(StateMachineParseStateVectorSectionErrors, UnexpectedTokenAfterAlias)
+{
+    TOKENIZE(
+        "[STATE_VECTOR]\n"
+        "I32 foo @ALIAS 10\n");
+    checkParseError(it, E_SMP_ALIAS, 2, 9);
+}
+
+TEST(StateMachineParseStateVectorSectionErrors, EofAfterAlias)
+{
+    TOKENIZE(
+        "[STATE_VECTOR]\n"
+        "I32 foo @ALIAS\n");
+    checkParseError(it, E_SMP_ALIAS, 2, 9);
 }
 
 TEST(StateMachineParseStateVectorSectionErrors, ExpectedElementType)

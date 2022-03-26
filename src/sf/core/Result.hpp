@@ -89,6 +89,7 @@ enum : Result
     E_SMP_STEP = 349,
     E_SMP_LAB_DUPE = 350,
     E_SMP_LAB = 351,
+    E_SMP_ALIAS = 352,
 
     // ExpressionParse
     E_EXP_OP = 384,
