@@ -139,18 +139,12 @@ Result StateMachineParse::parseLocalSection(
         // Take element type.
         elemParse.tokType = kIt.take();
 
-        // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, elemParse.tokType, gErrText, kErr))
-        {
-            return E_SMP_EOF;
-        }
-
         // Check that current token, which should be an element name, is an
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
             ConfigUtil::setError(kErr,
-                                 kIt.tok(),
+                                 elemParse.tokType,
                                  gErrText,
                                  "expected element name after type");
             return E_SMP_ELEM_NAME;
@@ -159,17 +153,11 @@ Result StateMachineParse::parseLocalSection(
         // Take element name.
         elemParse.tokName = kIt.take();
 
-        // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, elemParse.tokName, gErrText, kErr))
-        {
-            return E_SMP_EOF;
-        }
-
         // Check that current token is an assignment operator.
         if ((kIt.type() != Token::OPERATOR) || (kIt.str() != "="))
         {
             ConfigUtil::setError(kErr,
-                                 kIt.tok(),
+                                 elemParse.tokName,
                                  gErrText,
                                  "expected `=` after element name");
             return E_SMP_LOC_OP;
@@ -177,12 +165,6 @@ Result StateMachineParse::parseLocalSection(
 
         // Take assignment operator.
         const Token& tokAsgOp = kIt.take();
-
-        // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, tokAsgOp, gErrText, kErr))
-        {
-            return E_SMP_EOF;
-        }
 
         // Find end of initial value expression on RHS of assignment operator.
         // It may end with a newline or an annotation attached to the element.
@@ -282,18 +264,12 @@ Result StateMachineParse::parseStateVectorSection(
         // Take element type.
         elemParse.tokType = kIt.take();
 
-        // Check that end of file has not been reached.
-        if (ConfigUtil::checkEof(kIt, elemParse.tokType, gErrText, kErr))
-        {
-            return E_SMP_EOF;
-        }
-
         // Check that current token, which should be the element name, is an
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
             ConfigUtil::setError(kErr,
-                                 kIt.tok(),
+                                 elemParse.tokType,
                                  gErrText,
                                  "expected element name after type");
             return E_SMP_ELEM_NAME;

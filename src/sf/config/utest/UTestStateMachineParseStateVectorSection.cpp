@@ -301,16 +301,15 @@ TEST(StateMachineParseStateVectorSectionErrors, EofAfterElementType)
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32\n");
-    checkParseError(it, E_SMP_EOF, 2, 4);
+    checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
 
-TEST(StateMachineParseStateVectorSectionErrors,
-     UnexpectedTokenAfterElementType)
+TEST(StateMachineParseStateVectorSectionErrors, UnexpectedTokenAfterElementType)
 {
     TOKENIZE(
         "[STATE_VECTOR]\n"
         "I32 @foo\n");
-    checkParseError(it, E_SMP_ELEM_NAME, 2, 5);
+    checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
 
 TEST(StateMachineParseStateVectorSectionErrors, UnknownAnnotation)

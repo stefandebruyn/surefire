@@ -375,7 +375,7 @@ TEST(StateMachineParseLocalSectionErrors, EofAfterElementType)
     TOKENIZE(
         "[LOCAL]\n"
         "I32\n");
-    checkParseError(it, E_SMP_EOF, 2, 4);
+    checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
 
 TEST(StateMachineParseLocalSectionErrors, UnexpectedTokenAfterElementType)
@@ -383,7 +383,7 @@ TEST(StateMachineParseLocalSectionErrors, UnexpectedTokenAfterElementType)
     TOKENIZE(
         "[LOCAL]\n"
         "I32 @foo = 0\n");
-    checkParseError(it, E_SMP_ELEM_NAME, 2, 5);
+    checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
 
 TEST(StateMachineParseLocalSectionErrors, EofAfterElementName)
@@ -391,7 +391,7 @@ TEST(StateMachineParseLocalSectionErrors, EofAfterElementName)
     TOKENIZE(
         "[LOCAL]\n"
         "I32 foo\n");
-    checkParseError(it, E_SMP_EOF, 2, 8);
+    checkParseError(it, E_SMP_LOC_OP, 2, 5);
 }
 
 TEST(StateMachineParseLocalSectionErrors, UnexpectedTokenAfterElementName)
@@ -399,7 +399,7 @@ TEST(StateMachineParseLocalSectionErrors, UnexpectedTokenAfterElementName)
     TOKENIZE(
         "[LOCAL]\n"
         "I32 foo @foo\n 0");
-    checkParseError(it, E_SMP_LOC_OP, 2, 9);
+    checkParseError(it, E_SMP_LOC_OP, 2, 5);
 }
 
 TEST(StateMachineParseLocalSectionErrors, WrongOperatorAfterElementName)
@@ -407,7 +407,7 @@ TEST(StateMachineParseLocalSectionErrors, WrongOperatorAfterElementName)
     TOKENIZE(
         "[LOCAL]\n"
         "I32 foo > 0\n");
-    checkParseError(it, E_SMP_LOC_OP, 2, 9);
+    checkParseError(it, E_SMP_LOC_OP, 2, 5);
 }
 
 TEST(StateMachineParseLocalSectionErrors, EofAfterAssignmentOp)
@@ -415,7 +415,7 @@ TEST(StateMachineParseLocalSectionErrors, EofAfterAssignmentOp)
     TOKENIZE(
         "[LOCAL]\n"
         "I32 foo =\n");
-    checkParseError(it, E_SMP_EOF, 2, 10);
+    checkParseError(it, E_SMP_LOC_VAL, 2, 9);
 }
 
 TEST(StateMachineParseLocalSectionErrors, UnexpectedTokenAfterAssignmentOp)

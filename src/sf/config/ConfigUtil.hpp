@@ -6,17 +6,10 @@
 
 namespace ConfigUtil
 {
-    extern const Set<String> reserved; // is this being used?????????//
-
     void setError(ErrorInfo* const kErr,
                   const Token& kTokErr,
                   const String kText,
                   const String kSubtext);
-
-    bool checkEof(const TokenIterator& kIt,
-                  const Token& kTokLast,
-                  const String kErrText,
-                  ErrorInfo* const kErr);
 }
 
 #endif
