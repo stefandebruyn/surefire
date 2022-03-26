@@ -133,7 +133,7 @@ Result ExpressionAssembly::tokenToF64(const Token& kTok,
     // Convert string to F64.
     const char* const str = kTok.str.c_str();
     char* end = nullptr;
-    const double val = std::strtod(str, &end);
+    const F64 val = std::strtod(str, &end);
 
     if (end == str)
     {

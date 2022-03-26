@@ -28,6 +28,10 @@ namespace LangConst
 
     extern const String elemNameState;
 
+    extern const String optNameDeltaT;
+
+    extern const String optNameInitState;
+
     extern const String labelEntry;
 
     extern const String labelStep;
@@ -37,8 +41,6 @@ namespace LangConst
     extern const String annotationAssert;
 
     extern const std::regex annotationAliasRegex;
-
-    extern const std::regex annotationDeltaTRegex;
 
     extern const String annotationReadOnly;
 

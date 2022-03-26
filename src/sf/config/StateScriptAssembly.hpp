@@ -57,18 +57,29 @@ private:
         Vec<StateScriptAssembly::Assert> asserts;
     };
 
+    struct Config final
+    {
+        U64 deltaT;
+        U32 initState;
+    };
+
     Vec<StateScriptAssembly::Section> mSections;
 
     const Ref<const StateMachineAssembly> mSmAsm;
 
     Vec<Ref<const ExpressionAssembly>> mExprAsms;
 
-    StateScriptParse::Config mConfig;
+    StateScriptAssembly::Config mConfig;
+
+    static Result compileConfig(const StateScriptParse::Config& kParse,
+                                const Ref<const StateMachineAssembly> kSmAsm,
+                                StateScriptAssembly::Config& kConfig,
+                                ErrorInfo* const kErr);
 
     StateScriptAssembly(const Vec<StateScriptAssembly::Section>& kSections,
                         const Ref<const StateMachineAssembly> kSmAsm,
                         const Vec<Ref<const ExpressionAssembly>> kExprAsms,
-                        const StateScriptParse::Config& kConfig);
+                        const StateScriptAssembly::Config& kConfig);
 
     Result printStateVector(std::ostream& kOs);
 };

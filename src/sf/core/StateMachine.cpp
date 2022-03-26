@@ -283,20 +283,11 @@ Result StateMachine::step()
         }
 
         // Transition to new state.
-        for (StateConfig* state = mConfig.states;
-             state->id != StateMachine::NO_STATE;
-             ++state)
+        const Result res = this->setState(destState);
+        if (res != SUCCESS)
         {
-            if (state->id == destState)
-            {
-                mStateCur = state;
-                mTimeStateStart = Clock::NO_TIME;
-                break;
-            }
+            return res;
         }
-
-        // Assert that the destination state was found.
-        SF_SAFE_ASSERT(mStateCur->id == destState);
     }
 
     // Update last step time.
@@ -305,7 +296,7 @@ Result StateMachine::step()
     return SUCCESS;
 }
 
-Result StateMachine::getNextStateTime(U64& kT) const
+Result StateMachine::getStateTime(U64& kT) const
 {
     if (mTimeStateStart == Clock::NO_TIME)
     {
@@ -320,7 +311,28 @@ Result StateMachine::getNextStateTime(U64& kT) const
     return SUCCESS;
 }
 
-U32 StateMachine::nextState() const
+U32 StateMachine::currentState() const
 {
     return mStateCur->id;
+}
+
+Result StateMachine::setState(const U32 kStateId)
+{
+    // Find state config matching destination state ID.
+    for (StateConfig* state = mConfig.states;
+         state->id != StateMachine::NO_STATE;
+         ++state)
+    {
+        if (state->id == kStateId)
+        {
+            mStateCur = state;
+            mTimeStateStart = Clock::NO_TIME;
+            break;
+        }
+    }
+
+    // Assert that the destination state was found.
+    SF_SAFE_ASSERT(mStateCur->id == kStateId);
+
+    return SUCCESS;
 }

@@ -34,29 +34,40 @@ TEST_GROUP(StateScriptParse)
 {
 };
 
-TEST(StateScriptParse, NoSections)
+TEST(StateScriptParse, NoStateSections)
 {
     TOKENIZE(
         "\n\n\n"
         "[CONFIG]\n"
-        "@DELTA_T=1\n");
+        "DELTA_T 1\n");
     Ref<const StateScriptParse> parse;
     CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
     CHECK_EQUAL(0, parse->sections.size());
-    CHECK_EQUAL(1, parse->config.deltaT);
+    CHECK_EQUAL(toks[6], parse->config.tokDeltaT);
 }
 
-TEST(StateScriptParse, EmptySection)
+TEST(StateScriptParse, ConfigInitStateOption)
 {
     TOKENIZE(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "INIT_STATE foo\n");
+    Ref<const StateScriptParse> parse;
+    CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
+    CHECK_EQUAL(0, parse->sections.size());
+    CHECK_EQUAL(toks[3], parse->config.tokInitState);
+}
+
+TEST(StateScriptParse, EmptyStateSection)
+{
+    TOKENIZE(
+        "[CONFIG]\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n");
     Ref<const StateScriptParse> parse;
     CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
     CHECK_EQUAL(1, parse->sections.size());
-    CHECK_EQUAL(parse->sections[0].tokName, toks[5]);
+    CHECK_EQUAL(parse->sections[0].tokName, toks[6]);
     CHECK_TRUE(parse->sections[0].block != nullptr);
     CHECK_TRUE(parse->sections[0].block->guard == nullptr);
     CHECK_TRUE(parse->sections[0].block->action == nullptr);
@@ -64,14 +75,14 @@ TEST(StateScriptParse, EmptySection)
     CHECK_TRUE(parse->sections[0].block->elseBlock == nullptr);
     CHECK_TRUE(parse->sections[0].block->next == nullptr);
     CHECK_TRUE(parse->sections[0].block->assert == nullptr);
-    CHECK_EQUAL(1, parse->config.deltaT);
+    CHECK_EQUAL(toks[3], parse->config.tokDeltaT);
 }
 
 TEST(StateScriptParse, OneSection)
 {
     TOKENIZE(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "foo = 1\n"
@@ -79,10 +90,10 @@ TEST(StateScriptParse, OneSection)
     Ref<const StateScriptParse> parse;
     CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
     CHECK_EQUAL(1, parse->sections.size());
-    CHECK_EQUAL(1, parse->config.deltaT);
+    CHECK_EQUAL(toks[3], parse->config.tokDeltaT);
 
     // `Foo` section
-    CHECK_EQUAL(parse->sections[0].tokName, toks[5]);
+    CHECK_EQUAL(parse->sections[0].tokName, toks[6]);
     CHECK_TRUE(parse->sections[0].block != nullptr);
 
     // `foo = 1` block
@@ -94,9 +105,9 @@ TEST(StateScriptParse, OneSection)
     CHECK_TRUE(block->next != nullptr);
 
     // `foo = 1` action
-    CHECK_EQUAL(block->action->tokLhs, toks[7]);
+    CHECK_EQUAL(block->action->tokLhs, toks[8]);
     Ref<const ExpressionParse> node = block->action->rhs;
-    CHECK_EQUAL(node->data, toks[9]);
+    CHECK_EQUAL(node->data, toks[10]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 
@@ -109,9 +120,9 @@ TEST(StateScriptParse, OneSection)
     CHECK_TRUE(block->next == nullptr);
 
     // `bar = 2` action
-    CHECK_EQUAL(block->action->tokLhs, toks[11]);
+    CHECK_EQUAL(block->action->tokLhs, toks[12]);
     node = block->action->rhs;
-    CHECK_EQUAL(node->data, toks[13]);
+    CHECK_EQUAL(node->data, toks[14]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 }
@@ -120,7 +131,7 @@ TEST(StateScriptParse, TwoSections)
 {
     TOKENIZE(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "foo = 1\n"
@@ -132,10 +143,10 @@ TEST(StateScriptParse, TwoSections)
     Ref<const StateScriptParse> parse;
     CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
     CHECK_EQUAL(2, parse->sections.size());
-    CHECK_EQUAL(1, parse->config.deltaT);
+    CHECK_EQUAL(toks[3], parse->config.tokDeltaT);
 
     // `Foo` section
-    CHECK_EQUAL(parse->sections[0].tokName, toks[5]);
+    CHECK_EQUAL(parse->sections[0].tokName, toks[6]);
     CHECK_TRUE(parse->sections[0].block != nullptr);
 
     // `foo = 1` block
@@ -147,9 +158,9 @@ TEST(StateScriptParse, TwoSections)
     CHECK_TRUE(block->next != nullptr);
 
     // `foo = 1` action
-    CHECK_EQUAL(block->action->tokLhs, toks[7]);
+    CHECK_EQUAL(block->action->tokLhs, toks[8]);
     Ref<const ExpressionParse> node = block->action->rhs;
-    CHECK_EQUAL(node->data, toks[9]);
+    CHECK_EQUAL(node->data, toks[10]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 
@@ -162,14 +173,14 @@ TEST(StateScriptParse, TwoSections)
     CHECK_TRUE(block->next == nullptr);
 
     // `bar = 2` action
-    CHECK_EQUAL(block->action->tokLhs, toks[11]);
+    CHECK_EQUAL(block->action->tokLhs, toks[12]);
     node = block->action->rhs;
-    CHECK_EQUAL(node->data, toks[13]);
+    CHECK_EQUAL(node->data, toks[14]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 
     // `Bar` section
-    CHECK_EQUAL(parse->sections[1].tokName, toks[16]);
+    CHECK_EQUAL(parse->sections[1].tokName, toks[17]);
     CHECK_TRUE(parse->sections[1].block != nullptr);
 
     // `baz = 3` block
@@ -181,9 +192,9 @@ TEST(StateScriptParse, TwoSections)
     CHECK_TRUE(block->next != nullptr);
 
     // `baz = 3` action
-    CHECK_EQUAL(block->action->tokLhs, toks[18]);
+    CHECK_EQUAL(block->action->tokLhs, toks[19]);
     node = block->action->rhs;
-    CHECK_EQUAL(node->data, toks[20]);
+    CHECK_EQUAL(node->data, toks[21]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 
@@ -196,9 +207,9 @@ TEST(StateScriptParse, TwoSections)
     CHECK_TRUE(block->next == nullptr);
 
     // `qux = 4` action
-    CHECK_EQUAL(block->action->tokLhs, toks[22]);
+    CHECK_EQUAL(block->action->tokLhs, toks[23]);
     node = block->action->rhs;
-    CHECK_EQUAL(node->data, toks[24]);
+    CHECK_EQUAL(node->data, toks[25]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 }
@@ -207,7 +218,7 @@ TEST(StateScriptParse, Assertion)
 {
     TOKENIZE(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "@ASSERT foo == 1\n"
@@ -215,10 +226,10 @@ TEST(StateScriptParse, Assertion)
     Ref<const StateScriptParse> parse;
     CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
     CHECK_EQUAL(1, parse->sections.size());
-    CHECK_EQUAL(1, parse->config.deltaT);
+    CHECK_EQUAL(toks[3], parse->config.tokDeltaT);
 
     // `Foo` section
-    CHECK_EQUAL(parse->sections[0].tokName, toks[5]);
+    CHECK_EQUAL(parse->sections[0].tokName, toks[6]);
     CHECK_TRUE(parse->sections[0].block != nullptr);
 
     // `@ASSERT foo = 1` block
@@ -232,15 +243,15 @@ TEST(StateScriptParse, Assertion)
 
     // `foo == 1` assertion
     Ref<const ExpressionParse> node = block->assert;
-    CHECK_EQUAL(node->data, toks[9]);
+    CHECK_EQUAL(node->data, toks[10]);
     CHECK_TRUE(node->left != nullptr);
     CHECK_TRUE(node->right != nullptr);
     node = block->assert->left;
-    CHECK_EQUAL(node->data, toks[8]);
+    CHECK_EQUAL(node->data, toks[9]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
     node = block->assert->right;
-    CHECK_EQUAL(node->data, toks[10]);
+    CHECK_EQUAL(node->data, toks[11]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 
@@ -254,9 +265,9 @@ TEST(StateScriptParse, Assertion)
     CHECK_TRUE(block->assert == nullptr);
 
     // `bar = 2` action
-    CHECK_EQUAL(block->action->tokLhs, toks[12]);
+    CHECK_EQUAL(block->action->tokLhs, toks[13]);
     node = block->action->rhs;
-    CHECK_EQUAL(node->data, toks[14]);
+    CHECK_EQUAL(node->data, toks[15]);
     CHECK_TRUE(node->left == nullptr);
     CHECK_TRUE(node->right == nullptr);
 }
@@ -271,7 +282,7 @@ TEST(StateScriptParse, ErrorInBlock)
 {
     TOKENIZE(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "foo = 1 +\n");
@@ -282,48 +293,49 @@ TEST(StateScriptParse, ErrorInAssertion)
 {
     TOKENIZE(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "@ASSERT foo +\n");
     checkParseError(toks, E_EXP_SYNTAX, 5, 13);
 }
 
-TEST(StateScriptParse, ErrorDeltaTZero)
+TEST(StateScriptParse, ErrorUnexpectedTokenAfterDeltaT)
 {
     TOKENIZE(
         "[CONFIG]\n"
-        "@DELTA_T=0\n");
+        "DELTA_T foo\n");
     checkParseError(toks, E_SSP_DT, 2, 1);
 }
 
-TEST(StateScriptParse, ErrorDeltaTTooLarge)
+TEST(StateScriptParse, ErrorEofAfterDeltaT)
 {
     TOKENIZE(
         "[CONFIG]\n"
-        "@DELTA_T=999999999999999999999999999999999999999999999999999999999\n");
+        "DELTA_T\n");
     checkParseError(toks, E_SSP_DT, 2, 1);
 }
 
-TEST(StateScriptParse, ErrorNegativeDeltaT)
+TEST(StateScriptParse, ErrorUnexpectedTokenAfterInitState)
 {
     TOKENIZE(
         "[CONFIG]\n"
-        "@DELTA_T=-1\n");
-    checkParseError(toks, E_SSP_CONFIG, 2, 1);
+        "INIT_STATE @foo\n");
+    checkParseError(toks, E_SSP_STATE, 2, 1);
 }
 
-TEST(StateScriptParse, ErrorNoDeltaT)
+TEST(StateScriptParse, ErrorEofAfterInitState)
 {
     TOKENIZE(
-        "[CONFIG]\n");
-    checkParseError(toks, E_SSP_DT, -1, -1);
+        "[CONFIG]\n"
+        "INIT_STATE\n");
+    checkParseError(toks, E_SSP_STATE, 2, 1);
 }
 
 TEST(StateScriptParse, ErrorUnknownConfigOption)
 {
     TOKENIZE(
         "[CONFIG]\n"
-        "@FOO\n");
+        "FOO 3\n");
     checkParseError(toks, E_SSP_CONFIG, 2, 1);
 }

@@ -140,7 +140,8 @@ enum : Result
     // StateScriptParse
     E_SSP_SEC = 512,
     E_SSP_DT = 513,
-    E_SSP_CONFIG = 514,
+    E_SSP_STATE = 514,
+    E_SSP_CONFIG = 515,
 
     // StateScriptAssembly
     E_SSA_NULL = 544,
@@ -152,6 +153,8 @@ enum : Result
     E_SSA_UNRCH = 550,
     E_SSA_STOP = 551,
     E_SSA_OVFL = 552,
+    E_SSA_DT = 553,
+    E_SSA_NUM = 554,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 

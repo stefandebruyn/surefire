@@ -119,7 +119,7 @@ TEST(StateScriptAssembly, SingleStepPass)
         "    foo: bar = bar + 1\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Initial]\n"
         "T == 0 {\n"
@@ -171,7 +171,7 @@ TEST(StateScriptAssembly, SingleStepFail)
         "    foo: bar = bar + 1\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Initial]\n"
         "T == 0 {\n"
@@ -232,7 +232,7 @@ TEST(StateScriptAssembly, MultiStepPass)
         "    ELSE: bar = bar + 2\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Initial]\n"
         "T == 0 {\n"
@@ -305,7 +305,7 @@ TEST(StateScriptAssembly, MultiStepFail)
         "    ELSE: T != 8: bar = bar + 2\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Initial]\n"
         "T == 0 {\n"
@@ -377,7 +377,7 @@ TEST(StateScriptAssembly, DeltaT)
         "    sum = sum + T\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=3\n"
+        "DELTA_T 3\n"
         "\n"
         "[Initial]\n"
         "T == 9: @STOP\n");
@@ -425,7 +425,7 @@ TEST(StateScriptAssembly, StateTime)
         "    T == 5: -> Initial\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Initial]\n"
         "T == 0: @ASSERT !foo\n"
@@ -481,7 +481,7 @@ TEST(StateScriptAssembly, StateTimeFail)
         "    looped = TRUE\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Initial]\n"
         "T == 0: @ASSERT !foo\n"
@@ -560,7 +560,7 @@ TEST(StateScriptAssembly, MultiState)
         "    trans = FALSE\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[ALL_STATES]\n"
         "TRUE: @ASSERT baz == T / 2\n"
@@ -647,7 +647,7 @@ TEST(StateScriptAssembly, MultiStateFailInStateSection)
         "    trans = FALSE\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[ALL_STATES]\n"
         "TRUE: @ASSERT baz == T / 2\n"
@@ -738,7 +738,7 @@ TEST(StateScriptAssembly, MultiStateFailInAllStatesSection)
         "    trans = FALSE\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[ALL_STATES]\n"
         "TRUE: @ASSERT baz == T / 2\n" // Failing assert
@@ -808,7 +808,7 @@ TEST(StateScriptAssembly, UseAliasInAssert)
         "    foo = foo + 1\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Initial]\n"
         "T == 10 {\n"
@@ -856,7 +856,7 @@ TEST(StateScriptAssembly, UseAliasInInput)
         "    foo: bar = TRUE\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Initial]\n"
         "TRUE {\n"
@@ -904,7 +904,7 @@ TEST(StateScriptAssembly, UseAliasInGuard)
         "    T == 5: foo = TRUE\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Initial]\n"
         "bar {\n"
@@ -953,7 +953,7 @@ TEST(StateScriptAssembly, UpdateExpressionStats)
         "    T == 2: foo = 1\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Initial]\n"
         "ROLL_MAX(foo, 2) == 2 {\n"
@@ -975,6 +975,54 @@ TEST(StateScriptAssembly, UpdateExpressionStats)
     CHECK_SV_ELEM("state", U32, 1);
     CHECK_SV_ELEM("time", U64, 3);
     CHECK_SV_ELEM("foo", I32, 1);
+}
+
+TEST(StateScriptAssembly, ConfigInitialState)
+{
+    // General logic: states `Foo` and `Bar` are terminal states. `Foo` sets
+    // element `foo` to true. The state script specifies `Bar` as the initial
+    // state and stops immediately. Expect state machine to end in `Bar` with
+    // `foo` remaining false.
+
+    // Compile objects.
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "BOOL foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "BOOL foo\n"
+        "\n"
+        "[Foo]\n"
+        ".ENTRY\n"
+        "    foo = TRUE\n"
+        "\n"
+        "[Bar]\n");
+    INIT_SS(
+        "[CONFIG]\n"
+        "DELTA_T 1\n"
+        "INIT_STATE Bar\n"
+        "\n"
+        "[ALL_STATES]\n"
+        "TRUE: @STOP\n");
+
+    // Run state script.
+    StateScriptAssembly::Report report{};
+    CHECK_SUCCESS(ssAsm->run(ssTokInfo, report));
+
+    // Report contains expected data.
+    CHECK_EQUAL(true, report.pass);
+    CHECK_EQUAL(1, report.steps);
+    CHECK_EQUAL(0, report.asserts);
+    CHECK_TRUE(report.text.size() > 0);
+
+    // Final state vector contains expected values.
+    CHECK_SV_ELEM("state", U32, 2);
+    CHECK_SV_ELEM("time", U64, 0);
+    CHECK_SV_ELEM("foo", bool, false);
 }
 
 ///////////////////////////////// Error Tests //////////////////////////////////
@@ -1018,7 +1066,7 @@ TEST(StateScriptAssemblyErrors, DupeSection)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "[Foo]\n");
@@ -1039,7 +1087,7 @@ TEST(StateScriptAssemblyErrors, UnknownState)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Bar]\n");
     checkCompileError(ss, smAsm, E_SSA_STATE, 4, 1);
@@ -1061,7 +1109,7 @@ TEST(StateScriptAssemblyErrors, UnguardedInput)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "foo = 1\n");
@@ -1084,7 +1132,7 @@ TEST(StateScriptAssemblyErrors, UnguardedAssert)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "@ASSERT foo == 0\n");
@@ -1107,7 +1155,7 @@ TEST(StateScriptAssemblyErrors, UnguardedStop)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "@STOP\n");
@@ -1130,7 +1178,7 @@ TEST(StateScriptAssemblyErrors, IllegalElse)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "T == 0: foo = 1\n"
@@ -1154,7 +1202,7 @@ TEST(StateScriptAssemblyErrors, SurfaceErrorInGuardExpression)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "bar == 1: foo = 1\n");
@@ -1177,7 +1225,7 @@ TEST(StateScriptAssemblyErrors, NestedGuard)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "foo == 1: T == 0: foo = 2\n");
@@ -1200,7 +1248,7 @@ TEST(StateScriptAssemblyErrors, UnreachableInput)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "TRUE {\n"
@@ -1226,7 +1274,7 @@ TEST(StateScriptAssemblyErrors, UnreachableAssert)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "TRUE {\n"
@@ -1252,7 +1300,7 @@ TEST(StateScriptAssemblyErrors, SurfaceErrorInAssertExpression)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "TRUE: @ASSERT bar == 1\n");
@@ -1275,7 +1323,7 @@ TEST(StateScriptAssemblyErrors, SurfaceErrorInAction)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "TRUE: bar = 1\n");
@@ -1298,7 +1346,7 @@ TEST(StateScriptAssemblyErrors, NoStop)
         "[Foo]\n");
     std::stringstream ss(
         "[CONFIG]\n"
-        "@DELTA_T=1\n"
+        "DELTA_T 1\n"
         "\n"
         "[Foo]\n"
         "TRUE: foo = 1\n");
@@ -1320,7 +1368,7 @@ TEST(StateScriptAssemblyErrors, GlobalClockOverflow)
         "[Initial]\n");
     INIT_SS(
         "[CONFIG]\n"
-        "@DELTA_T=9223372036854775806\n" // I64 max value - 1
+        "DELTA_T 9223372036854775806\n" // I64 max value - 1
         "\n"
         "[Initial]\n"
         "T == 3: @STOP\n");
@@ -1328,4 +1376,89 @@ TEST(StateScriptAssemblyErrors, GlobalClockOverflow)
     // Run state script. Expect an error due to global clock overflow.
     StateScriptAssembly::Report report{};
     CHECK_ERROR(E_SSA_OVFL, ssAsm->run(ssTokInfo, report));
+}
+
+TEST(StateScriptAssemblyErrors, DeltaTFloating)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "DELTA_T 1.5\n"
+        "\n"
+        "[Foo]\n"
+        "TRUE: @STOP\n");
+    checkCompileError(ss, smAsm, E_SSA_DT, 2, 9);
+}
+
+TEST(StateScriptAssemblyErrors, DeltaTNegative)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "DELTA_T -1\n"
+        "\n"
+        "[Foo]\n"
+        "TRUE: @STOP\n");
+    checkCompileError(ss, smAsm, E_SSA_DT, 2, 9);
+}
+
+TEST(StateScriptAssemblyErrors, DeltaTTooLarge)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "DELTA_T 999999999999999999999999999999999999999999999999999999999999\n"
+        "\n"
+        "[Foo]\n"
+        "TRUE: @STOP\n");
+    checkCompileError(ss, smAsm, E_SSA_DT, 2, 9);
+}
+
+TEST(StateScriptAssemblyErrors, UnknownInitialState)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "DELTA_T 1\n"
+        "INIT_STATE Bar\n"
+        "\n"
+        "[Foo]\n"
+        "TRUE: @STOP\n");
+    checkCompileError(ss, smAsm, E_SSA_STATE, 3, 12);
 }

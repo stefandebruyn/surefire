@@ -1,8 +1,8 @@
 [CONFIG]
-@DELTA_T=1
+DELTA_T 1
 
 [ALL_STATES]
-TRUE {
-    @ASSERT FALSE
+T == 10 {
+    @ASSERT TRUE
     @STOP
 }

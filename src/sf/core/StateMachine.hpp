@@ -48,9 +48,11 @@ public:
 
     Result step();
 
-    Result getNextStateTime(U64& kT) const;
+    Result getStateTime(U64& kT) const;
 
-    U32 nextState() const;
+    U32 currentState() const;
+
+    Result setState(const U32 kStateId);
 
 private:
 

@@ -1,4 +1,6 @@
 #include <fstream>
+#include <cstdlib>
+#include <cmath>
 
 #include "sf/config/ConfigUtil.hpp"
 #include "sf/config/StateScriptAssembly.hpp"
@@ -89,6 +91,17 @@ Result StateScriptAssembly::compile(
         return E_SSA_NULL;
     }
 
+    // Compile state script config.
+    StateScriptAssembly::Config config{0, StateMachine::NO_STATE};
+    Result res = StateScriptAssembly::compileConfig(kParse->config,
+                                                    kSmAsm,
+                                                    config,
+                                                    kErr);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
     // Vector to collect compiled sections in.
     Vec<StateScriptAssembly::Section> sections;
 
@@ -102,7 +115,6 @@ Result StateScriptAssembly::compile(
     bool foundScriptStop = false;
 
     // Compile all sections.
-    Result res = SUCCESS;
     for (const StateScriptParse::SectionParse& sectionParse : kParse->sections)
     {
         StateScriptAssembly::Section section{};
@@ -418,10 +430,7 @@ Result StateScriptAssembly::compile(
     }
 
     // Create final assembly.
-    kAsm.reset(new StateScriptAssembly(sections,
-                                       kSmAsm,
-                                       exprAsms,
-                                       kParse->config));
+    kAsm.reset(new StateScriptAssembly(sections, kSmAsm, exprAsms, config));
 
     return SUCCESS;
 }
@@ -429,6 +438,8 @@ Result StateScriptAssembly::compile(
 Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
                                 StateScriptAssembly::Report& kReport)
 {
+    Result res = SUCCESS;
+
     // Zero out the report.
     kReport = {false, 0, 0, ""};
 
@@ -462,6 +473,13 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
     SF_SAFE_ASSERT(elemObj->type() == ElementType::UINT32);
     Element<U32>& elemState = *static_cast<Element<U32>*>(elemObj);
 
+    // Set initial state if one was specified.
+    if (mConfig.initState != StateMachine::NO_STATE)
+    {
+        res = sm.setState(mConfig.initState);
+        SF_SAFE_ASSERT(res == SUCCESS);
+    }
+
     // The inputs and asserts to run in a given step will be collected in these
     // vectors.
     Vec<StateScriptAssembly::Input*> activeInputs;
@@ -474,25 +492,21 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
     const StateScriptAssembly::Assert* failAssert = nullptr;
 
     // Loop until stop annotation of assert failure.
-    Result res = SUCCESS;
     while (true)
     {
         // Increment state script step count.
         ++kReport.steps;
 
         // Update the state elapsed time. Normally this happens when the state
-        // machine steps, but we force it to happen now so that state script
-        // guards referencing the state time element behave as expected.
+        // machine steps, but we need it to happen slightly earlier so that the
+        // value is seen by state script expressions evaluated before stepping.
         U64 stateTime = Clock::NO_TIME;
-        SF_SAFE_ASSERT(sm.getNextStateTime(stateTime) == SUCCESS);
+        SF_SAFE_ASSERT(sm.getStateTime(stateTime) == SUCCESS);
         SF_SAFE_ASSERT(stateTime != Clock::NO_TIME);
         elemStateTime.write(stateTime);
 
-        // Forcibly update the state element, for the same reason as above;
-        // normally this happens when the state machine steps, but we need it to
-        // happen slightly earlier so that the value is seen when evaluating
-        // guards.
-        elemState.write(sm.nextState());
+        // Forcibly update the state element, for the same reason as above.
+        elemState.write(sm.currentState());
 
         // Update expression stats for expressions in state script.
         for (const Ref<const ExpressionAssembly> exprAsm : mExprAsms)
@@ -511,7 +525,7 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
         for (StateScriptAssembly::Section& section : mSections)
         {
             if ((section.stateId == StateMachine::NO_STATE)
-                || (section.stateId == sm.nextState()))
+                || (section.stateId == elemState.read()))
             {
                 // Collect inputs.
                 for (StateScriptAssembly::Input& input : section.inputs)
@@ -631,11 +645,86 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
 
 /////////////////////////////////// Private ////////////////////////////////////
 
+Result StateScriptAssembly::compileConfig(
+    const StateScriptParse::Config& kParse,
+    const Ref<const StateMachineAssembly> kSmAsm,
+    StateScriptAssembly::Config& kConfig,
+    ErrorInfo* const kErr)
+{
+    SF_SAFE_ASSERT(kSmAsm != nullptr);
+
+    // Check that a delta T was specified in the config section.
+    if (kParse.tokDeltaT.str.size() == 0)
+    {
+        if (kErr != nullptr)
+        {
+            kErr->text = gErrText;
+            std::stringstream ss;
+            ss << "`" << LangConst::optNameDeltaT << "` not specified in `"
+               << LangConst::sectionConfig << "` section";
+            kErr->subtext = ss.str();
+        }
+
+        return E_SSA_DT;
+    }
+
+    // Convert delta T string to F64.
+    const char* const str = kParse.tokDeltaT.str.c_str();
+    char* end = nullptr;
+    const F64 val = std::strtod(str, &end);
+
+    // Check that conversion succeeded.
+    if (end == str)
+    {
+        ConfigUtil::setError(kErr, kParse.tokDeltaT, gErrText,
+                             "invalid number");
+        return E_SSA_DT;
+    }
+
+    // Check that delta T is an integer greater than zero.
+    if ((val <= 0.0) || (std::ceil(val) != val))
+    {
+        ConfigUtil::setError(
+            kErr, kParse.tokDeltaT, gErrText,
+            ("`" + LangConst::optNameDeltaT + "` must be an integer > 0"));
+        return E_SSA_DT;
+    }
+
+    // Check that delta T is not too large.
+    if (val > Limits::max<U64>())
+    {
+        ConfigUtil::setError(
+            kErr, kParse.tokDeltaT, gErrText, "value is too large");
+        return E_SSA_DT;
+    }
+
+    // Delta T is valid.
+    kConfig.deltaT = static_cast<U64>(val);
+
+    // Parse initial state if specified.
+    if (kParse.tokInitState.str.size() > 0)
+    {
+        auto stateIt = kSmAsm->mWs.stateIds.find(kParse.tokInitState.str);
+        if (stateIt == kSmAsm->mWs.stateIds.end())
+        {
+            // Unknown state.
+            ConfigUtil::setError(
+                kErr, kParse.tokInitState, gErrText,
+                ("unknown state `" + kParse.tokInitState.str + "`"));
+            return E_SSA_STATE;
+        }
+
+        kConfig.initState = (*stateIt).second;
+    }
+
+    return SUCCESS;
+}
+
 StateScriptAssembly::StateScriptAssembly(
     const Vec<StateScriptAssembly::Section>& kSections,
     const Ref<const StateMachineAssembly> kSmAsm,
     const Vec<Ref<const ExpressionAssembly>> kExprAsms,
-    const StateScriptParse::Config& kConfig) :
+    const StateScriptAssembly::Config& kConfig) :
     mSections(kSections), mSmAsm(kSmAsm), mExprAsms(kExprAsms), mConfig(kConfig)
 {
 }
@@ -660,8 +749,8 @@ Result StateScriptAssembly::printStateVector(std::ostream& kOs)
         if (printedElems.find(elemObj) == printedElems.end())
         {
             // Print element name and equal sign.
-            kOs << "    " << Console::cyan << elemName << Console::reset
-                << " = " << Console::cyan;
+            kOs << "  " << Console::cyan << elemName << Console::reset << " = "
+                << Console::cyan;
 
             // Print element value.
             switch (elemObj->type())

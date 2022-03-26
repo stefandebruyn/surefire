@@ -1109,7 +1109,7 @@ TEST(StateMachineAssemblyErrors, IllegalAssert)
         "    @ASSERT T == 0\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    checkCompileError(smParse, svAsm, E_SMA_ASSERT, 7, 13);
+    checkCompileError(smParse, svAsm, E_SMA_ASSERT, 7, 5);
 }
 
 TEST(StateMachineAssemblyErrors, IllegalStopAnnotation)
@@ -1203,25 +1203,4 @@ TEST(StateMachineAssemblyErrors, NullParse)
                                                           smAsm,
                                                           nullptr));
     CHECK_TRUE(smAsm == nullptr);
-}
-
-TEST(StateMachineAssemblyErrors, InvalidInitialState)
-{
-    INIT_SV(
-        "[Foo]\n"
-        "U64 time\n"
-        "U32 state\n");
-    TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS=G\n"
-        "U32 state @ALIAS=S\n"
-        "\n"
-        "[Initial]\n");
-    Ref<const StateMachineParse> smParse;
-    CHECK_SUCCESS(StateMachineParse::parse(toks, smParse, nullptr));
-    Ref<const StateMachineAssembly> smAsm;
-    CHECK_ERROR(E_SM_STATE, StateMachineAssembly::compile(smParse,
-                                                          svAsm,
-                                                          smAsm,
-                                                          nullptr));
 }

@@ -15,6 +15,8 @@ public:
 
     struct Config final
     {
+        Token tokDeltaT;
+        Token tokInitState;
         U64 deltaT;
     };
 

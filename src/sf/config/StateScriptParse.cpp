@@ -1,6 +1,3 @@
-#include <climits>
-#include <cstdlib>
-
 #include "sf/core/Assert.hpp"
 #include "sf/config/ConfigUtil.hpp"
 #include "sf/config/StateScriptParse.hpp"
@@ -45,39 +42,53 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
             // Take section token.
             it.take();
 
-            // Process config options, which are annotations.
-            while (it.type() == Token::ANNOTATION)
+            // Process config options, which are identifiers possibly followed
+            // by other tokens.
+            while (it.type() == Token::IDENTIFIER)
             {
-                std::smatch match;
-                if (std::regex_match(it.str(),
-                                     match,
-                                     LangConst::annotationDeltaTRegex))
+                if (it.str() == LangConst::optNameDeltaT)
                 {
                     // Delta T option.
-                    const String deltaTStr = match[1].str();
-                    config.deltaT = std::strtoll(deltaTStr.c_str(),
-                                                 nullptr,
-                                                 10);
 
-                    // Check that delta T is nonzero.
-                    if (config.deltaT == 0)
+                    // Take identifier token.
+                    const Token& tokId = it.take();
+
+                    // Check that next token, which should be the delta T value,
+                    // is a constant.
+                    if (it.type() != Token::CONSTANT)
                     {
                         ConfigUtil::setError(kErr,
-                                             it.tok(),
+                                             tokId,
                                              gErrText,
-                                             "delta T must be nonzero");
+                                             ("expected value after `"
+                                              + tokId.str + "`"));
                         return E_SSP_DT;
                     }
 
-                    // Check that delta T is not too large.
-                    if (config.deltaT >= LLONG_MAX)
+                    // Take delta T value.
+                    config.tokDeltaT = it.take();
+                }
+                else if (it.str() == LangConst::optNameInitState)
+                {
+                    // Initial state option.
+
+                    // Take identifier token.
+                    const Token& tokId = it.take();
+
+                    // Check that next token, which should be the initial state
+                    // name, is an identifier.
+                    if (it.type() != Token::IDENTIFIER)
                     {
                         ConfigUtil::setError(kErr,
-                                             it.tok(),
+                                             tokId,
                                              gErrText,
-                                             "delta T is too large");
-                        return E_SSP_DT;
+                                             ("expected state name after `"
+                                              + tokId.str + "`"));
+                        return E_SSP_STATE;
                     }
+
+                    // Take initial state name.
+                    config.tokInitState = it.take();
                 }
                 else
                 {
@@ -89,9 +100,6 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
                         "unknown config option `" + it.str() + "`");
                     return E_SSP_CONFIG;
                 }
-
-                // Take option annotation.
-                it.take();
             }
         }
         else
@@ -107,10 +115,8 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
             const U32 idxEnd = it.next({Token::SECTION});
 
             // Parse section contents as a single block.
-            const Result res = StateMachineParse::parseBlock(it.slice(it.idx(),
-                                                                      idxEnd),
-                                                             section.block,
-                                                             kErr);
+            const Result res = StateMachineParse::parseBlock(
+                it.slice(it.idx(), idxEnd), section.block, kErr);
             if (res != SUCCESS)
             {
                 return res;
@@ -119,18 +125,6 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
             // Jump to end of section.
             it.seek(idxEnd);
         }
-    }
-
-    // Check that a delta T was specified.
-    if (config.deltaT == 0)
-    {
-        if (kErr != nullptr)
-        {
-            kErr->text = gErrText;
-            kErr->subtext =
-                "`@DELTA_T` was not specified in `[CONFIG]` section";
-        }
-        return E_SSP_DT;
     }
 
     // Return final parse.

@@ -18,6 +18,10 @@ const String LangConst::elemNameGlobalTime = "G";
 
 const String LangConst::elemNameState = "S";
 
+const String LangConst::optNameDeltaT = "DELTA_T";
+
+const String LangConst::optNameInitState = "INIT_STATE";
+
 const String LangConst::labelEntry = ".ENTRY";
 
 const String LangConst::labelStep = ".STEP";
@@ -28,8 +32,6 @@ const String LangConst::annotationAssert = "@ASSERT";
 
 const std::regex LangConst::annotationAliasRegex(
     "@ALIAS=([a-zA-Z][a-zA-Z0-9_]*)");
-
-const std::regex LangConst::annotationDeltaTRegex("@DELTA_T=([0-9]+)");
 
 const String LangConst::annotationReadOnly = "@READ_ONLY";
 
