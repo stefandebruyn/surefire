@@ -1,0 +1,8 @@
+[CONFIG]
+@DELTA_T=1
+
+[ALL_STATES]
+TRUE {
+    @ASSERT FALSE
+    @STOP
+}

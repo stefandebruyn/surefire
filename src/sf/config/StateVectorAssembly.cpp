@@ -23,6 +23,7 @@ Result StateVectorAssembly::compile(const String kFilePath,
             kErr->text = "error";
             kErr->subtext = "failed to open file `" + kFilePath + "`";
         }
+
         return E_SMA_FILE;
     }
 

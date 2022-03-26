@@ -172,10 +172,9 @@ Result StateMachineAssembly::compile(
                                 nullptr,
                                 nullptr});
 
-    // Config is done- create new state machine with it. The config is given the
-    // raw pointers underlying the previously allocated state config and
-    // expression stats vectors, as well as raw pointers of certain state vector
-    // elements.
+    // Put together the final state machine config. The config is given the raw
+    // pointers underlying the previously allocated state config and expression
+    // stats vectors, as well as raw pointers of certain state vector elements.
     SF_SAFE_ASSERT(ws.elems[LangConst::elemNameState] != nullptr);
     SF_SAFE_ASSERT(ws.elems[LangConst::elemNameStateTime] != nullptr);
     SF_SAFE_ASSERT(ws.elems[LangConst::elemNameGlobalTime] != nullptr);
@@ -193,6 +192,12 @@ Result StateMachineAssembly::compile(
         ws.stateConfigs->data(),
         ws.exprStatArr->data()
     };
+
+    // Set initial state 1. TODO make this configurable
+    SF_SAFE_ASSERT(smConfig.elemState != nullptr);
+    smConfig.elemState->write(1);
+
+    // Create state machine.
     ws.sm.reset(new StateMachine());
     res = StateMachine::create(smConfig, *ws.sm);
     if (res != SUCCESS)
