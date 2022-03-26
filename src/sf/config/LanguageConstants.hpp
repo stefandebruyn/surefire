@@ -1,7 +1,6 @@
 #ifndef SF_LANGUAGE_CONSTANTS_HPP
 #define SF_LANGUAGE_CONSTANTS_HPP
 
-#include "sf/config/EnumHash.hpp"
 #include "sf/config/StlTypes.hpp"
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Element.hpp"

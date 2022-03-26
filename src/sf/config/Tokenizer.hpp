@@ -1,7 +1,6 @@
 #ifndef SF_TOKENIZER_HPP
 #define SF_TOKENIZER_HPP
 
-#include "sf/config/EnumHash.hpp"
 #include "sf/config/ErrorInfo.hpp"
 #include "sf/config/Token.hpp"
 #include "sf/core/BasicTypes.hpp"
