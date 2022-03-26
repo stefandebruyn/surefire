@@ -552,7 +552,7 @@ Result StateMachineParse::parseAction(
             // Unexpected token after destination state.
             ErrorInfo::set(kErr, kIt.tok(), gErrText,
                            ("unexpected token after `" + tok.str + "`"));
-            return E_SMP_TR_JUNK;
+            return E_SMP_JUNK;
         }
     }
     else
@@ -812,6 +812,15 @@ Result StateMachineParse::parseBlockRec(
 
                 // Take stop annotation.
                 block->tokStop = kIt.take();
+
+                // Check for extraneous tokens after the stop.
+                if (kIt.idx() < idxEnd)
+                {
+                    ErrorInfo::set(kErr, kIt.tok(), gErrText,
+                                   ("unexpected token after `"
+                                    + block->tokStop.str + "`"));
+                    return E_SMP_JUNK;
+                }
             }
             // Not a state script assert or stop, so an unguarded state machine
             // action or state script input.

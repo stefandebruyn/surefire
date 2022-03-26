@@ -339,3 +339,11 @@ TEST(StateScriptParse, ErrorUnknownConfigOption)
         "FOO 3\n");
     checkParseError(toks, E_SSP_CONFIG, 2, 1);
 }
+
+TEST(StateScriptParse, ErrorExtraTokenAfterStop)
+{
+    TOKENIZE(
+        "[ALL_STATES]\n"
+        "TRUE: @STOP foo\n");
+    checkParseError(toks, E_SMP_JUNK, 2, 13);
+}

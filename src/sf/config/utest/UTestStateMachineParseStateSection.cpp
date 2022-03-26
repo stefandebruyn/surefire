@@ -1211,7 +1211,7 @@ TEST(StateMachineParseStateSectionErrors, ExtraTokenAfterTransition)
         "[Foo]\n"
         ".ENTRY\n"
         "    -> Bar @foo\n");
-    checkParseError(it, E_SMP_TR_JUNK, 3, 12);
+    checkParseError(it, E_SMP_JUNK, 3, 12);
 }
 
 TEST(StateMachineParseStateSectionErrors, InvalidFirstActionToken)

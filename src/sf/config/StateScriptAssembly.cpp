@@ -743,18 +743,15 @@ Result StateScriptAssembly::printStateVector(std::ostream& kOs)
                     break;
 
                 case ElementType::INT16:
-                    kOs <<
-                        static_cast<const Element<I16>*>(elemObj)->read();
+                    kOs << static_cast<const Element<I16>*>(elemObj)->read();
                     break;
 
                 case ElementType::INT32:
-                    kOs <<
-                        static_cast<const Element<I32>*>(elemObj)->read();
+                    kOs << static_cast<const Element<I32>*>(elemObj)->read();
                     break;
 
                 case ElementType::INT64:
-                    kOs <<
-                        static_cast<const Element<I64>*>(elemObj)->read();
+                    kOs << static_cast<const Element<I64>*>(elemObj)->read();
                     break;
 
                 case ElementType::UINT8:
@@ -763,28 +760,25 @@ Result StateScriptAssembly::printStateVector(std::ostream& kOs)
                     break;
 
                 case ElementType::UINT16:
-                    kOs <<
-                        static_cast<const Element<U16>*>(elemObj)->read();
+                    kOs << static_cast<const Element<U16>*>(elemObj)->read();
                     break;
 
                 case ElementType::UINT32:
-                    kOs <<
-                        static_cast<const Element<U32>*>(elemObj)->read();
+                    kOs << static_cast<const Element<U32>*>(elemObj)->read();
                     break;
 
                 case ElementType::UINT64:
-                    kOs <<
-                        static_cast<const Element<U64>*>(elemObj)->read();
+                    kOs << static_cast<const Element<U64>*>(elemObj)->read();
                     break;
 
                 case ElementType::FLOAT32:
-                    kOs << std::fixed <<
-                        static_cast<const Element<F32>*>(elemObj)->read();
+                    kOs << std::fixed
+                        << static_cast<const Element<F32>*>(elemObj)->read();
                     break;
 
                 case ElementType::FLOAT64:
-                    kOs << std::fixed <<
-                        static_cast<const Element<F64>*>(elemObj)->read();
+                    kOs << std::fixed
+                        << static_cast<const Element<F64>*>(elemObj)->read();
                     break;
 
                 case ElementType::BOOL:

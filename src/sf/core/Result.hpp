@@ -83,7 +83,7 @@ enum : Result
     E_SMP_TR_OP = 343,
     E_SMP_TR_DEST = 344,
     E_SMP_TR_TOK = 345,
-    E_SMP_TR_JUNK = 346,
+    E_SMP_JUNK = 346,
     E_SMP_TOK = 347,
     E_SMP_ENTRY = 348,
     E_SMP_STEP = 349,
