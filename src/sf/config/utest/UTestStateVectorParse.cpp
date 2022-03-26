@@ -30,7 +30,7 @@ static void checkParseError(
     CHECK_ERROR(kRes, StateVectorParse::parse(kToks, parse, nullptr, kRegions));
 }
 
-///////////////////////////////// Usage Tests //////////////////////////////////
+///////////////////////////// Correct Usage Tests //////////////////////////////
 
 TEST_GROUP(StateVectorParse)
 {

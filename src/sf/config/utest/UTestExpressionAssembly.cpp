@@ -64,7 +64,7 @@ static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
                                                   nullptr));
 }
 
-///////////////////////////////// Usage Tests //////////////////////////////////
+///////////////////////////// Correct Usage Tests //////////////////////////////
 
 TEST_GROUP(ExpressionAssembly)
 {

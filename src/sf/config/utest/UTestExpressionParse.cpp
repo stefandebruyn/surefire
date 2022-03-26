@@ -57,7 +57,7 @@ static void checkParseError(TokenIterator& kIt,
     CHECK_ERROR(kRes, ExpressionParse::parse(kIt, parse, nullptr));
 }
 
-///////////////////////////////// Usage Tests //////////////////////////////////
+///////////////////////////// Correct Usage Tests //////////////////////////////
 
 TEST_GROUP(ExpressionParse)
 {

@@ -52,7 +52,42 @@
     CHECK_EQUAL(kExpectVal, _elem->read());                                    \
 }
 
-///////////////////////////////// Usage Tests //////////////////////////////////
+static void checkCompileError(std::stringstream& kSrc,
+                              const Ref<const StateMachineAssembly> kSmAsm,
+                              const Result kRes,
+                              const I32 kLineNum,
+                              const I32 kColNum)
+{
+    // Make a copy of the original source for the 2nd compiler call.
+    std::stringstream ssCpy(kSrc.str());
+
+    // Got expected return code from compiler.
+    Ref<StateScriptAssembly> ssAsm;
+    ErrorInfo err;
+    CHECK_ERROR(kRes, StateScriptAssembly::compile(kSrc,
+                                                   kSmAsm,
+                                                   ssAsm,
+                                                   &err));
+
+    // Assembly pointer was not populated.
+    CHECK_TRUE(ssAsm == nullptr);
+
+    // Correct line and column numbers of error are identified.
+    CHECK_EQUAL(kLineNum, err.lineNum);
+    CHECK_EQUAL(kColNum, err.colNum);
+
+    // An error message was given.
+    CHECK_TRUE(err.text.size() > 0);
+    CHECK_TRUE(err.subtext.size() > 0);
+
+    // A null error info pointer is not dereferenced.
+    CHECK_ERROR(kRes, StateScriptAssembly::compile(ssCpy,
+                                                   kSmAsm,
+                                                   ssAsm,
+                                                   nullptr));
+}
+
+///////////////////////////// Correct Usage Tests //////////////////////////////
 
 TEST_GROUP(StateScriptAssembly)
 {
@@ -749,4 +784,548 @@ TEST(StateScriptAssembly, MultiStateFailInAllStatesSection)
     CHECK_LOCAL_ELEM("foo", I32, 8);
     CHECK_LOCAL_ELEM("bar", I32, 11);
     CHECK_LOCAL_ELEM("baz", F64, (1.0 / 2.0));
+}
+
+TEST(StateScriptAssembly, UseAliasInAssert)
+{
+    // General logic: state `Initial` increments element `foo` indefinitely.
+    // `foo` is aliased to `bar`.
+
+    // Compile objects.
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo @ALIAS=bar\n"
+        "\n"
+        "[Initial]\n"
+        ".STEP\n"
+        "    foo = foo + 1\n");
+    INIT_SS(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Initial]\n"
+        "T == 10 {\n"
+        "    @ASSERT bar == 11\n"
+        "    @STOP\n"
+        "}\n");
+
+    // Run state script.
+    StateScriptAssembly::Report report{};
+    CHECK_SUCCESS(ssAsm->run(ssTokInfo, report));
+
+    // Report contains expected data.
+    CHECK_EQUAL(true, report.pass);
+    CHECK_EQUAL(11, report.steps);
+    CHECK_EQUAL(1, report.asserts);
+    CHECK_TRUE(report.text.size() > 0);
+
+    // Final state vector contains expected values.
+    CHECK_SV_ELEM("state", U32, 1);
+    CHECK_SV_ELEM("time", U64, 10);
+    CHECK_SV_ELEM("foo", I32, 11);
+}
+
+TEST(StateScriptAssembly, UseAliasInInput)
+{
+    // General logic: state `Initial` sets element `bar` to true when `foo` is
+    // true. `foo` is aliased to `baz`.
+
+    // Compile objects.
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "BOOL foo\n"
+        "BOOL bar\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "BOOL foo @ALIAS=baz\n"
+        "BOOL bar\n"
+        "\n"
+        "[Initial]\n"
+        ".STEP\n"
+        "    foo: bar = TRUE\n");
+    INIT_SS(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Initial]\n"
+        "TRUE {\n"
+        "    baz = TRUE\n"
+        "    @ASSERT bar == TRUE\n"
+        "    @STOP\n"
+        "}\n");
+
+    // Run state script.
+    StateScriptAssembly::Report report{};
+    CHECK_SUCCESS(ssAsm->run(ssTokInfo, report));
+
+    // Report contains expected data.
+    CHECK_EQUAL(true, report.pass);
+    CHECK_EQUAL(1, report.steps);
+    CHECK_EQUAL(1, report.asserts);
+    CHECK_TRUE(report.text.size() > 0);
+
+    // Final state vector contains expected values.
+    CHECK_SV_ELEM("state", U32, 1);
+    CHECK_SV_ELEM("time", U64, 0);
+    CHECK_SV_ELEM("foo", bool, true);
+    CHECK_SV_ELEM("bar", bool, true);
+}
+
+TEST(StateScriptAssembly, UseAliasInGuard)
+{
+    // General logic: state `Initial` sets element `foo` to true on T=5. `foo`
+    // is aliased to `bar`. State script stops when `bar` is true.
+
+    // Compile objects.
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "BOOL foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "BOOL foo @ALIAS=bar\n"
+        "\n"
+        "[Initial]\n"
+        ".STEP\n"
+        "    T == 5: foo = TRUE\n");
+    INIT_SS(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Initial]\n"
+        "bar {\n"
+        "    @ASSERT T == 6\n"
+        "    @STOP\n"
+        "}\n");
+
+    // Run state script.
+    StateScriptAssembly::Report report{};
+    CHECK_SUCCESS(ssAsm->run(ssTokInfo, report));
+
+    // Report contains expected data.
+    CHECK_EQUAL(true, report.pass);
+    CHECK_EQUAL(7, report.steps);
+    CHECK_EQUAL(1, report.asserts);
+    CHECK_TRUE(report.text.size() > 0);
+
+    // Final state vector contains expected values.
+    CHECK_SV_ELEM("state", U32, 1);
+    CHECK_SV_ELEM("time", U64, 6);
+    CHECK_SV_ELEM("foo", bool, true);
+}
+
+TEST(StateScriptAssembly, UpdateExpressionStats)
+{
+    // General logic: state `Initial` sets element `foo` to various values for
+    // the first 3 steps. The state script stops when the rolling max of `foo`
+    // hits a certain value.
+
+    // Compile objects.
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Initial]\n"
+        ".STEP\n"
+        "    T == 0: foo = 3\n"
+        "    T == 1: foo = 2\n"
+        "    T == 2: foo = 1\n");
+    INIT_SS(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Initial]\n"
+        "ROLL_MAX(foo, 2) == 2 {\n"
+        "    @ASSERT T == 3\n"
+        "    @STOP\n"
+        "}\n");
+
+    // Run state script.
+    StateScriptAssembly::Report report{};
+    CHECK_SUCCESS(ssAsm->run(ssTokInfo, report));
+
+    // Report contains expected data.
+    CHECK_EQUAL(true, report.pass);
+    CHECK_EQUAL(4, report.steps);
+    CHECK_EQUAL(1, report.asserts);
+    CHECK_TRUE(report.text.size() > 0);
+
+    // Final state vector contains expected values.
+    CHECK_SV_ELEM("state", U32, 1);
+    CHECK_SV_ELEM("time", U64, 3);
+    CHECK_SV_ELEM("foo", I32, 1);
+}
+
+///////////////////////////////// Error Tests //////////////////////////////////
+
+TEST_GROUP(StateScriptAssemblyErrors)
+{
+};
+
+TEST(StateScriptAssemblyErrors, NullParse)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "\n"
+        "[Foo]\n");
+    Ref<StateScriptAssembly> ssAsm;
+    Ref<const StateScriptParse> ssParse;
+    CHECK_ERROR(E_SSA_NULL, StateScriptAssembly::compile(ssParse,
+                                                         smAsm,
+                                                         ssAsm,
+                                                         nullptr));
+    CHECK_TRUE(ssAsm == nullptr);
+}
+
+TEST(StateScriptAssemblyErrors, DupeSection)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "[Foo]\n");
+    checkCompileError(ss, smAsm, E_SSA_DUPE, 5, 1);
+}
+
+TEST(StateScriptAssemblyErrors, UnknownState)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Bar]\n");
+    checkCompileError(ss, smAsm, E_SSA_STATE, 4, 1);
+}
+
+TEST(StateScriptAssemblyErrors, UnguardedInput)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "foo = 1\n");
+    checkCompileError(ss, smAsm, E_SSA_GUARD, 5, 1);
+}
+
+TEST(StateScriptAssemblyErrors, UnguardedAssert)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "@ASSERT foo == 0\n");
+    checkCompileError(ss, smAsm, E_SSA_GUARD, 5, 1);
+}
+
+TEST(StateScriptAssemblyErrors, UnguardedStop)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "@STOP\n");
+    checkCompileError(ss, smAsm, E_SSA_GUARD, 5, 1);
+}
+
+TEST(StateScriptAssemblyErrors, IllegalElse)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "T == 0: foo = 1\n"
+        "ELSE: foo = 2\n");
+    checkCompileError(ss, smAsm, E_SSA_ELSE, 6, 1);
+}
+
+TEST(StateScriptAssemblyErrors, SurfaceErrorInGuardExpression)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "bar == 1: foo = 1\n");
+    checkCompileError(ss, smAsm, E_EXA_ELEM, 5, 1);
+}
+
+TEST(StateScriptAssemblyErrors, NestedGuard)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "foo == 1: T == 0: foo = 2\n");
+    checkCompileError(ss, smAsm, E_SSA_NEST, 5, 11);
+}
+
+TEST(StateScriptAssemblyErrors, UnreachableInput)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "TRUE {\n"
+        "    @STOP\n"
+        "    foo = 1\n"
+        "}\n");
+    checkCompileError(ss, smAsm, E_SSA_UNRCH, 7, 5);
+}
+
+TEST(StateScriptAssemblyErrors, UnreachableAssert)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "TRUE {\n"
+        "    @STOP\n"
+        "    @ASSERT foo == 0\n"
+        "}\n");
+    checkCompileError(ss, smAsm, E_SSA_UNRCH, 7, 5);
+}
+
+TEST(StateScriptAssemblyErrors, SurfaceErrorInAssertExpression)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "TRUE: @ASSERT bar == 1\n");
+    checkCompileError(ss, smAsm, E_EXA_ELEM, 5, 15);
+}
+
+TEST(StateScriptAssemblyErrors, SurfaceErrorInAction)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "TRUE: bar = 1\n");
+    checkCompileError(ss, smAsm, E_SMA_ASG_ELEM, 5, 7);
+}
+
+TEST(StateScriptAssemblyErrors, NoStop)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n"
+        "I32 foo\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "I32 foo\n"
+        "\n"
+        "[Foo]\n");
+    std::stringstream ss(
+        "[CONFIG]\n"
+        "@DELTA_T=1\n"
+        "\n"
+        "[Foo]\n"
+        "TRUE: foo = 1\n");
+    checkCompileError(ss, smAsm, E_SSA_STOP, -1, -1);
+}
+
+TEST(StateScriptAssemblyErrors, GlobalClockOverflow)
+{
+    // Compile objects.
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U32 state @ALIAS=S\n"
+        "U64 time @ALIAS=G\n"
+        "\n"
+        "[Initial]\n");
+    INIT_SS(
+        "[CONFIG]\n"
+        "@DELTA_T=9223372036854775806\n" // I64 max value - 1
+        "\n"
+        "[Initial]\n"
+        "T == 3: @STOP\n");
+
+    // Run state script. Expect an error due to global clock overflow.
+    StateScriptAssembly::Report report{};
+    CHECK_ERROR(E_SSA_OVFL, ssAsm->run(ssTokInfo, report));
 }

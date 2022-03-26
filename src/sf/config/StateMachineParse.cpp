@@ -520,6 +520,7 @@ void StateMachineParse::MutBlockParse::toBlockParse(
                                                    elseBlock,
                                                    next,
                                                    this->assert,
+                                                   this->tokElse,
                                                    this->tokAssert,
                                                    this->tokStop});
 }
@@ -794,7 +795,7 @@ Result StateMachineParse::parseBlockRec(
                 // Guard has an else branch.
 
                 // Take else token.
-                kIt.take();
+                block->tokElse = kIt.take();
 
                 // Find end index of else branch.
                 U32 idxElseEnd = 0;

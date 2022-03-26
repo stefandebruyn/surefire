@@ -142,6 +142,17 @@ enum : Result
     E_SSP_DT = 513,
     E_SSP_CONFIG = 514,
 
+    // StateScriptAssembly
+    E_SSA_NULL = 544,
+    E_SSA_DUPE = 545,
+    E_SSA_STATE = 546,
+    E_SSA_GUARD = 547,
+    E_SSA_ELSE = 548,
+    E_SSA_NEST = 549,
+    E_SSA_UNRCH = 550,
+    E_SSA_STOP = 551,
+    E_SSA_OVFL = 552,
+
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 
     // Socket

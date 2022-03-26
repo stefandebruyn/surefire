@@ -84,7 +84,7 @@ static void checkCompileError(const Ref<const StateMachineParse> kParse,
                                                     nullptr));
 }
 
-///////////////////////////////// Usage Tests //////////////////////////////////
+///////////////////////////// Correct Usage Tests //////////////////////////////
 
 TEST_GROUP(StateMachineAssembly)
 {

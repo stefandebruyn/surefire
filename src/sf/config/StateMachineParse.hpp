@@ -29,6 +29,7 @@ public:
         Ref<const StateMachineParse::BlockParse> elseBlock;
         Ref<const StateMachineParse::BlockParse> next;
         Ref<const ExpressionParse> assert;
+        Token tokElse;
         Token tokAssert;
         Token tokStop;
     };
@@ -99,6 +100,7 @@ private:
         Ref<StateMachineParse::MutBlockParse> elseBlock;
         Ref<StateMachineParse::MutBlockParse> next;
         Ref<const ExpressionParse> assert;
+        Token tokElse;
         Token tokAssert;
         Token tokStop;
 

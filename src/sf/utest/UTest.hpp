@@ -11,7 +11,9 @@
 #    endif
 #endif
 
+#include "sf/core/Assert.hpp"
 #include "sf/core/Result.hpp"
+#include "sf/pal/Console.hpp"
 
 // Must be the last include.
 #include "CppUTest/TestHarness.h"
@@ -25,13 +27,19 @@
 #define CHECK_ERROR(kErr, kExpr)                                               \
 {                                                                              \
     const Result _res = (kExpr);                                               \
+    if ((_res == E_ASSERT) && (Assert::failFile != nullptr))                   \
+    {                                                                          \
+        Console::printf("\n`E_ASSERT` originating at %s:%d\n",                 \
+                        Assert::failFile,                                      \
+                        Assert::failLineNum);                                  \
+    }                                                                          \
     CHECK_EQUAL(kErr, _res);                                                   \
 }
 
 #if defined(SF_UTEST_HAS_SUP)
 
 #define TOKENIZE(kStr)                                                         \
-    Vec<Token> toks;                                                   \
+    Vec<Token> toks;                                                           \
     {                                                                          \
         std::stringstream _ss(kStr);                                           \
         CHECK_SUCCESS(Tokenizer::tokenize(_ss, toks, nullptr));                \

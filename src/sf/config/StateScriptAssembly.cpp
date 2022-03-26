@@ -1,5 +1,6 @@
 #include <fstream>
 
+#include "sf/config/ConfigUtil.hpp"
 #include "sf/config/StateScriptAssembly.hpp"
 #include "sf/core/Assert.hpp"
 #include "sf/pal/Clock.hpp"
@@ -85,7 +86,7 @@ Result StateScriptAssembly::compile(
     // Check that parse and state machine assembly are non-null.
     if ((kParse == nullptr) || (kSmAsm == nullptr))
     {
-        SF_ASSERT(false);
+        return E_SSA_NULL;
     }
 
     // Vector to collect compiled sections in.
@@ -119,39 +120,92 @@ Result StateScriptAssembly::compile(
             const String stateName =
                 sectionName.substr(1, (sectionName.size() - 2));
 
-            // Check that state does not appear in the state script twice.
-            if (scriptStates.find(stateName) != scriptStates.end())
-            {
-                SF_ASSERT(false);
-            }
-            scriptStates.insert(stateName);
-
             // Get ID of state.
             auto stateIdIt = kSmAsm->mWs.stateIds.find(stateName);
             if (stateIdIt == kSmAsm->mWs.stateIds.end())
             {
                 // Unknown state.
-                SF_ASSERT(false);
+                ConfigUtil::setError(kErr,
+                                     sectionParse.tokName,
+                                     gErrText,
+                                     ("unknown state `" + stateName + "`"));
+                return E_SSA_STATE;
             }
             section.stateId = (*stateIdIt).second;
+
+            // Check that state does not appear in the state script twice.
+            if (scriptStates.find(stateName) != scriptStates.end())
+            {
+                ConfigUtil::setError(kErr,
+                                     sectionParse.tokName,
+                                     gErrText,
+                                     ("state `" + stateName + "` has more than "
+                                      "one section"));
+                return E_SSA_DUPE;
+            }
+            scriptStates.insert(stateName);
+        }
+
+        // If first block in section has no data in it (indicating an empty
+        // section), skip this section.
+        Ref<const StateMachineParse::BlockParse> block = sectionParse.block;
+        SF_SAFE_ASSERT(block != nullptr);
+        if ((block->guard == nullptr)
+            && (block->action == nullptr)
+            && (block->assert == nullptr)
+            && (block->tokStop.str.size() == 0))
+        {
+            // Assert that block is well-formed. Expect it to have no linked
+            // blocks.
+            SF_SAFE_ASSERT(block->ifBlock == nullptr);
+            SF_SAFE_ASSERT(block->elseBlock == nullptr);
+            SF_SAFE_ASSERT(block->next == nullptr);
+
+            continue;
         }
 
         // Compile all blocks in section.
-        Ref<const StateMachineParse::BlockParse> block = sectionParse.block;
         while (block != nullptr)
         {
-            // Check that block has a guard. This is the condition under which the
-            // inputs and assertions occur.
+            // Check that block has a guard.
             if (block->guard == nullptr)
             {
-                SF_ASSERT(false);
+                // Figure out which token the error message will point to based
+                // on the block type.
+                Token tokErr;
+                if (block->action != nullptr)
+                {
+                    // Input block.
+                    tokErr = block->action->tokLhs;
+                }
+                else if (block->assert != nullptr)
+                {
+                    // Assert block.
+                    tokErr = block->tokAssert;
+                }
+                else
+                {
+                    // Stop block.
+                    tokErr = block->tokStop;
+                }
+
+                ConfigUtil::setError(kErr,
+                                     tokErr,
+                                     gErrText,
+                                     "unguarded statement");
+                return E_SSA_GUARD;
             }
 
             // Check that block has no else branch, which is disallowed in state
             // scripts.
             if (block->elseBlock != nullptr)
             {
-                SF_ASSERT(false);
+                ConfigUtil::setError(kErr,
+                                     block->tokElse,
+                                     gErrText,
+                                     ("state scripts may not use `"
+                                      + LangConst::keywordElse + "`"));
+                return E_SSA_ELSE;
             }
 
             // Compile guard.
@@ -163,6 +217,13 @@ Result StateScriptAssembly::compile(
                                               kErr);
             if (res != SUCCESS)
             {
+                // Override error text set by expression compiler for consistent
+                // error messages from state script compiler.
+                if (kErr != nullptr)
+                {
+                    kErr->text = gErrText;
+                }
+
                 return res;
             }
             exprAsms.push_back(guardAsm);
@@ -179,14 +240,52 @@ Result StateScriptAssembly::compile(
                 // disallowed in state scripts.
                 if (innerBlock->guard != nullptr)
                 {
-                    SF_ASSERT(false);
+                    // Error message will point to first token in guard
+                    // expression, or the leftmost leaf in the expression tree.
+                    Ref<const ExpressionParse> node = innerBlock->guard;
+                    while (node->left != nullptr)
+                    {
+                        node = node->left;
+                    }
+
+                    ConfigUtil::setError(kErr,
+                                         node->data,
+                                         gErrText,
+                                         "state scripts may not use nested "
+                                         "guards");
+                    return E_SSA_NEST;
                 }
 
                 // Check that block is not occurring after a step annotation (in
                 // which case it can never execute).
                 if (foundSectionStop)
                 {
-                    SF_ASSERT(false);
+                    // Figure out which token the error message will point to
+                    // based on the block type.
+                    Token tokErr;
+                    if (innerBlock->action != nullptr)
+                    {
+                        // Input block.
+                        tokErr = innerBlock->action->tokLhs;
+                    }
+                    else if (innerBlock->assert != nullptr)
+                    {
+                        // Assert block.
+                        tokErr = innerBlock->tokAssert;
+                    }
+                    else
+                    {
+                        // Stop block.
+                        tokErr = innerBlock->tokStop;
+                    }
+
+                    ConfigUtil::setError(kErr,
+                                         tokErr,
+                                         gErrText,
+                                         ("statement after `"
+                                          + LangConst::annotationStop + "` can"
+                                          " never execute"));
+                    return E_SSA_UNRCH;
                 }
 
                 // Check that block is well-formed. Expect it to have no if or
@@ -200,11 +299,12 @@ Result StateScriptAssembly::compile(
                     foundSectionStop = true;
                     foundScriptStop = true;
 
-                    // Expect stop block to have no other data.
+                    // Expect stop block to have no other data. It may have a
+                    // a next block, which is still an error (unreachable
+                    // statement), but that gets caught later.
                     SF_SAFE_ASSERT(innerBlock->action == nullptr);
                     SF_SAFE_ASSERT(innerBlock->ifBlock == nullptr);
                     SF_SAFE_ASSERT(innerBlock->elseBlock == nullptr);
-                    SF_SAFE_ASSERT(innerBlock->next == nullptr);
                     SF_SAFE_ASSERT(innerBlock->assert == nullptr);
 
                     // Add stop to section with the previously compiled guard.
@@ -234,6 +334,13 @@ Result StateScriptAssembly::compile(
                                                        kErr);
                     if (res != SUCCESS)
                     {
+                        // Override error text set by expression compiler for
+                        // consistent error messages from state script compiler.
+                        if (kErr != nullptr)
+                        {
+                            kErr->text = gErrText;
+                        }
+
                         return res;
                     }
                     exprAsms.push_back(assertAsm);
@@ -270,8 +377,16 @@ Result StateScriptAssembly::compile(
                         kErr);
                     if (res != SUCCESS)
                     {
+                        // Override error text set by expression compiler for
+                        // consistent error messages from state script compiler.
+                        if (kErr != nullptr)
+                        {
+                            kErr->text = gErrText;
+                        }
+
                         return res;
                     }
+
                     exprAsms.push_back(rhsAsm);
                     section.inputs.push_back(input);
                 }
@@ -292,7 +407,14 @@ Result StateScriptAssembly::compile(
     // never exit).
     if (!foundScriptStop)
     {
-        SF_ASSERT(false);
+        if (kErr != nullptr)
+        {
+            kErr->text = gErrText;
+            kErr->subtext = ("state script has no `" + LangConst::annotationStop
+                             + "`");
+        }
+
+        return E_SSA_STOP;
     }
 
     // Create final assembly.
@@ -371,6 +493,18 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
         // happen slightly earlier so that the value is seen when evaluating
         // guards.
         elemState.write(sm.nextState());
+
+        // Update expression stats for expressions in state script.
+        for (const Ref<const ExpressionAssembly> exprAsm : mExprAsms)
+        {
+            SF_SAFE_ASSERT(exprAsm != nullptr);
+            const Vec<Ref<IExpressionStats>> exprStats = exprAsm->stats();
+            for (const Ref<IExpressionStats> stat : exprStats)
+            {
+                SF_SAFE_ASSERT(stat != nullptr);
+                stat->update();
+            }
+        }
 
         // Collect inputs and asserts for the current step based on the current
         // state and guard evaluations.
@@ -454,7 +588,7 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
         // Check for overflow of the global clock.
         if (elemGlobalTime.read() <= lastGlobalTime)
         {
-            SF_ASSERT(false);
+            return E_SSA_OVFL;
         }
     }
 

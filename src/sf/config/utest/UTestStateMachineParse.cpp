@@ -28,7 +28,7 @@ static void checkParseError(const Vec<Token>& kToks,
     CHECK_ERROR(kRes, StateMachineParse::parse(kToks, parse, nullptr));
 }
 
-///////////////////////////////// Usage Tests //////////////////////////////////
+///////////////////////////// Correct Usage Tests //////////////////////////////
 
 TEST_GROUP(StateMachineParse)
 {

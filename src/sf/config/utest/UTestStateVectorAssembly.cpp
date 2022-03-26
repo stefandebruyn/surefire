@@ -229,7 +229,7 @@ static void checkCompileError(const Vec<Token>& kToks,
     CHECK_ERROR(kRes, StateVectorAssembly::compile(parse, assembly, nullptr));
 }
 
-///////////////////////////////// Usage Tests //////////////////////////////////
+///////////////////////////// Correct Usage Tests //////////////////////////////
 
 TEST_GROUP(StateVectorAssembly)
 {

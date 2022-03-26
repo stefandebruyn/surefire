@@ -30,7 +30,7 @@ static void checkParseError(TokenIterator &kIt,
                                                                  nullptr));
 }
 
-///////////////////////////////// Usage Tests //////////////////////////////////
+///////////////////////////// Correct Usage Tests //////////////////////////////
 
 TEST_GROUP(StateMachineParseStateVectorSection)
 {
