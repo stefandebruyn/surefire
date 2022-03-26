@@ -79,7 +79,7 @@ struct TypeInfo final
 
     static const Map<String, TypeInfo> fromName;
 
-    static const Map<ElementType, TypeInfo, EnumHash> fromEnum;
+    static const Map<ElementType, TypeInfo> fromEnum;
 
     ElementType enumVal;
     String name;

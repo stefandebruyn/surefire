@@ -3,9 +3,8 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 ///
@@ -20,22 +19,16 @@ using Ref = std::shared_ptr<T>;
 using String = std::string;
 
 ///
-/// @brief Alias for an unordered (hash) map.
-///
-template<typename TKey, typename TVal, typename THash = std::hash<TKey>>
-using Map = std::unordered_map<TKey, TVal, THash>;
-
-///
-/// @brief Alias for an ordered (tree) map.
+/// @brief Alias for a map.
 ///
 template<typename TKey, typename TVal, typename TCompare = std::less<TKey>>
-using OrderedMap = std::map<TKey, TVal, TCompare>;
+using Map = std::map<TKey, TVal, TCompare>;
 
 ///
-/// @brief Alias for a hash set.
+/// @brief Alias for a set.
 ///
-template<typename T, typename THash = std::hash<T>>
-using Set = std::unordered_set<T, THash>;
+template<typename T, typename TCompare = std::less<T>>
+using Set = std::set<T, TCompare>;
 
 ///
 /// @brief Alias for a vector.

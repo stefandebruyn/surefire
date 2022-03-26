@@ -29,7 +29,7 @@ struct Token final
         KEYWORD = 14
     };
 
-    static const Map<Type, String, EnumHash> names;
+    static const Map<Type, String> names;
 
     static const Vec<std::pair<Type, std::regex>> regexes;
 

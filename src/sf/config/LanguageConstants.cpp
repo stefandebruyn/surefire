@@ -103,7 +103,7 @@ const Map<String, TypeInfo> TypeInfo::fromName =
     {"BOOL", boolean} // Alias for `bool`
 };
 
-const Map<ElementType, TypeInfo, EnumHash> TypeInfo::fromEnum =
+const Map<ElementType, TypeInfo> TypeInfo::fromEnum =
 {
     {i8.enumVal, i8},
     {i16.enumVal, i16},

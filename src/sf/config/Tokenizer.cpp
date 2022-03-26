@@ -101,7 +101,7 @@ static Result tokenizeLine(const String& kLine,
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-const Map<Token::Type, String, EnumHash> Token::names =
+const Map<Token::Type, String> Token::names =
 {
     {Token::SECTION, "section"},
     {Token::LABEL, "label"},
