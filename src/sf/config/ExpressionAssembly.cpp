@@ -1,7 +1,6 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "sf/config/ConfigUtil.hpp"
 #include "sf/config/ExpressionAssembly.hpp"
 #include "sf/config/LanguageConstants.hpp"
 #include "sf/core/Assert.hpp"
@@ -138,17 +137,15 @@ Result ExpressionAssembly::tokenToF64(const Token& kTok,
     if (end == str)
     {
         // Invalid numeric constant.
-        ConfigUtil::setError(kErr, kTok, gErrText, "invalid number");
+        ErrorInfo::set(kErr, kTok, gErrText, "invalid number");
         return E_EXA_NUM;
     }
 
     if (val == HUGE_VAL)
     {
         // Numeric constant is out of range.
-        ConfigUtil::setError(kErr,
-                             kTok,
-                             gErrText,
-                             "number is outside the representable range");
+        ErrorInfo::set(kErr, kTok, gErrText,
+                       "number is outside the representable range");
         return E_EXA_OVFL;
     }
 
@@ -182,7 +179,7 @@ Result ExpressionAssembly::compileExprStatsFunc(
         std::stringstream ss;
         ss << "`" << kParse->data.str << + "` expects 2 arguments, got "
            << argNodes.size();
-        ConfigUtil::setError(kErr, kParse->data, gErrText, ss.str());
+        ErrorInfo::set(kErr, kParse->data, gErrText, ss.str());
         return E_EXA_ARITY;
     }
 
@@ -223,10 +220,8 @@ Result ExpressionAssembly::compileExprStatsFunc(
         || (windowSizeFp <= 0)                        // Negative or zero
         || (std::ceil(windowSizeFp) != windowSizeFp)) // Non-integer
     {
-        ConfigUtil::setError(kErr,
-                             argNodes[1]->right->data,
-                             gErrText,
-                             "rolling window size must be an integer > 0");
+        ErrorInfo::set(kErr, argNodes[1]->right->data, gErrText,
+                       "rolling window size must be an integer > 0");
         return E_EXA_WIN;
     }
 
@@ -235,12 +230,8 @@ Result ExpressionAssembly::compileExprStatsFunc(
     if (windowSize > LangConst::rollWindowMaxSize)
     {
         std::stringstream ss;
-        ss << "rolling window size must be <= "
-           << LangConst::rollWindowMaxSize;
-        ConfigUtil::setError(kErr,
-                             argNodes[1]->right->data,
-                             gErrText,
-                             ss.str());
+        ss << "rolling window size must be <= " << LangConst::rollWindowMaxSize;
+        ErrorInfo::set(kErr, argNodes[1]->right->data, gErrText, ss.str());
         return E_EXA_WIN;
     }
 
@@ -317,10 +308,8 @@ Result ExpressionAssembly::compileFunction(
     // Other functions may be added by chaining off the above `if`!
 
     // If we got this far, the function is not recognized.
-    ConfigUtil::setError(kErr,
-                         kParse->data,
-                         gErrText,
-                         "unknown function `" + kParse->data.str + "`");
+    ErrorInfo::set(kErr, kParse->data, gErrText,
+                   ("unknown function `" + kParse->data.str + "`"));
     return E_EXA_FUNC;
 }
 
@@ -557,10 +546,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
         auto elemIt = kBindings.find(kParse->data.str);
         if (elemIt == kBindings.end())
         {
-            ConfigUtil::setError(kErr,
-                                 kParse->data,
-                                 gErrText,
-                                 "unknown element");
+            ErrorInfo::set(kErr, kParse->data, gErrText, "unknown element");
             return E_EXA_ELEM;
         }
         IElement* const elemObj = (*elemIt).second;

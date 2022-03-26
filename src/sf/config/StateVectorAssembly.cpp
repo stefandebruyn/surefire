@@ -1,6 +1,5 @@
 #include <fstream>
 
-#include "sf/config/ConfigUtil.hpp"
 #include "sf/config/StateVectorAssembly.hpp"
 #include "sf/core/Assert.hpp"
 
@@ -94,7 +93,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
                 std::stringstream ss;
                 ss << "reuse of region name `" << j.plainName
                    << "` (previously used on line " << i.tokName.lineNum << ")";
-                ConfigUtil::setError(kErr, j.tokName, gErrText, ss.str());
+                ErrorInfo::set(kErr, j.tokName, gErrText, ss.str());
                 return E_SVA_RGN_DUPE;
             }
         }
@@ -118,10 +117,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
                 ss << "reuse of element name `" << elems[j]->tokName.str
                    << "` (previously used on line "
                    << elems[i]->tokName.lineNum << ")";
-                ConfigUtil::setError(kErr,
-                                     elems[j]->tokName,
-                                     gErrText,
-                                     ss.str());
+                ErrorInfo::set(kErr, elems[j]->tokName, gErrText, ss.str());
                 return E_SVA_ELEM_DUPE;
             }
         }
@@ -136,10 +132,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
         // Check that region contains at least 1 element.
         if (region.elems.size() == 0)
         {
-            ConfigUtil::setError(kErr,
-                                 region.tokName,
-                                 gErrText,
-                                 "region is empty");
+            ErrorInfo::set(kErr, region.tokName, gErrText, "region is empty");
             return E_SVA_RGN_EMPTY;
         }
 
@@ -154,10 +147,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
             if (typeInfoIt == TypeInfo::fromName.end())
             {
                 // Unknown element type.
-                ConfigUtil::setError(kErr,
-                                     elem.tokType,
-                                     gErrText,
-                                     "unknown type");
+                ErrorInfo::set(kErr, elem.tokType, gErrText, "unknown type");
                 return E_SVA_ELEM_TYPE;
             }
 

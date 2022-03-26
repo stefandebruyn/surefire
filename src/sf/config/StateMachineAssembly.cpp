@@ -1,6 +1,5 @@
 #include <fstream>
 
-#include "sf/config/ConfigUtil.hpp"
 #include "sf/config/ExpressionAssembly.hpp"
 #include "sf/config/LanguageConstants.hpp"
 #include "sf/config/StateMachineAssembly.hpp"
@@ -261,11 +260,9 @@ Result StateMachineAssembly::checkStateVector(
         if (sv->getIElement(elem.tokName.str.c_str(), elemObj) != SUCCESS)
         {
             // Element does not exist in state vector.
-            ConfigUtil::setError(kErr,
-                                 elem.tokName,
-                                 gErrText,
-                                 ("element `" + elem.tokName.str
-                                  + "` does not exist in state vector"));
+            ErrorInfo::set(kErr, elem.tokName, gErrText,
+                           ("element `" + elem.tokName.str
+                            + "` does not exist in state vector"));
             return E_SMA_SV_ELEM;
         }
         SF_SAFE_ASSERT(elemObj != nullptr);
@@ -275,10 +272,8 @@ Result StateMachineAssembly::checkStateVector(
         if (smTypeInfoIt == TypeInfo::fromName.end())
         {
             // Unknown type.
-            ConfigUtil::setError(kErr,
-                                 elem.tokType,
-                                 gErrText,
-                                 ("unknown type `" + elem.tokType.str + "`"));
+            ErrorInfo::set(kErr, elem.tokType, gErrText,
+                           ("unknown type `" + elem.tokType.str + "`"));
             return E_SMA_TYPE;
         }
         const TypeInfo& smTypeInfo = (*smTypeInfoIt).second;
@@ -296,16 +291,16 @@ Result StateMachineAssembly::checkStateVector(
             ss << "element `" << elem.tokName.str << "` is type "
                << typeInfo.name << " in the state vector but type "
                << smTypeInfo.name << " here";
-            ConfigUtil::setError(kErr, elem.tokType, gErrText, ss.str());
+            ErrorInfo::set(kErr, elem.tokType, gErrText, ss.str());
             return E_SMA_TYPE_MISM;
         }
 
         // Check that element does not appear twice in the state machine.
         if (kWs.elems.find(elem.tokName.str) != kWs.elems.end())
         {
-            ConfigUtil::setError(kErr, elem.tokName, gErrText,
-                                 "element `" + elem.tokName.str + "` is listed "
-                                 "more than once");
+            ErrorInfo::set(kErr, elem.tokName, gErrText,
+                           ("element `" + elem.tokName.str
+                            + "` is listed more than once"));
             return E_SMA_ELEM_DUPE;
         }
 
@@ -329,7 +324,7 @@ Result StateMachineAssembly::checkStateVector(
                 std::stringstream ss;
                 ss << "`" << LangConst::elemGlobalTime
                    << "` must be type U64 (" << elem.tokType.str << " here)";
-                ConfigUtil::setError(kErr, elem.tokName, gErrText, ss.str());
+                ErrorInfo::set(kErr, elem.tokName, gErrText, ss.str());
                 return E_SMA_G_TYPE;
             }
         }
@@ -347,7 +342,7 @@ Result StateMachineAssembly::checkStateVector(
                 std::stringstream ss;
                 ss << "`" << LangConst::elemState << "` must be type U32 ("
                    << elem.tokType.str << " here)";
-                ConfigUtil::setError(kErr, elem.tokName, gErrText, ss.str());
+                ErrorInfo::set(kErr, elem.tokName, gErrText, ss.str());
                 return E_SMA_S_TYPE;
             }
         }
@@ -434,7 +429,7 @@ Result StateMachineAssembly::compileLocalStateVector(
                 ss << "reuse of element name `" << elem.tokName.str
                    << "` (previously used on line " << svElem.tokName.lineNum
                    << ")";
-                ConfigUtil::setError(kErr, elem.tokName, gErrText, ss.str());
+                ErrorInfo::set(kErr, elem.tokName, gErrText, ss.str());
                 return E_SMA_ELEM_DUPE;
             }
         }
@@ -502,10 +497,8 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
         // Check that element is not being used to initialize itself.
         if (kExpr->data.str == kInitElem.tokName.str)
         {
-            ConfigUtil::setError(kErr,
-                                 kExpr->data,
-                                 gErrText,
-                                 "cannot use element to initialize itself");
+            ErrorInfo::set(kErr, kExpr->data, gErrText,
+                           "cannot use element to initialize itself");
             return E_SMA_SELF_REF;
         }
 
@@ -518,7 +511,7 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
             std::stringstream ss;
             ss << "illegal reference to non-local element `"
                << kExpr->data.type << "`";
-            ConfigUtil::setError(kErr, kExpr->data, gErrText, ss.str());
+            ErrorInfo::set(kErr, kExpr->data, gErrText, ss.str());
             return E_SMA_LOC_SV_REF;
         }
 
@@ -543,7 +536,7 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
                 std::stringstream ss;
                 ss << "element `" << kExpr->data.str
                    << "` is not yet initialized";
-                ConfigUtil::setError(kErr, kExpr->data, gErrText, ss.str());
+                ErrorInfo::set(kErr, kExpr->data, gErrText, ss.str());
                 return E_SMA_UBI;
             }
         }
@@ -752,11 +745,8 @@ Result StateMachineAssembly::compileAssignmentAction(
     if (elemIt == kBindings.end())
     {
         // Unknown element.
-        ConfigUtil::setError(kErr,
-                             kParse->tokLhs,
-                             gErrText,
-                             ("unknown element `" + kParse->tokLhs.str
-                              + "`"));
+        ErrorInfo::set(kErr, kParse->tokLhs, gErrText,
+                       ("unknown element `" + kParse->tokLhs.str + "`"));
         return E_SMA_ASG_ELEM;
     }
     IElement* const elemObj = (*elemIt).second;
@@ -765,11 +755,8 @@ Result StateMachineAssembly::compileAssignmentAction(
     // Check that LHS element is not read-only.
     if (kReadOnlyElems.find(kParse->tokLhs.str) != kReadOnlyElems.end())
     {
-        ConfigUtil::setError(kErr,
-                             kParse->tokLhs,
-                             gErrText,
-                             ("element `" + kParse->tokLhs.str
-                              + "` is read-only"));
+        ErrorInfo::set(kErr, kParse->tokLhs, gErrText,
+                       ("element `" + kParse->tokLhs.str + "` is read-only"));
         return E_SMA_ELEM_RO;
     }
 
@@ -920,10 +907,8 @@ Result StateMachineAssembly::compileAction(
         // Check that transition is not in an exit label.
         if (kInExitLabel)
         {
-            ConfigUtil::setError(kErr,
-                                 kParse->tokTransitionKeyword,
-                                 gErrText,
-                                 "illegal transition in exit label");
+            ErrorInfo::set(kErr, kParse->tokTransitionKeyword, gErrText,
+                           "illegal transition in exit label");
             return E_SMA_TR_EXIT;
         }
 
@@ -931,11 +916,9 @@ Result StateMachineAssembly::compileAction(
         auto stateIdIt = kWs.stateIds.find(kParse->tokDestState.str);
         if (stateIdIt == kWs.stateIds.end())
         {
-            ConfigUtil::setError(kErr,
-                                 kParse->tokDestState,
-                                 gErrText,
-                                 ("unknown state `" + kParse->tokDestState.str
-                                  + "`"));
+            ErrorInfo::set(kErr, kParse->tokDestState, gErrText,
+                           ("unknown state `" + kParse->tokDestState.str
+                            + "`"));
             return E_SMA_STATE;
         }
 
@@ -963,11 +946,9 @@ Result StateMachineAssembly::compileBlock(
     // being used in the state machine.
     if (kParse->assert != nullptr)
     {
-        ConfigUtil::setError(kErr,
-                             kParse->tokAssert,
-                             gErrText,
-                             ("`" + kParse->tokAssert.str + "` may only be used"
-                              " in state scripts"));
+        ErrorInfo::set(kErr, kParse->tokAssert, gErrText,
+                       ("`" + kParse->tokAssert.str
+                        + "` may only be used in state scripts"));
         return E_SMA_ASSERT;
     }
 
@@ -975,11 +956,9 @@ Result StateMachineAssembly::compileBlock(
     // not being used in the state machine.
     if (kParse->tokStop.str.size() > 0)
     {
-        ConfigUtil::setError(kErr,
-                             kParse->tokStop,
-                             gErrText,
-                             ("`" + kParse->tokStop.str + "` may only be used "
-                              "in state scripts"));
+        ErrorInfo::set(kErr, kParse->tokStop, gErrText,
+                       ("`" + kParse->tokStop.str
+                        + "` may only be used in state scripts"));
         return E_SMA_STOP;
     }
 
@@ -1108,8 +1087,8 @@ Result StateMachineAssembly::compileState(
     // Check that state name is not reserved.
     if (StateMachineAssembly::stateNameReserved(kParse.tokName))
     {
-        ConfigUtil::setError(kErr, kParse.tokName, gErrText,
-                             "state name is reserved");
+        ErrorInfo::set(kErr, kParse.tokName, gErrText,
+                       "state name is reserved");
         return E_SMA_RSVD;
     }
 

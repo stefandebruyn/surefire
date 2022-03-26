@@ -139,26 +139,6 @@ const Vec<std::pair<Token::Type, std::regex>> Token::regexes =
     {Token::COMMA, std::regex("\\s*(,)\\s*")}
 };
 
-bool Token::operator==(const Token& kOther) const
-{
-    return ((this->type == kOther.type)
-            && (this->str == kOther.str)
-            && (this->lineNum == kOther.lineNum)
-            && (this->colNum == kOther.colNum));
-}
-
-bool Token::operator!=(const Token& kOther) const
-{
-    return !(*this == kOther);
-}
-
-std::ostream& operator<<(std::ostream& kOs, const Token& kTok)
-{
-    return (kOs << "Token(type=" << kTok.type << ", str=\"" << kTok.str
-                << "\", lineNum=" << kTok.lineNum << ", colNum=" << kTok.colNum
-                << ")");
-}
-
 Result Tokenizer::tokenize(String kFilePath,
                            Vec<Token>& kToks,
                            ErrorInfo* const kErr)

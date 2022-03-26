@@ -1,4 +1,3 @@
-#include "sf/config/ConfigUtil.hpp"
 #include "sf/config/StateVectorParse.hpp"
 #include "sf/core/Assert.hpp"
 
@@ -68,10 +67,7 @@ Result StateVectorParse::parse(const Vec<Token>& kToks,
 
             default:
                 // Unexpected token.
-                ConfigUtil::setError(kErr,
-                                     it.tok(),
-                                     gErrText,
-                                     "unexpected token");
+                ErrorInfo::set(kErr, it.tok(), gErrText, "unexpected token");
                 return E_SVP_TOK;
         }
     }
@@ -138,10 +134,7 @@ Result StateVectorParse::parseRegion(TokenIterator& kIt,
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
-            ConfigUtil::setError(kErr,
-                                 kIt.tok(),
-                                 gErrText,
-                                 "expected element type");
+            ErrorInfo::set(kErr, kIt.tok(), gErrText, "expected element type");
             return E_SVP_ELEM_TYPE;
         }
 
@@ -151,10 +144,8 @@ Result StateVectorParse::parseRegion(TokenIterator& kIt,
         // Check that tokens remain.
         if (kIt.eof())
         {
-            ConfigUtil::setError(kErr,
-                                 elem.tokType,
-                                 gErrText,
-                                 "expected element name after type");
+            ErrorInfo::set(kErr, elem.tokType, gErrText,
+                           "expected element name after type");
             return E_SVP_ELEM_NAME;
         }
 
@@ -162,10 +153,8 @@ Result StateVectorParse::parseRegion(TokenIterator& kIt,
         // identifier.
         if (kIt.type() != Token::IDENTIFIER)
         {
-            ConfigUtil::setError(kErr,
-                                 kIt.tok(),
-                                 gErrText,
-                                 "expected element type");
+            ErrorInfo::set(kErr, kIt.tok(), gErrText,
+                           "expected element type");
             return E_SVP_ELEM_NAME;
         }
 

@@ -1,6 +1,5 @@
 #include <stack>
 
-#include "sf/config/ConfigUtil.hpp"
 #include "sf/config/ExpressionParse.hpp"
 #include "sf/core/Assert.hpp"
 
@@ -46,10 +45,7 @@ Result ExpressionParse::parse(TokenIterator kIt,
             if (lvl < 0)
             {
                 // Unbalanced parentheses.
-                ConfigUtil::setError(kErr,
-                                     tok,
-                                     gErrText,
-                                     "unbalanced parenthese");
+                ErrorInfo::set(kErr, tok, gErrText, "unbalanced parenthese");
                 return E_EXP_PAREN;
             }
         }
@@ -59,10 +55,8 @@ Result ExpressionParse::parse(TokenIterator kIt,
     if (lvl != 0)
     {
         SF_SAFE_ASSERT(tokLastLvl0Paren != nullptr);
-        ConfigUtil::setError(kErr,
-                             *tokLastLvl0Paren,
-                             gErrText,
-                             "unbalanced parenthese");
+        ErrorInfo::set(kErr, *tokLastLvl0Paren, gErrText,
+                       "unbalanced parenthese");
         return E_EXP_PAREN;
     }
 
@@ -74,7 +68,7 @@ Result ExpressionParse::parse(TokenIterator kIt,
         const Token& tok = kIt.take();
         if (tok.str == "=")
         {
-            ConfigUtil::setError(
+            ErrorInfo::set(
                 kErr, tok, gErrText,
                 "invalid operator in expression (did you mean `==`?)");
             return E_EXP_OP;
@@ -95,10 +89,8 @@ Result ExpressionParse::parse(TokenIterator kIt,
             && (tok.type != Token::COMMA))
         {
             // Unexpected token in expression.
-            ConfigUtil::setError(kErr,
-                                 tok,
-                                 gErrText,
-                                 "unexpected token in expression");
+            ErrorInfo::set(kErr, tok, gErrText,
+                           "unexpected token in expression");
             return E_EXP_TOK;
         }
     }
@@ -132,7 +124,7 @@ Result ExpressionParse::popSubexpression(
     if (op.type != Token::OPERATOR)
     {
         // Expected an operator.
-        ConfigUtil::setError(kErr, op, gErrText, "invalid syntax");
+        ErrorInfo::set(kErr, op, gErrText, "invalid syntax");
         return E_EXP_SYNTAX;
     }
 
@@ -144,7 +136,7 @@ Result ExpressionParse::popSubexpression(
     if (kNodes.empty())
     {
         // Expected an RHS.
-        ConfigUtil::setError(kErr, op, gErrText, "invalid syntax");
+        ErrorInfo::set(kErr, op, gErrText, "invalid syntax");
         return E_EXP_SYNTAX;
     }
     const Ref<ExpressionParse::MutNode> right = kNodes.top();
@@ -156,7 +148,7 @@ Result ExpressionParse::popSubexpression(
     {
         // "RHS" is actually to the left of the operator. This
         // usually indicates a syntax error with a unary operator.
-        ConfigUtil::setError(kErr, op, gErrText, "invalid syntax");
+        ErrorInfo::set(kErr, op, gErrText, "invalid syntax");
         return E_EXP_SYNTAX;
     }
 
@@ -167,7 +159,7 @@ Result ExpressionParse::popSubexpression(
         if (kNodes.empty())
         {
             // Expected an LHS.
-            ConfigUtil::setError(kErr, op, gErrText, "invalid syntax");
+            ErrorInfo::set(kErr, op, gErrText, "invalid syntax");
             return E_EXP_SYNTAX;
         }
         left = kNodes.top();
@@ -231,10 +223,7 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
             if (((idxArgStart != 2) || (kIt.idx() != (kIt.size() - 1)))
                 && emptyArg)
             {
-                ConfigUtil::setError(kErr,
-                                     kIt.tok(),
-                                     gErrText,
-                                     "invalid syntax");
+                ErrorInfo::set(kErr, kIt.tok(), gErrText, "invalid syntax");
                 return E_EXP_SYNTAX;
             }
 
@@ -496,24 +485,21 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
     // Check that stack is empty.
     if (stack.size() != 0)
     {
-        ConfigUtil::setError(kErr, stack.top(), gErrText, "invalid syntax");
+        ErrorInfo::set(kErr, stack.top(), gErrText, "invalid syntax");
         return E_EXP_SYNTAX;
     }
 
     // Check that expression tree contains at least 1 node.
     if (nodes.size() == 0)
     {
-        ConfigUtil::setError(kErr, kIt[0], gErrText, "invalid syntax");
+        ErrorInfo::set(kErr, kIt[0], gErrText, "invalid syntax");
         return E_EXP_EMPTY;
     }
 
     // Check that there is exactly 1 node on the stack (root node).
     if (nodes.size() != 1)
     {
-        ConfigUtil::setError(kErr,
-                             nodes.top()->data,
-                             gErrText,
-                             "invalid syntax");
+        ErrorInfo::set(kErr, nodes.top()->data, gErrText, "invalid syntax");
         return E_EXP_SYNTAX;
     }
 

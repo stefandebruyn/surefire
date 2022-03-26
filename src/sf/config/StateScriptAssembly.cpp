@@ -2,7 +2,6 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "sf/config/ConfigUtil.hpp"
 #include "sf/config/StateScriptAssembly.hpp"
 #include "sf/core/Assert.hpp"
 #include "sf/pal/Clock.hpp"
@@ -137,10 +136,8 @@ Result StateScriptAssembly::compile(
             if (stateIdIt == kSmAsm->mWs.stateIds.end())
             {
                 // Unknown state.
-                ConfigUtil::setError(kErr,
-                                     sectionParse.tokName,
-                                     gErrText,
-                                     ("unknown state `" + stateName + "`"));
+                ErrorInfo::set(kErr, sectionParse.tokName, gErrText,
+                               ("unknown state `" + stateName + "`"));
                 return E_SSA_STATE;
             }
             section.stateId = (*stateIdIt).second;
@@ -148,11 +145,9 @@ Result StateScriptAssembly::compile(
             // Check that state does not appear in the state script twice.
             if (scriptStates.find(stateName) != scriptStates.end())
             {
-                ConfigUtil::setError(kErr,
-                                     sectionParse.tokName,
-                                     gErrText,
-                                     ("state `" + stateName + "` has more than "
-                                      "one section"));
+                ErrorInfo::set(kErr, sectionParse.tokName, gErrText,
+                               ("state `" + stateName
+                                + "` has more than one section"));
                 return E_SSA_DUPE;
             }
             scriptStates.insert(stateName);
@@ -201,10 +196,7 @@ Result StateScriptAssembly::compile(
                     tokErr = block->tokStop;
                 }
 
-                ConfigUtil::setError(kErr,
-                                     tokErr,
-                                     gErrText,
-                                     "unguarded statement");
+                ErrorInfo::set(kErr, tokErr, gErrText, "unguarded statement");
                 return E_SSA_GUARD;
             }
 
@@ -212,11 +204,9 @@ Result StateScriptAssembly::compile(
             // scripts.
             if (block->elseBlock != nullptr)
             {
-                ConfigUtil::setError(kErr,
-                                     block->tokElse,
-                                     gErrText,
-                                     ("state scripts may not use `"
-                                      + LangConst::keywordElse + "`"));
+                ErrorInfo::set(kErr, block->tokElse, gErrText,
+                               ("state scripts may not use `"
+                                + LangConst::keywordElse + "`"));
                 return E_SSA_ELSE;
             }
 
@@ -260,11 +250,8 @@ Result StateScriptAssembly::compile(
                         node = node->left;
                     }
 
-                    ConfigUtil::setError(kErr,
-                                         node->data,
-                                         gErrText,
-                                         "state scripts may not use nested "
-                                         "guards");
+                    ErrorInfo::set(kErr, node->data, gErrText,
+                                   "state scripts may not use nested guards");
                     return E_SSA_NEST;
                 }
 
@@ -291,12 +278,10 @@ Result StateScriptAssembly::compile(
                         tokErr = innerBlock->tokStop;
                     }
 
-                    ConfigUtil::setError(kErr,
-                                         tokErr,
-                                         gErrText,
-                                         ("statement after `"
-                                          + LangConst::annotationStop + "` can"
-                                          " never execute"));
+                    ErrorInfo::set(kErr, tokErr, gErrText,
+                                   ("statement after `"
+                                    + LangConst::annotationStop
+                                    + "` can never execute"));
                     return E_SSA_UNRCH;
                 }
 
@@ -676,25 +661,23 @@ Result StateScriptAssembly::compileConfig(
     // Check that conversion succeeded.
     if (end == str)
     {
-        ConfigUtil::setError(kErr, kParse.tokDeltaT, gErrText,
-                             "invalid number");
+        ErrorInfo::set(kErr, kParse.tokDeltaT, gErrText, "invalid number");
         return E_SSA_DT;
     }
 
     // Check that delta T is an integer greater than zero.
     if ((val <= 0.0) || (std::ceil(val) != val))
     {
-        ConfigUtil::setError(
-            kErr, kParse.tokDeltaT, gErrText,
-            ("`" + LangConst::optDeltaT + "` must be an integer > 0"));
+        ErrorInfo::set(kErr, kParse.tokDeltaT, gErrText,
+                       ("`" + LangConst::optDeltaT
+                        + "` must be an integer > 0"));
         return E_SSA_DT;
     }
 
     // Check that delta T is not too large.
     if (val > Limits::max<U64>())
     {
-        ConfigUtil::setError(
-            kErr, kParse.tokDeltaT, gErrText, "value is too large");
+        ErrorInfo::set(kErr, kParse.tokDeltaT, gErrText, "value is too large");
         return E_SSA_DT;
     }
 
@@ -708,9 +691,8 @@ Result StateScriptAssembly::compileConfig(
         if (stateIt == kSmAsm->mWs.stateIds.end())
         {
             // Unknown state.
-            ConfigUtil::setError(
-                kErr, kParse.tokInitState, gErrText,
-                ("unknown state `" + kParse.tokInitState.str + "`"));
+            ErrorInfo::set(kErr, kParse.tokInitState, gErrText,
+                           ("unknown state `" + kParse.tokInitState.str + "`"));
             return E_SSA_STATE;
         }
 

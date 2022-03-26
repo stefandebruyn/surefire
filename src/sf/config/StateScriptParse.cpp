@@ -1,5 +1,4 @@
 #include "sf/core/Assert.hpp"
-#include "sf/config/ConfigUtil.hpp"
 #include "sf/config/StateScriptParse.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
@@ -29,10 +28,7 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
         if (it.type() != Token::SECTION)
         {
             // Expected a section.
-            ConfigUtil::setError(kErr,
-                                 it.tok(),
-                                 gErrText,
-                                 "expected a section");
+            ErrorInfo::set(kErr, it.tok(), gErrText, "expected a section");
             return E_SSP_SEC;
         }
 
@@ -57,11 +53,9 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
                     // is a constant.
                     if (it.type() != Token::CONSTANT)
                     {
-                        ConfigUtil::setError(kErr,
-                                             tokId,
-                                             gErrText,
-                                             ("expected value after `"
-                                              + tokId.str + "`"));
+                        ErrorInfo::set(kErr, tokId, gErrText,
+                                       ("expected value after `" + tokId.str
+                                        + "`"));
                         return E_SSP_DT;
                     }
 
@@ -79,11 +73,9 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
                     // name, is an identifier.
                     if (it.type() != Token::IDENTIFIER)
                     {
-                        ConfigUtil::setError(kErr,
-                                             tokId,
-                                             gErrText,
-                                             ("expected state name after `"
-                                              + tokId.str + "`"));
+                        ErrorInfo::set(kErr, tokId, gErrText,
+                                       ("expected state name after `"
+                                        + tokId.str + "`"));
                         return E_SSP_STATE;
                     }
 
@@ -93,11 +85,9 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
                 else
                 {
                     // Unknown config option.
-                    ConfigUtil::setError(
-                        kErr,
-                        it.tok(),
-                        gErrText,
-                        "unknown config option `" + it.str() + "`");
+                    ErrorInfo::set(kErr, it.tok(), gErrText,
+                                   ("unknown config option `" + it.str()
+                                    + "`"));
                     return E_SSP_CONFIG;
                 }
             }

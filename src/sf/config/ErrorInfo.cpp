@@ -4,6 +4,20 @@
 #include "sf/config/ErrorInfo.hpp"
 #include "sf/pal/Console.hpp"
 
+void ErrorInfo::set(ErrorInfo* const kErr,
+                    const Token& kTokErr,
+                    const String kText,
+                    const String kSubtext)
+{
+    if (kErr != nullptr)
+    {
+        kErr->lineNum = kTokErr.lineNum;
+        kErr->colNum = kTokErr.colNum;
+        kErr->text = kText;
+        kErr->subtext = kSubtext;
+    }
+}
+
 ErrorInfo::ErrorInfo() : lineNum(-1), colNum(-1)
 {
 }

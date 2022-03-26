@@ -2,7 +2,6 @@
 
 #include "sf/cli/CliUtil.hpp"
 #include "sf/cli/StateVectorCommand.hpp"
-#include "sf/config/ConfigUtil.hpp"
 #include "sf/config/StateVectorAssembly.hpp"
 #include "sf/core/Assert.hpp"
 #include "sf/pal/Console.hpp"
