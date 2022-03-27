@@ -1,3 +1,13 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/MemOps.hpp"
 #include "sf/core/StateVector.hpp"
 
@@ -189,6 +199,9 @@ Result StateVector::getIElement(const char* const kName, IElement*& kElem)
         return res;
     }
 
+    SF_SAFE_ASSERT(elemConfig != nullptr);
+    SF_SAFE_ASSERT(elemConfig->elem != nullptr);
+
     kElem = elemConfig->elem;
     return SUCCESS;
 }
@@ -212,6 +225,9 @@ Result StateVector::getRegion(const char* const kName, Region*& kRegion)
         return res;
     }
 
+    SF_SAFE_ASSERT(regionConfig != nullptr);
+    SF_SAFE_ASSERT(regionConfig->region != nullptr);
+
     kRegion = regionConfig->region;
     return SUCCESS;
 }
@@ -219,6 +235,8 @@ Result StateVector::getRegion(const char* const kName, Region*& kRegion)
 Result StateVector::getElementConfig(const char* const kName,
                                      const ElementConfig*& kElemConfig) const
 {
+    SF_SAFE_ASSERT(mConfig.elems != nullptr);
+
     // Look up element config by name.
     for (U32 i = 0; mConfig.elems[i].name != nullptr; ++i)
     {
@@ -236,6 +254,8 @@ Result StateVector::getElementConfig(const char* const kName,
 Result StateVector::getRegionConfig(const char* const kName,
                                     const RegionConfig*& kRegionConfig) const
 {
+    SF_SAFE_ASSERT(mConfig.regions != nullptr);
+
     // Look up region config by name.
     for (U32 i = 0; mConfig.regions[i].name != nullptr; ++i)
     {
