@@ -1,6 +1,6 @@
 #include "sf/utest/UTest.hpp"
 
-#if defined(SF_UTEST_HAS_SUP)
+#if defined(SF_UTEST_HAS_CONFIG)
 
 SimpleString StringFrom(const Token& kTok)
 {
@@ -9,4 +9,4 @@ SimpleString StringFrom(const Token& kTok)
     return SimpleString(ss.str().c_str());
 }
 
-#endif // defined(SF_UTEST_HAS_SUP)
+#endif // defined(SF_UTEST_HAS_CONFIG)

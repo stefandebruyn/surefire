@@ -18,10 +18,10 @@ sf:
 	mkdir build
 	cd build && cmake .. && make sf
 
-sfsup:
+sfconfig:
 	rm -rf build
 	mkdir build
-	cd build && cmake .. && make sfsup
+	cd build && cmake .. && make sfconfig
 
 cli:
 	rm -rf build
@@ -45,4 +45,4 @@ arduino-example:
 	cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=../Arduino-CMake-Toolchain/Arduino-toolchain.cmake -DSF_ARDUINO_MAC_ADDR=0xA8610AAE759C && make arduino-example
 
 .PHONY: ci
-ci: get-sudo cppcheck black utest sf sfsup cli arduino-example clean cloc deadline
+ci: get-sudo cppcheck black utest sf sfconfig cli arduino-example clean cloc deadline

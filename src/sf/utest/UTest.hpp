@@ -7,7 +7,7 @@
 #        include <vector>
 #        include "sf/config/TokenIterator.hpp"
 #        include "sf/config/Tokenizer.hpp"
-#        define SF_UTEST_HAS_SUP
+#        define SF_UTEST_HAS_CONFIG
 #    endif
 #endif
 
@@ -42,7 +42,7 @@
     CHECK_EQUAL(kErr, _res);                                                   \
 }
 
-#if defined(SF_UTEST_HAS_SUP)
+#if defined(SF_UTEST_HAS_CONFIG)
 
 #define TOKENIZE(kStr)                                                         \
     Vec<Token> toks;                                                           \
@@ -71,6 +71,6 @@ SimpleString StringFrom(const Vec<T>& kVec)
 
 SimpleString StringFrom(const Token& kTok);
 
-#endif // defined(SF_UTEST_HAS_SUP)
+#endif // defined(SF_UTEST_HAS_CONFIG)
 
 #endif

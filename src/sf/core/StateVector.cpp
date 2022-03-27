@@ -161,14 +161,12 @@ Result StateVector::getElement<F32>(const char* const kName,
     return this->getElementImpl<F32>(kName, kElem, ElementType::FLOAT32);
 }
 
-#ifndef SF_NO_F64
 template<>
 Result StateVector::getElement<F64>(const char* const kName,
                                     Element<F64>*& kElem)
 {
     return this->getElementImpl<F64>(kName, kElem, ElementType::FLOAT64);
 }
-#endif
 
 template<>
 Result StateVector::getElement<bool>(const char* const kName,
