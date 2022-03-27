@@ -28,7 +28,7 @@ public:
             mOs << "    ";
         }
 
-        mOs << this->format(kFmt, kArgs...) << "\n";
+        mOs << Autocode::format(kFmt, kArgs...) << "\n";
     }
 
     void operator()();
@@ -41,10 +41,8 @@ private:
 
     U32 mIndentLvl;
 
-    String& format(String& kStr);
-
     template<typename T, typename... TArgs>
-    String& format(String& kFmt, T kT, TArgs... kArgs)
+    static String& format(String& kFmt, T kT, TArgs... kArgs)
     {
         // Find index of next format specifier. If not found, stop recursion.
         std::size_t pos = kFmt.find("%%");
@@ -59,8 +57,10 @@ private:
 
         // Replace format specifier with stringified value and recurse.
         kFmt.replace(pos, 2, ss.str());
-        return format(kFmt, kArgs...);
+        return Autocode::format(kFmt, kArgs...);
     }
+
+    static String& format(String& kStr);
 };
 
 #endif
