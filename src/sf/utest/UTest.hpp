@@ -18,6 +18,12 @@
 // Must be the last include.
 #include "CppUTest/TestHarness.h"
 
+#ifdef _WIN32
+#    define PATH_SEP "\\"
+#else
+#    define PATH_SEP "/"
+#endif
+
 #define CHECK_SUCCESS(kExpr)                                                   \
 {                                                                              \
     const Result _res = (kExpr);                                               \

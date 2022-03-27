@@ -44,6 +44,10 @@ if(${SF_SAFE_ASSERT_SAVES_FAIL_SITE})
     add_compile_options(-DSF_SAFE_ASSERT_SAVES_FAIL_SITE)
 endif()
 
+# Define a symbol for the repository path. This is used by some unit tests that
+# access files elsewhere in the repository, e.g., autocoder tests.
+add_compile_options(-DSF_REPO_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
+
 # Requires that the CppUTest submodule be initialized. If this errors out, run
 # `git submodule update --init --recursive`.
 add_subdirectory(cpputest)

@@ -37,7 +37,7 @@ I32 Cli::smCheck(const Vec<String> kArgs)
     // Check that correct number of arguments was passed.
     if (kArgs.size() != 2)
     {
-        Cli::error() << "`sv check` expects 2 arguments" << std::endl;
+        Cli::error() << "`sm check` expects 2 arguments" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -79,7 +79,7 @@ I32 Cli::smTest(const Vec<String> kArgs)
     // Check that correct number of arguments was passed.
     if (kArgs.size() != 3)
     {
-        Cli::error() << "`sv test` expects 3 arguments" << std::endl;
+        Cli::error() << "`sm test` expects 3 arguments" << std::endl;
         return EXIT_FAILURE;
     }
 

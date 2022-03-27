@@ -22,8 +22,8 @@
 #define CHECK_ELEM(kExpect, kActual)                                           \
 if (kExpect != kActual)                                                        \
 {                                                                              \
-    std::cout << kArgv[i] << " had unexpected value " << kActual << "\n"; \
-    return EXIT_FAILURE;                                                       \
+    std::cout << kArgv[i] << " had unexpected value " << kActual << "\n";      \
+    return 1;                                                                  \
 }
 
 ///
@@ -55,7 +55,7 @@ I32 main(I32 kArgc, char* kArgv[])
     if (res != SUCCESS)
     {
         std::cout << "error " << res << "\n";
-        return EXIT_FAILURE;
+        return 1;
     }
 
     // Loop through args, verifying elements and regions.
@@ -70,7 +70,7 @@ I32 main(I32 kArgc, char* kArgv[])
             if (res != SUCCESS)
             {
                 std::cout << "error " << res << "\n";
-                return EXIT_FAILURE;
+                return 1;
             }
 
             // Print region name and size.
@@ -84,7 +84,7 @@ I32 main(I32 kArgc, char* kArgv[])
         if (res != SUCCESS)
         {
             std::cout << "error " << res << "\n";
-            return EXIT_FAILURE;
+            return 1;
         }
 
         // Print element type and name.
@@ -196,9 +196,9 @@ I32 main(I32 kArgc, char* kArgv[])
 
             default:
                 // Unreachable.
-                return EXIT_FAILURE;
+                return 1;
         }
     }
 
-    return EXIT_SUCCESS;
+    return 0;
 }
