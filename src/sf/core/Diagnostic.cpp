@@ -1,4 +1,4 @@
-#include "sf/core/Diag.hpp"
+#include "sf/core/Diagnostic.hpp"
 #include "sf/pal/Console.hpp"
 #include "sf/pal/System.hpp"
 

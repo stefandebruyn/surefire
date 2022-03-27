@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include "sf/core/Diag.hpp"
+#include "sf/core/Diagnostic.hpp"
 #include "sf/pal/DigitalIO.hpp"
 
 Result DigitalIO::create(DigitalIO& kDio)
@@ -95,7 +95,7 @@ Result DigitalIO::close()
         if (((mOutBitVec >> i) & 0x1) == 1)
         {
             const Result writeRes = this->write(i, false);
-            Diag::errorStoreCond(writeRes, res);
+            Diag::errsc(writeRes, res);
         }
     }
 

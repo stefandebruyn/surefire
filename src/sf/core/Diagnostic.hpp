@@ -9,7 +9,7 @@ namespace Diag
 
     void haltOnError(const Result kRes, const char* const kMsg);
 
-    inline void errorStoreCond(const Result kRes, Result& kStorage)
+    inline void errsc(const Result kRes, Result& kStorage)
     {
         if ((kRes != SUCCESS) && (kStorage == SUCCESS))
         {
