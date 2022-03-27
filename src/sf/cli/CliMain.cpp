@@ -24,8 +24,9 @@ static void printHelpMsg()
 
     std::cout << "  sv autocode <" << Console::cyan << "sv config path"
               << Console::reset << "> <" << Console::cyan << "autocode path"
-              << Console::reset << ">\n"
-              << "    " << Console::yellow
+              << Console::reset << "> <" << Console::cyan << "name"
+              << Console::reset << "> [<" << Console::cyan << "regions"
+              << Console::reset << ">]\n" << "    " << Console::yellow
               << "=> generate state vector autocode" << Console::reset << "\n";
 
     // State machine commands.

@@ -36,7 +36,6 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a();
 
     // Add includes.
-    a("#include \"sf/core/BasicTypes.hpp\"");
     a("#include \"sf/core/StateVector.hpp\"");
     a();
 

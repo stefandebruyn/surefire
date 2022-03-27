@@ -3,6 +3,7 @@
 #include "sf/cli/CliUtil.hpp"
 #include "sf/cli/StateVectorCommand.hpp"
 #include "sf/config/StateVectorAssembly.hpp"
+#include "sf/config/StateVectorAutocoder.hpp"
 #include "sf/core/Assert.hpp"
 #include "sf/pal/Console.hpp"
 
@@ -19,6 +20,12 @@ I32 Cli::sv(const Vec<String> kArgs)
     {
         // Validate state vector config.
         return Cli::svCheck(Vec<String>((kArgs.begin() + 1), kArgs.end()));
+    }
+
+    if (kArgs[0] == "autocode")
+    {
+        // Autocode state vector config.
+        return Cli::svAutocode(Vec<String>((kArgs.begin() + 1), kArgs.end()));
     }
 
     // If we got this far, command was not recognized.
@@ -82,4 +89,64 @@ I32 Cli::svCheck(const Vec<String> kArgs)
               << Console::reset << " B" << std::endl;
 
     return EXIT_SUCCESS;
+}
+
+I32 Cli::svAutocode(const Vec<String> kArgs)
+{
+    // Check that correct number of arguments was passed.
+    if (kArgs.size() < 3)
+    {
+        Cli::error() << "`sv autocode` expects at least 3 arguments"
+                     << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    const String& svFile = kArgs[0];
+    const String& autocodeFile = kArgs[1];
+    const String& svName = kArgs[2];
+    const Vec<String> regions((kArgs.begin() + 3), kArgs.end());
+
+    // Tokenize state vector config.
+    Vec<Token> toks;
+    ErrorInfo err;
+    Result res = Tokenizer::tokenize(svFile, toks, &err);
+    if (res != SUCCESS)
+    {
+        // Tokenization failed.
+        std::cout << err.prettifyError() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Parse state vector config.
+    Ref<const StateVectorParse> svParse;
+    res = StateVectorParse::parse(toks, svParse, &err, regions);
+    if (res != SUCCESS)
+    {
+        // Parsing failed.
+        std::cout << err.prettifyError() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Open autocode output file.
+    std::ofstream ofs(autocodeFile, std::fstream::out);
+    if (!ofs.is_open())
+    {
+        Cli::error() << "failed to create file `" << autocodeFile << "`"
+                     << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Invoke autocoder.
+    res = StateVectorAutocoder::code(ofs, svName, svParse, &err);
+    if (res != SUCCESS)
+    {
+        // Autocoding failed.
+        std::cout << err.prettifyError() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    std::cout << Console::green << "successfully generated autocode"
+              << Console::reset << std::endl;
+
+    return SUCCESS;
 }

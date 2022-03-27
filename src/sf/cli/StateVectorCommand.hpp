@@ -9,6 +9,8 @@ namespace Cli
     I32 sv(const Vec<String> kArgs);
 
     I32 svCheck(const Vec<String> kArgs);
+
+    I32 svAutocode(const Vec<String> kArgs);
 }
 
 #endif
