@@ -8,8 +8,8 @@
 /// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
 ///
 ///                             ---------------
-/// @file   sf/core/StateVector.hpp
-/// @brief  State vector interface.
+/// @file  sf/core/StateVector.hpp
+/// @brief State vector interface.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SF_STATE_VECTOR_HPP
@@ -246,9 +246,9 @@ private:
             return E_SV_TYPE;
         }
 
-        // Lookup is valid - narrow element pointer to the appropriate template
-        // instantiation and return.
+        // Lookup is valid - narrow element pointer to template instantiation.
         kElem = static_cast<Element<T>*>(elem);
+
         return SUCCESS;
     }
 };

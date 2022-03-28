@@ -1,4 +1,19 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/Task.hpp"
+
+ITask::ITask(StateVector& kSv, const Element<U8>* const kModeElem) :
+    mSv(kSv), mModeElem(kModeElem), mInitialized(false)
+{
+}
 
 Result ITask::initialize()
 {
@@ -8,6 +23,7 @@ Result ITask::initialize()
         return E_TSK_REINIT;
     }
 
+    // Call initialization implementation.
     const Result res = this->initializeImpl();
     if (res == SUCCESS)
     {
@@ -44,11 +60,10 @@ Result ITask::step()
 
         case TaskMode::ENABLE:
             return this->stepEnable();
-
-        default:
-            // Invalid mode.
-            return E_TSK_MODE;
     }
+
+    // Invalid mode.
+    return E_TSK_MODE;
 }
 
 Result ITask::stepSafe()

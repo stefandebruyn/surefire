@@ -8,8 +8,8 @@
 /// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
 ///
 ///                             ---------------
-/// @file   sf/core/Region.hpp
-/// @brief  State vector region interface.
+/// @file  sf/core/Region.hpp
+/// @brief State vector region interface.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SF_REGION_HPP

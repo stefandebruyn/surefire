@@ -8,8 +8,8 @@
 /// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
 ///
 ///                             ---------------
-/// @file   sf/core/Element.hpp
-/// @brief  State vector element interface.
+/// @file  sf/core/Element.hpp
+/// @brief State vector element interface.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SF_ELEMENT_HPP
