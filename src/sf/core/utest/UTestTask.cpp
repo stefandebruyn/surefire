@@ -37,7 +37,7 @@ class TestTask final : public ITask
 {
 public:
 
-    constexpr TestTask(StateVector& kSv, const Element<U8>* kModeElem) :
+    TestTask(StateVector& kSv, const Element<U8>* kModeElem) :
         ITask(kSv, kModeElem), mFoo(nullptr), mBar(nullptr)
     {
     }

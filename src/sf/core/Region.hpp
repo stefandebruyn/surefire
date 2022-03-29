@@ -9,7 +9,7 @@
 ///
 ///                             ---------------
 /// @file  sf/core/Region.hpp
-/// @brief State vector region interface.
+/// @brief State vector region object.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SF_REGION_HPP
@@ -25,6 +25,9 @@
 /// @remark Using regions in conjunction with a state vector is optional. They
 /// are intended for bulk state vector reads and writes involving raw memory
 /// buffers and may be used, e.g., to format network packets.
+///
+/// @see Element
+/// @see StateVector
 ///
 class Region final
 {

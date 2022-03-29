@@ -1,16 +1,44 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+///
+///                             ---------------
+/// @file  sf/core/Result.hpp
+/// @brief Return code type and enumeration.
+////////////////////////////////////////////////////////////////////////////////
+
 #ifndef SF_RESULT_HPP
 #define SF_RESULT_HPP
 
 #include "sf/core/BasicTypes.hpp"
 
+///
+/// @brief Return code type.
+///
 typedef I32 Result;
 
+///
+/// @brief Anonymous enum that enumerates possible return codes.
+///
 enum : Result
 {
+    ///
+    /// @brief Return code indicating that a function succeeded.
+    ///
     SUCCESS = 0,
 
 ///////////////////////////// Special Error Codes //////////////////////////////
 
+    ///
+    /// @brief Error returned by a failing safe assert.
+    ///
+    /// @see SF_SAFE_ASSERT
+    ///
     E_ASSERT = 1,
 
 /////////////////////////// Core Library Error Codes ///////////////////////////

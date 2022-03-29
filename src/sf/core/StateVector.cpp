@@ -187,11 +187,13 @@ Result StateVector::getElement<bool>(const char* const kName,
 
 Result StateVector::getIElement(const char* const kName, IElement*& kElem)
 {
+    // Check that state vector is initialized.
     if (mConfig.elems == nullptr)
     {
         return E_SV_UNINIT;
     }
 
+    // Look up element config.
     const ElementConfig* elemConfig = nullptr;
     const Result res = this->getElementConfig(kName, elemConfig);
     if (res != SUCCESS)
@@ -202,22 +204,27 @@ Result StateVector::getIElement(const char* const kName, IElement*& kElem)
     SF_SAFE_ASSERT(elemConfig != nullptr);
     SF_SAFE_ASSERT(elemConfig->elem != nullptr);
 
+    // Return element object.
     kElem = elemConfig->elem;
+
     return SUCCESS;
 }
 
 Result StateVector::getRegion(const char* const kName, Region*& kRegion)
 {
+    // Check that state vector is initialized.
     if (mConfig.elems == nullptr)
     {
         return E_SV_UNINIT;
     }
 
+    // Check that regions were configured.
     if (mConfig.regions == nullptr)
     {
         return E_SV_EMPTY;
     }
 
+    // Look up region config.
     const RegionConfig* regionConfig = nullptr;
     Result res = this->getRegionConfig(kName, regionConfig);
     if (res != SUCCESS)
@@ -228,7 +235,9 @@ Result StateVector::getRegion(const char* const kName, Region*& kRegion)
     SF_SAFE_ASSERT(regionConfig != nullptr);
     SF_SAFE_ASSERT(regionConfig->region != nullptr);
 
+    // Return region object.
     kRegion = regionConfig->region;
+
     return SUCCESS;
 }
 

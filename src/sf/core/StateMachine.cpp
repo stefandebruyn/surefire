@@ -2,97 +2,6 @@
 #include "sf/core/StateMachine.hpp"
 #include "sf/pal/Clock.hpp"
 
-/////////////////////////////////// Helpers ////////////////////////////////////
-
-static Result checkBlockTransitions(const StateMachine::Config kConfig,
-                                    const StateMachine::Block* const kBlock,
-                                    const bool kExit)
-{
-    // Base case: block is null.
-    if (kBlock == nullptr)
-    {
-        return SUCCESS;
-    }
-
-    if ((kBlock->action != nullptr)
-        && (kBlock->action->destState != StateMachine::NO_STATE))
-    {
-        // Block contains a transition action.
-
-        if (kExit)
-        {
-            // Transitioning in an exit label is illegal.
-            return E_SM_TR_EXIT;
-        }
-
-        // Find config of transition destination state.
-        const StateMachine::StateConfig* state = kConfig.states;
-        for (; state->id != StateMachine::NO_STATE; ++state)
-        {
-            if (state->id == kBlock->action->destState)
-            {
-                break;
-            }
-        }
-
-        if (state->id == StateMachine::NO_STATE)
-        {
-            // Destination state not found.
-            return E_SM_TRANS;
-        }
-    }
-
-    // Recurse into linked blocks.
-    Result res = checkBlockTransitions(kConfig, kBlock->ifBlock, kExit);
-    if (res != SUCCESS)
-    {
-        return res;
-    }
-    res = checkBlockTransitions(kConfig, kBlock->elseBlock, kExit);
-    if (res != SUCCESS)
-    {
-        return res;
-    }
-    res = checkBlockTransitions(kConfig, kBlock->next, kExit);
-    if (res != SUCCESS)
-    {
-        return res;
-    }
-
-    return SUCCESS;
-}
-
-static Result checkTransitions(const StateMachine::Config kConfig)
-{
-    for (StateMachine::StateConfig* state = kConfig.states;
-         state->id != StateMachine::NO_STATE;
-         ++state)
-    {
-        // Check transitions in entry label.
-        Result res = checkBlockTransitions(kConfig, state->entry, false);
-        if (res != SUCCESS)
-        {
-            return res;
-        }
-
-        // Check transitions in step label.
-        res = checkBlockTransitions(kConfig, state->step, false);
-        if (res != SUCCESS)
-        {
-            return res;
-        }
-
-        // Check transitions in exit label.
-        res = checkBlockTransitions(kConfig, state->exit, true);
-        if (res != SUCCESS)
-        {
-            return res;
-        }
-    }
-
-    return SUCCESS;
-}
-
 /////////////////////////////////// Public /////////////////////////////////////
 
 U32 StateMachine::Block::execute()
@@ -194,7 +103,7 @@ Result StateMachine::create(const Config kConfig, StateMachine& kSm)
     }
 
     // Check that all transitions are valid.
-    const Result res = checkTransitions(kConfig);
+    const Result res = StateMachine::checkTransitions(kConfig);
     if (res != SUCCESS)
     {
         return res;
@@ -300,10 +209,12 @@ Result StateMachine::getStateTime(U64& kT) const
 {
     if (mTimeStateStart == Clock::NO_TIME)
     {
+        // First step in current state.
         kT = 0;
     }
     else
     {
+        // Not first step in current state.
         SF_SAFE_ASSERT(mConfig.elemGlobalTime != nullptr);
         kT = (mConfig.elemGlobalTime->read() - mTimeStateStart);
     }
@@ -318,6 +229,8 @@ U32 StateMachine::currentState() const
 
 Result StateMachine::setState(const U32 kStateId)
 {
+    SF_SAFE_ASSERT(mConfig.states != nullptr);
+
     // Find state config matching destination state ID.
     for (StateConfig* state = mConfig.states;
          state->id != StateMachine::NO_STATE;
@@ -333,6 +246,116 @@ Result StateMachine::setState(const U32 kStateId)
 
     // Assert that the destination state was found.
     SF_SAFE_ASSERT(mStateCur->id == kStateId);
+
+    return SUCCESS;
+}
+
+/////////////////////////////////// Private ////////////////////////////////////
+
+Result StateMachine::checkTransitions(const StateMachine::Config kConfig)
+{
+    SF_SAFE_ASSERT(kConfig.states != nullptr);
+
+    for (StateMachine::StateConfig* state = kConfig.states;
+         state->id != StateMachine::NO_STATE;
+         ++state)
+    {
+        // Check transitions in entry label.
+        Result res = StateMachine::checkBlockTransitions(kConfig,
+                                                         state->entry,
+                                                         false);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+
+        // Check transitions in step label.
+        res = StateMachine::checkBlockTransitions(kConfig,
+                                                  state->step,
+                                                  false);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+
+        // Check transitions in exit label.
+        res = StateMachine::checkBlockTransitions(kConfig,
+                                                  state->exit,
+                                                  true);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+    }
+
+    return SUCCESS;
+}
+
+Result StateMachine::checkBlockTransitions(
+    const StateMachine::Config kConfig,
+    const StateMachine::Block* const kBlock,
+    const bool kExit)
+{
+    SF_SAFE_ASSERT(kConfig.states != nullptr);
+
+    // Base case: block is null.
+    if (kBlock == nullptr)
+    {
+        return SUCCESS;
+    }
+
+    if ((kBlock->action != nullptr)
+        && (kBlock->action->destState != StateMachine::NO_STATE))
+    {
+        // Block contains a transition action.
+
+        if (kExit)
+        {
+            // Transitioning in an exit label is illegal.
+            return E_SM_TR_EXIT;
+        }
+
+        // Find config of transition destination state.
+        const StateMachine::StateConfig* state = kConfig.states;
+        for (; state->id != StateMachine::NO_STATE; ++state)
+        {
+            if (state->id == kBlock->action->destState)
+            {
+                break;
+            }
+        }
+
+        if (state->id == StateMachine::NO_STATE)
+        {
+            // Destination state not found.
+            return E_SM_TRANS;
+        }
+    }
+
+    // Recurse into linked blocks.
+    Result res = StateMachine::checkBlockTransitions(kConfig,
+                                                     kBlock->ifBlock,
+                                                     kExit);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    res = StateMachine::checkBlockTransitions(kConfig,
+                                              kBlock->elseBlock,
+                                              kExit);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
+
+    res = StateMachine::checkBlockTransitions(kConfig,
+                                              kBlock->next,
+                                              kExit);
+    if (res != SUCCESS)
+    {
+        return res;
+    }
 
     return SUCCESS;
 }

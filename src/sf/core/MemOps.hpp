@@ -9,7 +9,7 @@
 ///
 ///                             ---------------
 /// @file  sf/core/MemOps.hpp
-/// @brief Memory operation utilities.
+/// @brief Memory utilities.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SF_MEM_OPS_HPP
@@ -17,6 +17,9 @@
 
 #include "sf/core/BasicTypes.hpp"
 
+///
+/// @brief Namespace of memory utilities.
+///
 namespace MemOps
 {
     ///
@@ -28,8 +31,8 @@ namespace MemOps
     /// @param[in] kB  Second string.
     ///
     /// @return Value <0 if the first string comes before the second, value >0
-    ///         if the first string comes after the second, and 0 if the two
-    ///         strings are equal.
+    /// if the first string comes after the second, and 0 if the two strings are
+    /// equal.
     ///
     I32 strcmp(const char* kA, const char* kB);
 
@@ -41,9 +44,9 @@ namespace MemOps
     /// @note The source and destination regions must not overlap for a correct
     /// result.
     ///
-    /// @param[in] kDest  Destination address.
-    /// @param[in] kSrc   Source address.
-    /// @param[in] kBytes Number of bytes to copy from source to destination.
+    /// @param[in] kDest   Destination address.
+    /// @param[in] kSrc    Source address.
+    /// @param[in] kBytes  Number of bytes to copy from source to destination.
     ///
     /// @return Destination address.
     ///

@@ -41,26 +41,26 @@ enum TaskMode : U8
 ///
 /// @remark Basic steps to implement a task:
 ///
-///   (1) Define a class which publicly inherits from `ITask`
-///   (2) Constructor takes the parameters required by the `ITask` constructor
+///   (1) Define a class which publicly inherits from ITask
+///   (2) Constructor takes the parameters required by the ITask constructor
 ///       along with anything else needed to configure the task
-///   (3) Implement task initialization logic in `initializeImpl`; this will
+///   (3) Implement task initialization logic in initializeImpl(); this will
 ///       usually include grabbing pointers to state vector elements that the
 ///       task uses as inputs and outputs
-///   (4) Implement task business logic in `stepEnable` and optionally
-///       `stepSafe`
+///   (4) Implement task business logic in stepEnable() and optionally
+///       stepSafe()
 ///
 /// @remark Basic steps to run a task:
 ///
 ///   (1) Construct task
-///   (2) Invoke `initialize` on task
-///   (3) Invoke `step` on task at the desired frequency
+///   (2) Invoke initialize() on task
+///   (3) Invoke step() on task at the desired frequency
 ///   (4) If the task was configured with a mode state vector element, change
 ///       the task mode by writing this element from other code
 ///
-/// @remark Normally tasks will be used in conjunction with `IExecutors`, which
-/// automatically handle task initialization and execution. Additionally, a
-/// `StateMachine` is a good mechanism for controlling task modes.
+/// @remark Normally tasks will be used in conjunction with an IExecutor, which
+/// automatically handles task initialization and execution. Additionally, a
+/// StateMachine is a good mechanism for controlling task modes.
 ///
 class ITask
 {
@@ -83,8 +83,8 @@ public:
     virtual ~ITask() = default;
 
     ///
-    /// @brief Initializes the task by calling `initializeImpl`. On success,
-    /// task is eligible for stepping.
+    /// @brief Initializes the task by calling initializeImpl(). On success,
+    /// step() may be successfully invoked on the task.
     ///
     /// @retval SUCCESS       Task initialized successfully.
     /// @retval E_TSK_REINIT  Task is already initialized.
@@ -95,9 +95,9 @@ public:
 
     ///
     /// @brief Executes 1 cycle of task logic. If the mode element is set to
-    /// `ENABLE` or no mode element was provided, the enable mode logic runs.
-    /// If the mode element is set to `SAFE`, the safe mode logic runs. If the
-    /// mode element is set to `DISABLE`, nothing happens.
+    /// ENABLE or no mode element was provided, the enable mode logic runs. If
+    /// the mode element is set to SAFE, the safe mode logic runs. If the mode
+    /// element is set to DISABLE, nothing happens.
     ///
     /// @retval SUCCESS       Task successfully stepped.
     /// @retval E_TSK_UNINIT  Task is not initialized.

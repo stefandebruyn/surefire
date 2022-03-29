@@ -9,7 +9,7 @@
 ///
 ///                             ---------------
 /// @file  sf/core/StateVector.hpp
-/// @brief State vector interface.
+/// @brief State vector object.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SF_STATE_VECTOR_HPP
@@ -23,12 +23,14 @@
 
 ///
 /// @brief A state vector is a collection of named state vector elements and
-/// regions. The state vector object serves only as a lookup table for elements
+/// regions. The StateVector object serves only as a lookup table for elements
 /// and regions, and is decoupled from the backing memory.
 ///
-/// @remark The user is not meant to manually create state vectors; a state
-/// vector should be the product of an autocoder of compiler in the framework
-/// config library.
+/// @remark The user is not meant to manually create a StateVector; it should
+/// be the product of an autocoder of compiler in the framework config library.
+///
+/// @see Element
+/// @see Region
 ///
 class StateVector final
 {
@@ -61,7 +63,7 @@ public:
         const char* name;
 
         ///
-        /// @brief Pointer to element object.
+        /// @brief Pointer to region object.
         ///
         Region* region;
     };
@@ -75,7 +77,7 @@ public:
         /// @brief Array of element configs. The array must be terminated with
         /// a null (all-zero) element config.
         ///
-        /// @note Failing to null-terminate the array has undefined behavior.
+        /// @warning Failing to null-terminate the array has undefined behavior.
         ///
         ElementConfig* elems;
 
@@ -85,7 +87,7 @@ public:
         /// config. If non-null, all configured regions must be contiguous and
         /// exactly span the backing of all configured elements.
         ///
-        /// @note Failing to null-terminate the array has undefined behavior.
+        /// @warning Failing to null-terminate the array has undefined behavior.
         ///
         RegionConfig* regions;
     };
@@ -93,7 +95,7 @@ public:
     ///
     /// @brief Initializes a state vector from a config.
     ///
-    /// @note The state vector object exists separately from the config. The
+    /// @warning The state vector object exists separately from the config. The
     /// config is not copied. The config and all data therein must live at least
     /// as long as the state vector. Modifying the config after using it to
     /// initialize a state vector has undefined behavior. The same config should
@@ -114,7 +116,7 @@ public:
     static Result create(const Config kConfig, StateVector& kSv);
 
     ///
-    /// @brief Default constructor. The constructed state vector is
+    /// @brief Default constructor. The constructed state vector is initially
     /// uninitialized and invoking any methods on it will fail.
     ///
     StateVector();
@@ -138,7 +140,7 @@ public:
     ///
     /// @brief Gets an abstract pointer to an element object by name.
     ///
-    /// @remark This method is mainly used by the framework config library to
+    /// @remark This method is mainly used by the Surefire config library to
     /// check element existence. It should not be called by the user.
     ///
     /// @tparam T  Element data type.
@@ -173,9 +175,11 @@ public:
 private:
 
     ///
-    /// @brief State vector config.
+    /// @brief State vector config. When the pointers in the config are null,
+    /// the state vector is uninitialized; the state vector factory method
+    /// initializes the state vector by setting these pointers.
     ///
-    Config mConfig;
+    StateVector::Config mConfig;
 
     ///
     /// @brief Looks up an element config by name.

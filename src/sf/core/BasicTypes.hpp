@@ -85,7 +85,7 @@ static_assert(sizeof(F32) == 4, "F32 is not 4 bytes");
 ///
 typedef double F64;
 #ifndef SF_ALLOW_MISSIZED_F64
-    // Only assert that `F64` is 8 bytes on platforms where this is expected.
+    // Only assert that F64 is 8 bytes on platforms where this is expected.
     static_assert(sizeof(F64) == 8, "F64 is not 8 bytes");
 #endif
 

@@ -9,7 +9,7 @@
 ///
 ///                             ---------------
 /// @file  sf/core/Element.hpp
-/// @brief State vector element interface.
+/// @brief State vector element object.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SF_ELEMENT_HPP
@@ -38,9 +38,6 @@ enum ElementType : U32
 ///
 /// @brief Abstract interface for a state vector element.
 ///
-/// @remark The main purpose for this interface is to make `Element` template
-/// instantiations polymorphic.
-///
 class IElement
 {
 public:
@@ -53,9 +50,6 @@ public:
     ///
     /// @brief Gets the element type.
     ///
-    /// @remark This method is mainly used by the framework config library
-    /// (which often operates on containers of mixed-type elements) for RTTI.
-    ///
     /// @return Element type.
     ///
     virtual ElementType type() const = 0;
@@ -63,8 +57,7 @@ public:
     ///
     /// @brief Gets the address of the element backing.
     ///
-    /// @warning This is for testing purposes and should never be used to read
-    /// or write the element.
+    /// @note This should never be used to read or write the element.
     ///
     /// @return Element backing address.
     ///
@@ -81,15 +74,17 @@ public:
 ///
 /// @brief An element is a strongly-typed variable in a state vector.
 ///
-/// An element object acts like a handle to a typed piece of memory. "Element"
-/// refers to the handle, and "backing" refers to the underlying memory.
+/// An Element acts like a handle to a typed piece of memory. "Element" refers
+/// to the handle, and "backing" refers to the underlying memory.
 ///
 /// @remark Elements are non-copyable and non-movable. Elements should not share
 /// backing. Objects which use the same element share a reference to it.
 ///
-/// @remark The framework state vector component (and other components which use
-/// it, e.g., the state machine) only support the primitive element types
-/// enumerated in `ElementType`.
+/// @remark StateVector (and other framework components which use it, e.g.,
+/// StateMachine) only support the primitive element types enumerated in
+/// ElementType.
+///
+/// @see StateVector
 ///
 /// @tparam T  Element type.
 ///
@@ -132,12 +127,12 @@ public:
     }
 
     ///
-    /// @brief See `IElement::type`.
+    /// @see IElement::type
     ///
     ElementType type() const final override;
 
     ///
-    /// @brief See `IElement::addr`.
+    /// @see IElement::addr
     ///
     const void* addr() const final override
     {
@@ -145,7 +140,7 @@ public:
     }
 
     ///
-    /// @brief See `IElement::size`.
+    /// @see IElement::size
     ///
     U32 size() const final override
     {

@@ -18,14 +18,14 @@
 #include "sf/core/Result.hpp"
 
 ///
-/// @brief Namespace of diagnostic utility functions.
+/// @brief Namespace of diagnostic utilities.
 ///
 namespace Diag
 {
     ///
     /// @brief Prints a message if a result is an error code.
     ///
-    /// @note Uses the PSL `Console::printf` implementation.
+    /// @note Uses the PSL Console::printf implementation.
     ///
     /// @param[in] kRes  Result to evaluate.
     /// @param[in] kMsg  Message to print on error.
@@ -36,7 +36,7 @@ namespace Diag
     /// @brief Prints a message and halts the program if a result is an error
     /// code.
     ///
-    /// @note Uses the PSL `Console::printf` and `System::exit` implementations.
+    /// @note Uses the PSL Console::printf and System::exit implementations.
     ///
     /// @param[in] kRes  Result to evaluate.
     /// @param[in] kMsg  Message to print on error.
