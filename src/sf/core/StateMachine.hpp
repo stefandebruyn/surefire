@@ -63,7 +63,7 @@ public:
     struct Block final
     {
         ///
-        /// @brief Pointer to block guard, or null if no guard.
+        /// @brief Pointer to block guard, or null if none.
         ///
         IExprNode<bool>* guard;
 
@@ -74,14 +74,18 @@ public:
 
         ///
         /// @brief If block is guarded, pointer to else branch root block, or
-        /// null if no else branch.
+        /// null if none.
         ///
         Block* elseBlock;
 
         ///
-        /// @brief Pointer to block action, or null if no action.
+        /// @brief Pointer to block action, or null if none.
         ///
         IAction* action;
+
+        ///
+        /// @brief Pointer to next block, or null if none.
+        ///
         Block* next;
 
         ///

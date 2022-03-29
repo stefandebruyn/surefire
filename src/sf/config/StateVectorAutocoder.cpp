@@ -153,7 +153,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a("static StateVector::Config svConfig{elemConfigs, regionConfigs};");
     a();
 
-    // Add return statement.
+    // Add return statement which initializes the state vector.
     a("return StateVector::create(svConfig, kSv);");
 
     // Close function definition.

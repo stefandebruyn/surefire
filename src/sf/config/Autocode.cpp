@@ -24,7 +24,7 @@ void Autocode::decreaseIndent()
 
 void Autocode::operator()()
 {
-    (*this)("");
+    mOs << "\n";
 }
 
 void Autocode::flush()
@@ -32,7 +32,7 @@ void Autocode::flush()
     mOs.flush();
 }
 
-String& Autocode::format(String& kStr)
+String& Autocode::formatStep(String& kStr)
 {
     return kStr;
 }
