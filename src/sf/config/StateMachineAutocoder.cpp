@@ -54,7 +54,7 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
     a();
 
     // Add function signature.
-    a("static Result init(StateMachine& kSm, StateVector& kSv)");
+    a("static Result getConfig(StateVector& kSv, StateMachine::Config& kSmConfig)");
     a("{");
     a.increaseIndent();
 
@@ -75,7 +75,7 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
     }
 
     // Define state config array.
-    a("static const StateMachine::StateConfig stateConfigs[] =");
+    a("static StateMachine::StateConfig stateConfigs[] =");
     a("{");
     a.increaseIndent();
 
@@ -86,7 +86,7 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
 
     a("{StateMachine::NO_STATE, nullptr, nullptr, nullptr}"); // Null terminator
     a.decreaseIndent();
-    a("}");
+    a("};");
     a();
 
     // Define expression stats array.
@@ -110,13 +110,14 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
         exprStatsArrAddr = "exprStats";
     }
 
-    // Define state machine config.
-    a("static const StateMachine::Config smConfig{%%, %%, %%, %%, %%};",
-      "foo", "&elemT", "baz", "stateConfigs", exprStatsArrAddr);
+    // Return state machine config to caller.
+    a("static StateMachine::Config smConfig = {%%, %%, %%, %%, %%};",
+      "&elemstate", "&elemT", "&elemtime", "stateConfigs", exprStatsArrAddr);
+    a("kSmConfig = smConfig;");
     a();
 
-    // Add return statement which initializes the state machine.
-    a("return StateMachine::create(smConfig, kSm);");
+    // Add return statement.
+    a("return SUCCESS;");
 
     // Close function definition.
     a.decreaseIndent();
@@ -307,9 +308,9 @@ void StateMachineAutocoder::codeStateVectorElems(
         // Declare a pointer for the element and populate it via a call to
         // StateVector::getElement, returning early on error.
         SF_ASSERT(elem.tokType.typeInfo != nullptr);
-        a("static Element<%%>* elem%% = nullptr;",
+        a("static Element<%%>* pElem%% = nullptr;",
           elem.tokType.typeInfo->name, elem.tokName.str);
-        a("res = kSv.getElement(\"%%\", elem%%);",
+        a("res = kSv.getElement(\"%%\", pElem%%);",
           elem.tokName.str, elem.tokName.str);
         a("if (res != SUCCESS)");
         a("{");
@@ -317,6 +318,8 @@ void StateMachineAutocoder::codeStateVectorElems(
         a("return res;");
         a.decreaseIndent();
         a("}");
+        a("static Element<%%>& elem%% = *pElem%%;",
+          elem.tokType.typeInfo->name, elem.tokName.str, elem.tokName.str);
         a();
 
         // Map element name and alias to type info for later lookup. Also
@@ -454,7 +457,7 @@ String StateMachineAutocoder::codeExpression(
         if (!kParse->data.opInfo->unary)
         {
             // Node is a binary operator - code LHS expression as well.
-            const String lhsAddr = codeExpression(
+            const String lhsAddr = StateMachineAutocoder::codeExpression(
                 kParse->left, kSmAsm, ElementType::FLOAT64, a, kWs);
 
             // Define operator node. We implement the node's operation as a
@@ -576,7 +579,7 @@ String StateMachineAutocoder::codeBlock(
         StateMachineAutocoder::codeBlock(kParse->next, kSmAsm, a, kWs);
 
     // Define block.
-    a("static const StateMachine::Block block%%{%%, %%, %%, %%, %%};",
+    a("static StateMachine::Block block%%{%%, %%, %%, %%, %%};",
       kWs.blockCnt,
       guardAddr,
       ifBlockAddr,

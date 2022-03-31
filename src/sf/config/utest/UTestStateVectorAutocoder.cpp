@@ -6,6 +6,16 @@
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+#define HARNESS_PATH                                                           \
+    SF_REPO_PATH PATH_SEP "src" PATH_SEP "sf" PATH_SEP "config" PATH_SEP       \
+    "utest" PATH_SEP "utest-sv-autocoder-harness"
+
+#define HARNESS_OUT_PATH HARNESS_PATH PATH_SEP "out.tmp"
+
+#define HARNESS_BIN_PATH HARNESS_PATH PATH_SEP "a.out"
+
+#define AUTOCODE_PATH HARNESS_PATH PATH_SEP "FooStateVector.hpp"
+
 #define SETUP(kSrc)                                                            \
     /* Parse state vector config. */                                           \
     TOKENIZE(kSrc);                                                            \
@@ -30,16 +40,6 @@
     std::ifstream houtIfs(HARNESS_OUT_PATH);                                   \
     std::stringstream hout;                                                    \
     hout << houtIfs.rdbuf();
-
-#define HARNESS_PATH                                                           \
-    SF_REPO_PATH PATH_SEP "src" PATH_SEP "sf" PATH_SEP "config" PATH_SEP       \
-    "utest" PATH_SEP "utest-sv-autocoder-harness"
-
-#define HARNESS_OUT_PATH HARNESS_PATH PATH_SEP "out.tmp"
-
-#define HARNESS_BIN_PATH HARNESS_PATH PATH_SEP "a.out"
-
-#define AUTOCODE_PATH HARNESS_PATH PATH_SEP "FooStateVector.hpp"
 
 //////////////////////////////////// Tests /////////////////////////////////////
 

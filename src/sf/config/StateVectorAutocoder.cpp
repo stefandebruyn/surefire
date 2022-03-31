@@ -57,25 +57,25 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a("///");
 
     // Add function signature.
-    a("static Result init(StateVector& kSv)");
+    a("static Result getConfig(StateVector::Config& kSvConfig)");
     a("{");
     a.increaseIndent();
 
-    // Declare backing storage struct. Use the `pack` pragma to remove padding
+    // Define backing storage struct. Use the `pack` pragma to remove padding
     // between adjacent members as required by the state vector.
     a("#pragma pack(push, 1)");
     a("static struct");
     a("{");
     a.increaseIndent();
 
-    // Declare regions as structs nested within the backing storage struct.
+    // Define regions as structs nested within the backing storage struct.
     for (const StateVectorParse::RegionParse& region : kParse->regions)
     {
         a("struct");
         a("{");
         a.increaseIndent();
         
-        // Declare elements in region.
+        // Define elements in region.
         for (const StateVectorParse::ElementParse& elem : region.elems)
         {
             SF_SAFE_ASSERT(elem.tokType.typeInfo != nullptr);
@@ -91,7 +91,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a("#pragma pack(pop)");
     a();
 
-    // Declare element objects.
+    // Define element objects.
     for (const StateVectorParse::RegionParse& region : kParse->regions)
     {
         for (const StateVectorParse::ElementParse& elem : region.elems)
@@ -107,7 +107,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
 
     a();
 
-    // Declare region objects.
+    // Define region objects.
     for (const StateVectorParse::RegionParse& region : kParse->regions)
     {
         a("static Region region%%(&backing.%%, sizeof(backing.%%));",
@@ -116,7 +116,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
 
     a();
 
-    // Declare element config array.
+    // Define element config array.
     a("static StateVector::ElementConfig elemConfigs[] =");
     a("{");
     a.increaseIndent();
@@ -134,7 +134,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a("};");
     a();
 
-    // Declare region config array.
+    // Define region config array.
     a("static StateVector::RegionConfig regionConfigs[] =");
     a("{");
     a.increaseIndent();
@@ -149,12 +149,12 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a("};");
     a();
 
-    // Declare state vector config.
-    a("static StateVector::Config svConfig{elemConfigs, regionConfigs};");
+    // Return state vector config to caller.
+    a("kSvConfig = {elemConfigs, regionConfigs};");
     a();
 
-    // Add return statement which initializes the state vector.
-    a("return StateVector::create(svConfig, kSv);");
+    // Add return statement.
+    a("return SUCCESS;");
 
     // Close function definition.
     a.decreaseIndent();

@@ -49,9 +49,18 @@ static const char* const gElemTypeNames[] =
 ///
 I32 main(I32 kArgc, char* kArgv[])
 {
-    // Initialize state vector from autocoded config.
+    // Get autocoded state vector config.
+    StateVector::Config svConfig;
+    Result res = FooStateVector::getConfig(svConfig);
+    if (res != SUCCESS)
+    {
+        std::cout << "error " << res << "\n";
+        return 1;
+    }
+
+    // Initialize state vector.
     StateVector sv;
-    Result res = FooStateVector::init(sv);
+    res = StateVector::create(svConfig, sv);
     if (res != SUCCESS)
     {
         std::cout << "error " << res << "\n";
