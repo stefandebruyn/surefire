@@ -56,6 +56,8 @@ private:
 
     friend class StateScriptAssembly;
 
+    friend class StateMachineAutocoder;
+
     static bool stateNameReserved(const Token& kTokSection);
 
     static Result checkStateVector(const Ref<const StateMachineParse> kParse,

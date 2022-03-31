@@ -155,7 +155,7 @@ Result ExpressionAssembly::tokenToF64(const Token& kTok,
     return SUCCESS;
 }
 
-Result ExpressionAssembly::compileExprStatsFunc(
+Result ExpressionAssembly::compileStatsFunc(
     const Ref<const ExpressionParse> kParse,
     const Map<String, IElement*>& kBindings,
     Ref<IExprNode<F64>>& kNode,
@@ -298,7 +298,7 @@ Result ExpressionAssembly::compileFunction(
         || (kParse->data.str == LangConst::funcRollRange))
     {
         // Compile expression stats function.
-        return ExpressionAssembly::compileExprStatsFunc(kParse,
+        return ExpressionAssembly::compileStatsFunc(kParse,
                                                         kBindings,
                                                         kNode,
                                                         kWs,

@@ -23,6 +23,8 @@ public:
 
     virtual F64 range() = 0;
 
+    virtual U32 size() const = 0;
+
     IExpressionStats(const IExpressionStats&) = delete;
     IExpressionStats(IExpressionStats&&) = delete;
     IExpressionStats& operator=(const IExpressionStats&) = delete;
@@ -167,6 +169,11 @@ public:
     F64 range() final override
     {
         return (max() - min());
+    }
+
+    U32 size() const final override
+    {
+        return mCapacity;
     }
 
 private:

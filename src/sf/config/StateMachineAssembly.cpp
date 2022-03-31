@@ -578,10 +578,7 @@ Result StateMachineAssembly::initLocalElementValues(
     {
         // Validate element references in the initialization expression.
         Result res = StateMachineAssembly::checkLocalElemInitExprs(
-            elem,
-            elem.initValExpr,
-            kWs,
-            kErr);
+            elem, elem.initValExpr, kWs, kErr);
         if (res != SUCCESS)
         {
             return res;

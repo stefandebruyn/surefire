@@ -59,7 +59,7 @@ private:
 
         // Convert current value to string.
         std::stringstream ss;
-        ss << kT;
+        ss << std::fixed << kT;
 
         // Replace format specifier with stringified value and recurse.
         kFmt.replace(pos, 2, ss.str());

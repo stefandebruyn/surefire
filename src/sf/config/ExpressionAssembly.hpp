@@ -35,12 +35,11 @@ private:
                              F64& kRet,
                              ErrorInfo* const kErr);
 
-    static Result compileExprStatsFunc(
-        const Ref<const ExpressionParse> kParse,
-        const Map<String, IElement*>& kBindings,
-        Ref<IExprNode<F64>>& kNode,
-        ExpressionAssembly::Workspace& kWs,
-        ErrorInfo* const kErr);
+    static Result compileStatsFunc(const Ref<const ExpressionParse> kParse,
+                                   const Map<String, IElement*>& kBindings,
+                                   Ref<IExprNode<F64>>& kNode,
+                                   ExpressionAssembly::Workspace& kWs,
+                                   ErrorInfo* const kErr);
 
     static Result compileFunction(const Ref<const ExpressionParse> kParse,
                                   const Map<String, IElement*>& kBindings,
