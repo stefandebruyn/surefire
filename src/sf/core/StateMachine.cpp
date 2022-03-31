@@ -4,7 +4,7 @@
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-U32 StateMachine::Block::execute()
+U32 StateMachine::Block::execute() const
 {
     // Evaluate guard.
     if (guard != nullptr)

@@ -119,43 +119,43 @@ const Map<ElementType, TypeInfo> TypeInfo::fromEnum =
 };
 
 const OpInfo OpInfo::lnot =
-    {OpInfo::Type::NOT, "NOT", 11, true, false, false, true};
+    {OpInfo::Type::NOT, "NOT", "!", 11, true, false, false, true};
 
 const OpInfo OpInfo::mult =
-    {OpInfo::Type::MULT, "*", 10, false, true, true, false};
+    {OpInfo::Type::MULT, "*", "*", 10, false, true, true, false};
 
 const OpInfo OpInfo::divide =
-    {OpInfo::Type::DIV, "/", 10, false, true, true, false};
+    {OpInfo::Type::DIV, "/", "/", 10, false, true, true, false};
 
 const OpInfo OpInfo::add =
-    {OpInfo::Type::ADD, "+", 9, false, true, true, false};
+    {OpInfo::Type::ADD, "+", "+", 9, false, true, true, false};
 
 const OpInfo OpInfo::sub =
-    {OpInfo::Type::SUB, "-", 9, false, true, true, false};
+    {OpInfo::Type::SUB, "-", "-", 9, false, true, true, false};
 
 const OpInfo OpInfo::lt =
-    {OpInfo::Type::LT, "<", 8, false, false, true, false};
+    {OpInfo::Type::LT, "<", "<", 8, false, false, true, false};
 
 const OpInfo OpInfo::lte =
-    {OpInfo::Type::LTE, "<=", 8, false, false, true, false};
+    {OpInfo::Type::LTE, "<=", "<=", 8, false, false, true, false};
 
 const OpInfo OpInfo::gt =
-    {OpInfo::Type::GT, ">", 8, false, false, true, false};
+    {OpInfo::Type::GT, ">", ">", 8, false, false, true, false};
 
 const OpInfo OpInfo::gte =
-    {OpInfo::Type::GTE, ">=", 8, false, false, true, false};
+    {OpInfo::Type::GTE, ">=", ">=", 8, false, false, true, false};
 
 const OpInfo OpInfo::eq =
-    {OpInfo::Type::EQ, "==", 7, false, false, true, true};
+    {OpInfo::Type::EQ, "==", "==", 7, false, false, true, true};
 
 const OpInfo OpInfo::neq =
-    {OpInfo::Type::NEQ, "!=", 7, false, false, true, true};
+    {OpInfo::Type::NEQ, "!=", "!=", 7, false, false, true, true};
 
 const OpInfo OpInfo::land =
-    {OpInfo::Type::AND, "AND", 6, false, false, false, true};
+    {OpInfo::Type::AND, "AND", "&&", 6, false, false, false, true};
 
 const OpInfo OpInfo::lor =
-    {OpInfo::Type::OR, "OR", 5, false, false, false, true};
+    {OpInfo::Type::OR, "OR", "||", 5, false, false, false, true};
 
 const Map<String, OpInfo> OpInfo::fromStr =
 {

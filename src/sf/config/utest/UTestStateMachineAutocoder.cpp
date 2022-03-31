@@ -13,7 +13,8 @@ TEST(StateMachineAutocoder, Doop)
     std::stringstream svSrc(
         "[Foo]\n"
         "U64 time\n"
-        "U32 state\n");
+        "U32 state\n"
+        "BOOL qux\n");
     Ref<const StateVectorAssembly> svAsm;
     CHECK_SUCCESS(StateVectorAssembly::compile(svSrc, svAsm, nullptr));
 
@@ -21,6 +22,7 @@ TEST(StateMachineAutocoder, Doop)
         "[STATE_VECTOR]\n"
         "U64 time @ALIAS G\n"
         "U32 state @ALIAS S\n"
+        "BOOL qux @ALIAS corge"
         "\n"
         "[LOCAL]\n"
         "I32 foo = 0\n"
@@ -29,7 +31,12 @@ TEST(StateMachineAutocoder, Doop)
         "\n"
         "[Foo]\n"
         ".ENTRY\n"
-        "    foo = 1\n");
+        "    bar + 100 < ROLL_AVG(foo, 10) OR baz: foo = 1\n"
+        "    corge = TRUE\n"
+        ".STEP\n"
+        "    G == 10: -> Bar\n"
+        "\n"
+        "[Bar]\n");
     Ref<const StateMachineAssembly> smAsm;
     CHECK_SUCCESS(StateMachineAssembly::compile(smSrc, svAsm, smAsm, nullptr));
 

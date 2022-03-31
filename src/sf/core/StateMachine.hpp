@@ -94,7 +94,7 @@ public:
         /// @return Destination state if an action in the block tree triggered
         /// a state machine transition, otherwise NO_STATE.
         ///
-        U32 execute();
+        U32 execute() const;
     };
 
     ///

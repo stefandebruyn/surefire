@@ -127,6 +127,7 @@ struct OpInfo final
 
     Type enumVal;
     String str;
+    String cpp;
     U32 precedence;
     bool unary;
     bool arithmetic;
