@@ -12,9 +12,17 @@
 #include "sf/core/StateVector.hpp"
 
 ///
-/// @brief Random engine with a constant seed.
+/// @brief Random generator used by random*() functions.
 ///
-static std::mt19937 gRandGen(0);
+static std::mt19937 gRandGen;
+
+///
+/// @brief Resets the random generator with a constant seed.
+///
+static void resetRandomGenerator()
+{
+    gRandGen = std::mt19937(0);
+}
 
 ///
 /// @brief Generates a random integer in the representable range of the
@@ -113,6 +121,74 @@ static void randomizeStateVector(const StateVector::Config& kSvConfig)
 
             case ElementType::BOOL:
                 static_cast<Element<bool>*>(elem)->write(randomBool());
+        }
+    }
+}
+
+///
+/// @brief Prints the name and value of state vector elements in the order
+/// configured.
+///
+/// @param[in]  kSvConfig  Config of state vector to print.
+/// @param[out] kOs        Output stream to print to.
+///
+static void printStateVector(const StateVector::Config kSvConfig,
+                             std::ostream& kOs)
+{
+    for (const StateVector::ElementConfig* elemConfig = kSvConfig.elems;
+         elemConfig->name != nullptr;
+         ++elemConfig)
+    {
+        kOs << elemConfig->name << " ";
+
+        const IElement* const elem = elemConfig->elem;
+        switch (elem->type())
+        {
+            case ElementType::INT8:
+                kOs << static_cast<I32>(
+                    static_cast<const Element<I8>*>(elem)->read()) << "\n";
+                break;
+
+            case ElementType::INT16:
+                kOs << static_cast<const Element<I16>*>(elem)->read() << "\n";
+                break;
+
+            case ElementType::INT32:
+                kOs << static_cast<const Element<I32>*>(elem)->read() << "\n";
+                break;
+
+            case ElementType::INT64:
+                kOs << static_cast<const Element<I64>*>(elem)->read() << "\n";
+                break;
+
+            case ElementType::UINT8:
+                kOs << static_cast<I32>(
+                    static_cast<const Element<U8>*>(elem)->read()) << "\n";
+                break;
+
+            case ElementType::UINT16:
+                kOs << static_cast<const Element<U16>*>(elem)->read() << "\n";
+                break;
+
+            case ElementType::UINT32:
+                kOs << static_cast<const Element<U32>*>(elem)->read() << "\n";
+                break;
+
+            case ElementType::UINT64:
+                kOs << static_cast<const Element<U64>*>(elem)->read() << "\n";
+                break;
+
+            case ElementType::FLOAT32:
+                kOs << static_cast<const Element<F32>*>(elem)->read() << "\n";
+                break;
+
+            case ElementType::FLOAT64:
+                kOs << static_cast<const Element<F64>*>(elem)->read() << "\n";
+                break;
+
+            case ElementType::BOOL:
+                kOs << static_cast<const Element<bool>*>(elem)->read() << "\n";
+                break;
         }
     }
 }

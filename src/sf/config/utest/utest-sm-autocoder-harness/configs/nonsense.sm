@@ -1,5 +1,5 @@
-# State machine with a bunch of random, complex logic meant to exercise the full
-# range of language syntax.
+# A bunch of random, complex logic meant to exercise the full range of language
+# syntax.
 
 [STATE_VECTOR]
 U32 state @ALIAS S
@@ -35,7 +35,9 @@ bool lambda_sv
 F64 pi_sv
 F64 tau_sv
 F32 euler_sv
-
+F64 tintin_sv
+F64 haddock_sv
+BOOL calculus_sv
 
 [LOCAL]
 I8 alpha = 10
@@ -54,7 +56,7 @@ F64 tau = pi * 2 @READ_ONLY
 F32 euler = 2.71828 @READ_ONLY
 F64 tintin = 0
 F64 haddock = 0
-
+BOOL calculus = FALSE
 
 [Foo]
 .ENTRY
@@ -81,14 +83,18 @@ F64 haddock = 0
     pi_sv = pi
     tau_sv = tau
     euler_sv = euler
+    tintin_sv = tintin
+    haddock_sv = haddock
+    calculus_sv = calculus
     # If branch using braces
     k = !k
     k {
         TRUE: alpha = alpha + 1
         kappa = kappa * -1
     }
-    # Use of ROLL_AVG function
-    gamma = ROLL_AVG(kappa + zeta, 10) - 10.433
+    # ROLL_AVG function; stats function with a window size expression that
+    # references variables
+    gamma = ROLL_AVG(kappa + zeta, alpha + 2) - 10.433
     T < 20 OR k {
         # Nested if branch
         lambda OR k == FALSE {
@@ -103,19 +109,20 @@ F64 haddock = 0
     # Else branch using braces
     ELSE {
         theta = theta + zeta
-        # Use of ROLL_MEDIAN function
+        # ROLL_MEDIAN function
         iota = iota - tau + ROLL_MEDIAN(gamma + 3, 4)
     }
     # Transition
-    T == 50: -> Bar
+    T >= 50: -> Bar
     a = a + 1
     # Use of global time element
     G < 17: lambda = kappa
     ELSE: lambda = T > 5
 .EXIT
-    # Exit action
+    # Exit action; expression using all arithmetic operators
     kappa = iota - euler * euler + pi - (tau + alpha / eta)
-
+    # Expression using all logical operators
+    calculus = k OR !TRUE OR NOT NOT (!!!FALSE AND TRUE)
 
 [Bar]
 .ENTRY
@@ -136,19 +143,46 @@ F64 haddock = 0
     pi_sv = pi
     tau_sv = tau
     euler_sv = euler
+    tintin_sv = tintin
+    haddock_sv = haddock
+    calculus_sv = calculus
     # If branch using IF keyword
     eggs = eggs + eggs
     IF eggs > 2 {
         iota = iota / (eggs - 4)
     }
-    # Use of ROLL_MIN function
+    # ROLL_MIN function
     ROLL_MIN(eggs, alpha / 5) > 10: -> Baz
-
 
 [Baz]
 .ENTRY
     d = 2
+    haddock = 0
 .STEP
+    # Copy local elements to state vector.
+    alpha_sv = alpha
+    beta_sv = beta
+    gamma_sv = gamma
+    delta_sv = delta
+    epsilon_sv = epsilon
+    zeta_sv = zeta
+    eta_sv = eta
+    theta_sv = theta
+    iota_sv = iota
+    kappa_sv = kappa
+    lambda_sv = lambda
+    pi_sv = pi
+    tau_sv = tau
+    euler_sv = euler
+    tintin_sv = tintin
+    haddock_sv = haddock
+    calculus_sv = calculus
+    # ROLL_MAX function
+    tintin = ROLL_MAX(haddock, 3)
+    # ROLL_RANGE function
+    qux = ROLL_RANGE(tintin, 7)
+    # Double inequality
     lambda = (5 < T <= 8)
-    d = d * d
+    d = d * 2
+    haddock = haddock + d * pi / 4 * -1
     d == 1024: -> Foo

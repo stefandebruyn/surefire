@@ -56,6 +56,7 @@
                                                                                \
     /* Randomize state vector element values using the same function as the    \
        harness. */                                                             \
+    resetRandomGenerator();                                                    \
     randomizeStateVector(svAsm->config());                                     \
                                                                                \
     /* Set initial global time, which we don't want randomized, back to 0. */  \
@@ -93,10 +94,11 @@
 /// disk, and loads the file contents into a string stream AUTOCODE_SM should
 /// have been called prior.
 ///
-#define RUN_HARNESS                                                            \
+#define RUN_HARNESS(kArgs)                                                     \
     /* Build and run harness. */                                               \
     const I32 status = std::system(                                            \
-        "cd " HARNESS_PATH " && make && ./a.out > " HARNESS_OUT_PATH);         \
+        "cd " HARNESS_PATH " && make && ./a.out " kArgs " > "                  \
+        HARNESS_OUT_PATH);                                                     \
     (void) status;                                                             \
                                                                                \
     /* Read harness output into a string stream. */                            \
@@ -108,87 +110,19 @@
 /// @brief Runs the state machine previously compiled in-memory and compares
 /// its output to the harness output. RUN_HARNESS should have been called prior.
 ///
-#define CHECK_HARNESS_OUT                                                      \
+#define CHECK_HARNESS_OUT(kSmSteps)                                            \
     std::stringstream expectOut;                                               \
     /* Fix floating output precision for consistent output. The precision      \
        should match the precision used by the harness. */                      \
     expectOut << std::setprecision(std::numeric_limits<F64>::digits10);        \
-    runStateMachine(svAsm, smAsm, expectOut);                                  \
+    runStateMachine(svAsm, smAsm, kSmSteps, expectOut);                        \
     CHECK_EQUAL(expectOut.str(), hout.str());
 
-///
-/// @brief Number of steps which the state machine under test runs for. This
-/// should match the equivalent constant in the harness.
-///
-static const U32 gSmSteps = 1000;
-
-///
-/// @brief Prints the name and value of state vector elements in the order
-/// configured. This should print a state vector in the exact same way as the
-/// harness.
-///
-/// @param[in]  kSvConfig  Config of state vector to print.
-/// @param[out] kOs        Output stream to print to.
-///
-static void printStateVector(const StateVector::Config kSvConfig,
-                             std::ostream& kOs)
-{
-    for (const StateVector::ElementConfig* elemConfig = kSvConfig.elems;
-         elemConfig->name != nullptr;
-         ++elemConfig)
-    {
-        kOs << elemConfig->name << " ";
-
-        const IElement* const elem = elemConfig->elem;
-        switch (elem->type())
-        {
-            case ElementType::INT8:
-                kOs << static_cast<I32>(
-                    static_cast<const Element<I8>*>(elem)->read()) << "\n";
-                break;
-
-            case ElementType::INT16:
-                kOs << static_cast<const Element<I16>*>(elem)->read() << "\n";
-                break;
-
-            case ElementType::INT32:
-                kOs << static_cast<const Element<I32>*>(elem)->read() << "\n";
-                break;
-
-            case ElementType::INT64:
-                kOs << static_cast<const Element<I64>*>(elem)->read() << "\n";
-                break;
-
-            case ElementType::UINT8:
-                kOs << static_cast<I32>(
-                    static_cast<const Element<U8>*>(elem)->read()) << "\n";
-                break;
-
-            case ElementType::UINT16:
-                kOs << static_cast<const Element<U16>*>(elem)->read() << "\n";
-                break;
-
-            case ElementType::UINT32:
-                kOs << static_cast<const Element<U32>*>(elem)->read() << "\n";
-                break;
-
-            case ElementType::UINT64:
-                kOs << static_cast<const Element<U64>*>(elem)->read() << "\n";
-                break;
-
-            case ElementType::FLOAT32:
-                kOs << static_cast<const Element<F32>*>(elem)->read() << "\n";
-                break;
-
-            case ElementType::FLOAT64:
-                kOs << static_cast<const Element<F64>*>(elem)->read() << "\n";
-                break;
-
-            case ElementType::BOOL:
-                kOs << static_cast<const Element<bool>*>(elem)->read() << "\n";
-                break;
-        }
-    }
+#define SET_SV_ELEM(kElemName, kType, kVal)                                    \
+{                                                                              \
+    Element<kType>* _elem = nullptr;                                           \
+    CHECK_SUCCESS(svAsm->get()->getElement(kElemName, _elem));                 \
+    _elem->write(kVal);                                                        \
 }
 
 ///
@@ -203,6 +137,7 @@ static void printStateVector(const StateVector::Config kSvConfig,
 ///
 static void runStateMachine(const Ref<const StateVectorAssembly> kSvAsm,
                             const Ref<const StateMachineAssembly> kSmAsm,
+                            const U32 kSmSteps,
                             std::ostream& kOs)
 {
     const Ref<StateVector> sv = kSvAsm->get();
@@ -210,7 +145,7 @@ static void runStateMachine(const Ref<const StateVectorAssembly> kSvAsm,
     CHECK_SUCCESS(sv->getElement("time", elemGlobalTime));
 
     const Ref<StateMachine> sm = kSmAsm->get();
-    for (U32 i = 0; i < gSmSteps; ++i)
+    for (U32 i = 0; i < kSmSteps; ++i)
     {
         // Increment global time. Modulate the increment to test state machine
         // behavior with varying delta T.
@@ -229,16 +164,15 @@ static void runStateMachine(const Ref<const StateVectorAssembly> kSvAsm,
 //////////////////////////////////// Tests /////////////////////////////////////
 
 ///
-/// @brief Tests which compile in-memory and autocode state machines from the
-/// same config, run them for many steps with randomized inputs, and compare
-/// their output. State machines compiled in-memory are known correct from
-/// other tests, so they are used as ground truth for autocoded state machine
-/// behavior.
+/// @brief Tests which autocode state machines and compare their behavior to
+/// state machines compiled in-memory, which are known correct from other tests.
 ///
-/// @note Preconditions for all tests:
+/// @note Preconditions for tests in group:
 ///
 ///   1. The global time element is named "time"
 ///   2. The state element is named "state"
+///   3. The test execution host recognizes the commands "g++" and "make", and
+///      supports output redirection with ">"
 ///
 TEST_GROUP(StateMachineAutocoder)
 {
@@ -260,15 +194,27 @@ TEST_GROUP(StateMachineAutocoder)
 };
 
 ///
-/// @test State machine with a bunch of random, complex logic meant to exercise
-/// the full range of language syntax. Each state machine step, each local
-/// element gets copied into a corresponding state vector element so that local
-/// elements are visible to the harness.
+/// @test Autocoded state machine with a bunch of random, complex logic meant to
+/// exercise the full range of language syntax. Each state machine step, each
+/// local element gets copied into a corresponding state vector element so that
+/// local elements are visible to the harness.
 ///
 TEST(StateMachineAutocoder, Nonsense)
 {
     AUTOCODE_SV(HARNESS_PATH PATH_SEP "configs" PATH_SEP "nonsense.sv");
     AUTOCODE_SM(HARNESS_PATH PATH_SEP "configs" PATH_SEP "nonsense.sm");
-    RUN_HARNESS;
-    CHECK_HARNESS_OUT;
+    RUN_HARNESS("1000");
+    CHECK_HARNESS_OUT(1000);
+}
+
+///
+/// @test Autocoded state machine that computes Fibonacci numbers.
+///
+TEST(StateMachineAutocoder, Fib)
+{
+    AUTOCODE_SV(HARNESS_PATH PATH_SEP "configs" PATH_SEP "fib.sv");
+    AUTOCODE_SM(HARNESS_PATH PATH_SEP "configs" PATH_SEP "fib.sm");
+    RUN_HARNESS("50 n=50");
+    SET_SV_ELEM("n", U64, 50);
+    CHECK_HARNESS_OUT(50);
 }

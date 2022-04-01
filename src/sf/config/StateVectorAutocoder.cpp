@@ -141,7 +141,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a("};");
     a();
 
-    // Return state vector config to caller.
+    // Define state vector config and return to caller.
     a("kSvConfig = {elemConfigs, regionConfigs};");
     a();
 

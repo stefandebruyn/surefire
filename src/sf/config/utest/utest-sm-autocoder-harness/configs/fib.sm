@@ -1,0 +1,35 @@
+# Computes the nth Fibonacci number and puts the result in fib_n.
+
+[STATE_VECTOR]
+U32 state @ALIAS S
+U64 time @ALIAS G
+U64 n
+U64 fib_n
+
+[LOCAL]
+U64 i = 0       # Loop index
+U64 fib_im1 = 0 # fib(i-1)
+U64 fib_im2 = 0 # fib(i-2)
+U64 tmp = 0
+
+[Calculate]
+.ENTRY
+    # Base case
+    n <= 1 {
+        fib_n = n
+        -> Done
+    }
+    i = 2
+    fib_im1 = 1
+    fib_im2 = 0
+.STEP
+    # Bottom-up calculation loop
+    i <= n {
+        fib_n = fib_im1 + fib_im2
+        fib_im2 = fib_im1
+        fib_im1 = fib_n
+        i = i + 1
+        i > n: -> Done
+    }
+
+[Done]

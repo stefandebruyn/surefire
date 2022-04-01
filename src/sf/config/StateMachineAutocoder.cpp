@@ -110,9 +110,34 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
         exprStatsArrAddr = "exprStats";
     }
 
-    // Return state machine config to caller.
-    a("static StateMachine::Config smConfig = {%%, %%, %%, %%, %%};",
-      "&elemstate", "&elemT", "&elemtime", "stateConfigs", exprStatsArrAddr);
+    // Find the parses of the global time and state elements.
+    const StateMachineParse::StateVectorElementParse* elemGlobalTimeParse
+        = nullptr;
+    const StateMachineParse::StateVectorElementParse* elemStateParse = nullptr;
+    for (const StateMachineParse::StateVectorElementParse& elem :
+         parse->svElems)
+    {
+        if (elem.tokAlias.str == LangConst::elemGlobalTime)
+        {
+            SF_ASSERT(elemGlobalTimeParse == nullptr);
+            elemGlobalTimeParse = &elem;
+        }
+
+        if (elem.tokAlias.str == LangConst::elemState)
+        {
+            SF_ASSERT(elemStateParse == nullptr);
+            elemStateParse = &elem;
+        }
+    }
+
+    SF_ASSERT(elemGlobalTimeParse != nullptr)
+    SF_ASSERT(elemStateParse != nullptr);
+
+    // Define state machine config and return to caller.
+    a("static StateMachine::Config smConfig = {&elem%%, &elemT, &elem%%, stateConfigs, %%};",
+      elemStateParse->tokName.str,
+      elemGlobalTimeParse->tokName.str,
+      exprStatsArrAddr);
     a("kSmConfig = smConfig;");
     a();
 

@@ -32,3 +32,6 @@ bool lambda_sv
 F64 pi_sv
 F64 tau_sv
 F32 euler_sv
+F64 tintin_sv
+F64 haddock_sv
+BOOL calculus_sv
