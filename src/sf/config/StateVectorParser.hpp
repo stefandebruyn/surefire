@@ -1,5 +1,5 @@
-#ifndef SF_STATE_VECTOR_PARSE_HPP
-#define SF_STATE_VECTOR_PARSE_HPP
+#ifndef SF_STATE_VECTOR_PARSER_HPP
+#define SF_STATE_VECTOR_PARSER_HPP
 
 #include <istream>
 
@@ -11,8 +11,6 @@
 class StateVectorParse final
 {
 public:
-
-    static const Vec<String> ALL_REGIONS;
 
     struct ElementParse final
     {
@@ -29,15 +27,28 @@ public:
 
     Vec<StateVectorParse::RegionParse> regions;
 
+private:
+
+    friend class StateVectorParser;
+
+    StateVectorParse(Vec<StateVectorParse::RegionParse>& kRegions);
+};
+
+class StateVectorParser final
+{
+public:
+
+    static const Vec<String> ALL_REGIONS;
+
     static Result parse(const Vec<Token>& kToks,
                         Ref<const StateVectorParse>& kParse,
                         ErrorInfo* const kErr,
                         const Vec<String> kRegions =
-                            StateVectorParse::ALL_REGIONS);
+                            StateVectorParser::ALL_REGIONS);
+
+    StateVectorParser() = delete;
 
 private:
-
-    StateVectorParse(Vec<StateVectorParse::RegionParse>& kRegions);
 
     static Result parseRegion(TokenIterator& kIt,
                               StateVectorParse::RegionParse& kRegion,

@@ -2,7 +2,7 @@
 #define SF_STATE_MACHINE_AUTOCODER_HPP
 
 #include "sf/config/Autocode.hpp"
-#include "sf/config/StateMachineAssembly.hpp"
+#include "sf/config/StateMachineCompiler.hpp"
 
 class StateMachineAutocoder final
 {

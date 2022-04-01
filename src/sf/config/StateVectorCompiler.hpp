@@ -1,25 +1,13 @@
-#ifndef SF_STATE_VECTOR_ASSEMBLY_HPP
-#define SF_STATE_VECTOR_ASSEMBLY_HPP
+#ifndef SF_STATE_VECTOR_COMPILER_HPP
+#define SF_STATE_VECTOR_COMPILER_HPP
 
 #include <istream>
 
-#include "sf/config/StateVectorParse.hpp"
+#include "sf/config/StateVectorParser.hpp"
 
 class StateVectorAssembly final
 {
 public:
-
-    static Result compile(const String kFilePath,
-                          Ref<const StateVectorAssembly>& kAsm,
-                          ErrorInfo* const kErr);
-
-    static Result compile(std::istream& kIs,
-                          Ref<const StateVectorAssembly>& kAsm,
-                          ErrorInfo* const kErr);
-
-    static Result compile(const Ref<const StateVectorParse> kParse,
-                          Ref<const StateVectorAssembly>& kAsm,
-                          ErrorInfo* const kErr);
 
     StateVector& get() const;
 
@@ -28,6 +16,8 @@ public:
     Ref<const StateVectorParse> parse() const;
 
 private:
+
+    friend class StateVectorCompiler;
 
     struct Workspace final
     {
@@ -45,12 +35,33 @@ private:
 
     const StateVectorAssembly::Workspace mWs;
 
+    StateVectorAssembly(const StateVectorAssembly::Workspace& kWs);
+};
+
+class StateVectorCompiler final
+{
+public:
+
+    static Result compile(const String kFilePath,
+                          Ref<const StateVectorAssembly>& kAsm,
+                          ErrorInfo* const kErr);
+
+    static Result compile(std::istream& kIs,
+                          Ref<const StateVectorAssembly>& kAsm,
+                          ErrorInfo* const kErr);
+
+    static Result compile(const Ref<const StateVectorParse> kParse,
+                          Ref<const StateVectorAssembly>& kAsm,
+                          ErrorInfo* const kErr);
+
+    StateVectorCompiler() = delete;
+
+private:
+
     static Result allocateElement(const StateVectorParse::ElementParse& kElem,
                                   StateVectorAssembly::Workspace& kWs,
                                   StateVector::ElementConfig& kElemConfig,
                                   U8*& kBumpPtr);
-
-    StateVectorAssembly(const StateVectorAssembly::Workspace& kWs);
 };
 
 #endif

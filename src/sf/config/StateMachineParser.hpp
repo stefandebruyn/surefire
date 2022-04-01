@@ -1,10 +1,10 @@
-#ifndef SF_STATE_MACHINE_PARSE_HPP
-#define SF_STATE_MACHINE_PARSE_HPP
+#ifndef SF_STATE_MACHINE_PARSER_HPP
+#define SF_STATE_MACHINE_PARSER_HPP
 
 #include <istream>
 
 #include "sf/config/ErrorInfo.hpp"
-#include "sf/config/ExpressionParse.hpp"
+#include "sf/config/ExpressionParser.hpp"
 #include "sf/config/StlTypes.hpp"
 #include "sf/config/TokenIterator.hpp"
 #include "sf/core/StateMachine.hpp"
@@ -64,6 +64,37 @@ public:
     bool hasStateVectorSection;
     bool hasLocalSection;
 
+private:
+
+    friend class StateMachineParser;
+
+    struct MutBlockParse final
+    {
+        Ref<const ExpressionParse> guard;
+        Ref<const StateMachineParse::ActionParse> action;
+        Ref<StateMachineParse::MutBlockParse> ifBlock;
+        Ref<StateMachineParse::MutBlockParse> elseBlock;
+        Ref<StateMachineParse::MutBlockParse> next;
+        Ref<const ExpressionParse> assert;
+        Token tokElse;
+        Token tokAssert;
+        Token tokStop;
+
+        void toBlockParse(Ref<const StateMachineParse::BlockParse>& kParse);
+    };
+
+    StateMachineParse(
+        const Vec<StateMachineParse::StateVectorElementParse>& kSvElems,
+        const Vec<StateMachineParse::LocalElementParse>& kLocalElems,
+        const Vec<StateMachineParse::StateParse>& kStates,
+        const bool kHasStateVectorSection,
+        const bool kHasLocalSection);
+};
+
+class StateMachineParser final
+{
+public:
+
     static Result parse(const Vec<Token>& kToks,
                         Ref<const StateMachineParse>& kParse,
                         ErrorInfo* const kErr);
@@ -89,22 +120,9 @@ public:
                                     StateMachineParse::StateParse& kParse,
                                     ErrorInfo* const kErr);
 
+    StateMachineParser() = delete;
+
 private:
-
-    struct MutBlockParse final
-    {
-        Ref<const ExpressionParse> guard;
-        Ref<const StateMachineParse::ActionParse> action;
-        Ref<StateMachineParse::MutBlockParse> ifBlock;
-        Ref<StateMachineParse::MutBlockParse> elseBlock;
-        Ref<StateMachineParse::MutBlockParse> next;
-        Ref<const ExpressionParse> assert;
-        Token tokElse;
-        Token tokAssert;
-        Token tokStop;
-
-        void toBlockParse(Ref<const StateMachineParse::BlockParse>& kParse);
-    };
 
     static Result parseAction(
         TokenIterator kIt,
@@ -115,13 +133,6 @@ private:
                                 Ref<StateMachineParse::MutBlockParse>& kParse,
                                 ErrorInfo* const kErr);
 
-
-    StateMachineParse(
-        const Vec<StateMachineParse::StateVectorElementParse>& kSvElems,
-        const Vec<StateMachineParse::LocalElementParse>& kLocalElems,
-        const Vec<StateMachineParse::StateParse>& kStates,
-        const bool kHasStateVectorSection,
-        const bool kHasLocalSection);
 };
 
 #endif

@@ -20,7 +20,7 @@
     /* Compile state vector. */                                                \
     std::stringstream ss(kSrc);                                                \
     Ref<const StateVectorAssembly> svAsm;                                      \
-    CHECK_SUCCESS(StateVectorAssembly::compile(ss, svAsm, nullptr));           \
+    CHECK_SUCCESS(StateVectorCompiler::compile(ss, svAsm, nullptr));           \
                                                                                \
     /* Generate autocode. */                                                   \
     std::ofstream ofs(AUTOCODE_PATH, std::fstream::out);                       \

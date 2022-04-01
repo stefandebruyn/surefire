@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "sf/config/StateScriptAssembly.hpp"
+#include "sf/config/StateScriptCompiler.hpp"
 #include "sf/core/Assert.hpp"
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/Console.hpp"
@@ -13,7 +13,7 @@ static const char* const gErrText = "state script error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-Result StateScriptAssembly::compile(
+Result StateScriptCompiler::compile(
     const String kFilePath,
     const Ref<const StateMachineAssembly> kSmAsm,
     Ref<StateScriptAssembly>& kAsm,
@@ -39,10 +39,10 @@ Result StateScriptAssembly::compile(
     }
 
     // Send input stream into the next compilation phase.
-    return StateScriptAssembly::compile(ifs, kSmAsm, kAsm, kErr);
+    return StateScriptCompiler::compile(ifs, kSmAsm, kAsm, kErr);
 }
 
-Result StateScriptAssembly::compile(
+Result StateScriptCompiler::compile(
     std::istream& kIs,
     const Ref<const StateMachineAssembly> kSmAsm,
     Ref<StateScriptAssembly>& kAsm,
@@ -63,7 +63,7 @@ Result StateScriptAssembly::compile(
 
     // Parse the state script.
     Ref<const StateScriptParse> parse;
-    res = StateScriptParse::parse(toks, parse, kErr);
+    res = StateScriptParser::parse(toks, parse, kErr);
     if (res != SUCCESS)
     {
         if (kErr != nullptr)
@@ -75,10 +75,10 @@ Result StateScriptAssembly::compile(
     }
 
     // Send input stream into the next compilation phase.
-    return StateScriptAssembly::compile(parse, kSmAsm, kAsm, kErr);
+    return StateScriptCompiler::compile(parse, kSmAsm, kAsm, kErr);
 }
 
-Result StateScriptAssembly::compile(
+Result StateScriptCompiler::compile(
     const Ref<const StateScriptParse> kParse,
     const Ref<const StateMachineAssembly> kSmAsm,
     Ref<StateScriptAssembly>& kAsm,
@@ -92,7 +92,7 @@ Result StateScriptAssembly::compile(
 
     // Compile state script config.
     StateScriptAssembly::Config config{0, StateMachine::NO_STATE};
-    Result res = StateScriptAssembly::compileConfig(kParse->config,
+    Result res = StateScriptCompiler::compileConfig(kParse->config,
                                                     kSmAsm,
                                                     config,
                                                     kErr);
@@ -212,7 +212,7 @@ Result StateScriptAssembly::compile(
 
             // Compile guard.
             Ref<const ExpressionAssembly> guardAsm;
-            res = ExpressionAssembly::compile(block->guard,
+            res = ExpressionCompiler::compile(block->guard,
                                               kSmAsm->mWs.elems,
                                               ElementType::BOOL,
                                               guardAsm,
@@ -324,7 +324,7 @@ Result StateScriptAssembly::compile(
 
                     // Compile assert expression.
                     Ref<const ExpressionAssembly> assertAsm;
-                    res  = ExpressionAssembly::compile(innerBlock->assert,
+                    res  = ExpressionCompiler::compile(innerBlock->assert,
                                                        kSmAsm->mWs.elems,
                                                        ElementType::BOOL,
                                                        assertAsm,
@@ -365,7 +365,7 @@ Result StateScriptAssembly::compile(
                         nullptr
                     };
                     Ref<const ExpressionAssembly> rhsAsm;
-                    res = StateMachineAssembly::compileAssignmentAction(
+                    res = StateMachineCompiler::compileAssignmentAction(
                         innerBlock->action,
                         kSmAsm->mWs.elems,
                         kSmAsm->mWs.readOnlyElems,
@@ -628,7 +628,7 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
 
 /////////////////////////////////// Private ////////////////////////////////////
 
-Result StateScriptAssembly::compileConfig(
+Result StateScriptCompiler::compileConfig(
     const StateScriptParse::Config& kParse,
     const Ref<const StateMachineAssembly> kSmAsm,
     StateScriptAssembly::Config& kConfig,

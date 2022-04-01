@@ -2,7 +2,7 @@
 
 #include "sf/cli/CliUtil.hpp"
 #include "sf/cli/StateVectorCommand.hpp"
-#include "sf/config/StateVectorAssembly.hpp"
+#include "sf/config/StateVectorCompiler.hpp"
 #include "sf/config/StateVectorAutocoder.hpp"
 #include "sf/core/Assert.hpp"
 #include "sf/pal/Console.hpp"
@@ -45,7 +45,7 @@ I32 Cli::svCheck(const Vec<String> kArgs)
     // Compile state vector.
     Ref<const StateVectorAssembly> svAsm;
     ErrorInfo err;
-    const Result res = StateVectorAssembly::compile(kArgs[0], svAsm, &err);
+    const Result res = StateVectorCompiler::compile(kArgs[0], svAsm, &err);
 
     if (res != SUCCESS)
     {
@@ -119,7 +119,7 @@ I32 Cli::svAutocode(const Vec<String> kArgs)
 
     // Parse state vector config.
     Ref<const StateVectorParse> svParse;
-    res = StateVectorParse::parse(toks, svParse, &err, regions);
+    res = StateVectorParser::parse(toks, svParse, &err, regions);
     if (res != SUCCESS)
     {
         // Parsing failed.

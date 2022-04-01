@@ -1,7 +1,7 @@
-#ifndef SF_STATE_SCRIPT_PARSE_HPP
-#define SF_STATE_SCRIPT_PARSE_HPP
+#ifndef SF_STATE_SCRIPT_PARSER_HPP
+#define SF_STATE_SCRIPT_PARSER_HPP
 
-#include "sf/config/StateMachineParse.hpp"
+#include "sf/config/StateMachineParser.hpp"
 
 class StateScriptParse final
 {
@@ -24,14 +24,23 @@ public:
 
     StateScriptParse::Config config;
 
-    static Result parse(const Vec<Token>& kToks,
-                        Ref<const StateScriptParse>& kParse,
-                        ErrorInfo* const kErr);
-
 private:
+
+    friend class StateScriptParser;
 
     StateScriptParse(const Vec<StateScriptParse::SectionParse>& kSections,
                      const StateScriptParse::Config& kConfig);
+};
+
+class StateScriptParser final
+{
+public:
+
+    StateScriptParser() = delete;
+
+    static Result parse(const Vec<Token>& kToks,
+                        Ref<const StateScriptParse>& kParse,
+                        ErrorInfo* const kErr);
 };
 
 #endif

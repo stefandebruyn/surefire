@@ -1,4 +1,4 @@
-#include "sf/config/StateMachineParse.hpp"
+#include "sf/config/StateMachineParser.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
@@ -12,7 +12,7 @@ static void checkParseError(TokenIterator &kIt,
     Vec<StateMachineParse::StateVectorElementParse> parse;
     ErrorInfo err;
     TokenIterator itCpy = kIt;
-    CHECK_ERROR(kRes, StateMachineParse::parseStateVectorSection(kIt,
+    CHECK_ERROR(kRes, StateMachineParser::parseStateVectorSection(kIt,
                                                                  parse,
                                                                  &err));
 
@@ -25,7 +25,7 @@ static void checkParseError(TokenIterator &kIt,
     CHECK_TRUE(err.subtext.size() > 0);
 
     // A null error info pointer is not dereferenced.
-    CHECK_ERROR(kRes, StateMachineParse::parseStateVectorSection(itCpy,
+    CHECK_ERROR(kRes, StateMachineParser::parseStateVectorSection(itCpy,
                                                                  parse,
                                                                  nullptr));
 }
@@ -41,7 +41,7 @@ TEST(StateMachineParseStateVectorSection, Empty)
     TOKENIZE("[STATE_VECTOR]");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
-        StateMachineParse::parseStateVectorSection(it, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(0, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -52,7 +52,7 @@ TEST(StateMachineParseStateVectorSection, EmptyWithNewlines)
     TOKENIZE("[STATE_VECTOR]\n\n\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
-        StateMachineParse::parseStateVectorSection(it, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(0, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -65,7 +65,7 @@ TEST(StateMachineParseStateVectorSection, OneElement)
         "I32 foo\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
-        StateMachineParse::parseStateVectorSection(it, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(1, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -82,7 +82,7 @@ TEST(StateMachineParseStateVectorSection, ReadOnlyAnnotation)
         "I32 foo @READ_ONLY\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
-        StateMachineParse::parseStateVectorSection(it, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(1, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -99,7 +99,7 @@ TEST(StateMachineParseStateVectorSection, AliasAnnotation)
         "I32 foo @ALIAS bar\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
-        StateMachineParse::parseStateVectorSection(it, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(1, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -117,7 +117,7 @@ TEST(StateMachineParseStateVectorSection, MultipleAnnotations)
         "I32 foo @ALIAS bar @READ_ONLY\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
-        StateMachineParse::parseStateVectorSection(it, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(1, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -137,7 +137,7 @@ TEST(StateMachineParseStateVectorSection, MultipleElements)
         "bool baz\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
-        StateMachineParse::parseStateVectorSection(it, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(3, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -172,7 +172,7 @@ TEST(StateMachineParseStateVectorSection, AllElementTypes)
         "bool k\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
-        StateMachineParse::parseStateVectorSection(it, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(11, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());
@@ -231,7 +231,7 @@ TEST(StateMachineParseStateVectorSection, MultipleElementsWithAnnotations)
         "bool baz @ALIAS qux\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
-        StateMachineParse::parseStateVectorSection(it, parse, nullptr));
+        StateMachineParser::parseStateVectorSection(it, parse, nullptr));
 
     CHECK_EQUAL(3, parse.size());
     CHECK_EQUAL(toks.size(), it.idx());

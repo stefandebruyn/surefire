@@ -1,8 +1,8 @@
 #include <regex>
 
-#include "sf/config/ExpressionParse.hpp"
+#include "sf/config/ExpressionParser.hpp"
 #include "sf/config/LanguageConstants.hpp"
-#include "sf/config/StateMachineParse.hpp"
+#include "sf/config/StateMachineParser.hpp"
 #include "sf/core/Assert.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
@@ -11,7 +11,7 @@ static const char* const gErrText = "state machine config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-Result StateMachineParse::parseStateSection(
+Result StateMachineParser::parseStateSection(
     TokenIterator& kIt,
     StateMachineParse::StateParse& kParse,
     ErrorInfo* const kErr)
@@ -37,7 +37,7 @@ Result StateMachineParse::parseStateSection(
 
         // Parse label block.
         Ref<const StateMachineParse::BlockParse> label;
-        const Result res = StateMachineParse::parseBlock(
+        const Result res = StateMachineParser::parseBlock(
             kIt.slice(kIt.idx(), idxLabelEnd),
             label,
             kErr);
@@ -96,7 +96,7 @@ Result StateMachineParse::parseStateSection(
     return SUCCESS;
 }
 
-Result StateMachineParse::parseLocalSection(
+Result StateMachineParser::parseLocalSection(
     TokenIterator& kIt,
     Vec<StateMachineParse::LocalElementParse>& kParse,
     ErrorInfo* const kErr)
@@ -162,7 +162,7 @@ Result StateMachineParse::parseLocalSection(
         }
 
         // Parse initial value expression.
-        const Result res = ExpressionParse::parse(rhsIt,
+        const Result res = ExpressionParser::parse(rhsIt,
                                                   elemParse.initValExpr,
                                                   kErr);
         if (res != SUCCESS)
@@ -207,7 +207,7 @@ Result StateMachineParse::parseLocalSection(
     return SUCCESS;
 }
 
-Result StateMachineParse::parseStateVectorSection(
+Result StateMachineParser::parseStateVectorSection(
     TokenIterator& kIt,
     Vec<StateMachineParse::StateVectorElementParse>& kParse,
     ErrorInfo* const kErr)
@@ -310,9 +310,9 @@ Result StateMachineParse::parseStateVectorSection(
     return SUCCESS;
 }
 
-Result StateMachineParse::parse(const Vec<Token>& kToks,
-                                Ref<const StateMachineParse>& kParse,
-                                ErrorInfo* const kErr)
+Result StateMachineParser::parse(const Vec<Token>& kToks,
+                                 Ref<const StateMachineParse>& kParse,
+                                 ErrorInfo* const kErr)
 {
     // Create iterator for token vector.
     TokenIterator it(kToks.begin(), kToks.end());
@@ -346,7 +346,7 @@ Result StateMachineParse::parse(const Vec<Token>& kToks,
                     }
 
                     // Parse state vector section.
-                    res = StateMachineParse::parseStateVectorSection(it,
+                    res = StateMachineParser::parseStateVectorSection(it,
                                                                      svElems,
                                                                      kErr);
                     if (res != SUCCESS)
@@ -367,7 +367,7 @@ Result StateMachineParse::parse(const Vec<Token>& kToks,
                     }
 
                     // Parse local section.
-                    res = StateMachineParse::parseLocalSection(it,
+                    res = StateMachineParser::parseLocalSection(it,
                                                                localElems,
                                                                kErr);
                     if (res != SUCCESS)
@@ -381,7 +381,7 @@ Result StateMachineParse::parse(const Vec<Token>& kToks,
                 {
                     // Parse  State section.
                     StateMachineParse::StateParse state{};
-                    res = StateMachineParse::parseStateSection(it, state, kErr);
+                    res = StateMachineParser::parseStateSection(it, state, kErr);
                     if (res != SUCCESS)
                     {
                         return res;
@@ -408,14 +408,14 @@ Result StateMachineParse::parse(const Vec<Token>& kToks,
     return SUCCESS;
 }
 
-Result StateMachineParse::parseBlock(
+Result StateMachineParser::parseBlock(
     TokenIterator kIt,
     Ref<const StateMachineParse::BlockParse>& kParse,
     ErrorInfo* const kErr)
 {
     // Call recursive helper.
     Ref<StateMachineParse::MutBlockParse> mutBlock;
-    const Result res = StateMachineParse::parseBlockRec(kIt, mutBlock, kErr);
+    const Result res = StateMachineParser::parseBlockRec(kIt, mutBlock, kErr);
     if (res != SUCCESS)
     {
         return res;
@@ -465,7 +465,7 @@ void StateMachineParse::MutBlockParse::toBlockParse(
                                                    this->tokStop});
 }
 
-Result StateMachineParse::parseAction(
+Result StateMachineParser::parseAction(
     TokenIterator kIt,
     Ref<const StateMachineParse::ActionParse>& kParse,
     ErrorInfo* const kErr)
@@ -509,7 +509,7 @@ Result StateMachineParse::parseAction(
         }
 
         // Parse expression after assignment operator.
-        const Result res = ExpressionParse::parse(
+        const Result res = ExpressionParser::parse(
             kIt.slice(kIt.idx(), kIt.size()),
             lhs,
             kErr);
@@ -574,7 +574,7 @@ Result StateMachineParse::parseAction(
     return SUCCESS;
 }
 
-Result StateMachineParse::parseBlockRec(
+Result StateMachineParser::parseBlockRec(
     TokenIterator kIt,
     Ref<StateMachineParse::MutBlockParse>& kParse,
     ErrorInfo* const kErr)
@@ -640,7 +640,7 @@ Result StateMachineParse::parseBlockRec(
             }
 
             // Parse guard.
-            res = ExpressionParse::parse(kIt.slice(kIt.idx(), idxEnd),
+            res = ExpressionParser::parse(kIt.slice(kIt.idx(), idxEnd),
                                          block->guard,
                                          kErr);
             if (res != SUCCESS)
@@ -697,7 +697,7 @@ Result StateMachineParse::parseBlockRec(
             kIt.take();
 
             // Parse if branch of guard.
-            Result res = StateMachineParse::parseBlockRec(
+            Result res = StateMachineParser::parseBlockRec(
                 kIt.slice(kIt.idx(), idxBlockEnd),
                 block->ifBlock,
                 kErr);
@@ -770,7 +770,7 @@ Result StateMachineParse::parseBlockRec(
                 }
 
                 // Parse else branch.
-                res = StateMachineParse::parseBlockRec(
+                res = StateMachineParser::parseBlockRec(
                     kIt.slice(kIt.idx(), idxElseEnd),
                     block->elseBlock,
                     kErr);
@@ -796,7 +796,7 @@ Result StateMachineParse::parseBlockRec(
                 block->tokAssert = kIt.take();
 
                 // Parse assert expression.
-                res = ExpressionParse::parse(kIt.slice(kIt.idx(), idxEnd),
+                res = ExpressionParser::parse(kIt.slice(kIt.idx(), idxEnd),
                                              block->assert,
                                              kErr);
                 if (res != SUCCESS)
@@ -826,7 +826,7 @@ Result StateMachineParse::parseBlockRec(
             // action or state script input.
             else
             {
-                res = StateMachineParse::parseAction(
+                res = StateMachineParser::parseAction(
                     kIt.slice(kIt.idx(), idxEnd),
                     block->action,
                     kErr);

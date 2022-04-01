@@ -1,7 +1,7 @@
 #include <cstring>
 
-#include "sf/config/ExpressionAssembly.hpp"
-#include "sf/config/StateVectorAssembly.hpp"
+#include "sf/config/ExpressionCompiler.hpp"
+#include "sf/config/StateVectorCompiler.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
@@ -9,7 +9,7 @@
 #define PARSE_EXPR(kExprSrc)                                                   \
     TOKENIZE(kExprSrc);                                                        \
     Ref<const ExpressionParse> exprParse;                                      \
-    CHECK_SUCCESS(ExpressionParse::parse(it, exprParse, nullptr));
+    CHECK_SUCCESS(ExpressionParser::parse(it, exprParse, nullptr));
 
 static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 {
@@ -17,7 +17,7 @@ static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               {},
                                               ElementType::FLOAT64,
                                               exprAsm,
@@ -39,7 +39,7 @@ static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
     // Got expected return code from compiler.
     Ref<const ExpressionAssembly> exprAsm;
     ErrorInfo err;
-    CHECK_ERROR(kRes, ExpressionAssembly::compile(kExprParse,
+    CHECK_ERROR(kRes, ExpressionCompiler::compile(kExprParse,
                                                   kBindings,
                                                   ElementType::FLOAT64,
                                                   exprAsm,
@@ -57,7 +57,7 @@ static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
     CHECK_TRUE(exprAsm == nullptr);
 
     // A null error info pointer is not dereferenced.
-    CHECK_ERROR(kRes, ExpressionAssembly::compile(kExprParse,
+    CHECK_ERROR(kRes, ExpressionCompiler::compile(kExprParse,
                                                   kBindings,
                                                   ElementType::FLOAT64,
                                                   exprAsm,
@@ -66,21 +66,21 @@ static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
-TEST_GROUP(ExpressionAssembly)
+TEST_GROUP(ExpressionCompiler)
 {
 };
 
-TEST(ExpressionAssembly, SimplePrecedence)
+TEST(ExpressionCompiler, SimplePrecedence)
 {
     checkEvalConstExpr("1 + 2 * 3", 7);
 }
 
-TEST(ExpressionAssembly, SimplePrecedenceWithParens)
+TEST(ExpressionCompiler, SimplePrecedenceWithParens)
 {
     checkEvalConstExpr("(1 + 2) * 3", 9);
 }
 
-TEST(ExpressionAssembly, Not)
+TEST(ExpressionCompiler, Not)
 {
     checkEvalConstExpr("NOT FALSE", 1.0);
     checkEvalConstExpr("NOT TRUE", 0.0);
@@ -88,7 +88,7 @@ TEST(ExpressionAssembly, Not)
     checkEvalConstExpr("NOT NOT NOT FALSE", 1.0);
 }
 
-TEST(ExpressionAssembly, Multiply)
+TEST(ExpressionCompiler, Multiply)
 {
     checkEvalConstExpr("5 * 3", (5 * 3));
     checkEvalConstExpr("5 * 3 * -3.14 * 9.81 * -1.62",
@@ -97,7 +97,7 @@ TEST(ExpressionAssembly, Multiply)
                        (5 * (3 * (-3.14 * 9.81)) * -1.62));
 }
 
-TEST(ExpressionAssembly, Divide)
+TEST(ExpressionCompiler, Divide)
 {
     checkEvalConstExpr("5 / 3", (5.0 / 3.0));
     checkEvalConstExpr("5 / 3 / -3.14 / 9.81 / -1.62",
@@ -106,7 +106,7 @@ TEST(ExpressionAssembly, Divide)
                        (5.0 / (3 / (-3.14 / 9.81)) / -1.62));
 }
 
-TEST(ExpressionAssembly, Add)
+TEST(ExpressionCompiler, Add)
 {
     checkEvalConstExpr("5 + 3", (5.0 + 3.0));
     checkEvalConstExpr("5 + 3 + -3.14 + 9.81 + -1.62",
@@ -115,7 +115,7 @@ TEST(ExpressionAssembly, Add)
                        (5 + (3 + (-3.14 + 9.81)) + -1.62));
 }
 
-TEST(ExpressionAssembly, Subtract)
+TEST(ExpressionCompiler, Subtract)
 {
     checkEvalConstExpr("5 - 3", (5.0 - 3.0));
     checkEvalConstExpr("5 - 3 - -3.14 - 9.81 - -1.62",
@@ -124,7 +124,7 @@ TEST(ExpressionAssembly, Subtract)
                        (5 - (3 - (-3.14 - 9.81)) - -1.62));
 }
 
-TEST(ExpressionAssembly, ComplexArithmetic)
+TEST(ExpressionCompiler, ComplexArithmetic)
 {
     const F64 expectVal =
         (4789.478932478923 * (-321.5789004 - 333.47823 * 0.07849327843)
@@ -137,47 +137,47 @@ TEST(ExpressionAssembly, ComplexArithmetic)
         expectVal);
 }
 
-TEST(ExpressionAssembly, LessThan)
+TEST(ExpressionCompiler, LessThan)
 {
     checkEvalConstExpr("3 < 5", 1.0);
     checkEvalConstExpr("5 < 3", 0.0);
     checkEvalConstExpr("5 < 5", 0.0);
 }
 
-TEST(ExpressionAssembly, LessThanEqual)
+TEST(ExpressionCompiler, LessThanEqual)
 {
     checkEvalConstExpr("3 <= 5", 1.0);
     checkEvalConstExpr("5 <= 3", 0.0);
     checkEvalConstExpr("5 <= 5", 1.0);
 }
 
-TEST(ExpressionAssembly, GreaterThan)
+TEST(ExpressionCompiler, GreaterThan)
 {
     checkEvalConstExpr("5 > 3", 1.0);
     checkEvalConstExpr("3 > 5", 0.0);
     checkEvalConstExpr("5 > 5", 0.0);
 }
 
-TEST(ExpressionAssembly, GreaterThanEqual)
+TEST(ExpressionCompiler, GreaterThanEqual)
 {
     checkEvalConstExpr("5 >= 3", 1.0);
     checkEvalConstExpr("3 >= 5", 0.0);
     checkEvalConstExpr("5 >= 5", 1.0);
 }
 
-TEST(ExpressionAssembly, Equal)
+TEST(ExpressionCompiler, Equal)
 {
     checkEvalConstExpr("5 == 5", 1.0);
     checkEvalConstExpr("3 == 5", 0.0);
 }
 
-TEST(ExpressionAssembly, NotEqual)
+TEST(ExpressionCompiler, NotEqual)
 {
     checkEvalConstExpr("3 != 5", 1.0);
     checkEvalConstExpr("5 != 5", 0.0);
 }
 
-TEST(ExpressionAssembly, And)
+TEST(ExpressionCompiler, And)
 {
     checkEvalConstExpr("FALSE AND FALSE", 0.0);
     checkEvalConstExpr("FALSE AND TRUE", 0.0);
@@ -185,7 +185,7 @@ TEST(ExpressionAssembly, And)
     checkEvalConstExpr("TRUE AND TRUE", 1.0);
 }
 
-TEST(ExpressionAssembly, Or)
+TEST(ExpressionCompiler, Or)
 {
     checkEvalConstExpr("FALSE OR FALSE", 0.0);
     checkEvalConstExpr("FALSE OR TRUE", 1.0);
@@ -193,7 +193,7 @@ TEST(ExpressionAssembly, Or)
     checkEvalConstExpr("TRUE OR TRUE", 1.0);
 }
 
-TEST(ExpressionAssembly, ComplexLogic)
+TEST(ExpressionCompiler, ComplexLogic)
 {
     const bool expectVal =
         (true || !(false && true && !(false && !false)) || true && false
@@ -206,12 +206,12 @@ TEST(ExpressionAssembly, ComplexLogic)
         expectVal);
 }
 
-TEST(ExpressionAssembly, MixedArithmeticAndLogic)
+TEST(ExpressionCompiler, MixedArithmeticAndLogic)
 {
     checkEvalConstExpr("(4 + 6) / 2 == (100 - 120) / (4 * -1)", 1.0);
 }
 
-TEST(ExpressionAssembly, DoubleInequalityLt)
+TEST(ExpressionCompiler, DoubleInequalityLt)
 {
     checkEvalConstExpr("1 < 2 < 3", 1.0);
     checkEvalConstExpr("2 < 2 < 3", 0.0);
@@ -220,7 +220,7 @@ TEST(ExpressionAssembly, DoubleInequalityLt)
     checkEvalConstExpr("1 < 1 + 1 < 1 + 1 + 1", 1.0);
 }
 
-TEST(ExpressionAssembly, DoubleInequalityLte)
+TEST(ExpressionCompiler, DoubleInequalityLte)
 {
     checkEvalConstExpr("1 <= 2 <= 3", 1.0);
     checkEvalConstExpr("2 <= 2 <= 3", 1.0);
@@ -232,7 +232,7 @@ TEST(ExpressionAssembly, DoubleInequalityLte)
     checkEvalConstExpr("1 <= 1 + 1 - 1 <= 1 + 1 + 1 - 2", 1.0);
 }
 
-TEST(ExpressionAssembly, DoubleInequalityGt)
+TEST(ExpressionCompiler, DoubleInequalityGt)
 {
     checkEvalConstExpr("3 > 2 > 1", 1.0);
     checkEvalConstExpr("3 > 2 > 2", 0.0);
@@ -241,7 +241,7 @@ TEST(ExpressionAssembly, DoubleInequalityGt)
     checkEvalConstExpr("1 + 1 + 1 > 1 + 1 > 1", 1.0);
 }
 
-TEST(ExpressionAssembly, DoubleInequalityGte)
+TEST(ExpressionCompiler, DoubleInequalityGte)
 {
     checkEvalConstExpr("3 >= 2 >= 1", 1.0);
     checkEvalConstExpr("3 >= 2 >= 2", 1.0);
@@ -253,7 +253,7 @@ TEST(ExpressionAssembly, DoubleInequalityGte)
     checkEvalConstExpr("1 + 1 + 1 - 2 >= 1 + 1 - 1 >= 1", 1.0);
 }
 
-TEST(ExpressionAssembly, DoubleInequalityLtLte)
+TEST(ExpressionCompiler, DoubleInequalityLtLte)
 {
     checkEvalConstExpr("1 < 2 <= 3", 1.0);
     checkEvalConstExpr("1 < 2 <= 2", 1.0);
@@ -261,7 +261,7 @@ TEST(ExpressionAssembly, DoubleInequalityLtLte)
     checkEvalConstExpr("2 < 2 <= 2", 0.0);
 }
 
-TEST(ExpressionAssembly, DoubleInequalityGtGte)
+TEST(ExpressionCompiler, DoubleInequalityGtGte)
 {
     checkEvalConstExpr("3 > 2 >= 1", 1.0);
     checkEvalConstExpr("2 > 2 >= 1", 0.0);
@@ -269,7 +269,7 @@ TEST(ExpressionAssembly, DoubleInequalityGtGte)
     checkEvalConstExpr("2 > 2 >= 2", 0.0);
 }
 
-TEST(ExpressionAssembly, DoubleInequalityOpposingComparisons)
+TEST(ExpressionCompiler, DoubleInequalityOpposingComparisons)
 {
     checkEvalConstExpr("3 > 2 < 4", 1.0);
     checkEvalConstExpr("3 > 2 < 2", 0.0);
@@ -278,7 +278,7 @@ TEST(ExpressionAssembly, DoubleInequalityOpposingComparisons)
     checkEvalConstExpr("2 >= 2 < 4", 1.0);
 }
 
-TEST(ExpressionAssembly, TripleInequality)
+TEST(ExpressionCompiler, TripleInequality)
 {
     checkEvalConstExpr("1 < 2 < 3 < 4", 1.0);
     checkEvalConstExpr("1 < 1 < 3 < 4", 0.0);
@@ -289,7 +289,7 @@ TEST(ExpressionAssembly, TripleInequality)
     checkEvalConstExpr("1 < 2 < 3 <= 3", 1.0);
 }
 
-TEST(ExpressionAssembly, OnlyElement)
+TEST(ExpressionCompiler, OnlyElement)
 {
     // Parse expression.
     PARSE_EXPR("foo");
@@ -304,7 +304,7 @@ TEST(ExpressionAssembly, OnlyElement)
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
@@ -321,7 +321,7 @@ TEST(ExpressionAssembly, OnlyElement)
     CHECK_EQUAL(3.0, root->evaluate());
 }
 
-TEST(ExpressionAssembly, MultipleElements)
+TEST(ExpressionCompiler, MultipleElements)
 {
     // Parse expression.
     PARSE_EXPR("(foo + bar) * baz + 1");
@@ -342,7 +342,7 @@ TEST(ExpressionAssembly, MultipleElements)
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
@@ -361,7 +361,7 @@ TEST(ExpressionAssembly, MultipleElements)
     CHECK_EQUAL(-27.0, root->evaluate());
 }
 
-TEST(ExpressionAssembly, AllElementTypes)
+TEST(ExpressionCompiler, AllElementTypes)
 {
     // Parse expression.
     PARSE_EXPR("a + b + c + d + e + f + g + h + i + j + k");
@@ -406,7 +406,7 @@ TEST(ExpressionAssembly, AllElementTypes)
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
@@ -433,7 +433,7 @@ TEST(ExpressionAssembly, AllElementTypes)
     CHECK_EQUAL(66.0, root->evaluate());
 }
 
-TEST(ExpressionAssembly, RollAvgFunction)
+TEST(ExpressionCompiler, RollAvgFunction)
 {
     // Parse expression.
     PARSE_EXPR("ROLL_AVG(foo, 2)");
@@ -448,7 +448,7 @@ TEST(ExpressionAssembly, RollAvgFunction)
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
@@ -482,7 +482,7 @@ TEST(ExpressionAssembly, RollAvgFunction)
     CHECK_EQUAL(5.0, root->evaluate());
 }
 
-TEST(ExpressionAssembly, RollMedianFunction)
+TEST(ExpressionCompiler, RollMedianFunction)
 {
     // Parse expression.
     PARSE_EXPR("ROLL_MEDIAN(foo, 3)");
@@ -497,7 +497,7 @@ TEST(ExpressionAssembly, RollMedianFunction)
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
@@ -536,7 +536,7 @@ TEST(ExpressionAssembly, RollMedianFunction)
     CHECK_EQUAL(6.0, root->evaluate());
 }
 
-TEST(ExpressionAssembly, RollMinFunction)
+TEST(ExpressionCompiler, RollMinFunction)
 {
     // Parse expression.
     PARSE_EXPR("ROLL_MIN(foo, 2)");
@@ -551,7 +551,7 @@ TEST(ExpressionAssembly, RollMinFunction)
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
@@ -585,7 +585,7 @@ TEST(ExpressionAssembly, RollMinFunction)
     CHECK_EQUAL(1.0, root->evaluate());
 }
 
-TEST(ExpressionAssembly, RollMaxFunction)
+TEST(ExpressionCompiler, RollMaxFunction)
 {
     // Parse expression.
     PARSE_EXPR("ROLL_MAX(foo, 2)");
@@ -600,7 +600,7 @@ TEST(ExpressionAssembly, RollMaxFunction)
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
@@ -634,7 +634,7 @@ TEST(ExpressionAssembly, RollMaxFunction)
     CHECK_EQUAL(2.0, root->evaluate());
 }
 
-TEST(ExpressionAssembly, RollRangeFunction)
+TEST(ExpressionCompiler, RollRangeFunction)
 {
     // Parse expression.
     PARSE_EXPR("ROLL_RANGE(foo, 2)");
@@ -649,7 +649,7 @@ TEST(ExpressionAssembly, RollRangeFunction)
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
@@ -684,7 +684,7 @@ TEST(ExpressionAssembly, RollRangeFunction)
     CHECK_EQUAL(4.0, root->evaluate());
 }
 
-TEST(ExpressionAssembly, StatsFunctionExpressionArgs)
+TEST(ExpressionCompiler, StatsFunctionExpressionArgs)
 {
     // Parse expression.
     PARSE_EXPR("ROLL_MIN(foo + 1, bar * -1)");
@@ -706,7 +706,7 @@ TEST(ExpressionAssembly, StatsFunctionExpressionArgs)
 
     // Compile expression.
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_SUCCESS(ExpressionAssembly::compile(exprParse,
+    CHECK_SUCCESS(ExpressionCompiler::compile(exprParse,
                                               bindings,
                                               ElementType::FLOAT64,
                                               exprAsm,
@@ -746,17 +746,17 @@ TEST(ExpressionAssembly, StatsFunctionExpressionArgs)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
-TEST_GROUP(ExpressionAssemblyErrors)
+TEST_GROUP(ExpressionCompilerErrors)
 {
 };
 
-TEST(ExpressionAssemblyErrors, UnknownElement)
+TEST(ExpressionCompilerErrors, UnknownElement)
 {
     PARSE_EXPR("foo");
     checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 1);
 }
 
-TEST(ExpressionAssemblyErrors, OutOfRangeNumber)
+TEST(ExpressionCompilerErrors, OutOfRangeNumber)
 {
     PARSE_EXPR("1 + 999999999999999999999999999999999999999999999999999999999"
                "9999999999999999999999999999999999999999999999999999999999999"
@@ -769,78 +769,78 @@ TEST(ExpressionAssemblyErrors, OutOfRangeNumber)
     checkCompileError(exprParse, {}, E_EXA_OVFL, 1, 5);
 }
 
-TEST(ExpressionAssemblyErrors, StatsFunctionArity)
+TEST(ExpressionCompilerErrors, StatsFunctionArity)
 {
     PARSE_EXPR("ROLL_AVG(1)");
     checkCompileError(exprParse, {}, E_EXA_ARITY, 1, 1);
 }
 
-TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg1)
+TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg1)
 {
     PARSE_EXPR("ROLL_AVG(foo, 4)");
     checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 10);
 }
 
-TEST(ExpressionAssemblyErrors, StatsFunctionErrorInArg2)
+TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg2)
 {
     PARSE_EXPR("ROLL_AVG(4, foo)");
     checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 13);
 }
 
-TEST(ExpressionAssemblyErrors, StatsFunctionZeroWindowSize)
+TEST(ExpressionCompilerErrors, StatsFunctionZeroWindowSize)
 {
     PARSE_EXPR("ROLL_AVG(4, 0)");
     checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
-TEST(ExpressionAssemblyErrors, StatsFunctionNegativeWindowSize)
+TEST(ExpressionCompilerErrors, StatsFunctionNegativeWindowSize)
 {
     PARSE_EXPR("ROLL_AVG(4, -1)");
     checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
-TEST(ExpressionAssemblyErrors, StatsFunctionNonIntegerWindowSize)
+TEST(ExpressionCompilerErrors, StatsFunctionNonIntegerWindowSize)
 {
     PARSE_EXPR("ROLL_AVG(4, 1.5)");
     checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
-TEST(ExpressionAssemblyErrors, StatsFunctionNaNWindowSize)
+TEST(ExpressionCompilerErrors, StatsFunctionNaNWindowSize)
 {
     PARSE_EXPR("ROLL_AVG(4, 0 / 0)");
     checkCompileError(exprParse, {}, E_EXA_WIN, 1, 15);
 }
 
-TEST(ExpressionAssemblyErrors, StatsFunctionWindowTooBig)
+TEST(ExpressionCompilerErrors, StatsFunctionWindowTooBig)
 {
     PARSE_EXPR("ROLL_AVG(4, 100001)");
     checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
 }
 
-TEST(ExpressionAssemblyErrors, UnknownFunction)
+TEST(ExpressionCompilerErrors, UnknownFunction)
 {
     PARSE_EXPR("FOO()");
     checkCompileError(exprParse, {}, E_EXA_FUNC, 1, 1);
 }
 
-TEST(ExpressionAssemblyErrors, NullElementInBindings)
+TEST(ExpressionCompilerErrors, NullElementInBindings)
 {
     PARSE_EXPR("foo");
     const Map<String, IElement*> bindings = {{"foo", nullptr}};
     Ref<const ExpressionAssembly> exprAsm;
     CHECK_ERROR(E_EXA_ELEM_NULL,
-                ExpressionAssembly::compile(exprParse,
+                ExpressionCompiler::compile(exprParse,
                                             bindings,
                                             ElementType::FLOAT64,
                                             exprAsm,
                                             nullptr));
 }
 
-TEST(ExpressionAssemblyErrors, NullParse)
+TEST(ExpressionCompilerErrors, NullParse)
 {
     const Ref<const ExpressionParse> exprParse;
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_ERROR(E_EXA_NULL, ExpressionAssembly::compile(exprParse,
+    CHECK_ERROR(E_EXA_NULL, ExpressionCompiler::compile(exprParse,
                                                         {},
                                                         ElementType::FLOAT64,
                                                         exprAsm,

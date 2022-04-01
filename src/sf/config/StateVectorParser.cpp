@@ -1,4 +1,4 @@
-#include "sf/config/StateVectorParse.hpp"
+#include "sf/config/StateVectorParser.hpp"
 #include "sf/core/Assert.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
@@ -7,12 +7,12 @@ static const char* const gErrText = "state vector config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-const Vec<String> StateVectorParse::ALL_REGIONS;
+const Vec<String> StateVectorParser::ALL_REGIONS;
 
-Result StateVectorParse::parse(const Vec<Token>& kToks,
-                               Ref<const StateVectorParse>& kParse,
-                               ErrorInfo* const kErr,
-                               const Vec<String> kRegions)
+Result StateVectorParser::parse(const Vec<Token>& kToks,
+                                Ref<const StateVectorParse>& kParse,
+                                ErrorInfo* const kErr,
+                                const Vec<String> kRegions)
 {
     // Create iterator for token vector.
     TokenIterator it(kToks.begin(), kToks.end());
@@ -45,7 +45,7 @@ Result StateVectorParse::parse(const Vec<Token>& kToks,
                                   region.plainName) != kRegions.end()))
                 {
                     const Result res =
-                        StateVectorParse::parseRegion(it, region, kErr);
+                        StateVectorParser::parseRegion(it, region, kErr);
                     if (res != SUCCESS)
                     {
                         return res;
@@ -113,9 +113,9 @@ StateVectorParse::StateVectorParse(Vec<StateVectorParse::RegionParse>& kRegions)
 {
 }
 
-Result StateVectorParse::parseRegion(TokenIterator& kIt,
-                                     StateVectorParse::RegionParse& kRegion,
-                                     ErrorInfo* const kErr)
+Result StateVectorParser::parseRegion(TokenIterator& kIt,
+                                      StateVectorParse::RegionParse& kRegion,
+                                      ErrorInfo* const kErr)
 {
     // Assert that token iterator is currently positioned at a section.
     SF_SAFE_ASSERT(kIt.type() == Token::SECTION);

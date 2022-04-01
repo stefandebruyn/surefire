@@ -2,9 +2,9 @@
 
 #include "sf/cli/CliUtil.hpp"
 #include "sf/cli/StateMachineCommand.hpp"
-#include "sf/config/StateMachineAssembly.hpp"
-#include "sf/config/StateScriptAssembly.hpp"
-#include "sf/config/StateVectorAssembly.hpp"
+#include "sf/config/StateMachineCompiler.hpp"
+#include "sf/config/StateScriptCompiler.hpp"
+#include "sf/config/StateVectorCompiler.hpp"
 #include "sf/core/Assert.hpp"
 
 I32 Cli::sm(const Vec<String> kArgs)
@@ -47,7 +47,7 @@ I32 Cli::smCheck(const Vec<String> kArgs)
     // Compile state vector.
     Ref<const StateVectorAssembly> svAsm;
     ErrorInfo err;
-    Result res = StateVectorAssembly::compile(svFile, svAsm, &err);
+    Result res = StateVectorCompiler::compile(svFile, svAsm, &err);
 
     if (res != SUCCESS)
     {
@@ -59,7 +59,7 @@ I32 Cli::smCheck(const Vec<String> kArgs)
     // Compile state machine.
     err = ErrorInfo();
     Ref<const StateMachineAssembly> smAsm;
-    res = StateMachineAssembly::compile(smFile, svAsm, smAsm, &err);
+    res = StateMachineCompiler::compile(smFile, svAsm, smAsm, &err);
 
     if (res != SUCCESS)
     {
@@ -90,7 +90,7 @@ I32 Cli::smTest(const Vec<String> kArgs)
     // Compile state vector.
     Ref<const StateVectorAssembly> svAsm;
     ErrorInfo err;
-    Result res = StateVectorAssembly::compile(svFile, svAsm, &err);
+    Result res = StateVectorCompiler::compile(svFile, svAsm, &err);
 
     if (res != SUCCESS)
     {
@@ -102,7 +102,7 @@ I32 Cli::smTest(const Vec<String> kArgs)
     // Compile state machine.
     err = ErrorInfo();
     Ref<const StateMachineAssembly> smAsm;
-    res = StateMachineAssembly::compile(smFile, svAsm, smAsm, &err);
+    res = StateMachineCompiler::compile(smFile, svAsm, smAsm, &err);
 
     if (res != SUCCESS)
     {
@@ -114,7 +114,7 @@ I32 Cli::smTest(const Vec<String> kArgs)
     // Compile state script.
     err = ErrorInfo();
     Ref<StateScriptAssembly> ssAsm;
-    res = StateScriptAssembly::compile(ssFile, smAsm, ssAsm, &err);
+    res = StateScriptCompiler::compile(ssFile, smAsm, ssAsm, &err);
 
     if (res != SUCCESS)
     {

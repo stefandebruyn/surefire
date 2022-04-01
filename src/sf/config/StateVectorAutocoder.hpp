@@ -1,7 +1,7 @@
 #ifndef SF_STATE_VECTOR_AUTOCODER_HPP
 #define SF_STATE_VECTOR_AUTOCODER_HPP
 
-#include "sf/config/StateVectorAssembly.hpp"
+#include "sf/config/StateVectorCompiler.hpp"
 
 namespace StateVectorAutocoder
 {

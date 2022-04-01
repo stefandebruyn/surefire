@@ -1,39 +1,32 @@
-#ifndef SF_STATE_MACHINE_ASSEMBLY_HPP
-#define SF_STATE_MACHINE_ASSEMBLY_HPP
+#ifndef SF_STATE_MACHINE_COMPILER_HPP
+#define SF_STATE_MACHINE_COMPILER_HPP
 
-#include "sf/config/ExpressionAssembly.hpp"
-#include "sf/config/StateMachineParse.hpp"
-#include "sf/config/StateVectorAssembly.hpp"
+#include "sf/config/ExpressionCompiler.hpp"
+#include "sf/config/StateMachineParser.hpp"
+#include "sf/config/StateVectorCompiler.hpp"
 #include "sf/core/StateVector.hpp"
 
 class StateMachineAssembly final
 {
 public:
 
-    static Result compile(const String kFilePath,
-                          const Ref<const StateVectorAssembly> kSvAsm,
-                          Ref<const StateMachineAssembly>& kAsm,
-                          ErrorInfo* const kErr);
-
-    static Result compile(std::istream& kIs,
-                          const Ref<const StateVectorAssembly> kSvAsm,
-                          Ref<const StateMachineAssembly>& kAsm,
-                          ErrorInfo* const kErr);
-
-    static Result compile(const Ref<const StateMachineParse> kParse,
-                          const Ref<const StateVectorAssembly> kSvAsm,
-                          Ref<const StateMachineAssembly>& kAsm,
-                          ErrorInfo* const kErr);
-
     StateMachine& get() const;
 
     StateMachine::Config config() const;
 
-    Ref<const StateMachineParse> parse() const;
-
     StateVector& localStateVector() const;
 
+    Ref<const StateMachineParse> parse() const;
+
 private:
+
+    friend class StateMachineCompiler;
+
+    friend class StateMachineAutocoder;
+
+    friend class StateScriptCompiler;
+
+    friend class StateScriptAssembly;
 
     struct Workspace final
     {
@@ -54,9 +47,35 @@ private:
         Ref<const StateMachineParse> smParse;
     };
 
-    friend class StateScriptAssembly;
+    const StateMachineAssembly::Workspace mWs;
 
-    friend class StateMachineAutocoder;
+    StateMachineAssembly(const StateMachineAssembly::Workspace& kWs);
+};
+
+class StateMachineCompiler final
+{
+public:
+
+    static Result compile(const String kFilePath,
+                          const Ref<const StateVectorAssembly> kSvAsm,
+                          Ref<const StateMachineAssembly>& kAsm,
+                          ErrorInfo* const kErr);
+
+    static Result compile(std::istream& kIs,
+                          const Ref<const StateVectorAssembly> kSvAsm,
+                          Ref<const StateMachineAssembly>& kAsm,
+                          ErrorInfo* const kErr);
+
+    static Result compile(const Ref<const StateMachineParse> kParse,
+                          const Ref<const StateVectorAssembly> kSvAsm,
+                          Ref<const StateMachineAssembly>& kAsm,
+                          ErrorInfo* const kErr);
+
+    StateMachineCompiler() = delete;
+
+private:
+
+    friend class StateScriptCompiler;
 
     static bool stateNameReserved(const Token& kTokSection);
 
@@ -105,10 +124,6 @@ private:
     static Result compileState(const StateMachineParse::StateParse& kParse,
                                StateMachineAssembly::Workspace& kWs,
                                ErrorInfo* const kErr);
-
-    const StateMachineAssembly::Workspace mWs;
-
-    StateMachineAssembly(const StateMachineAssembly::Workspace& kWs);
 };
 
 #endif

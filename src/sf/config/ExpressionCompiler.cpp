@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <cmath>
 
-#include "sf/config/ExpressionAssembly.hpp"
+#include "sf/config/ExpressionCompiler.hpp"
 #include "sf/config/LanguageConstants.hpp"
 #include "sf/core/Assert.hpp"
 
@@ -11,7 +11,7 @@ static const char* const gErrText = "expression error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-Result ExpressionAssembly::compile(const Ref<const ExpressionParse> kParse,
+Result ExpressionCompiler::compile(const Ref<const ExpressionParse> kParse,
                                    const Map<String, IElement*> kBindings,
                                    const ElementType kEvalType,
                                    Ref<const ExpressionAssembly>& kAsm,
@@ -26,7 +26,7 @@ Result ExpressionAssembly::compile(const Ref<const ExpressionParse> kParse,
     // Compile expression starting at root.
     ExpressionAssembly::Workspace ws{};
     Ref<IExprNode<F64>> root = nullptr;
-    const Result res = ExpressionAssembly::compileImpl(kParse,
+    const Result res = ExpressionCompiler::compileImpl(kParse,
                                                        kBindings,
                                                        root,
                                                        ws,
@@ -125,7 +125,7 @@ Vec<Ref<IExpressionStats>> ExpressionAssembly::stats() const
 
 /////////////////////////////////// Private ////////////////////////////////////
 
-Result ExpressionAssembly::tokenToF64(const Token& kTok,
+Result ExpressionCompiler::tokenToF64(const Token& kTok,
                                       F64& kRet,
                                       ErrorInfo* const kErr)
 {
@@ -155,7 +155,7 @@ Result ExpressionAssembly::tokenToF64(const Token& kTok,
     return SUCCESS;
 }
 
-Result ExpressionAssembly::compileStatsFunc(
+Result ExpressionCompiler::compileStatsFunc(
     const Ref<const ExpressionParse> kParse,
     const Map<String, IElement*>& kBindings,
     Ref<IExprNode<F64>>& kNode,
@@ -186,7 +186,7 @@ Result ExpressionAssembly::compileStatsFunc(
     // Compile first argument expression; the expression which stats are being
     // calculated for.
     Ref<IExprNode<F64>> arg1Node = nullptr;
-    Result res = ExpressionAssembly::compileImpl(argNodes[0]->right,
+    Result res = ExpressionCompiler::compileImpl(argNodes[0]->right,
                                                  kBindings,
                                                  arg1Node,
                                                  kWs,
@@ -200,7 +200,7 @@ Result ExpressionAssembly::compileStatsFunc(
     // gets passed through the entire compilation process so that we can
     // evaluate it here and get a constant value for the window size.
     Ref<const ExpressionAssembly> arg2Asm;
-    res = ExpressionAssembly::compile(argNodes[1]->right,
+    res = ExpressionCompiler::compile(argNodes[1]->right,
                                       kBindings,
                                       ElementType::FLOAT64,
                                       arg2Asm,
@@ -282,7 +282,7 @@ Result ExpressionAssembly::compileStatsFunc(
     return SUCCESS;
 }
 
-Result ExpressionAssembly::compileFunction(
+Result ExpressionCompiler::compileFunction(
     const Ref<const ExpressionParse> kParse,
     const Map<String, IElement*>& kBindings,
     Ref<IExprNode<F64>>& kNode,
@@ -298,7 +298,7 @@ Result ExpressionAssembly::compileFunction(
         || (kParse->data.str == LangConst::funcRollRange))
     {
         // Compile expression stats function.
-        return ExpressionAssembly::compileStatsFunc(kParse,
+        return ExpressionCompiler::compileStatsFunc(kParse,
                                                         kBindings,
                                                         kNode,
                                                         kWs,
@@ -313,7 +313,7 @@ Result ExpressionAssembly::compileFunction(
     return E_EXA_FUNC;
 }
 
-Result ExpressionAssembly::compileOperator(
+Result ExpressionCompiler::compileOperator(
     const Ref<const ExpressionParse> kParse,
     const Map<String, IElement*>& kBindings,
     Ref<IExprNode<F64>>& kNode,
@@ -328,7 +328,7 @@ Result ExpressionAssembly::compileOperator(
 
     // Compile right subtree.
     Ref<IExprNode<F64>> nodeRight;
-    Result res = ExpressionAssembly::compileImpl(kParse->right,
+    Result res = ExpressionCompiler::compileImpl(kParse->right,
                                                  kBindings,
                                                  nodeRight,
                                                  kWs,
@@ -343,7 +343,7 @@ Result ExpressionAssembly::compileOperator(
     Ref<IExprNode<F64>> nodeLeft;
     if (!opInfo.unary)
     {
-        res = ExpressionAssembly::compileImpl(kParse->left,
+        res = ExpressionCompiler::compileImpl(kParse->left,
                                               kBindings,
                                               nodeLeft,
                                               kWs,
@@ -477,7 +477,7 @@ Result ExpressionAssembly::compileOperator(
     return SUCCESS;
 }
 
-Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
+Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
                                        const Map<String, IElement*>& kBindings,
                                        Ref<IExprNode<F64>>& kNode,
                                        ExpressionAssembly::Workspace& kWs,
@@ -492,7 +492,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
     if (kParse->func)
     {
         // Expression node is a function call.
-        return ExpressionAssembly::compileFunction(kParse,
+        return ExpressionCompiler::compileFunction(kParse,
                                                    kBindings,
                                                    kNode,
                                                    kWs,
@@ -520,7 +520,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
         {
             // Numeric constant.
             F64 val = 0.0;
-            const Result res = ExpressionAssembly::tokenToF64(kParse->data,
+            const Result res = ExpressionCompiler::tokenToF64(kParse->data,
                                                               val,
                                                               kErr);
             if (res != SUCCESS)
@@ -682,7 +682,7 @@ Result ExpressionAssembly::compileImpl(const Ref<const ExpressionParse> kParse,
     else
     {
         // Compile operator expression node.
-        const Result res = ExpressionAssembly::compileOperator(kParse,
+        const Result res = ExpressionCompiler::compileOperator(kParse,
                                                                kBindings,
                                                                kNode,
                                                                kWs,

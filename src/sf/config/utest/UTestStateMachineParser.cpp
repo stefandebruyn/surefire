@@ -1,4 +1,4 @@
-#include "sf/config/StateMachineParse.hpp"
+#include "sf/config/StateMachineParser.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
@@ -11,7 +11,7 @@ static void checkParseError(const Vec<Token>& kToks,
     // Got expected return code from parser.
     Ref<const StateMachineParse> parse;
     ErrorInfo err;
-    CHECK_ERROR(kRes, StateMachineParse::parse(kToks, parse, &err));
+    CHECK_ERROR(kRes, StateMachineParser::parse(kToks, parse, &err));
 
     // Correct line and column numbers of error are identified.
     CHECK_EQUAL(kLineNum, err.lineNum);
@@ -25,16 +25,16 @@ static void checkParseError(const Vec<Token>& kToks,
     CHECK_TRUE(parse == nullptr);
 
     // A null error info pointer is not dereferenced.
-    CHECK_ERROR(kRes, StateMachineParse::parse(kToks, parse, nullptr));
+    CHECK_ERROR(kRes, StateMachineParser::parse(kToks, parse, nullptr));
 }
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
-TEST_GROUP(StateMachineParse)
+TEST_GROUP(StateMachineParser)
 {
 };
 
-TEST(StateMachineParse, AllSections)
+TEST(StateMachineParser, AllSections)
 {
     // Parse state machine config.
     TOKENIZE(
@@ -48,7 +48,7 @@ TEST(StateMachineParse, AllSections)
         ".ENTRY\n"
         "    foo = 0\n");
     Ref<const StateMachineParse> parse;
-    CHECK_SUCCESS(StateMachineParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parse(toks, parse, nullptr));
 
     // Expected number of state vector elements, local elements, and states
     // were parsed.
@@ -89,7 +89,7 @@ TEST(StateMachineParse, AllSections)
     CHECK_TRUE(rhs->right == nullptr);
 }
 
-TEST(StateMachineParse, EmptySections)
+TEST(StateMachineParser, EmptySections)
 {
     // Parse state machine config.
     TOKENIZE(
@@ -97,7 +97,7 @@ TEST(StateMachineParse, EmptySections)
         "[LOCAL]\n"
         "[Foo]\n");
     Ref<const StateMachineParse> parse;
-    CHECK_SUCCESS(StateMachineParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateMachineParser::parse(toks, parse, nullptr));
 
     // Expected number of state vector elements, local elements, and states
     // were parsed.
@@ -116,11 +116,11 @@ TEST(StateMachineParse, EmptySections)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
-TEST_GROUP(StateMachineParseErrors)
+TEST_GROUP(StateMachineParserErrors)
 {
 };
 
-TEST(StateMachineParseErrors, UnexpectedToken)
+TEST(StateMachineParserErrors, UnexpectedToken)
 {
     TOKENIZE(
         "@foo\n"
@@ -128,7 +128,7 @@ TEST(StateMachineParseErrors, UnexpectedToken)
     checkParseError(toks, E_SMP_TOK, 1, 1);
 }
 
-TEST(StateMachineParseErrors, ErrorInStateVectorSection)
+TEST(StateMachineParserErrors, ErrorInStateVectorSection)
 {
     TOKENIZE(
         "[STATE_VECTOR]\n"
@@ -136,7 +136,7 @@ TEST(StateMachineParseErrors, ErrorInStateVectorSection)
     checkParseError(toks, E_SMP_ELEM_TYPE, 2, 1);
 }
 
-TEST(StateMachineParseErrors, ErrorInLocalSection)
+TEST(StateMachineParserErrors, ErrorInLocalSection)
 {
     TOKENIZE(
         "[LOCAL]\n"
@@ -144,7 +144,7 @@ TEST(StateMachineParseErrors, ErrorInLocalSection)
     checkParseError(toks, E_SMP_ELEM_TYPE, 2, 1);
 }
 
-TEST(StateMachineParseErrors, ErrorInStateSection)
+TEST(StateMachineParserErrors, ErrorInStateSection)
 {
     TOKENIZE(
         "[Foo]\n"

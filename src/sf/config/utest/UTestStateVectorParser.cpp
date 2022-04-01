@@ -1,4 +1,4 @@
-#include "sf/config/StateVectorParse.hpp"
+#include "sf/config/StateVectorParser.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
@@ -8,12 +8,12 @@ static void checkParseError(
     const Result kRes,
     const I32 kLineNum,
     const I32 kColNum,
-    const Vec<String> kRegions = StateVectorParse::ALL_REGIONS)
+    const Vec<String> kRegions = StateVectorParser::ALL_REGIONS)
 {
     // Got expected return code from parser.
     Ref<const StateVectorParse> parse;
     ErrorInfo err;
-    CHECK_ERROR(kRes, StateVectorParse::parse(kToks, parse, &err, kRegions));
+    CHECK_ERROR(kRes, StateVectorParser::parse(kToks, parse, &err, kRegions));
 
     // Parse was not populated.
     CHECK_TRUE(parse == nullptr);
@@ -27,33 +27,34 @@ static void checkParseError(
     CHECK_TRUE(err.subtext.size() > 0);
 
     // A null error info pointer is not dereferenced.
-    CHECK_ERROR(kRes, StateVectorParse::parse(kToks, parse, nullptr, kRegions));
+    CHECK_ERROR(kRes,
+                StateVectorParser::parse(kToks, parse, nullptr, kRegions));
 }
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
-TEST_GROUP(StateVectorParse)
+TEST_GROUP(StateVectorParser)
 {
 };
 
-TEST(StateVectorParse, NoRegions)
+TEST(StateVectorParser, NoRegions)
 {
     // Parse state vector.
     TOKENIZE("");
     Ref<const StateVectorParse> parse;
-    CHECK_SUCCESS(StateVectorParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateVectorParser::parse(toks, parse, nullptr));
 
     // Expected number of regions was parsed.
     CHECK_EQUAL(0, parse->regions.size());
 }
 
-TEST(StateVectorParse, EmptyRegion)
+TEST(StateVectorParser, EmptyRegion)
 {
     // Parse state vector.
     TOKENIZE(
         "[Foo]\n");
     Ref<const StateVectorParse> parse;
-    CHECK_SUCCESS(StateVectorParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateVectorParser::parse(toks, parse, nullptr));
 
     // Expected number of regions was parsed.
     CHECK_EQUAL(1, parse->regions.size());
@@ -64,14 +65,14 @@ TEST(StateVectorParse, EmptyRegion)
     CHECK_EQUAL(0, parse->regions[0].elems.size());
 }
 
-TEST(StateVectorParse, MultipleEmptyRegions)
+TEST(StateVectorParser, MultipleEmptyRegions)
 {
     // Parse state vector.
     TOKENIZE(
         "[Foo]\n"
         "[Bar]\n");
     Ref<const StateVectorParse> parse;
-    CHECK_SUCCESS(StateVectorParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateVectorParser::parse(toks, parse, nullptr));
 
     // Expected number of regions was parsed.
     CHECK_EQUAL(2, parse->regions.size());
@@ -87,7 +88,7 @@ TEST(StateVectorParse, MultipleEmptyRegions)
     CHECK_EQUAL(0, parse->regions[1].elems.size());
 }
 
-TEST(StateVectorParse, SelectSpecificRegions)
+TEST(StateVectorParser, SelectSpecificRegions)
 {
     // Parse state vector, but only regions `Foo` and `Baz`.
     TOKENIZE(
@@ -96,10 +97,8 @@ TEST(StateVectorParse, SelectSpecificRegions)
         "[Baz]\n"
         "[Qux]\n");
     Ref<const StateVectorParse> parse;
-    CHECK_SUCCESS(StateVectorParse::parse(toks,
-                                           parse,
-                                           nullptr,
-                                           {"Foo", "Baz"}));
+    CHECK_SUCCESS(
+        StateVectorParser::parse(toks, parse, nullptr, {"Foo", "Baz"}));
 
     // Expected number of regions was parsed.
     CHECK_EQUAL(2, parse->regions.size());
@@ -115,14 +114,14 @@ TEST(StateVectorParse, SelectSpecificRegions)
     CHECK_EQUAL(0, parse->regions[1].elems.size());
 }
 
-TEST(StateVectorParse, RegionWithOneElement)
+TEST(StateVectorParser, RegionWithOneElement)
 {
     // Parse state vector.
     TOKENIZE(
         "[Foo]\n"
         "I32 foo\n");
     Ref<const StateVectorParse> parse;
-    CHECK_SUCCESS(StateVectorParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateVectorParser::parse(toks, parse, nullptr));
 
     // Expected number of regions was parsed.
     CHECK_EQUAL(1, parse->regions.size());
@@ -137,7 +136,7 @@ TEST(StateVectorParse, RegionWithOneElement)
     CHECK_EQUAL(toks[3], parse->regions[0].elems[0].tokName);
 }
 
-TEST(StateVectorParse, RegionWithMultipleElements)
+TEST(StateVectorParser, RegionWithMultipleElements)
 {
     // Parse state vector.
     TOKENIZE(
@@ -145,7 +144,7 @@ TEST(StateVectorParse, RegionWithMultipleElements)
         "I32 foo\n"
         "F64 bar\n");
     Ref<const StateVectorParse> parse;
-    CHECK_SUCCESS(StateVectorParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateVectorParser::parse(toks, parse, nullptr));
 
     // Expected number of regions was parsed.
     CHECK_EQUAL(1, parse->regions.size());
@@ -164,7 +163,7 @@ TEST(StateVectorParse, RegionWithMultipleElements)
     CHECK_EQUAL(toks[6], parse->regions[0].elems[1].tokName);
 }
 
-TEST(StateVectorParse, MultipleRegionsWithMultipleElements)
+TEST(StateVectorParser, MultipleRegionsWithMultipleElements)
 {
     // Parse state vector.
     TOKENIZE(
@@ -176,7 +175,7 @@ TEST(StateVectorParse, MultipleRegionsWithMultipleElements)
         "bool baz\n"
         "U8 qux\n");
     Ref<const StateVectorParse> parse;
-    CHECK_SUCCESS(StateVectorParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateVectorParser::parse(toks, parse, nullptr));
 
     // Expected number of regions was parsed.
     CHECK_EQUAL(2, parse->regions.size());
@@ -210,11 +209,11 @@ TEST(StateVectorParse, MultipleRegionsWithMultipleElements)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
-TEST_GROUP(StateVectorParseErrors)
+TEST_GROUP(StateVectorParserErrors)
 {
 };
 
-TEST(StateVectorParseErrors, UnexpectedTokenOutsideSection)
+TEST(StateVectorParserErrors, UnexpectedTokenOutsideSection)
 {
     TOKENIZE(
         "@Foo\n"
@@ -222,7 +221,7 @@ TEST(StateVectorParseErrors, UnexpectedTokenOutsideSection)
     checkParseError(toks, E_SVP_TOK, 1, 1);
 }
 
-TEST(StateVectorParseErrors, NonIdentifierForElementType)
+TEST(StateVectorParserErrors, NonIdentifierForElementType)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -230,7 +229,7 @@ TEST(StateVectorParseErrors, NonIdentifierForElementType)
     checkParseError(toks, E_SVP_ELEM_TYPE, 2, 1);
 }
 
-TEST(StateVectorParseErrors, MissingElementName)
+TEST(StateVectorParserErrors, MissingElementName)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -238,7 +237,7 @@ TEST(StateVectorParseErrors, MissingElementName)
     checkParseError(toks, E_SVP_ELEM_NAME, 2, 1);
 }
 
-TEST(StateVectorParseErrors, NonIdentifierAfterElementType)
+TEST(StateVectorParserErrors, NonIdentifierAfterElementType)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -246,7 +245,7 @@ TEST(StateVectorParseErrors, NonIdentifierAfterElementType)
     checkParseError(toks, E_SVP_ELEM_NAME, 2, 5);
 }
 
-TEST(StateVectorParseErrors, SelectNonexistentRegion)
+TEST(StateVectorParserErrors, SelectNonexistentRegion)
 {
     TOKENIZE(
         "[Foo]\n"

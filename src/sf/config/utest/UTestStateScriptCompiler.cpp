@@ -1,4 +1,4 @@
-#include "sf/config/StateScriptAssembly.hpp"
+#include "sf/config/StateScriptCompiler.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
@@ -7,7 +7,7 @@
     /* Compile state vector. */                                                \
     std::stringstream svSrc(kSrc);                                             \
     Ref<const StateVectorAssembly> svAsm;                                      \
-    CHECK_SUCCESS(StateVectorAssembly::compile(svSrc, svAsm, nullptr));        \
+    CHECK_SUCCESS(StateVectorCompiler::compile(svSrc, svAsm, nullptr));        \
                                                                                \
     /* Get state vector. */                                                    \
     StateVector& sv = svAsm->get();
@@ -21,7 +21,7 @@
     /* Compile state machine. */                                               \
     std::stringstream smSrc(kSrc);                                             \
     Ref<const StateMachineAssembly> smAsm;                                     \
-    CHECK_SUCCESS(StateMachineAssembly::compile(smSrc, svAsm, smAsm, nullptr));\
+    CHECK_SUCCESS(StateMachineCompiler::compile(smSrc, svAsm, smAsm, nullptr));\
                                                                                \
     /* Get state machine. */                                                   \
     StateMachine& sm = smAsm->get();                                           \
@@ -33,7 +33,7 @@
     std::stringstream ssSrc(kSrc);                                             \
     Ref<StateScriptAssembly> ssAsm;                                            \
     ErrorInfo ssTokInfo{};                                                     \
-    CHECK_SUCCESS(StateScriptAssembly::compile(ssSrc,                          \
+    CHECK_SUCCESS(StateScriptCompiler::compile(ssSrc,                          \
                                                smAsm,                          \
                                                ssAsm,                          \
                                                &ssTokInfo));
@@ -64,7 +64,7 @@ static void checkCompileError(std::stringstream& kSrc,
     // Got expected return code from compiler.
     Ref<StateScriptAssembly> ssAsm;
     ErrorInfo err;
-    CHECK_ERROR(kRes, StateScriptAssembly::compile(kSrc,
+    CHECK_ERROR(kRes, StateScriptCompiler::compile(kSrc,
                                                    kSmAsm,
                                                    ssAsm,
                                                    &err));
@@ -81,7 +81,7 @@ static void checkCompileError(std::stringstream& kSrc,
     CHECK_TRUE(err.subtext.size() > 0);
 
     // A null error info pointer is not dereferenced.
-    CHECK_ERROR(kRes, StateScriptAssembly::compile(ssCpy,
+    CHECK_ERROR(kRes, StateScriptCompiler::compile(ssCpy,
                                                    kSmAsm,
                                                    ssAsm,
                                                    nullptr));
@@ -89,11 +89,11 @@ static void checkCompileError(std::stringstream& kSrc,
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
-TEST_GROUP(StateScriptAssembly)
+TEST_GROUP(StateScriptCompiler)
 {
 };
 
-TEST(StateScriptAssembly, SingleStepPass)
+TEST(StateScriptCompiler, SingleStepPass)
 {
     // General logic: state script executes for a single step. The state machine
     // increments element `bar` when element `foo` is true; `foo` is set via
@@ -146,7 +146,7 @@ TEST(StateScriptAssembly, SingleStepPass)
     CHECK_LOCAL_ELEM("T", U64, 0);
 }
 
-TEST(StateScriptAssembly, SingleStepFail)
+TEST(StateScriptCompiler, SingleStepFail)
 {
     // General logic: same as in `SingleStepPass`, except state script expects
     // a different value for `bar` that is not met.
@@ -202,7 +202,7 @@ TEST(StateScriptAssembly, SingleStepFail)
     CHECK_LOCAL_ELEM("T", U64, 0);
 }
 
-TEST(StateScriptAssembly, MultiStepPass)
+TEST(StateScriptCompiler, MultiStepPass)
 {
     // General logic: element `bar` is updated according to some basic logic
     // that references a state vector element and the current time. State script
@@ -276,7 +276,7 @@ TEST(StateScriptAssembly, MultiStepPass)
     CHECK_LOCAL_ELEM("T", U64, 10);
 }
 
-TEST(StateScriptAssembly, MultiStepFail)
+TEST(StateScriptCompiler, MultiStepFail)
 {
     // General logic: same as in `MultiStepPass`, except state machine fails to
     // update element `bar` on T=8.
@@ -353,7 +353,7 @@ TEST(StateScriptAssembly, MultiStepFail)
     CHECK_LOCAL_ELEM("T", U64, 8);
 }
 
-TEST(StateScriptAssembly, DeltaT)
+TEST(StateScriptCompiler, DeltaT)
 {
     // General logic: state script steps from T=0 to T=9 with a delta T of 3.
     // State machine sums the values of T in an accumulator. Expect a sum of
@@ -399,7 +399,7 @@ TEST(StateScriptAssembly, DeltaT)
     CHECK_LOCAL_ELEM("T", U64, 9);
 }
 
-TEST(StateScriptAssembly, StateTime)
+TEST(StateScriptCompiler, StateTime)
 {
     // General logic: state `Initial` loops every 6 steps. In the state, element
     // `foo` is false on even steps and true on odd steps. State script checks
@@ -453,7 +453,7 @@ TEST(StateScriptAssembly, StateTime)
     CHECK_LOCAL_ELEM("T", U64, 5);
 }
 
-TEST(StateScriptAssembly, StateTimeFail)
+TEST(StateScriptCompiler, StateTimeFail)
 {
     // General logic: same as in `StateTime`, but the state machine sets an
     // incorrect value for element `foo` on T=4 on the 2nd loop of the state.
@@ -514,7 +514,7 @@ TEST(StateScriptAssembly, StateTimeFail)
     CHECK_LOCAL_ELEM("T", U64, 4);
 }
 
-TEST(StateScriptAssembly, MultiState)
+TEST(StateScriptCompiler, MultiState)
 {
     // General logic: states `Foo` and `Bar` transition to one another when
     // element `trans` is true; this element is set by the state script. Each
@@ -604,7 +604,7 @@ TEST(StateScriptAssembly, MultiState)
     CHECK_LOCAL_ELEM("baz", F64, (3.0 / 2.0));
 }
 
-TEST(StateScriptAssembly, MultiStateFailInStateSection)
+TEST(StateScriptCompiler, MultiStateFailInStateSection)
 {
     // General logic: same as in `MultiState`, but state `Bar` fails to execute
     // its unique behavior on T=2.
@@ -695,7 +695,7 @@ TEST(StateScriptAssembly, MultiStateFailInStateSection)
     CHECK_LOCAL_ELEM("baz", F64, 1.0);
 }
 
-TEST(StateScriptAssembly, MultiStateFailInAllStatesSection)
+TEST(StateScriptCompiler, MultiStateFailInAllStatesSection)
 {
     // General logic: same as in `MultiState`, but state `Bar` fails to execute
     // its shared behavior on T=2.
@@ -786,7 +786,7 @@ TEST(StateScriptAssembly, MultiStateFailInAllStatesSection)
     CHECK_LOCAL_ELEM("baz", F64, (1.0 / 2.0));
 }
 
-TEST(StateScriptAssembly, UseAliasInAssert)
+TEST(StateScriptCompiler, UseAliasInAssert)
 {
     // General logic: state `Initial` increments element `foo` indefinitely.
     // `foo` is aliased to `bar`.
@@ -832,7 +832,7 @@ TEST(StateScriptAssembly, UseAliasInAssert)
     CHECK_SV_ELEM("foo", I32, 11);
 }
 
-TEST(StateScriptAssembly, UseAliasInInput)
+TEST(StateScriptCompiler, UseAliasInInput)
 {
     // General logic: state `Initial` sets element `bar` to true when `foo` is
     // true. `foo` is aliased to `baz`.
@@ -882,7 +882,7 @@ TEST(StateScriptAssembly, UseAliasInInput)
     CHECK_SV_ELEM("bar", bool, true);
 }
 
-TEST(StateScriptAssembly, UseAliasInGuard)
+TEST(StateScriptCompiler, UseAliasInGuard)
 {
     // General logic: state `Initial` sets element `foo` to true on T=5. `foo`
     // is aliased to `bar`. State script stops when `bar` is true.
@@ -928,7 +928,7 @@ TEST(StateScriptAssembly, UseAliasInGuard)
     CHECK_SV_ELEM("foo", bool, true);
 }
 
-TEST(StateScriptAssembly, UpdateExpressionStats)
+TEST(StateScriptCompiler, UpdateExpressionStats)
 {
     // General logic: state `Initial` sets element `foo` to various values for
     // the first 3 steps. The state script stops when the rolling max of `foo`
@@ -977,7 +977,7 @@ TEST(StateScriptAssembly, UpdateExpressionStats)
     CHECK_SV_ELEM("foo", I32, 1);
 }
 
-TEST(StateScriptAssembly, ConfigInitialState)
+TEST(StateScriptCompiler, ConfigInitialState)
 {
     // General logic: states `Foo` and `Bar` are terminal states. `Foo` sets
     // element `foo` to true. The state script specifies `Bar` as the initial
@@ -1025,7 +1025,7 @@ TEST(StateScriptAssembly, ConfigInitialState)
     CHECK_SV_ELEM("foo", bool, false);
 }
 
-TEST(StateScriptAssembly, EmptyStateSection)
+TEST(StateScriptCompiler, EmptyStateSection)
 {
     // General logic: states `Foo` and `Bar` are terminal states. `Foo` sets
     // element `foo` to true. The state script specifies `Bar` as the initial
@@ -1071,11 +1071,11 @@ TEST(StateScriptAssembly, EmptyStateSection)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
-TEST_GROUP(StateScriptAssemblyErrors)
+TEST_GROUP(StateScriptCompilerErrors)
 {
 };
 
-TEST(StateScriptAssemblyErrors, NullParse)
+TEST(StateScriptCompilerErrors, NullParse)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1089,14 +1089,14 @@ TEST(StateScriptAssemblyErrors, NullParse)
         "[Foo]\n");
     Ref<StateScriptAssembly> ssAsm;
     Ref<const StateScriptParse> ssParse;
-    CHECK_ERROR(E_SSA_NULL, StateScriptAssembly::compile(ssParse,
+    CHECK_ERROR(E_SSA_NULL, StateScriptCompiler::compile(ssParse,
                                                          smAsm,
                                                          ssAsm,
                                                          nullptr));
     CHECK_TRUE(ssAsm == nullptr);
 }
 
-TEST(StateScriptAssemblyErrors, DupeSection)
+TEST(StateScriptCompilerErrors, DupeSection)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1117,7 +1117,7 @@ TEST(StateScriptAssemblyErrors, DupeSection)
     checkCompileError(ss, smAsm, E_SSA_DUPE, 5, 1);
 }
 
-TEST(StateScriptAssemblyErrors, UnknownState)
+TEST(StateScriptCompilerErrors, UnknownState)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1137,7 +1137,7 @@ TEST(StateScriptAssemblyErrors, UnknownState)
     checkCompileError(ss, smAsm, E_SSA_STATE, 4, 1);
 }
 
-TEST(StateScriptAssemblyErrors, UnguardedInput)
+TEST(StateScriptCompilerErrors, UnguardedInput)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1160,7 +1160,7 @@ TEST(StateScriptAssemblyErrors, UnguardedInput)
     checkCompileError(ss, smAsm, E_SSA_GUARD, 5, 1);
 }
 
-TEST(StateScriptAssemblyErrors, UnguardedAssert)
+TEST(StateScriptCompilerErrors, UnguardedAssert)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1183,7 +1183,7 @@ TEST(StateScriptAssemblyErrors, UnguardedAssert)
     checkCompileError(ss, smAsm, E_SSA_GUARD, 5, 1);
 }
 
-TEST(StateScriptAssemblyErrors, UnguardedStop)
+TEST(StateScriptCompilerErrors, UnguardedStop)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1206,7 +1206,7 @@ TEST(StateScriptAssemblyErrors, UnguardedStop)
     checkCompileError(ss, smAsm, E_SSA_GUARD, 5, 1);
 }
 
-TEST(StateScriptAssemblyErrors, IllegalElse)
+TEST(StateScriptCompilerErrors, IllegalElse)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1230,7 +1230,7 @@ TEST(StateScriptAssemblyErrors, IllegalElse)
     checkCompileError(ss, smAsm, E_SSA_ELSE, 6, 1);
 }
 
-TEST(StateScriptAssemblyErrors, SurfaceErrorInGuardExpression)
+TEST(StateScriptCompilerErrors, SurfaceErrorInGuardExpression)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1253,7 +1253,7 @@ TEST(StateScriptAssemblyErrors, SurfaceErrorInGuardExpression)
     checkCompileError(ss, smAsm, E_EXA_ELEM, 5, 1);
 }
 
-TEST(StateScriptAssemblyErrors, NestedGuard)
+TEST(StateScriptCompilerErrors, NestedGuard)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1276,7 +1276,7 @@ TEST(StateScriptAssemblyErrors, NestedGuard)
     checkCompileError(ss, smAsm, E_SSA_NEST, 5, 11);
 }
 
-TEST(StateScriptAssemblyErrors, UnreachableInput)
+TEST(StateScriptCompilerErrors, UnreachableInput)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1302,7 +1302,7 @@ TEST(StateScriptAssemblyErrors, UnreachableInput)
     checkCompileError(ss, smAsm, E_SSA_UNRCH, 7, 5);
 }
 
-TEST(StateScriptAssemblyErrors, UnreachableAssert)
+TEST(StateScriptCompilerErrors, UnreachableAssert)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1328,7 +1328,7 @@ TEST(StateScriptAssemblyErrors, UnreachableAssert)
     checkCompileError(ss, smAsm, E_SSA_UNRCH, 7, 5);
 }
 
-TEST(StateScriptAssemblyErrors, SurfaceErrorInAssertExpression)
+TEST(StateScriptCompilerErrors, SurfaceErrorInAssertExpression)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1351,7 +1351,7 @@ TEST(StateScriptAssemblyErrors, SurfaceErrorInAssertExpression)
     checkCompileError(ss, smAsm, E_EXA_ELEM, 5, 15);
 }
 
-TEST(StateScriptAssemblyErrors, SurfaceErrorInAction)
+TEST(StateScriptCompilerErrors, SurfaceErrorInAction)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1374,7 +1374,7 @@ TEST(StateScriptAssemblyErrors, SurfaceErrorInAction)
     checkCompileError(ss, smAsm, E_SMA_ASG_ELEM, 5, 7);
 }
 
-TEST(StateScriptAssemblyErrors, NoStop)
+TEST(StateScriptCompilerErrors, NoStop)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1397,7 +1397,7 @@ TEST(StateScriptAssemblyErrors, NoStop)
     checkCompileError(ss, smAsm, E_SSA_STOP, -1, -1);
 }
 
-TEST(StateScriptAssemblyErrors, GlobalClockOverflow)
+TEST(StateScriptCompilerErrors, GlobalClockOverflow)
 {
     // Compile objects.
     INIT_SV(
@@ -1422,7 +1422,7 @@ TEST(StateScriptAssemblyErrors, GlobalClockOverflow)
     CHECK_ERROR(E_SSA_OVFL, ssAsm->run(ssTokInfo, report));
 }
 
-TEST(StateScriptAssemblyErrors, DeltaTFloating)
+TEST(StateScriptCompilerErrors, DeltaTFloating)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1443,7 +1443,7 @@ TEST(StateScriptAssemblyErrors, DeltaTFloating)
     checkCompileError(ss, smAsm, E_SSA_DT, 2, 9);
 }
 
-TEST(StateScriptAssemblyErrors, DeltaTNegative)
+TEST(StateScriptCompilerErrors, DeltaTNegative)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1464,7 +1464,7 @@ TEST(StateScriptAssemblyErrors, DeltaTNegative)
     checkCompileError(ss, smAsm, E_SSA_DT, 2, 9);
 }
 
-TEST(StateScriptAssemblyErrors, DeltaTTooLarge)
+TEST(StateScriptCompilerErrors, DeltaTTooLarge)
 {
     INIT_SV(
         "[Foo]\n"
@@ -1485,7 +1485,7 @@ TEST(StateScriptAssemblyErrors, DeltaTTooLarge)
     checkCompileError(ss, smAsm, E_SSA_DT, 2, 9);
 }
 
-TEST(StateScriptAssemblyErrors, UnknownInitialState)
+TEST(StateScriptCompilerErrors, UnknownInitialState)
 {
     INIT_SV(
         "[Foo]\n"

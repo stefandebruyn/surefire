@@ -1,6 +1,6 @@
 #include <stack>
 
-#include "sf/config/ExpressionParse.hpp"
+#include "sf/config/ExpressionParser.hpp"
 #include "sf/core/Assert.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
@@ -9,9 +9,9 @@ static const char* const gErrText = "expression error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-Result ExpressionParse::parse(TokenIterator kIt,
-                              Ref<const ExpressionParse>& kParse,
-                              ErrorInfo* const kErr)
+Result ExpressionParser::parse(TokenIterator kIt,
+                               Ref<const ExpressionParse>& kParse,
+                               ErrorInfo* const kErr)
 {
     // Assert that iterator is at the start of the expression.
     SF_SAFE_ASSERT(kIt.idx() == 0);
@@ -99,21 +99,21 @@ Result ExpressionParse::parse(TokenIterator kIt,
     // contains only known operators, and contains no unexpected token types.
     // So, the only errors to check for herein are syntax errors.
     Ref<ExpressionParse::MutNode> root;
-    const Result res = ExpressionParse::parseImpl(kIt, root, kErr);
+    const Result res = ExpressionParser::parseImpl(kIt, root, kErr);
     if (res != SUCCESS)
     {
         return res;
     }
 
     // Convert tree to the public, const type.
-    ExpressionParse::convertTree(root, kParse);
+    ExpressionParser::convertTree(root, kParse);
 
     return SUCCESS;
 }
 
 /////////////////////////////////// Private ////////////////////////////////////
 
-Result ExpressionParse::popSubexpression(
+Result ExpressionParser::popSubexpression(
     std::stack<Token>& kStack,
     std::stack<Ref<ExpressionParse::MutNode>>& kNodes,
     ErrorInfo* const kErr)
@@ -173,9 +173,9 @@ Result ExpressionParse::popSubexpression(
     return SUCCESS;
 }
 
-Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
-                                          Ref<ExpressionParse::MutNode>& kNode,
-                                          ErrorInfo* const kErr)
+Result ExpressionParser::parseFunctionCall(TokenIterator kIt,
+                                           Ref<ExpressionParse::MutNode>& kNode,
+                                           ErrorInfo* const kErr)
 {
     // Assert that token sequence is an identifier followed by an open
     // parenthese and ending with a close parenthese.
@@ -255,7 +255,7 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
                                                       nullptr,
                                                       nullptr,
                                                       false});
-        const Result res = ExpressionParse::parseImpl(argIt,
+        const Result res = ExpressionParser::parseImpl(argIt,
                                                       node->left->right,
                                                       kErr);
         if (res != SUCCESS)
@@ -268,7 +268,7 @@ Result ExpressionParse::parseFunctionCall(TokenIterator kIt,
     return SUCCESS;
 }
 
-void ExpressionParse::expandDoubleIneq(
+void ExpressionParser::expandDoubleIneq(
     const Ref<ExpressionParse::MutNode> kNode)
 {
     // Base case: node is null, so we fell off the tree.
@@ -310,13 +310,13 @@ void ExpressionParse::expandDoubleIneq(
     }
 
     // Recurse into left and right subtrees.
-    ExpressionParse::expandDoubleIneq(kNode->left);
-    ExpressionParse::expandDoubleIneq(kNode->right);
+    ExpressionParser::expandDoubleIneq(kNode->left);
+    ExpressionParser::expandDoubleIneq(kNode->right);
 }
 
-Result ExpressionParse::parseImpl(TokenIterator& kIt,
-                                  Ref<ExpressionParse::MutNode>& kNode,
-                                  ErrorInfo* const kErr)
+Result ExpressionParser::parseImpl(TokenIterator& kIt,
+                                   Ref<ExpressionParse::MutNode>& kNode,
+                                   ErrorInfo* const kErr)
 {
     // Copy token sequence, minus newlines, into a vector of tokens enclosed in
     // parentheses. Adding this extra pair of parentheses simplifies the
@@ -382,9 +382,9 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
                 Ref<ExpressionParse::MutNode> funcNode;
                 TokenIterator funcIt((toks.begin() + i),
                                      (toks.begin() + j + 1));
-                const Result res = ExpressionParse::parseFunctionCall(funcIt,
-                                                                      funcNode,
-                                                                      kErr);
+                const Result res = ExpressionParser::parseFunctionCall(funcIt,
+                                                                       funcNode,
+                                                                       kErr);
                 if (res != SUCCESS)
                 {
                     return res;
@@ -438,7 +438,7 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
                 {
                     // This operator is lower precedence than the last one; add
                     // last operator subexpression onto the expression tree.
-                    const Result res = ExpressionParse::popSubexpression(stack,
+                    const Result res = ExpressionParser::popSubexpression(stack,
                                                                          nodes,
                                                                          kErr);
                     if (res != SUCCESS)
@@ -465,7 +465,7 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
             // Process subexpression on stack.
             while (stack.top().type != Token::LPAREN)
             {
-                const Result res = ExpressionParse::popSubexpression(stack,
+                const Result res = ExpressionParser::popSubexpression(stack,
                                                                      nodes,
                                                                      kErr);
                 if (res != SUCCESS)
@@ -504,7 +504,7 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
     }
 
     // Expand any double inequalities in the expression.
-    ExpressionParse::expandDoubleIneq(nodes.top());
+    ExpressionParser::expandDoubleIneq(nodes.top());
 
     // Return the root node.
     kNode = nodes.top();
@@ -512,8 +512,8 @@ Result ExpressionParse::parseImpl(TokenIterator& kIt,
     return SUCCESS;
 }
 
-void ExpressionParse::convertTree(Ref<ExpressionParse::MutNode> kFrom,
-                                  Ref<const ExpressionParse>& kTo)
+void ExpressionParser::convertTree(Ref<ExpressionParse::MutNode> kFrom,
+                                   Ref<const ExpressionParse>& kTo)
 {
     // Base case: node is null, so we fell off the tree.
     if (kFrom == nullptr)
@@ -524,8 +524,8 @@ void ExpressionParse::convertTree(Ref<ExpressionParse::MutNode> kFrom,
     // Convert left and right subtrees.
     Ref<const ExpressionParse> left;
     Ref<const ExpressionParse> right;
-    ExpressionParse::convertTree(kFrom->left, left);
-    ExpressionParse::convertTree(kFrom->right, right);
+    ExpressionParser::convertTree(kFrom->left, left);
+    ExpressionParser::convertTree(kFrom->right, right);
 
     // Convert current node.
     kTo.reset(new ExpressionParse(kFrom->data, left, right, kFrom->func));

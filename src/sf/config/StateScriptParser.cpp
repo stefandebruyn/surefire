@@ -1,5 +1,5 @@
 #include "sf/core/Assert.hpp"
-#include "sf/config/StateScriptParse.hpp"
+#include "sf/config/StateScriptParser.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
 
@@ -7,9 +7,9 @@ static const char* const gErrText = "state script parser error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-Result StateScriptParse::parse(const Vec<Token>& kToks,
-                               Ref<const StateScriptParse>& kParse,
-                               ErrorInfo* const kErr)
+Result StateScriptParser::parse(const Vec<Token>& kToks,
+                                Ref<const StateScriptParse>& kParse,
+                                ErrorInfo* const kErr)
 {
     // Create iterator for token vector.
     TokenIterator it(kToks.begin(), kToks.end());
@@ -105,7 +105,7 @@ Result StateScriptParse::parse(const Vec<Token>& kToks,
             const U32 idxEnd = it.next({Token::SECTION});
 
             // Parse section contents as a single block.
-            const Result res = StateMachineParse::parseBlock(
+            const Result res = StateMachineParser::parseBlock(
                 it.slice(it.idx(), idxEnd), section.block, kErr);
             if (res != SUCCESS)
             {

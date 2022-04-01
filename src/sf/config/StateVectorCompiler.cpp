@@ -1,6 +1,6 @@
 #include <fstream>
 
-#include "sf/config/StateVectorAssembly.hpp"
+#include "sf/config/StateVectorCompiler.hpp"
 #include "sf/core/Assert.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
@@ -9,7 +9,7 @@ extern const char* const gErrText = "state vector config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-Result StateVectorAssembly::compile(const String kFilePath,
+Result StateVectorCompiler::compile(const String kFilePath,
                                     Ref<const StateVectorAssembly>& kAsm,
                                     ErrorInfo* const kErr)
 {
@@ -34,10 +34,10 @@ Result StateVectorAssembly::compile(const String kFilePath,
     }
 
     // Send input stream into the next compilation phase.
-    return StateVectorAssembly::compile(ifs, kAsm, kErr);
+    return StateVectorCompiler::compile(ifs, kAsm, kErr);
 }
 
-Result StateVectorAssembly::compile(std::istream& kIs,
+Result StateVectorCompiler::compile(std::istream& kIs,
                                     Ref<const StateVectorAssembly>& kAsm,
                                     ErrorInfo* const kErr)
 {
@@ -56,7 +56,7 @@ Result StateVectorAssembly::compile(std::istream& kIs,
 
     // Parse the state machine config.
     Ref<const StateVectorParse> parse;
-    res = StateVectorParse::parse(toks, parse, kErr);
+    res = StateVectorParser::parse(toks, parse, kErr);
     if (res != SUCCESS)
     {
         if (kErr != nullptr)
@@ -68,10 +68,10 @@ Result StateVectorAssembly::compile(std::istream& kIs,
     }
 
     // Send state machine config into the next compilation phase.
-    return StateVectorAssembly::compile(parse, kAsm, kErr);
+    return StateVectorCompiler::compile(parse, kAsm, kErr);
 }
 
-Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
+Result StateVectorCompiler::compile(const Ref<const StateVectorParse> kParse,
                                     Ref<const StateVectorAssembly>& kAsm,
                                     ErrorInfo* const kErr)
 {
@@ -204,7 +204,7 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
         for (const StateVectorParse::ElementParse& elemParse :
              regionParse.elems)
         {
-            const Result res = StateVectorAssembly::allocateElement(
+            const Result res = StateVectorCompiler::allocateElement(
                 elemParse,
                 ws,
                 (*ws.elemConfigs)[elemIdx],
@@ -269,7 +269,7 @@ Ref<const StateVectorParse> StateVectorAssembly::parse() const
 
 /////////////////////////////////// Private ////////////////////////////////////
 
-Result StateVectorAssembly::allocateElement(
+Result StateVectorCompiler::allocateElement(
     const StateVectorParse::ElementParse& kElem,
     StateVectorAssembly::Workspace& kWs,
     StateVector::ElementConfig& kElemConfig,

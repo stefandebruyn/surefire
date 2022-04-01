@@ -1,4 +1,4 @@
-#include "sf/config/StateScriptParse.hpp"
+#include "sf/config/StateScriptParser.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
@@ -11,7 +11,7 @@ static void checkParseError(const Vec<Token>& kToks,
     // Got expected return code from parser.
     Ref<const StateScriptParse> parse;
     ErrorInfo err;
-    CHECK_ERROR(kRes, StateScriptParse::parse(kToks, parse, &err));
+    CHECK_ERROR(kRes, StateScriptParser::parse(kToks, parse, &err));
 
     // Parse was not populated.
     CHECK_TRUE(parse == nullptr);
@@ -25,39 +25,39 @@ static void checkParseError(const Vec<Token>& kToks,
     CHECK_TRUE(err.subtext.size() > 0);
 
     // A null error info pointer is not dereferenced.
-    CHECK_ERROR(kRes, StateScriptParse::parse(kToks, parse, nullptr));
+    CHECK_ERROR(kRes, StateScriptParser::parse(kToks, parse, nullptr));
 }
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
-TEST_GROUP(StateScriptParse)
+TEST_GROUP(StateScriptParser)
 {
 };
 
-TEST(StateScriptParse, NoStateSections)
+TEST(StateScriptParser, NoStateSections)
 {
     TOKENIZE(
         "\n\n\n"
         "[CONFIG]\n"
         "DELTA_T 1\n");
     Ref<const StateScriptParse> parse;
-    CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
     CHECK_EQUAL(0, parse->sections.size());
     CHECK_EQUAL(toks[6], parse->config.tokDeltaT);
 }
 
-TEST(StateScriptParse, ConfigInitStateOption)
+TEST(StateScriptParser, ConfigInitStateOption)
 {
     TOKENIZE(
         "[CONFIG]\n"
         "INIT_STATE foo\n");
     Ref<const StateScriptParse> parse;
-    CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
     CHECK_EQUAL(0, parse->sections.size());
     CHECK_EQUAL(toks[3], parse->config.tokInitState);
 }
 
-TEST(StateScriptParse, EmptyStateSection)
+TEST(StateScriptParser, EmptyStateSection)
 {
     TOKENIZE(
         "[CONFIG]\n"
@@ -65,7 +65,7 @@ TEST(StateScriptParse, EmptyStateSection)
         "\n"
         "[Foo]\n");
     Ref<const StateScriptParse> parse;
-    CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
     CHECK_EQUAL(1, parse->sections.size());
     CHECK_EQUAL(parse->sections[0].tokName, toks[6]);
     CHECK_TRUE(parse->sections[0].block != nullptr);
@@ -78,7 +78,7 @@ TEST(StateScriptParse, EmptyStateSection)
     CHECK_EQUAL(toks[3], parse->config.tokDeltaT);
 }
 
-TEST(StateScriptParse, OneSection)
+TEST(StateScriptParser, OneSection)
 {
     TOKENIZE(
         "[CONFIG]\n"
@@ -88,7 +88,7 @@ TEST(StateScriptParse, OneSection)
         "foo = 1\n"
         "bar = 2\n");
     Ref<const StateScriptParse> parse;
-    CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
     CHECK_EQUAL(1, parse->sections.size());
     CHECK_EQUAL(toks[3], parse->config.tokDeltaT);
 
@@ -127,7 +127,7 @@ TEST(StateScriptParse, OneSection)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(StateScriptParse, TwoSections)
+TEST(StateScriptParser, TwoSections)
 {
     TOKENIZE(
         "[CONFIG]\n"
@@ -141,7 +141,7 @@ TEST(StateScriptParse, TwoSections)
         "baz = 3\n"
         "qux = 4\n");
     Ref<const StateScriptParse> parse;
-    CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
     CHECK_EQUAL(2, parse->sections.size());
     CHECK_EQUAL(toks[3], parse->config.tokDeltaT);
 
@@ -214,7 +214,7 @@ TEST(StateScriptParse, TwoSections)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(StateScriptParse, Assertion)
+TEST(StateScriptParser, Assertion)
 {
     TOKENIZE(
         "[CONFIG]\n"
@@ -224,7 +224,7 @@ TEST(StateScriptParse, Assertion)
         "@ASSERT foo == 1\n"
         "bar = 2\n");
     Ref<const StateScriptParse> parse;
-    CHECK_SUCCESS(StateScriptParse::parse(toks, parse, nullptr));
+    CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
     CHECK_EQUAL(1, parse->sections.size());
     CHECK_EQUAL(toks[3], parse->config.tokDeltaT);
 
@@ -272,13 +272,13 @@ TEST(StateScriptParse, Assertion)
     CHECK_TRUE(node->right == nullptr);
 }
 
-TEST(StateScriptParse, ErrorExpectedSection)
+TEST(StateScriptParser, ErrorExpectedSection)
 {
     TOKENIZE("foo = 1\n");
     checkParseError(toks, E_SSP_SEC, 1, 1);
 }
 
-TEST(StateScriptParse, ErrorInBlock)
+TEST(StateScriptParser, ErrorInBlock)
 {
     TOKENIZE(
         "[CONFIG]\n"
@@ -289,7 +289,7 @@ TEST(StateScriptParse, ErrorInBlock)
     checkParseError(toks, E_EXP_SYNTAX, 5, 9);
 }
 
-TEST(StateScriptParse, ErrorInAssertion)
+TEST(StateScriptParser, ErrorInAssertion)
 {
     TOKENIZE(
         "[CONFIG]\n"
@@ -300,7 +300,7 @@ TEST(StateScriptParse, ErrorInAssertion)
     checkParseError(toks, E_EXP_SYNTAX, 5, 13);
 }
 
-TEST(StateScriptParse, ErrorUnexpectedTokenAfterDeltaT)
+TEST(StateScriptParser, ErrorUnexpectedTokenAfterDeltaT)
 {
     TOKENIZE(
         "[CONFIG]\n"
@@ -308,7 +308,7 @@ TEST(StateScriptParse, ErrorUnexpectedTokenAfterDeltaT)
     checkParseError(toks, E_SSP_DT, 2, 1);
 }
 
-TEST(StateScriptParse, ErrorEofAfterDeltaT)
+TEST(StateScriptParser, ErrorEofAfterDeltaT)
 {
     TOKENIZE(
         "[CONFIG]\n"
@@ -316,7 +316,7 @@ TEST(StateScriptParse, ErrorEofAfterDeltaT)
     checkParseError(toks, E_SSP_DT, 2, 1);
 }
 
-TEST(StateScriptParse, ErrorUnexpectedTokenAfterInitState)
+TEST(StateScriptParser, ErrorUnexpectedTokenAfterInitState)
 {
     TOKENIZE(
         "[CONFIG]\n"
@@ -324,7 +324,7 @@ TEST(StateScriptParse, ErrorUnexpectedTokenAfterInitState)
     checkParseError(toks, E_SSP_STATE, 2, 1);
 }
 
-TEST(StateScriptParse, ErrorEofAfterInitState)
+TEST(StateScriptParser, ErrorEofAfterInitState)
 {
     TOKENIZE(
         "[CONFIG]\n"
@@ -332,7 +332,7 @@ TEST(StateScriptParse, ErrorEofAfterInitState)
     checkParseError(toks, E_SSP_STATE, 2, 1);
 }
 
-TEST(StateScriptParse, ErrorUnknownConfigOption)
+TEST(StateScriptParser, ErrorUnknownConfigOption)
 {
     TOKENIZE(
         "[CONFIG]\n"
@@ -340,7 +340,7 @@ TEST(StateScriptParse, ErrorUnknownConfigOption)
     checkParseError(toks, E_SSP_CONFIG, 2, 1);
 }
 
-TEST(StateScriptParse, ErrorExtraTokenAfterStop)
+TEST(StateScriptParser, ErrorExtraTokenAfterStop)
 {
     TOKENIZE(
         "[ALL_STATES]\n"

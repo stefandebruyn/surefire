@@ -1,5 +1,5 @@
-#ifndef SF_EXPRESSION_PARSE_HPP
-#define SF_EXPRESSION_PARSE_HPP
+#ifndef SF_EXPRESSION_PARSER_HPP
+#define SF_EXPRESSION_PARSER_HPP
 
 #include "sf/config/ErrorInfo.hpp"
 #include "sf/config/StlTypes.hpp"
@@ -18,11 +18,9 @@ public:
 
     bool func;
 
-    static Result parse(TokenIterator kIt,
-                        Ref<const ExpressionParse>& kParse,
-                        ErrorInfo* const kErr);
-
 private:
+
+    friend class ExpressionParser;
 
     struct MutNode final
     {
@@ -31,6 +29,24 @@ private:
         Ref<ExpressionParse::MutNode> right;
         bool func;
     };
+
+    ExpressionParse(const Token kData,
+                    const Ref<const ExpressionParse> kLeft,
+                    const Ref<const ExpressionParse> kRight,
+                    const bool kFunc);
+};
+
+class ExpressionParser final
+{
+public:
+
+    static Result parse(TokenIterator kIt,
+                        Ref<const ExpressionParse>& kParse,
+                        ErrorInfo* const kErr);
+
+    ExpressionParser() = delete;
+
+private:
 
     static Result popSubexpression(
         std::stack<Token>& kStack,
@@ -49,11 +65,6 @@ private:
 
     static void convertTree(Ref<ExpressionParse::MutNode> kFrom,
                             Ref<const ExpressionParse>& kTo);
-
-    ExpressionParse(const Token kData,
-                    const Ref<const ExpressionParse> kLeft,
-                    const Ref<const ExpressionParse> kRight,
-                    const bool kFunc);
 };
 
 #endif

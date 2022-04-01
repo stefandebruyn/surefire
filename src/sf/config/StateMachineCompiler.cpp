@@ -1,9 +1,9 @@
 #include <fstream>
 
-#include "sf/config/ExpressionAssembly.hpp"
+#include "sf/config/ExpressionCompiler.hpp"
 #include "sf/config/LanguageConstants.hpp"
-#include "sf/config/StateMachineAssembly.hpp"
-#include "sf/config/StateVectorAssembly.hpp"
+#include "sf/config/StateMachineCompiler.hpp"
+#include "sf/config/StateVectorCompiler.hpp"
 #include "sf/core/Assert.hpp"
 
 /////////////////////////////////// Globals ////////////////////////////////////
@@ -12,7 +12,7 @@ static const char* const gErrText = "state machine config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-Result StateMachineAssembly::compile(
+Result StateMachineCompiler::compile(
     const String kFilePath,
     const Ref<const StateVectorAssembly> kSvAsm,
     Ref<const StateMachineAssembly>& kAsm,
@@ -38,10 +38,10 @@ Result StateMachineAssembly::compile(
     }
 
     // Send input stream into the next compilation phase.
-    return StateMachineAssembly::compile(ifs, kSvAsm, kAsm, kErr);
+    return StateMachineCompiler::compile(ifs, kSvAsm, kAsm, kErr);
 }
 
-Result StateMachineAssembly::compile(
+Result StateMachineCompiler::compile(
     std::istream& kIs,
     const Ref<const StateVectorAssembly> kSvAsm,
     Ref<const StateMachineAssembly>& kAsm,
@@ -61,7 +61,7 @@ Result StateMachineAssembly::compile(
 
     // Parse the state machine config.
     Ref<const StateMachineParse> parse;
-    res = StateMachineParse::parse(toks, parse, kErr);
+    res = StateMachineParser::parse(toks, parse, kErr);
     if (res != SUCCESS)
     {
         if (kErr != nullptr)
@@ -72,10 +72,10 @@ Result StateMachineAssembly::compile(
     }
 
     // Send state machine config into the next compilation phase.
-    return StateMachineAssembly::compile(parse, kSvAsm, kAsm, kErr);
+    return StateMachineCompiler::compile(parse, kSvAsm, kAsm, kErr);
 }
 
-Result StateMachineAssembly::compile(
+Result StateMachineCompiler::compile(
     const Ref<const StateMachineParse> kParse,
     const Ref<const StateVectorAssembly> kSvAsm,
     Ref<const StateMachineAssembly>& kAsm,
@@ -103,7 +103,7 @@ Result StateMachineAssembly::compile(
 
     // Validate the state machine state vector. This will partially populate
     // the element symbol table in the compiler state.
-    Result res = StateMachineAssembly::checkStateVector(kParse, ws, kErr);
+    Result res = StateMachineCompiler::checkStateVector(kParse, ws, kErr);
     if (res != SUCCESS)
     {
         return res;
@@ -111,14 +111,14 @@ Result StateMachineAssembly::compile(
 
     // Compile the local state vector. This will complete the element symbol
     // table in the compiler state.
-    res = StateMachineAssembly::compileLocalStateVector(kParse, ws, kErr);
+    res = StateMachineCompiler::compileLocalStateVector(kParse, ws, kErr);
     if (res != SUCCESS)
     {
         return res;
     }
 
     // Set local element initial values.
-    res = StateMachineAssembly::initLocalElementValues(kParse, ws, kErr);
+    res = StateMachineCompiler::initLocalElementValues(kParse, ws, kErr);
     if (res != SUCCESS)
     {
         return res;
@@ -137,7 +137,7 @@ Result StateMachineAssembly::compile(
     // Compile each state machine state.
     for (const StateMachineParse::StateParse& state : kParse->states)
     {
-        res = StateMachineAssembly::compileState(state, ws, kErr);
+        res = StateMachineCompiler::compileState(state, ws, kErr);
         if (res != SUCCESS)
         {
             return res;
@@ -223,25 +223,25 @@ StateMachine::Config StateMachineAssembly::config() const
     return mWs.smConfig;
 }
 
-Ref<const StateMachineParse> StateMachineAssembly::parse() const
-{
-    return mWs.smParse;
-}
-
 StateVector& StateMachineAssembly::localStateVector() const
 {
     return mWs.localSvAsm->get();
 }
 
+Ref<const StateMachineParse> StateMachineAssembly::parse() const
+{
+    return mWs.smParse;
+}
+
 /////////////////////////////////// Private ////////////////////////////////////
 
-bool StateMachineAssembly::stateNameReserved(const Token& kTokSection)
+bool StateMachineCompiler::stateNameReserved(const Token& kTokSection)
 {
     return ((kTokSection.str == LangConst::sectionAllStates)
             || (kTokSection.str == LangConst::sectionConfig));
 }
 
-Result StateMachineAssembly::checkStateVector(
+Result StateMachineCompiler::checkStateVector(
     const Ref<const StateMachineParse> kParse,
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
@@ -389,7 +389,7 @@ Result StateMachineAssembly::checkStateVector(
     return SUCCESS;
 }
 
-Result StateMachineAssembly::compileLocalStateVector(
+Result StateMachineCompiler::compileLocalStateVector(
     const Ref<const StateMachineParse> kParse,
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
@@ -445,7 +445,7 @@ Result StateMachineAssembly::compileLocalStateVector(
     // Compile the local state vector. We know local state vector config is at
     // least syntatically correct, so the only errors that can occur here would
     // be caused by the user-configured local elements.
-    Result res = StateVectorAssembly::compile(localSvConfig,
+    Result res = StateVectorCompiler::compile(localSvConfig,
                                               kWs.localSvAsm,
                                               kErr);
     if (res != SUCCESS)
@@ -474,7 +474,7 @@ Result StateMachineAssembly::compileLocalStateVector(
     return SUCCESS;
 }
 
-Result StateMachineAssembly::checkLocalElemInitExprs(
+Result StateMachineCompiler::checkLocalElemInitExprs(
     const StateMachineParse::LocalElementParse& kInitElem,
     const Ref<const ExpressionParse> kExpr,
     StateMachineAssembly::Workspace& kWs,
@@ -540,7 +540,7 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
     }
 
     // Check left subtree.
-    Result res = StateMachineAssembly::checkLocalElemInitExprs(kInitElem,
+    Result res = StateMachineCompiler::checkLocalElemInitExprs(kInitElem,
                                                                kExpr->left,
                                                                kWs,
                                                                kErr);
@@ -550,7 +550,7 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
     }
 
     // Check right subtree.
-    res = StateMachineAssembly::checkLocalElemInitExprs(kInitElem,
+    res = StateMachineCompiler::checkLocalElemInitExprs(kInitElem,
                                                         kExpr->right,
                                                         kWs,
                                                         kErr);
@@ -562,7 +562,7 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
     return SUCCESS;
 }
 
-Result StateMachineAssembly::initLocalElementValues(
+Result StateMachineCompiler::initLocalElementValues(
     const Ref<const StateMachineParse> kParse,
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
@@ -573,7 +573,7 @@ Result StateMachineAssembly::initLocalElementValues(
     for (const StateMachineParse::LocalElementParse& elem : kParse->localElems)
     {
         // Validate element references in the initialization expression.
-        Result res = StateMachineAssembly::checkLocalElemInitExprs(
+        Result res = StateMachineCompiler::checkLocalElemInitExprs(
             elem, elem.initValExpr, kWs, kErr);
         if (res != SUCCESS)
         {
@@ -586,7 +586,7 @@ Result StateMachineAssembly::initLocalElementValues(
 
         // Compile element initial value expression.
         Ref<const ExpressionAssembly> initExprAsm;
-        res = ExpressionAssembly::compile(elem.initValExpr,
+        res = ExpressionCompiler::compile(elem.initValExpr,
                                           kWs.elems,
                                           elemObj->type(),
                                           initExprAsm,
@@ -723,7 +723,7 @@ Result StateMachineAssembly::initLocalElementValues(
     return SUCCESS;
 }
 
-Result StateMachineAssembly::compileAssignmentAction(
+Result StateMachineCompiler::compileAssignmentAction(
     const Ref<const StateMachineParse::ActionParse> kParse,
     const Map<String, IElement*>& kBindings,
     const Set<String>& kReadOnlyElems,
@@ -754,7 +754,7 @@ Result StateMachineAssembly::compileAssignmentAction(
     }
 
     // Compile RHS expression.
-    const Result res = ExpressionAssembly::compile(kParse->rhs,
+    const Result res = ExpressionCompiler::compile(kParse->rhs,
                                                    kBindings,
                                                    elemObj->type(),
                                                    kRhsAsm,
@@ -864,7 +864,7 @@ Result StateMachineAssembly::compileAssignmentAction(
     return SUCCESS;
 }
 
-Result StateMachineAssembly::compileAction(
+Result StateMachineCompiler::compileAction(
     const Ref<const StateMachineParse::ActionParse> kParse,
     StateMachineAssembly::Workspace& kWs,
     const bool kInExitLabel,
@@ -879,7 +879,7 @@ Result StateMachineAssembly::compileAction(
     {
         // Compile assignment action.
         Ref<const ExpressionAssembly> rhsAsm;
-        res = StateMachineAssembly::compileAssignmentAction(kParse,
+        res = StateMachineCompiler::compileAssignmentAction(kParse,
                                                             kWs.elems,
                                                             kWs.readOnlyElems,
                                                             kAction,
@@ -926,7 +926,7 @@ Result StateMachineAssembly::compileAction(
     return SUCCESS;
 }
 
-Result StateMachineAssembly::compileBlock(
+Result StateMachineCompiler::compileBlock(
     const Ref<const StateMachineParse::BlockParse> kParse,
     StateMachineAssembly::Workspace& kWs,
     const bool kInExitLabel,
@@ -964,7 +964,7 @@ Result StateMachineAssembly::compileBlock(
     {
         // Compile block guard.
         Ref<const ExpressionAssembly> guardAsm;
-        res = ExpressionAssembly::compile(kParse->guard,
+        res = ExpressionCompiler::compile(kParse->guard,
                                           kWs.elems,
                                           ElementType::BOOL,
                                           guardAsm,
@@ -994,7 +994,7 @@ Result StateMachineAssembly::compileBlock(
         {
             // Compile if branch block.
             Ref<StateMachine::Block> block;
-            res = StateMachineAssembly::compileBlock(kParse->ifBlock,
+            res = StateMachineCompiler::compileBlock(kParse->ifBlock,
                                                      kWs,
                                                      kInExitLabel,
                                                      block,
@@ -1013,7 +1013,7 @@ Result StateMachineAssembly::compileBlock(
         {
             // Compile else branch block.
             Ref<StateMachine::Block> block;
-            res = StateMachineAssembly::compileBlock(kParse->elseBlock,
+            res = StateMachineCompiler::compileBlock(kParse->elseBlock,
                                                      kWs,
                                                      kInExitLabel,
                                                      block,
@@ -1033,7 +1033,7 @@ Result StateMachineAssembly::compileBlock(
     {
         // Compile action.
         Ref<IAction> action;
-        res = StateMachineAssembly::compileAction(kParse->action,
+        res = StateMachineCompiler::compileAction(kParse->action,
                                                   kWs,
                                                   kInExitLabel,
                                                   action,
@@ -1052,7 +1052,7 @@ Result StateMachineAssembly::compileBlock(
     {
         // Compile next block.
         Ref<StateMachine::Block> block;
-        res = StateMachineAssembly::compileBlock(kParse->next,
+        res = StateMachineCompiler::compileBlock(kParse->next,
                                                  kWs,
                                                  kInExitLabel,
                                                  block,
@@ -1070,7 +1070,7 @@ Result StateMachineAssembly::compileBlock(
     return SUCCESS;
 }
 
-Result StateMachineAssembly::compileState(
+Result StateMachineCompiler::compileState(
     const StateMachineParse::StateParse& kParse,
     StateMachineAssembly::Workspace& kWs,
     ErrorInfo* const kErr)
@@ -1078,7 +1078,7 @@ Result StateMachineAssembly::compileState(
     SF_SAFE_ASSERT(kWs.stateConfigs != nullptr);
 
     // Check that state name is not reserved.
-    if (StateMachineAssembly::stateNameReserved(kParse.tokName))
+    if (StateMachineCompiler::stateNameReserved(kParse.tokName))
     {
         ErrorInfo::set(kErr, kParse.tokName, gErrText,
                        "state name is reserved");
@@ -1100,7 +1100,7 @@ Result StateMachineAssembly::compileState(
     {
         // Compile entry label.
         Ref<StateMachine::Block> entryBlock;
-        res = StateMachineAssembly::compileBlock(kParse.entry,
+        res = StateMachineCompiler::compileBlock(kParse.entry,
                                                  kWs,
                                                  false,
                                                  entryBlock,
@@ -1119,7 +1119,7 @@ Result StateMachineAssembly::compileState(
     {
         // Compile step label.
         Ref<StateMachine::Block> stepBlock;
-        res = StateMachineAssembly::compileBlock(kParse.step,
+        res = StateMachineCompiler::compileBlock(kParse.step,
                                                  kWs,
                                                  false,
                                                  stepBlock,
@@ -1138,7 +1138,7 @@ Result StateMachineAssembly::compileState(
     {
         // Compile exit label.
         Ref<StateMachine::Block> exitBlock;
-        res = StateMachineAssembly::compileBlock(kParse.exit,
+        res = StateMachineCompiler::compileBlock(kParse.exit,
                                                  kWs,
                                                  true,
                                                  exitBlock,

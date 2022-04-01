@@ -52,7 +52,7 @@
     /* Compile state vector. */                                                \
     String path = kPath;                                                       \
     Ref<const StateVectorAssembly> svAsm;                                      \
-    CHECK_SUCCESS(StateVectorAssembly::compile(path, svAsm, nullptr));         \
+    CHECK_SUCCESS(StateVectorCompiler::compile(path, svAsm, nullptr));         \
                                                                                \
     /* Randomize state vector element values using the same function as the    \
        harness. */                                                             \
@@ -80,7 +80,7 @@
     /* Compile state machine. */                                               \
     path = kPath;                                                              \
     Ref<const StateMachineAssembly> smAsm;                                     \
-    CHECK_SUCCESS(StateMachineAssembly::compile(path, svAsm, smAsm, nullptr)); \
+    CHECK_SUCCESS(StateMachineCompiler::compile(path, svAsm, smAsm, nullptr)); \
                                                                                \
     /* Generate state machine autocode. */                                     \
     ofs.open(SM_AUTOCODE_PATH, std::fstream::out);                             \
