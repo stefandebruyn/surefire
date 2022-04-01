@@ -186,14 +186,13 @@ void StateMachineAutocoder::codeLocalStateVector(
     a("{");
     a.increaseIndent();
 
-    const Ref<StateVector> localSv = kSmAsm->localStateVector();
-    SF_ASSERT(localSv != nullptr);
+    StateVector& localSv = kSmAsm->localStateVector();
     for (const StateMachineParse::LocalElementParse& elem : kParse->localElems)
     {
         // Get element initial value as computed in the state machine assembly.
         IElement* elemObj = nullptr;
-        const Result res = localSv->getIElement(elem.tokName.str.c_str(),
-                                                elemObj);
+        const Result res = localSv.getIElement(elem.tokName.str.c_str(),
+                                               elemObj);
         SF_ASSERT(res == SUCCESS);
         SF_ASSERT(elemObj != nullptr);
         String initValStr;

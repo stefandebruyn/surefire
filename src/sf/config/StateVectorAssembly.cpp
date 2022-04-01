@@ -252,9 +252,9 @@ Result StateVectorAssembly::compile(const Ref<const StateVectorParse> kParse,
     return SUCCESS;
 }
 
-Ref<StateVector> StateVectorAssembly::get() const
+StateVector& StateVectorAssembly::get() const
 {
-    return mWs.sv;
+    return *mWs.sv;
 }
 
 StateVector::Config StateVectorAssembly::config() const

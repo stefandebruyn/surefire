@@ -10,12 +10,12 @@
     CHECK_SUCCESS(StateVectorAssembly::compile(svSrc, svAsm, nullptr));        \
                                                                                \
     /* Get state vector. */                                                    \
-    const Ref<StateVector> sv = svAsm->get();
+    StateVector& sv = svAsm->get();
 
 #define INIT_SM(kSrc)                                                          \
     /* Set initial state. */                                                   \
     Element<U32>* elemState = nullptr;                                         \
-    CHECK_SUCCESS(sv->getElement("state", elemState));                         \
+    CHECK_SUCCESS(sv.getElement("state", elemState));                          \
     elemState->write(1);                                                       \
                                                                                \
     /* Compile state machine. */                                               \
@@ -24,10 +24,10 @@
     CHECK_SUCCESS(StateMachineAssembly::compile(smSrc, svAsm, smAsm, nullptr));\
                                                                                \
     /* Get state machine. */                                                   \
-    const Ref<StateMachine> sm = smAsm->get();                                 \
+    StateMachine& sm = smAsm->get();                                           \
                                                                                \
     /* Get local state vector. */                                              \
-    const Ref<StateVector> localSv = smAsm->localStateVector();
+    StateVector& localSv = smAsm->localStateVector();
 
 #define INIT_SS(kSrc)                                                          \
     std::stringstream ssSrc(kSrc);                                             \
@@ -41,14 +41,14 @@
 #define CHECK_SV_ELEM(kElemName, kElemType, kExpectVal)                        \
 {                                                                              \
     Element<kElemType>* _elem = nullptr;                                       \
-    CHECK_SUCCESS(sv->getElement(kElemName, _elem));                           \
+    CHECK_SUCCESS(sv.getElement(kElemName, _elem));                            \
     CHECK_EQUAL(kExpectVal, _elem->read());                                    \
 }
 
 #define CHECK_LOCAL_ELEM(kElemName, kElemType, kExpectVal)                     \
 {                                                                              \
     Element<kElemType>* _elem = nullptr;                                       \
-    CHECK_SUCCESS(localSv->getElement(kElemName, _elem));                      \
+    CHECK_SUCCESS(localSv.getElement(kElemName, _elem));                       \
     CHECK_EQUAL(kExpectVal, _elem->read());                                    \
 }
 

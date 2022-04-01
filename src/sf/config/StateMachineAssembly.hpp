@@ -25,13 +25,13 @@ public:
                           Ref<const StateMachineAssembly>& kAsm,
                           ErrorInfo* const kErr);
 
-    Ref<StateMachine> get() const;
+    StateMachine& get() const;
 
     StateMachine::Config config() const;
 
     Ref<const StateMachineParse> parse() const;
 
-    Ref<StateVector> localStateVector() const;
+    StateVector& localStateVector() const;
 
 private:
 

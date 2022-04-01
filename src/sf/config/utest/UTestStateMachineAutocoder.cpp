@@ -61,7 +61,7 @@
                                                                                \
     /* Set initial global time, which we don't want randomized, back to 0. */  \
     Element<U64>* elemGlobalTime = nullptr;                                    \
-    CHECK_SUCCESS(svAsm->get()->getElement("time", elemGlobalTime));           \
+    CHECK_SUCCESS(svAsm->get().getElement("time", elemGlobalTime));            \
     elemGlobalTime->write(0);                                                  \
                                                                                \
     /* Generate state vector autocode. */                                      \
@@ -121,7 +121,7 @@
 #define SET_SV_ELEM(kElemName, kType, kVal)                                    \
 {                                                                              \
     Element<kType>* _elem = nullptr;                                           \
-    CHECK_SUCCESS(svAsm->get()->getElement(kElemName, _elem));                 \
+    CHECK_SUCCESS(svAsm->get().getElement(kElemName, _elem));                  \
     _elem->write(kVal);                                                        \
 }
 
@@ -140,11 +140,11 @@ static void runStateMachine(const Ref<const StateVectorAssembly> kSvAsm,
                             const U32 kSmSteps,
                             std::ostream& kOs)
 {
-    const Ref<StateVector> sv = kSvAsm->get();
+    StateVector& sv = kSvAsm->get();
     Element<U64>* elemGlobalTime = nullptr;
-    CHECK_SUCCESS(sv->getElement("time", elemGlobalTime));
+    CHECK_SUCCESS(sv.getElement("time", elemGlobalTime));
 
-    const Ref<StateMachine> sm = kSmAsm->get();
+    StateMachine& sm = kSmAsm->get();
     for (U32 i = 0; i < kSmSteps; ++i)
     {
         // Increment global time. Modulate the increment to test state machine
@@ -153,7 +153,7 @@ static void runStateMachine(const Ref<const StateVectorAssembly> kSvAsm,
         elemGlobalTime->write(elemGlobalTime->read() + deltaT);
 
         // Step state machine.
-        CHECK_SUCCESS(sm->step());
+        CHECK_SUCCESS(sm.step());
 
         // Print state vector.
         kOs << "---- STEP " << i << " ----\n";

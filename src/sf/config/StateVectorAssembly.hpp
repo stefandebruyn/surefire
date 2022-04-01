@@ -21,7 +21,7 @@ public:
                           Ref<const StateVectorAssembly>& kAsm,
                           ErrorInfo* const kErr);
 
-    Ref<StateVector> get() const;
+    StateVector& get() const;
 
     StateVector::Config config() const;
 

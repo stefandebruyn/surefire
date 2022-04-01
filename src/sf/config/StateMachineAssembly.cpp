@@ -213,9 +213,9 @@ Result StateMachineAssembly::compile(
     return SUCCESS;
 }
 
-Ref<StateMachine> StateMachineAssembly::get() const
+StateMachine& StateMachineAssembly::get() const
 {
-    return mWs.sm;
+    return *mWs.sm;
 }
 
 StateMachine::Config StateMachineAssembly::config() const
@@ -228,7 +228,7 @@ Ref<const StateMachineParse> StateMachineAssembly::parse() const
     return mWs.smParse;
 }
 
-Ref<StateVector> StateMachineAssembly::localStateVector() const
+StateVector& StateMachineAssembly::localStateVector() const
 {
     return mWs.localSvAsm->get();
 }
@@ -248,16 +248,14 @@ Result StateMachineAssembly::checkStateVector(
 {
     SF_SAFE_ASSERT(kParse != nullptr);
     SF_SAFE_ASSERT(kWs.svAsm != nullptr);
-    SF_SAFE_ASSERT(kWs.svAsm->get() != nullptr);
 
     for (const StateMachineParse::StateVectorElementParse& elem :
          kParse->svElems)
     {
         // Get element object from state vector.
         IElement* elemObj = nullptr;
-        const Ref<StateVector> sv = kWs.svAsm->get();
-        SF_SAFE_ASSERT(sv != nullptr);
-        if (sv->getIElement(elem.tokName.str.c_str(), elemObj) != SUCCESS)
+        StateVector& sv = kWs.svAsm->get();
+        if (sv.getIElement(elem.tokName.str.c_str(), elemObj) != SUCCESS)
         {
             // Element does not exist in state vector.
             ErrorInfo::set(kErr, elem.tokName, gErrText,
@@ -464,8 +462,8 @@ Result StateMachineAssembly::compileLocalStateVector(
     {
         // Look up element object.
         IElement* elemObj = nullptr;
-        res = kWs.localSvAsm->get()->getIElement(elem.tokName.str.c_str(),
-                                                 elemObj);
+        res = kWs.localSvAsm->get().getIElement(elem.tokName.str.c_str(),
+                                                elemObj);
         SF_SAFE_ASSERT(res == SUCCESS);
         SF_SAFE_ASSERT(elemObj != nullptr);
 
@@ -504,9 +502,8 @@ Result StateMachineAssembly::checkLocalElemInitExprs(
 
         // Check that element is not a non-local state vector element.
         IElement* elemObj = nullptr;
-        const Ref<StateVector> sv = kWs.svAsm->get();
-        SF_SAFE_ASSERT(sv != nullptr);
-        if (sv->getIElement(kExpr->data.str.c_str(), elemObj) == SUCCESS)
+        StateVector& sv = kWs.svAsm->get();
+        if (sv.getIElement(kExpr->data.str.c_str(), elemObj) == SUCCESS)
         {
             std::stringstream ss;
             ss << "illegal reference to non-local element `"
@@ -572,7 +569,6 @@ Result StateMachineAssembly::initLocalElementValues(
 {
     SF_SAFE_ASSERT(kParse != nullptr);
     SF_SAFE_ASSERT(kWs.localSvAsm != nullptr);
-    SF_SAFE_ASSERT(kWs.localSvAsm->get() != nullptr);
 
     for (const StateMachineParse::LocalElementParse& elem : kParse->localElems)
     {

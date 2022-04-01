@@ -430,9 +430,7 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
 
     // Get state machine from assembly.
     SF_SAFE_ASSERT(mSmAsm != nullptr);
-    Ref<StateMachine> smRef = mSmAsm->get();
-    SF_SAFE_ASSERT(smRef != nullptr);
-    StateMachine& sm = *smRef;
+    StateMachine& sm = mSmAsm->get();
 
     // Get state time element.
     auto elemIt = mSmAsm->mWs.elems.find("T");

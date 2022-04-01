@@ -13,12 +13,12 @@
     CHECK_SUCCESS(StateVectorAssembly::compile(svSrc, svAsm, nullptr));        \
                                                                                \
     /* Get state vector. */                                                    \
-    const Ref<StateVector> sv = svAsm->get();
+    StateVector& sv = svAsm->get();
 
 #define INIT_SM(kSrc, kStateElemName, kInitState)                              \
     /* Set initial state. */                                                   \
     Element<U32>* elemState = nullptr;                                         \
-    CHECK_SUCCESS(sv->getElement(kStateElemName, elemState));                  \
+    CHECK_SUCCESS(sv.getElement(kStateElemName, elemState));                   \
     elemState->write(kInitState);                                              \
                                                                                \
     /* Compile state machine. */                                               \
@@ -27,28 +27,27 @@
     CHECK_SUCCESS(StateMachineAssembly::compile(smSrc, svAsm, smAsm, nullptr));\
                                                                                \
     /* Get state machine. */                                                   \
-    StateMachine& sm = *smAsm->get();
+    StateMachine& sm = smAsm->get();
 
 #define SET_SV_ELEM(kElemName, kElemType, kSetVal)                             \
 {                                                                              \
     Element<kElemType>* _elem = nullptr;                                       \
-    CHECK_SUCCESS(sv->getElement(kElemName, _elem));                           \
+    CHECK_SUCCESS(sv.getElement(kElemName, _elem));                            \
     _elem->write(kSetVal);                                                     \
 }
 
 #define CHECK_SV_ELEM(kElemName, kElemType, kExpectVal)                        \
 {                                                                              \
     Element<kElemType>* _elem = nullptr;                                       \
-    CHECK_SUCCESS(sv->getElement(kElemName, _elem));                           \
+    CHECK_SUCCESS(sv.getElement(kElemName, _elem));                            \
     CHECK_EQUAL(kExpectVal, _elem->read());                                    \
 }
 
 #define CHECK_LOCAL_ELEM(kElemName, kElemType, kExpectVal)                     \
 {                                                                              \
-    const Ref<StateVector> _localSv = smAsm->localStateVector();               \
-    CHECK_TRUE(_localSv != nullptr);                                           \
+    StateVector& _localSv = smAsm->localStateVector();                         \
     Element<kElemType>* _elem = nullptr;                                       \
-    CHECK_SUCCESS(_localSv->getElement(kElemName, _elem));                     \
+    CHECK_SUCCESS(_localSv.getElement(kElemName, _elem));                      \
     CHECK_EQUAL(kExpectVal, _elem->read());                                    \
 }
 
