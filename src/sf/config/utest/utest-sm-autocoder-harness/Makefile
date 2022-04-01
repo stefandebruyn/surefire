@@ -8,5 +8,4 @@ all:
 	../../../core/StateMachine.cpp                                             \
 	../../../core/ExpressionStats.cpp                                          \
 	../../../core/Expression.cpp                                               \
-	../../../core/Action.cpp                                                   \
-	../../../psl/linux/Console.cpp
+	../../../core/Action.cpp

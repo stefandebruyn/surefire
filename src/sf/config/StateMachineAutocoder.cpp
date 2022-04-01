@@ -176,7 +176,7 @@ void StateMachineAutocoder::codeLocalStateVector(
         {
             case ElementType::INT8:
             {
-                const I8 initVal = static_cast<Element<I8>*>(elemObj)->read();
+                const I32 initVal = static_cast<Element<I8>*>(elemObj)->read();
                 initValStr = Autocode::format("%%", initVal);
                 break;
             }
@@ -204,7 +204,7 @@ void StateMachineAutocoder::codeLocalStateVector(
 
             case ElementType::UINT8:
             {
-                const U8 initVal = static_cast<Element<U8>*>(elemObj)->read();
+                const I32 initVal = static_cast<Element<U8>*>(elemObj)->read();
                 initValStr = Autocode::format("%%", initVal);
                 break;
             }
@@ -219,14 +219,14 @@ void StateMachineAutocoder::codeLocalStateVector(
             case ElementType::UINT32:
             {
                 const U32 initVal = static_cast<Element<U32>*>(elemObj)->read();
-                initValStr = Autocode::format("%%", initVal);
+                initValStr = Autocode::format("%%U", initVal);
                 break;
             }
 
             case ElementType::UINT64:
             {
                 const U64 initVal = static_cast<Element<U64>*>(elemObj)->read();
-                initValStr = Autocode::format("%%", initVal);
+                initValStr = Autocode::format("%%ULL", initVal);
                 break;
             }
 
@@ -374,7 +374,7 @@ String StateMachineAutocoder::codeFunctionCall(
 
     // Define function node.
     const String nodeTypeName = mFuncNodeTypeNames[kParse->data.str];
-    const String nodeId = Autocode::format("node%%", kWs.exprNodeCnt++);
+    const String nodeId = Autocode::format("node%%", kWs.exprNodeCnt);
     SF_ASSERT(nodeTypeName.size() > 0);
     a("static %% %%(%%);", nodeTypeName, nodeId, statsId);
 
@@ -405,7 +405,7 @@ String StateMachineAutocoder::codeExpression(
     if (kParse->func)
     {
         // Generate function call code.
-        return StateMachineAutocoder::codeFunctionCall(kParse, kSmAsm, a, kWs);
+        StateMachineAutocoder::codeFunctionCall(kParse, kSmAsm, a, kWs);
     }
     else if (kParse->data.type == Token::CONSTANT)
     {
@@ -472,10 +472,10 @@ String StateMachineAutocoder::codeExpression(
         {
             // Define unary operator. We again use a lambda for the node's
             // operation.
-            a("static auto node%%Op = [] (F64 l, F64 r) -> F64 { return %%r; };",
+            a("static auto node%%Op = [] (F64 r) -> F64 { return %%r; };",
               kWs.exprNodeCnt, kParse->data.opInfo->cpp);
             a("static UnaryOpExprNode<F64> node%%(node%%Op, *%%);",
-              kWs.exprNodeCnt, rhsAddr);
+              kWs.exprNodeCnt, kWs.exprNodeCnt, rhsAddr);
         }
     }
 

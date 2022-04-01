@@ -1,27 +1,19 @@
 #include "sf/config/Autocode.hpp"
-#include "sf/config/StateVectorAssembly.hpp"
 #include "sf/config/StateVectorAutocoder.hpp"
 #include "sf/core/Assert.hpp"
 
 Result StateVectorAutocoder::code(std::ostream& kOs,
                                   const String kName,
-                                  const Ref<const StateVectorParse> kParse,
-                                  ErrorInfo* const kErr)
+                                  const Ref<const StateVectorAssembly> kSvAsm)
 {
     // Check that parse is non-null.
-    if (kParse == nullptr)
+    if (kSvAsm == nullptr)
     {
         SF_ASSERT(false);
     }
 
-    // Validate parse by attempting to compile a state vector with it.
-    Ref<const StateVectorAssembly> svAsm;
-    const Result res = StateVectorAssembly::compile(kParse, svAsm, kErr);
-    if (res != SUCCESS)
-    {
-        return res;
-    }
-
+    const Ref<const StateVectorParse> svParse = kSvAsm->parse();
+    SF_ASSERT(svParse != nullptr);
     Autocode a(kOs);
 
     // Add preamble.
@@ -69,7 +61,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a.increaseIndent();
 
     // Define regions as structs nested within the backing storage struct.
-    for (const StateVectorParse::RegionParse& region : kParse->regions)
+    for (const StateVectorParse::RegionParse& region : svParse->regions)
     {
         a("struct");
         a("{");
@@ -92,7 +84,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a();
 
     // Define element objects.
-    for (const StateVectorParse::RegionParse& region : kParse->regions)
+    for (const StateVectorParse::RegionParse& region : svParse->regions)
     {
         for (const StateVectorParse::ElementParse& elem : region.elems)
         {
@@ -108,7 +100,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a();
 
     // Define region objects.
-    for (const StateVectorParse::RegionParse& region : kParse->regions)
+    for (const StateVectorParse::RegionParse& region : svParse->regions)
     {
         a("static Region region%%(&backing.%%, sizeof(backing.%%));",
           region.plainName, region.plainName, region.plainName);
@@ -121,7 +113,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a("{");
     a.increaseIndent();
 
-    for (const StateVectorParse::RegionParse& region : kParse->regions)
+    for (const StateVectorParse::RegionParse& region : svParse->regions)
     {
         for (const StateVectorParse::ElementParse& elem : region.elems)
         {
@@ -139,7 +131,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a("{");
     a.increaseIndent();
 
-    for (const StateVectorParse::RegionParse& region : kParse->regions)
+    for (const StateVectorParse::RegionParse& region : svParse->regions)
     {
         a("{\"%%\", &region%%},", region.plainName, region.plainName);
     }

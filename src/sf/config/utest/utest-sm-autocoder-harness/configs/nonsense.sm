@@ -1,0 +1,154 @@
+# State machine with a bunch of random, complex logic meant to exercise the full
+# range of language syntax.
+
+[STATE_VECTOR]
+U32 state @ALIAS S
+U64 time @ALIAS G
+I8 a
+I16 b
+I32 c
+I64 d
+U8 e
+U16 f @READ_ONLY @ALIAS spam
+U32 g @ALIAS eggs
+U64 h
+F32 i
+F64 j
+bool k
+I32 foo
+I32 bar
+I32 baz
+F64 qux
+F64 corge
+F64 grault
+I8 alpha_sv
+I16 beta_sv
+I32 gamma_sv
+I64 delta_sv
+U8 epsilon_sv
+U16 zeta_sv
+U32 eta_sv
+U64 theta_sv
+F32 iota_sv
+F64 kappa_sv
+bool lambda_sv
+F64 pi_sv
+F64 tau_sv
+F32 euler_sv
+
+
+[LOCAL]
+I8 alpha = 10
+I16 beta = -87
+I32 gamma = 32000
+I64 delta = 4 @READ_ONLY
+U8 epsilon = 0
+U16 zeta = (1337 + alpha) * delta
+U32 eta = 1522
+U64 theta = 10000000000
+F32 iota = 1522.47238947289439
+F64 kappa = -978.4378927472389300000003213
+bool lambda = TRUE
+F64 pi = 3.14159265359 @READ_ONLY
+F64 tau = pi * 2 @READ_ONLY
+F32 euler = 2.71828 @READ_ONLY
+F64 tintin = 0
+F64 haddock = 0
+
+
+[Foo]
+.ENTRY
+    # Entry actions
+    lambda = !lambda
+    kappa = kappa + (delta * iota / beta) + pi + euler
+    # Calculations involving all the input state vector elements, which are
+    # randomized when run in unit tests.
+    tintin = (a + b / d + e) / f * g - ((h - i) / j)
+    haddock = k + foo + bar + baz + qux + corge + grault
+.STEP
+    # Copy local elements to state vector.
+    alpha_sv = alpha
+    beta_sv = beta
+    gamma_sv = gamma
+    delta_sv = delta
+    epsilon_sv = epsilon
+    zeta_sv = zeta
+    eta_sv = eta
+    theta_sv = theta
+    iota_sv = iota
+    kappa_sv = kappa
+    lambda_sv = lambda
+    pi_sv = pi
+    tau_sv = tau
+    euler_sv = euler
+    # If branch using braces
+    k = !k
+    k {
+        TRUE: alpha = alpha + 1
+        kappa = kappa * -1
+    }
+    # Use of ROLL_AVG function
+    gamma = ROLL_AVG(kappa + zeta, 10) - 10.433
+    T < 20 OR k {
+        # Nested if branch
+        lambda OR k == FALSE {
+            theta = theta - 3
+            # If branch using colon
+            k: theta = theta + eta / 10
+            # Else branch using colon
+            ELSE: theta = theta - 2
+        }
+        theta = theta - 4
+    }
+    # Else branch using braces
+    ELSE {
+        theta = theta + zeta
+        # Use of ROLL_MEDIAN function
+        iota = iota - tau + ROLL_MEDIAN(gamma + 3, 4)
+    }
+    # Transition
+    T == 50: -> Bar
+    a = a + 1
+    # Use of global time element
+    G < 17: lambda = kappa
+    ELSE: lambda = T > 5
+.EXIT
+    # Exit action
+    kappa = iota - euler * euler + pi - (tau + alpha / eta)
+
+
+[Bar]
+.ENTRY
+    eggs = 1
+.STEP
+    # Copy local elements to state vector.
+    alpha_sv = alpha
+    beta_sv = beta
+    gamma_sv = gamma
+    delta_sv = delta
+    epsilon_sv = epsilon
+    zeta_sv = zeta
+    eta_sv = eta
+    theta_sv = theta
+    iota_sv = iota
+    kappa_sv = kappa
+    lambda_sv = lambda
+    pi_sv = pi
+    tau_sv = tau
+    euler_sv = euler
+    # If branch using IF keyword
+    eggs = eggs + eggs
+    IF eggs > 2 {
+        iota = iota / (eggs - 4)
+    }
+    # Use of ROLL_MIN function
+    ROLL_MIN(eggs, alpha / 5) > 10: -> Baz
+
+
+[Baz]
+.ENTRY
+    d = 2
+.STEP
+    lambda = (5 < T <= 8)
+    d = d * d
+    d == 1024: -> Foo

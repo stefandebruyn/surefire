@@ -1,6 +1,8 @@
 #ifndef SF_AUTOCODE_HPP
 #define SF_AUTOCODE_HPP
 
+#include <iomanip>
+#include <limits>
 #include <ostream>
 #include <sstream>
 
@@ -59,7 +61,7 @@ private:
 
         // Convert current value to string.
         std::stringstream ss;
-        ss << std::fixed << kT;
+        ss << std::setprecision(std::numeric_limits<F64>::digits10) << kT;
 
         // Replace format specifier with stringified value and recurse.
         kFmt.replace(pos, 2, ss.str());

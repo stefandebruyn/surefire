@@ -17,16 +17,15 @@
 #define AUTOCODE_PATH HARNESS_PATH PATH_SEP "FooStateVector.hpp"
 
 #define SETUP(kSrc)                                                            \
-    /* Parse state vector config. */                                           \
-    TOKENIZE(kSrc);                                                            \
-    Ref<const StateVectorParse> svParse;                                       \
-    CHECK_SUCCESS(StateVectorParse::parse(toks, svParse, nullptr));            \
+    /* Compile state vector. */                                                \
+    std::stringstream ss(kSrc);                                                \
+    Ref<const StateVectorAssembly> svAsm;                                      \
+    CHECK_SUCCESS(StateVectorAssembly::compile(ss, svAsm, nullptr));           \
                                                                                \
     /* Generate autocode. */                                                   \
     std::ofstream ofs(AUTOCODE_PATH, std::fstream::out);                       \
     CHECK_TRUE(ofs.is_open());                                                 \
-    CHECK_SUCCESS(                                                             \
-        StateVectorAutocoder::code(ofs, "FooStateVector", svParse, nullptr));  \
+    CHECK_SUCCESS(StateVectorAutocoder::code(ofs, "FooStateVector", svAsm));   \
     ofs.close();
 
 #define RUN_HARNESS(kArgs)                                                     \
@@ -278,28 +277,4 @@ TEST(StateVectorAutocoder, LargeStateVector)
         "B 20\n"
         "C 160\n",
         hout.str());
-}
-
-TEST(StateVectorAutocoder, CompileError)
-{
-    // Parse state vector config.
-    TOKENIZE(
-        "[Foo]\n"
-        "I32 foo\n"
-        "F64 foo\n");
-    Ref<const StateVectorParse> svParse;
-    CHECK_SUCCESS(StateVectorParse::parse(toks, svParse, nullptr));
-
-    // Autocoder returns expected compile error.
-    std::stringstream ss;
-    ErrorInfo err;
-    CHECK_ERROR(E_SVA_ELEM_DUPE,
-                StateVectorAutocoder::code(ss,
-                                           "FooStateVector",
-                                           svParse,
-                                           &err));
-
-    // Check that autocode output stream was not populated.
-    ss.seekg(0, std::ios::end);
-    CHECK_EQUAL(0, ss.tellg());
 }
