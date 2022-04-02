@@ -44,42 +44,42 @@ TEST(Thread, Uninitialized)
 TEST(Thread, UninitializedAfterAwait)
 {
     Thread thread;
-    CHECK_SUCCESS(Thread::create(nop,
-                                 nullptr,
-                                 Thread::REALTIME_MIN_PRI,
-                                 Thread::Policy::REALTIME,
-                                 0,
-                                 thread));
+    CHECK_SUCCESS(Thread::init(nop,
+                               nullptr,
+                               Thread::REALTIME_MIN_PRI,
+                               Thread::Policy::REALTIME,
+                               0,
+                               thread));
     CHECK_SUCCESS(thread.await(nullptr));
     CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 
 TEST(Thread, Reuse)
 {
-    CHECK_SUCCESS(Thread::create(nop,
-                                 nullptr,
-                                 Thread::REALTIME_MIN_PRI,
-                                 Thread::Policy::REALTIME,
-                                 0,
-                                 gTestThreads[0]));
+    CHECK_SUCCESS(Thread::init(nop,
+                               nullptr,
+                               Thread::REALTIME_MIN_PRI,
+                               Thread::Policy::REALTIME,
+                               0,
+                               gTestThreads[0]));
     CHECK_SUCCESS(gTestThreads[0].await(nullptr));
-    CHECK_SUCCESS(Thread::create(nop,
-                                 nullptr,
-                                 Thread::REALTIME_MIN_PRI,
-                                 Thread::Policy::REALTIME,
-                                 0,
-                                 gTestThreads[0]));
+    CHECK_SUCCESS(Thread::init(nop,
+                               nullptr,
+                               Thread::REALTIME_MIN_PRI,
+                               Thread::Policy::REALTIME,
+                               0,
+                               gTestThreads[0]));
 }
 
 TEST(Thread, ReturnResult)
 {
     Thread thread;
-    CHECK_SUCCESS(Thread::create(returnError,
-                                 nullptr,
-                                 Thread::REALTIME_MIN_PRI,
-                                 Thread::Policy::REALTIME,
-                                 0,
-                                 thread));
+    CHECK_SUCCESS(Thread::init(returnError,
+                               nullptr,
+                               Thread::REALTIME_MIN_PRI,
+                               Thread::Policy::REALTIME,
+                               0,
+                               thread));
     Result threadRes = SUCCESS;
     CHECK_SUCCESS(thread.await(&threadRes));
     CHECK_ERROR(E_THR_NULL, threadRes);
@@ -90,12 +90,12 @@ TEST(Thread, AffinityRange)
     for (U8 i = 0; i < Thread::numCores(); ++i)
     {
         Thread thread;
-        CHECK_SUCCESS(Thread::create(checkCore,
-                                     reinterpret_cast<void*>(i),
-                                     Thread::REALTIME_MIN_PRI,
-                                     Thread::Policy::REALTIME,
-                                     i,
-                                     thread));
+        CHECK_SUCCESS(Thread::init(checkCore,
+                                   reinterpret_cast<void*>(i),
+                                   Thread::REALTIME_MIN_PRI,
+                                   Thread::Policy::REALTIME,
+                                   i,
+                                   thread));
         Result threadRes = -1;
         CHECK_SUCCESS(thread.await(&threadRes));
         CHECK_TEXT((threadRes == SUCCESS), "thread was on an unexpected core");
@@ -110,12 +110,12 @@ TEST(Thread, AffinityAllCores)
     // Create max number of threads.
     for (U32 i = 0; i < gTestMaxThreads; ++i)
     {
-        CHECK_SUCCESS(Thread::create(setFlag,
-                                     &flags[i],
-                                     Thread::REALTIME_MIN_PRI,
-                                     Thread::REALTIME,
-                                     Thread::ALL_CORES,
-                                     gTestThreads[i]));
+        CHECK_SUCCESS(Thread::init(setFlag,
+                                   &flags[i],
+                                   Thread::REALTIME_MIN_PRI,
+                                   Thread::REALTIME,
+                                   Thread::ALL_CORES,
+                                   gTestThreads[i]));
     }
 
     // Wait for threads to finish.
@@ -134,12 +134,12 @@ TEST(Thread, DestructInitialized)
     bool flag = false;
     {
         Thread thread;
-        CHECK_SUCCESS(Thread::create(spinSetFlag,
-                                     &flag,
-                                     Thread::REALTIME_MIN_PRI,
-                                     Thread::REALTIME,
-                                     0,
-                                     thread));
+        CHECK_SUCCESS(Thread::init(spinSetFlag,
+                                   &flag,
+                                   Thread::REALTIME_MIN_PRI,
+                                   Thread::REALTIME,
+                                   0,
+                                   thread));
     }
     CHECK_TRUE(flag);
 }
@@ -154,19 +154,19 @@ TEST(Thread, DestructUninitialized)
 TEST(Thread, ErrorReinitialize)
 {
     bool flags[2] = {};
-    CHECK_SUCCESS(Thread::create(setFlag,
-                                 &flags[0],
-                                 Thread::REALTIME_MIN_PRI,
-                                 Thread::REALTIME,
-                                 0,
-                                 gTestThreads[0]));
-    CHECK_ERROR(E_THR_REINIT,
-                Thread::create(setFlag,
-                               &flags[1],
+    CHECK_SUCCESS(Thread::init(setFlag,
+                               &flags[0],
                                Thread::REALTIME_MIN_PRI,
                                Thread::REALTIME,
                                0,
-                               gTestThreads[0]));
+                                 gTestThreads[0]));
+    CHECK_ERROR(E_THR_REINIT,
+                Thread::init(setFlag,
+                             &flags[1],
+                             Thread::REALTIME_MIN_PRI,
+                             Thread::REALTIME,
+                             0,
+                             gTestThreads[0]));
     CHECK_SUCCESS(gTestThreads[0].await(nullptr));
     CHECK_TRUE(flags[0]);
     CHECK_TRUE(!flags[1]);
@@ -176,12 +176,12 @@ TEST(Thread, ErrorNullFunction)
 {
     Thread thread;
     CHECK_ERROR(E_THR_NULL,
-                Thread::create(nullptr,
-                               nullptr,
-                               Thread::REALTIME_MIN_PRI,
-                               Thread::REALTIME,
-                               0,
-                               thread));
+                Thread::init(nullptr,
+                             nullptr,
+                             Thread::REALTIME_MIN_PRI,
+                             Thread::REALTIME,
+                             0,
+                             thread));
     CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 
@@ -189,12 +189,12 @@ TEST(Thread, ErrorInvalidPolicy)
 {
     Thread thread;
     CHECK_ERROR(E_THR_POL,
-                Thread::create(nop,
-                               nullptr,
-                               Thread::REALTIME_MIN_PRI,
-                               static_cast<Thread::Policy>(0xFF),
-                               0,
-                               thread));
+                Thread::init(nop,
+                             nullptr,
+                             Thread::REALTIME_MIN_PRI,
+                             static_cast<Thread::Policy>(0xFF),
+                             0,
+                             thread));
     CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 
@@ -202,12 +202,12 @@ TEST(Thread, ErrorInvalidAffinity)
 {
     Thread thread;
     CHECK_ERROR(E_THR_AFF,
-                Thread::create(nop,
-                               nullptr,
-                               Thread::REALTIME_MIN_PRI,
-                               Thread::REALTIME,
-                               Thread::numCores(),
-                               thread));
+                Thread::init(nop,
+                             nullptr,
+                             Thread::REALTIME_MIN_PRI,
+                             Thread::REALTIME,
+                             Thread::numCores(),
+                             thread));
     CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 

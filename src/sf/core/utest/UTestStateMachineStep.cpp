@@ -115,7 +115,7 @@ TEST(StateMachineStep, EntryAndStep)
     // Initialize the state machine in state 1.
     gElemState.write(1);
     StateMachine sm;
-    CHECK_SUCCESS(StateMachine::create(gConfig, sm));
+    CHECK_SUCCESS(StateMachine::init(gConfig, sm));
 
     // Step the state machine.
     CHECK_SUCCESS(sm.step());
@@ -142,7 +142,7 @@ TEST(StateMachineStep, TransitionAndExit)
     // Initialize the state machine in state 1.
     gElemState.write(1);
     StateMachine sm;
-    CHECK_SUCCESS(StateMachine::create(gConfig, sm));
+    CHECK_SUCCESS(StateMachine::init(gConfig, sm));
 
     // Step the state machine to execute the entry label.
     CHECK_SUCCESS(sm.step());
@@ -175,7 +175,7 @@ TEST(StateMachineStep, EmptyState)
     // Initialize the state machine in state 2.
     gElemState.write(2);
     StateMachine sm;
-    CHECK_SUCCESS(StateMachine::create(gConfig, sm));
+    CHECK_SUCCESS(StateMachine::init(gConfig, sm));
 
     // Step 100 times.
     U64 t = 0;
@@ -197,7 +197,7 @@ TEST(StateMachineStep, UpdateStateTime)
     // Initialize the state machine in state 2.
     gElemState.write(2);
     StateMachine sm;
-    CHECK_SUCCESS(StateMachine::create(gConfig, sm));
+    CHECK_SUCCESS(StateMachine::init(gConfig, sm));
 
     // First step is on timestep 100. State time is 0.
     gElemGlobalTime.write(100);
@@ -220,7 +220,7 @@ TEST(StateMachineStep, ErrorInvalidTime)
     // Initialize the state machine in state 1.
     gElemState.write(1);
     StateMachine sm;
-    CHECK_SUCCESS(StateMachine::create(gConfig, sm));
+    CHECK_SUCCESS(StateMachine::init(gConfig, sm));
 
     // Stepping with an invalid global time fails.
     gElemGlobalTime.write(Clock::NO_TIME);
@@ -238,7 +238,7 @@ TEST(StateMachineStep, ErrorNonMonotonicTime)
     // Initialize the state machine.
     gElemState.write(1);
     StateMachine sm;
-    CHECK_SUCCESS(StateMachine::create(gConfig, sm));
+    CHECK_SUCCESS(StateMachine::init(gConfig, sm));
 
     // Step once at timestep 1.
     gElemGlobalTime.write(1);
@@ -274,7 +274,7 @@ TEST(StateMachineStep, UpdateExpressionStats)
     StateMachine sm;
     StateMachine::Config config = gConfig;
     config.stats = stats;
-    CHECK_SUCCESS(StateMachine::create(config, sm));
+    CHECK_SUCCESS(StateMachine::init(config, sm));
 
     // Step state machine.
     gElemBar.write(1);

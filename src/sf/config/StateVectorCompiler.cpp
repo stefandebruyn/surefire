@@ -243,7 +243,7 @@ Result StateVectorCompiler::compile(const Ref<const StateVectorParse> kParse,
     // succeeds since the state vector config is known correct at this point.
     ws.svConfig = {ws.elemConfigs->data(), ws.regionConfigs->data()};
     ws.sv.reset(new StateVector());
-    const Result res = StateVector::create(ws.svConfig, *ws.sv);
+    const Result res = StateVector::init(ws.svConfig, *ws.sv);
     SF_SAFE_ASSERT(res == SUCCESS);
 
     // Create the final assembly.

@@ -11,7 +11,7 @@
 #include "sf/core/MemOps.hpp"
 #include "sf/core/StateVector.hpp"
 
-Result StateVector::create(const Config kConfig, StateVector& kSv)
+Result StateVector::init(const Config kConfig, StateVector& kSv)
 {
     // Check that state vector is not already initialized.
     if (kSv.mConfig.elems != nullptr)

@@ -60,12 +60,12 @@ TEST(ThreadRealTime, PriorityRange)
     for (I32 i = Thread::REALTIME_MIN_PRI; i <= Thread::REALTIME_MAX_PRI; ++i)
     {
         bool flag = false;
-        CHECK_SUCCESS(Thread::create(setFlag,
-                                     &flag,
-                                     i,
-                                     Thread::REALTIME,
-                                     Thread::ALL_CORES,
-                                     gTestThreads[0]));
+        CHECK_SUCCESS(Thread::init(setFlag,
+                                   &flag,
+                                   i,
+                                   Thread::REALTIME,
+                                   Thread::ALL_CORES,
+                                   gTestThreads[0]));
         Result threadRes = -1;
         CHECK_SUCCESS(gTestThreads[0].await(&threadRes));
         CHECK_SUCCESS(threadRes);
@@ -76,24 +76,24 @@ TEST(ThreadRealTime, PriorityRange)
 TEST(ThreadRealTime, PriorityTooLow)
 {
     CHECK_ERROR(E_THR_PRI,
-                Thread::create(nop,
-                               nullptr,
-                               (Thread::REALTIME_MIN_PRI - 1),
-                               Thread::REALTIME,
-                               Thread::ALL_CORES,
-                               gTestThreads[0]));
+                Thread::init(nop,
+                             nullptr,
+                             (Thread::REALTIME_MIN_PRI - 1),
+                             Thread::REALTIME,
+                             Thread::ALL_CORES,
+                             gTestThreads[0]));
     CHECK_ERROR(E_THR_UNINIT, gTestThreads[0].await(nullptr));
 }
 
 TEST(ThreadRealTime, PriorityTooHigh)
 {
     CHECK_ERROR(E_THR_PRI,
-                Thread::create(nop,
-                               nullptr,
-                               (Thread::REALTIME_MAX_PRI + 1),
-                               Thread::REALTIME,
-                               Thread::ALL_CORES,
-                               gTestThreads[0]));
+                Thread::init(nop,
+                             nullptr,
+                             (Thread::REALTIME_MAX_PRI + 1),
+                             Thread::REALTIME,
+                             Thread::ALL_CORES,
+                             gTestThreads[0]));
     CHECK_ERROR(E_THR_UNINIT, gTestThreads[0].await(nullptr));
 }
 
@@ -116,24 +116,24 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
     // Create 3 real-time threads with descending priorities on the same core.
     // All 3 threads are blocked until the current thread yields. Threads will
     // record the time of their return in the argument structs passed to them.
-    CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
-                                 &gArgs1,
-                                 (Thread::REALTIME_MIN_PRI + 2),
-                                 Thread::REALTIME,
-                                 0,
-                                 gTestThreads[0]));
-    CHECK_SUCCESS(Thread::create(spinAndRecordTime,
-                                 &gArgs2,
-                                 (Thread::REALTIME_MIN_PRI + 1),
-                                 Thread::REALTIME,
-                                 0,
-                                 gTestThreads[1]));
-    CHECK_SUCCESS(Thread::create(spinAndRecordTime,
-                                 &gArgs3,
-                                 Thread::REALTIME_MIN_PRI,
-                                 Thread::REALTIME,
-                                 0,
-                                 gTestThreads[2]));
+    CHECK_SUCCESS(Thread::init(spinOnFlagAndRecordTime,
+                               &gArgs1,
+                               (Thread::REALTIME_MIN_PRI + 2),
+                               Thread::REALTIME,
+                               0,
+                               gTestThreads[0]));
+    CHECK_SUCCESS(Thread::init(spinAndRecordTime,
+                               &gArgs2,
+                               (Thread::REALTIME_MIN_PRI + 1),
+                               Thread::REALTIME,
+                               0,
+                               gTestThreads[1]));
+    CHECK_SUCCESS(Thread::init(spinAndRecordTime,
+                               &gArgs3,
+                               Thread::REALTIME_MIN_PRI,
+                               Thread::REALTIME,
+                               0,
+                               gTestThreads[2]));
 
     // Wait a relatively long time to avoid racing thread creation.
     Clock::spinWait(0.1 * Clock::NS_IN_S);
@@ -167,18 +167,18 @@ TEST(ThreadRealTime, RealTimeDifferentAffinity)
     CHECK_SUCCESS(Thread::set(Thread::REALTIME_MAX_PRI, Thread::REALTIME, 0));
 
     // Create 2 real-time threads with different priorities on different cores.
-    CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
-                                 &gArgs1,
-                                 Thread::REALTIME_MIN_PRI,
-                                 Thread::REALTIME,
-                                 0,
-                                 gTestThreads[0]));
-    CHECK_SUCCESS(Thread::create(spinOnFlagAndRecordTime,
-                                 &gArgs2,
-                                 (Thread::REALTIME_MIN_PRI + 1),
-                                 Thread::REALTIME,
-                                 1,
-                                 gTestThreads[1]));
+    CHECK_SUCCESS(Thread::init(spinOnFlagAndRecordTime,
+                               &gArgs1,
+                               Thread::REALTIME_MIN_PRI,
+                               Thread::REALTIME,
+                               0,
+                               gTestThreads[0]));
+    CHECK_SUCCESS(Thread::init(spinOnFlagAndRecordTime,
+                               &gArgs2,
+                               (Thread::REALTIME_MIN_PRI + 1),
+                               Thread::REALTIME,
+                               1,
+                               gTestThreads[1]));
 
     // Wait a relatively long time to avoid racing thread creation.
     Clock::spinWait(0.1 * Clock::NS_IN_S);

@@ -57,8 +57,8 @@ TEST(Spinlock, Uninitialized)
 TEST(Spinlock, ErrorReinitialize)
 {
     Spinlock lock;
-    CHECK_SUCCESS(Spinlock::create(lock));
-    CHECK_ERROR(E_SLK_REINIT, Spinlock::create(lock));
+    CHECK_SUCCESS(Spinlock::init(lock));
+    CHECK_ERROR(E_SLK_REINIT, Spinlock::init(lock));
 }
 
 TEST(Spinlock, MutualExclusion)
@@ -68,17 +68,17 @@ TEST(Spinlock, MutualExclusion)
     args.increments = 1;
 
     // Create spinlock and acquire it.
-    CHECK_SUCCESS(Spinlock::create(args.lock));
+    CHECK_SUCCESS(Spinlock::init(args.lock));
     CHECK_SUCCESS(args.lock.acquire());
 
     // Create thread to increment counter. It will spin on the lock without
     // incrementing the counter since the unit test thread holds the lock.
-    CHECK_SUCCESS(Thread::create(atomicIncrement,
-                                 &args,
-                                 Thread::REALTIME_MIN_PRI,
-                                 Thread::Policy::REALTIME,
-                                 0,
-                                 gTestThreads[0]));
+    CHECK_SUCCESS(Thread::init(atomicIncrement,
+                               &args,
+                               Thread::REALTIME_MIN_PRI,
+                               Thread::Policy::REALTIME,
+                               0,
+                               gTestThreads[0]));
 
     // Wait a relatively long time to avoid racing thread creation.
     Clock::spinWait(0.1 * Clock::NS_IN_S);
@@ -107,7 +107,7 @@ TEST(Spinlock, AtomicUpdates)
     args.increments = 1000000;
 
     // Create spinlock and acquire it.
-    CHECK_SUCCESS(Spinlock::create(args.lock));
+    CHECK_SUCCESS(Spinlock::init(args.lock));
     CHECK_SUCCESS(args.lock.acquire());
 
     // Create threads. They will spin on the lock without updating the counter
@@ -115,12 +115,12 @@ TEST(Spinlock, AtomicUpdates)
     // cores to maximize contention of the counter.
     for (U32 i = 0; i < gTestMaxThreads; ++i)
     {
-        CHECK_SUCCESS(Thread::create(atomicIncrement,
-                                     &args,
-                                     Thread::REALTIME_MIN_PRI,
-                                     Thread::Policy::REALTIME,
-                                     (i % Thread::numCores()),
-                                     gTestThreads[i]));
+        CHECK_SUCCESS(Thread::init(atomicIncrement,
+                                   &args,
+                                   Thread::REALTIME_MIN_PRI,
+                                   Thread::Policy::REALTIME,
+                                   (i % Thread::numCores()),
+                                   gTestThreads[i]));
     }
 
     // Wait a relatively long time to avoid racing thread creation.

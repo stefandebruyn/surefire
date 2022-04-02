@@ -7,10 +7,10 @@
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/Socket.hpp"
 
-Result Socket::create(const IPv4Address kIp,
-                      const U16 kPort,
-                      const Protocol kProto,
-                      Socket& kSock)
+Result Socket::init(const IPv4Address kIp,
+                    const U16 kPort,
+                    const Protocol kProto,
+                    Socket& kSock)
 {
     // Verify socket is not already initialized.
     if (kSock.mFd != -1)

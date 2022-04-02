@@ -217,7 +217,7 @@ Result StateMachineCompiler::compile(
 
     // Create state machine.
     ws.sm.reset(new StateMachine());
-    res = StateMachine::create(smConfig, *ws.sm);
+    res = StateMachine::init(smConfig, *ws.sm);
     if (res != SUCCESS)
     {
         // Since the state machine config is known correct, the most likely

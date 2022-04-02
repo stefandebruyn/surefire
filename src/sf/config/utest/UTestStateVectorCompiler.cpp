@@ -53,7 +53,7 @@ static void checkStateVectorConfig(const Vec<Token>& kToks,
 
     // Create state vector.
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(svConfig, sv));
+    CHECK_SUCCESS(StateVector::init(svConfig, sv));
 
     // All elements can be looked up and have initial value zero.
     for (const ElementInfo& elemInfo : kElems)

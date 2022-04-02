@@ -30,12 +30,12 @@ public:
 
     typedef Result (*Function)(void* kArgs);
 
-    static Result create(const Function kFunc,
-                         void* const kArgs,
-                         const I32 kPriority,
-                         const Policy kPolicy,
-                         const U8 kAffinity,
-                         Thread& kThread);
+    static Result init(const Function kFunc,
+                       void* const kArgs,
+                       const I32 kPriority,
+                       const Policy kPolicy,
+                       const U8 kAffinity,
+                       Thread& kThread);
 
     static U8 numCores();
 

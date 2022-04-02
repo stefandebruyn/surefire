@@ -11,23 +11,23 @@
 #include "sf/core/Task.hpp"
 
 ITask::ITask(StateVector& kSv, const Element<U8>* const kModeElem) :
-    mSv(kSv), mModeElem(kModeElem), mInitialized(false)
+    mSv(kSv), mModeElem(kModeElem), mInit(false)
 {
 }
 
-Result ITask::initialize()
+Result ITask::init()
 {
     // Check that task is not already initialized.
-    if (mInitialized)
+    if (mInit)
     {
         return E_TSK_REINIT;
     }
 
     // Call initialization implementation.
-    const Result res = this->initializeImpl();
+    const Result res = this->initImpl();
     if (res == SUCCESS)
     {
-        mInitialized = true;
+        mInit = true;
     }
 
     return res;
@@ -36,7 +36,7 @@ Result ITask::initialize()
 Result ITask::step()
 {
     // Check that the task initialized successfully.
-    if (!mInitialized)
+    if (!mInit)
     {
         return E_TSK_UNINIT;
     }

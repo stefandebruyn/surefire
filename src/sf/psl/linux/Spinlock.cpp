@@ -1,6 +1,6 @@
 #include "sf/pal/Spinlock.hpp"
 
-Result Spinlock::create(Spinlock& kLock)
+Result Spinlock::init(Spinlock& kLock)
 {
     // Check that spinlock is not already initialized.
     if (kLock.mInit)

@@ -25,10 +25,10 @@ public:
         UDP = 0
     };
 
-    static Result create(const IPv4Address kIp,
-                         const U16 kPort,
-                         const Protocol kProto,
-                         Socket& kSock);
+    static Result init(const IPv4Address kIp,
+                       const U16 kPort,
+                       const Protocol kProto,
+                       Socket& kSock);
 
     static Result select(Socket* const kSocks[],
                          bool* const kReady,

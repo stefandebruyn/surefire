@@ -16,9 +16,9 @@ void setup()
 {
     // Initialize stuff.
     Serial.begin(9600);
-    Diag::haltOnError(Socket::create(gMyAddr, gPort, Socket::UDP, gSock),
+    Diag::haltOnError(Socket::init(gMyAddr, gPort, Socket::UDP, gSock),
                       "Failed to create socket");
-    Diag::haltOnError(DigitalIO::create(gDio), "Failed to initialize DIO");
+    Diag::haltOnError(DigitalIO::init(gDio), "Failed to initialize DIO");
     Diag::haltOnError(gDio.setMode(LED_BUILTIN, DigitalIO::OUT),
                       "failed to set DIO pin as output");
 }

@@ -78,7 +78,7 @@ TEST_GROUP(StateVectorCreate)
 TEST(StateVectorCreate, Success)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gConfig, sv));
 }
 
 TEST(StateVectorCreate, Uninitialized)
@@ -90,8 +90,8 @@ TEST(StateVectorCreate, Uninitialized)
 TEST(StateVectorCreate, ErrorReinitialize)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gConfig, sv));
-    CHECK_ERROR(E_SV_REINIT, StateVector::create(gConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gConfig, sv));
+    CHECK_ERROR(E_SV_REINIT, StateVector::init(gConfig, sv));
 }
 
 TEST(StateVectorCreate, ErrorNullElementArray)
@@ -102,7 +102,7 @@ TEST(StateVectorCreate, ErrorNullElementArray)
 
     // Creating state vector fails.
     StateVector sv;
-    const Result res = StateVector::create(gConfig, sv);
+    const Result res = StateVector::init(gConfig, sv);
     gConfig.elems = tmp;
     CHECK_ERROR(E_SV_NULL, res);
 
@@ -118,7 +118,7 @@ TEST(StateVectorCreate, ErrorNullElementPointer)
 
     // Creating state vector fails.
     StateVector sv;
-    const Result res = StateVector::create(gConfig, sv);
+    const Result res = StateVector::init(gConfig, sv);
     gConfig.elems[1].elem = tmp;
     CHECK_ERROR(E_SV_NULL, res);
 
@@ -134,7 +134,7 @@ TEST(StateVectorCreate, ErrorNullRegionPointer)
 
     // Creating state vector fails.
     StateVector sv;
-    const Result res = StateVector::create(gConfig, sv);
+    const Result res = StateVector::init(gConfig, sv);
     gConfig.regions[1].region = tmp;
     CHECK_ERROR(E_SV_NULL, res);
 
@@ -152,7 +152,7 @@ TEST(StateVectorCreate, ErrorMisalignedElementMiddleOfRegion)
 
     // Creating state vector fails.
     StateVector sv;
-    const Result res = StateVector::create(gConfig, sv);
+    const Result res = StateVector::init(gConfig, sv);
     gConfig.elems[0].elem = tmp;
     CHECK_ERROR(E_SV_LAYOUT, res);
 
@@ -170,7 +170,7 @@ TEST(StateVectorCreate, ErrorMisalignedElementLastInRegion)
 
     // Creating state vector fails.
     StateVector sv;
-    const Result res = StateVector::create(gConfig, sv);
+    const Result res = StateVector::init(gConfig, sv);
     gConfig.elems[1].elem = tmp;
     CHECK_ERROR(E_SV_LAYOUT, res);
 
@@ -188,7 +188,7 @@ TEST(StateVectorCreate, ErrorMisalignedElementFirstInRegion)
 
     // Creating state vector fails.
     StateVector sv;
-    const Result res = StateVector::create(gConfig, sv);
+    const Result res = StateVector::init(gConfig, sv);
     gConfig.elems[2].elem = tmp;
     CHECK_ERROR(E_SV_LAYOUT, res);
 
@@ -210,7 +210,7 @@ TEST(StateVectorCreate, AllowElementMisalignmentWithoutRegions)
 
     // Create state vector.
     StateVector sv;
-    Result res = StateVector::create(gConfig, sv);
+    Result res = StateVector::init(gConfig, sv);
     gConfig.regions = tmp1;
     CHECK_SUCCESS(res);
 
@@ -230,7 +230,7 @@ TEST(StateVectorCreate, DupeElementName)
 
     // Creating state vector fails.
     StateVector sv;
-    const Result res = StateVector::create(gConfig, sv);
+    const Result res = StateVector::init(gConfig, sv);
     gConfig.elems[1].name = tmp;
     CHECK_ERROR(E_SV_ELEM_DUPE, res);
 
@@ -246,7 +246,7 @@ TEST(StateVectorCreate, DupeRegionName)
 
     // Creating state vector fails.
     StateVector sv;
-    const Result res = StateVector::create(gConfig, sv);
+    const Result res = StateVector::init(gConfig, sv);
     gConfig.regions[1].name = tmp;
     CHECK_ERROR(E_SV_RGN_DUPE, res);
 

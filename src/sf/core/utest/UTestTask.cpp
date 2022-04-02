@@ -48,7 +48,7 @@ private:
 
     Element<bool>* mBar;
 
-    Result initializeImpl() final override
+    Result initImpl() final override
     {
         const Result res = mSv.getElement("foo", mFoo);
         if (res != SUCCESS)
@@ -95,7 +95,7 @@ TEST_GROUP(Task)
 TEST(Task, Uninitialized)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gSvConfig, sv));
     TestTask task(sv, &gElemMode);
 
     // Stepping uninitialized task fails. `foo` element is unchanged.
@@ -106,11 +106,11 @@ TEST(Task, Uninitialized)
 TEST(Task, InitializeFail)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gEmptySvConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gEmptySvConfig, sv));
     TestTask task(sv, nullptr);
 
     // Task initialization fails. Task cannot step. `foo` element is unchanged.
-    CHECK_ERROR(E_SV_KEY, task.initialize());
+    CHECK_ERROR(E_SV_KEY, task.init());
     CHECK_ERROR(E_TSK_UNINIT, task.step());
     CHECK_EQUAL(0, gElemFoo.read());
 }
@@ -118,18 +118,18 @@ TEST(Task, InitializeFail)
 TEST(Task, ErrorReinitialize)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gSvConfig, sv));
     TestTask task(sv, &gElemMode);
-    CHECK_SUCCESS(task.initialize());
-    CHECK_ERROR(E_TSK_REINIT, task.initialize());
+    CHECK_SUCCESS(task.init());
+    CHECK_ERROR(E_TSK_REINIT, task.init());
 }
 
 TEST(Task, ErrorInvalidMode)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gSvConfig, sv));
     TestTask task(sv, &gElemMode);
-    CHECK_SUCCESS(task.initialize());
+    CHECK_SUCCESS(task.init());
 
     // Stepping in invalid mode fails. `foo` element is unchanged.
     gElemMode.write(3);
@@ -140,9 +140,9 @@ TEST(Task, ErrorInvalidMode)
 TEST(Task, RunEnableWhenNoModeElem)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gSvConfig, sv));
     TestTask task(sv, nullptr);
-    CHECK_SUCCESS(task.initialize());
+    CHECK_SUCCESS(task.init());
 
     // No mode element was provided, so task always steps in enabled mode.
     gElemBar.write(true);
@@ -153,9 +153,9 @@ TEST(Task, RunEnableWhenNoModeElem)
 TEST(Task, ModeSwitching)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gSvConfig, sv));
     TestTask task(sv, &gElemMode);
-    CHECK_SUCCESS(task.initialize());
+    CHECK_SUCCESS(task.init());
 
     // Set element `bar` to true so that task steps succeed.
     gElemBar.write(true);
@@ -180,9 +180,9 @@ TEST(Task, ModeSwitching)
 TEST(Task, StepSafeSurfaceError)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gSvConfig, sv));
     TestTask task(sv, &gElemMode);
-    CHECK_SUCCESS(task.initialize());
+    CHECK_SUCCESS(task.init());
 
     // With element `bar` false, stepping in safe mode returns -1.
     gElemMode.write(TaskMode::SAFE);
@@ -192,9 +192,9 @@ TEST(Task, StepSafeSurfaceError)
 TEST(Task, StepEnableSurfaceError)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gSvConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gSvConfig, sv));
     TestTask task(sv, &gElemMode);
-    CHECK_SUCCESS(task.initialize());
+    CHECK_SUCCESS(task.init());
 
     // With element `bar` false, stepping in enabled mode returns -2.
     gElemMode.write(TaskMode::ENABLE);

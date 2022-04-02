@@ -201,7 +201,7 @@ public:
     /// @retval E_SM_TR_EXIT  Illegal transition in exit block.
     /// @retval E_SM_TRANS    Invalid transition destination state.
     ///
-    static Result create(const Config kConfig, StateMachine& kSm);
+    static Result init(const Config kConfig, StateMachine& kSm);
 
     ///
     /// @brief Default constructor. The constructed state machine is initially

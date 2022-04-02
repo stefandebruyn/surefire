@@ -112,7 +112,7 @@ TEST(StateMachineCreate, Create)
 {
     StateMachine sm;
     gElemState.write(1);
-    CHECK_SUCCESS(StateMachine::create(gConfig, sm));
+    CHECK_SUCCESS(StateMachine::init(gConfig, sm));
     CHECK_SUCCESS(sm.step());
 }
 
@@ -126,14 +126,14 @@ TEST(StateMachineCreate, ErrorReinitialize)
 {
     StateMachine sm;
     gElemState.write(1);
-    CHECK_SUCCESS(StateMachine::create(gConfig, sm));
-    CHECK_ERROR(E_SM_REINIT, StateMachine::create(gConfig, sm));
+    CHECK_SUCCESS(StateMachine::init(gConfig, sm));
+    CHECK_ERROR(E_SM_REINIT, StateMachine::init(gConfig, sm));
 }
 
 TEST(StateMachineCreate, ErrorInvalidInitialState)
 {
     StateMachine sm;
-    CHECK_ERROR(E_SM_STATE, StateMachine::create(gConfig, sm));
+    CHECK_ERROR(E_SM_STATE, StateMachine::init(gConfig, sm));
 }
 
 TEST(StateMachineCreate, ErrorNullStateElem)
@@ -143,7 +143,7 @@ TEST(StateMachineCreate, ErrorNullStateElem)
 
     auto stash = gConfig.elemState;
     gConfig.elemState = nullptr;
-    const Result res = StateMachine::create(gConfig, sm);
+    const Result res = StateMachine::init(gConfig, sm);
     gConfig.elemState = stash;
 
     CHECK_ERROR(E_SM_NULL, res);
@@ -157,7 +157,7 @@ TEST(StateMachineCreate, ErrorNullStateTimeElem)
 
     auto stash = gConfig.elemStateTime;
     gConfig.elemStateTime = nullptr;
-    const Result res = StateMachine::create(gConfig, sm);
+    const Result res = StateMachine::init(gConfig, sm);
     gConfig.elemStateTime = stash;
 
     CHECK_ERROR(E_SM_NULL, res);
@@ -171,7 +171,7 @@ TEST(StateMachineCreate, ErrorNullGlobalTimeElem)
 
     auto stash = gConfig.elemGlobalTime;
     gConfig.elemGlobalTime = nullptr;
-    const Result res = StateMachine::create(gConfig, sm);
+    const Result res = StateMachine::init(gConfig, sm);
     gConfig.elemGlobalTime = stash;
 
     CHECK_ERROR(E_SM_NULL, res);
@@ -185,7 +185,7 @@ TEST(StateMachineCreate, ErrorNullStatesArray)
 
     auto stash = gConfig.states;
     gConfig.states = nullptr;
-    const Result res = StateMachine::create(gConfig, sm);
+    const Result res = StateMachine::init(gConfig, sm);
     gConfig.states = stash;
 
     CHECK_ERROR(E_SM_NULL, res);
@@ -204,7 +204,7 @@ TEST(StateMachineCreate, ErrorEmptyStatesArray)
 
     auto stash = gConfig.states;
     gConfig.states = emptyStates;
-    const Result res = StateMachine::create(gConfig, sm);
+    const Result res = StateMachine::init(gConfig, sm);
     gConfig.states = stash;
 
     CHECK_ERROR(E_SM_EMPTY, res);
@@ -220,7 +220,7 @@ TEST(StateMachineCreate, ErrorInvalidTransitionInEntryLabel)
 
     auto stash = gState1EntryTransBlock.action;
     gState1EntryTransBlock.action = &badTrans;
-    const Result res = StateMachine::create(gConfig, sm);
+    const Result res = StateMachine::init(gConfig, sm);
     gState1EntryTransBlock.action = stash;
 
     CHECK_ERROR(E_SM_TRANS, res);
@@ -236,7 +236,7 @@ TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelIfBlock)
 
     auto stash = gState1StepTransBlock.action;
     gState1StepTransBlock.action = &badTrans;
-    const Result res = StateMachine::create(gConfig, sm);
+    const Result res = StateMachine::init(gConfig, sm);
     gState1StepTransBlock.action = stash;
 
     CHECK_ERROR(E_SM_TRANS, res);
@@ -252,7 +252,7 @@ TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelElseBlock)
 
     auto stash = gState1StepBarElseBlock.action;
     gState1StepBarElseBlock.action = &badTrans;
-    const Result res = StateMachine::create(gConfig, sm);
+    const Result res = StateMachine::init(gConfig, sm);
     gState1StepBarElseBlock.action = stash;
 
     CHECK_ERROR(E_SM_TRANS, res);
@@ -268,7 +268,7 @@ TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelNextBlock)
 
     auto stash = gState1StepNextBlock.action;
     gState1StepNextBlock.action = &badTrans;
-    const Result res = StateMachine::create(gConfig, sm);
+    const Result res = StateMachine::init(gConfig, sm);
     gState1StepNextBlock.action = stash;
 
     CHECK_ERROR(E_SM_TRANS, res);
@@ -284,7 +284,7 @@ TEST(StateMachineCreate, ErrorIllegalTransitionInExitLabel)
 
     auto stash = gState1ExitBlock.action;
     gState1ExitBlock.action = &trans;
-    const Result res = StateMachine::create(gConfig, sm);
+    const Result res = StateMachine::init(gConfig, sm);
     gState1ExitBlock.action = stash;
 
     CHECK_ERROR(E_SM_TR_EXIT, res);

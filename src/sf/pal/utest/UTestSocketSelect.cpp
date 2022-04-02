@@ -22,10 +22,10 @@ static Socket gSock4;
 
 static void createSockets()
 {
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
-    CHECK_SUCCESS(Socket::create(gTestIp2, gTestPort, Socket::UDP, gSock2));
-    CHECK_SUCCESS(Socket::create(gTestIp3, gTestPort, Socket::UDP, gSock3));
-    CHECK_SUCCESS(Socket::create(gTestIp4, gTestPort, Socket::UDP, gSock4));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp2, gTestPort, Socket::UDP, gSock2));
+    CHECK_SUCCESS(Socket::init(gTestIp3, gTestPort, Socket::UDP, gSock3));
+    CHECK_SUCCESS(Socket::init(gTestIp4, gTestPort, Socket::UDP, gSock4));
 }
 
 //////////////////////////////////// Tests /////////////////////////////////////

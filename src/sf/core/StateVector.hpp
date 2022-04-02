@@ -113,7 +113,7 @@ public:
     /// @retval E_SV_LAYOUT     Regions are not contiguous or do not exactly
     ///                         span element backing.
     ///
-    static Result create(const Config kConfig, StateVector& kSv);
+    static Result init(const Config kConfig, StateVector& kSv);
 
     ///
     /// @brief Default constructor. The constructed state vector is initially

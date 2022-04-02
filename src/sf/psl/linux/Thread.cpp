@@ -27,12 +27,12 @@ const I32 Thread::REALTIME_MAX_PRI =
     99;
 #endif
 
-Result Thread::create(const Function kFunc,
-                      void* const kArgs,
-                      const I32 kPriority,
-                      const Policy kPolicy,
-                      const U8 kAffinity,
-                      Thread& kThread)
+Result Thread::init(const Function kFunc,
+                    void* const kArgs,
+                    const I32 kPriority,
+                    const Policy kPolicy,
+                    const U8 kAffinity,
+                    Thread& kThread)
 {
     // Verify thread is not already initialized.
     if (kThread.mInit)

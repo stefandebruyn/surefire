@@ -61,7 +61,7 @@ I32 main(I32 kArgc, char* kArgv[])
 
     // Initialize state vector.
     StateVector sv;
-    res = StateVector::create(svConfig, sv);
+    res = StateVector::init(svConfig, sv);
     if (res != SUCCESS)
     {
         std::cout << "error " << res << "\n";

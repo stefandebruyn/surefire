@@ -3,7 +3,7 @@
 #include "sf/core/Diagnostic.hpp"
 #include "sf/pal/DigitalIO.hpp"
 
-Result DigitalIO::create(DigitalIO& kDio)
+Result DigitalIO::init(DigitalIO& kDio)
 {
     if (kDio.mInit)
     {

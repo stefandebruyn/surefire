@@ -44,7 +44,7 @@ enum TaskMode : U8
 ///   (1) Define a class which publicly inherits from ITask
 ///   (2) Constructor takes the parameters required by the ITask constructor
 ///       along with anything else needed to configure the task
-///   (3) Implement task initialization logic in initializeImpl(); this will
+///   (3) Implement task initialization logic in initImpl(); this will
 ///       usually include grabbing pointers to state vector elements that the
 ///       task uses as inputs and outputs
 ///   (4) Implement task business logic in stepEnable() and optionally
@@ -83,15 +83,15 @@ public:
     virtual ~ITask() = default;
 
     ///
-    /// @brief Initializes the task by calling initializeImpl(). On success,
-    /// step() may be successfully invoked on the task.
+    /// @brief Initializes the task by calling initImpl(). On success, step()
+    /// may be successfully invoked on the task.
     ///
     /// @retval SUCCESS       Task initialized successfully.
     /// @retval E_TSK_REINIT  Task is already initialized.
     /// @retval [other]       Error returned by the initialization
     ///                       implementation.
     ///
-    virtual Result initialize() final;
+    virtual Result init() final;
 
     ///
     /// @brief Executes 1 cycle of task logic. If the mode element is set to
@@ -127,7 +127,7 @@ protected:
     /// @retval SUCCESS  Task initialized successfully.
     /// @retval [other]  Implemntation-defined.
     ///
-    virtual Result initializeImpl() = 0;
+    virtual Result initImpl() = 0;
 
     ///
     /// @brief Called when task steps in safe mode.
@@ -157,7 +157,7 @@ private:
     ///
     /// @brief Whether task has initialized.
     ///
-    bool mInitialized;
+    bool mInit;
 };
 
 #endif

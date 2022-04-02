@@ -64,7 +64,7 @@ U32 StateMachine::Block::execute() const
     return StateMachine::NO_STATE;
 }
 
-Result StateMachine::create(const Config kConfig, StateMachine& kSm)
+Result StateMachine::init(const Config kConfig, StateMachine& kSm)
 {
     // Check that state machine is not already initialized.
     if (kSm.mStateCur != nullptr)

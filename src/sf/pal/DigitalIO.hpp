@@ -14,7 +14,7 @@ public:
         OUT = 1
     };
 
-    static Result create(DigitalIO& kDio);
+    static Result init(DigitalIO& kDio);
 
     DigitalIO();
 

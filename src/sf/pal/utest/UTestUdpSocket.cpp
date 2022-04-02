@@ -47,7 +47,7 @@ TEST(UdpSocket, Uninitialized)
 
 TEST(UdpSocket, CreateSendAndClose)
 {
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
     U64 buf = 0;
     CHECK_SUCCESS(gSock1.send(gTestIp2, gTestPort, &buf, sizeof(buf), nullptr));
     CHECK_SUCCESS(gSock1.close());
@@ -56,15 +56,15 @@ TEST(UdpSocket, CreateSendAndClose)
 
 TEST(UdpSocket, CreateReuse)
 {
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
     CHECK_SUCCESS(gSock1.close());
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
 }
 
 TEST(UdpSocket, ErrorCreateInvalidProtocol)
 {
     CHECK_ERROR(E_SOK_PROTO,
-                Socket::create(gTestIp1,
+                Socket::init(gTestIp1,
                                gTestPort,
                                static_cast<Socket::Protocol>(0xFF),
                                gSock1));
@@ -75,32 +75,32 @@ TEST(UdpSocket, ErrorCreateInvalidIp)
 {
     const IPv4Address invalidIp = {123, 123, 123, 123};
     CHECK_ERROR(E_SOK_BIND,
-                Socket::create(invalidIp, gTestPort, Socket::UDP, gSock1));
+                Socket::init(invalidIp, gTestPort, Socket::UDP, gSock1));
     checkSocketUninitialized(gSock1);
 }
 
 TEST(UdpSocket, ErrorCreatePortInUse)
 {
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
     CHECK_ERROR(E_SOK_BIND,
-                Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock2));
+                Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock2));
     checkSocketUninitialized(gSock2);
 }
 
 TEST(UdpSocket, ErrorCreateReinitialize)
 {
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
     CHECK_ERROR(E_SOK_REINIT,
-                Socket::create(gTestIp2, gTestPort, Socket::UDP, gSock1));
+                Socket::init(gTestIp2, gTestPort, Socket::UDP, gSock1));
 }
 
 TEST(UdpSocket, DestructInitialized)
 {
     {
         Socket sock;
-        CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, sock));
+        CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, sock));
     }
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
 }
 
 TEST(UdpSocket, DestructUninitialized)
@@ -113,8 +113,8 @@ TEST(UdpSocket, DestructUninitialized)
 TEST(UdpSocket, SmallSendAndRecv)
 {
     // Open sockets.
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
-    CHECK_SUCCESS(Socket::create(gTestIp2, gTestPort, Socket::UDP, gSock2));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp2, gTestPort, Socket::UDP, gSock2));
 
     // Small 11-byte message.
     U8 buf1[] =
@@ -142,8 +142,8 @@ TEST(UdpSocket, SmallSendAndRecv)
 TEST(UdpSocket, LargeSendAndRecv)
 {
     // Open sockets.
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
-    CHECK_SUCCESS(Socket::create(gTestIp2, gTestPort, Socket::UDP, gSock2));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp2, gTestPort, Socket::UDP, gSock2));
 
     // 4-kilobyte message.
     U8 buf1[4096];
@@ -176,8 +176,8 @@ TEST(UdpSocket, LargeSendAndRecv)
 TEST(UdpSocket, SendAndRecvNullNumBytesPtr)
 {
     // Open sockets.
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
-    CHECK_SUCCESS(Socket::create(gTestIp2, gTestPort, Socket::UDP, gSock2));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp2, gTestPort, Socket::UDP, gSock2));
 
     // Small 11-byte message.
     U8 buf1[] =
@@ -200,7 +200,7 @@ TEST(UdpSocket, SendAndRecvNullNumBytesPtr)
 
 TEST(UdpSocket, ErrorSendNullBuffer)
 {
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
     CHECK_ERROR(E_SOK_NULL, gSock1.send(gTestIp2,
                                          gTestPort,
                                          nullptr,
@@ -210,6 +210,6 @@ TEST(UdpSocket, ErrorSendNullBuffer)
 
 TEST(UdpSocket, ErrorRecvNullBuffer)
 {
-    CHECK_SUCCESS(Socket::create(gTestIp1, gTestPort, Socket::UDP, gSock1));
+    CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
     CHECK_ERROR(E_SOK_NULL, gSock1.recv(nullptr, 8, nullptr));
 }

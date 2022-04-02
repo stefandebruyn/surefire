@@ -11,7 +11,7 @@ class Spinlock final
 {
 public:
 
-    static Result create(Spinlock& kLock);
+    static Result init(Spinlock& kLock);
 
     Spinlock();
 

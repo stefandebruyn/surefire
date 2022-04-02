@@ -2,7 +2,7 @@
 
 #include "sf/pal/Socket.hpp"
 
-Result Socket::create(const IPv4Address kIp,
+Result Socket::init(const IPv4Address kIp,
                       const U16 kPort,
                       const Protocol kProto,
                       Socket& kSock)

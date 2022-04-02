@@ -78,7 +78,7 @@ template<typename T>
 static void testGetElement(const char* const kName, const Element<T>& kElem)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gConfig, sv));
     Element<T>* elem = nullptr;
     CHECK_SUCCESS(sv.getElement(kName, elem));
     POINTERS_EQUAL(&kElem, elem);
@@ -113,7 +113,7 @@ TEST(StateVectorAccess, GetElement)
 TEST(StateVectorAccess, GetRegion)
 {
     StateVector sv;
-    CHECK_SUCCESS(StateVector::create(gConfig, sv));
+    CHECK_SUCCESS(StateVector::init(gConfig, sv));
     Region* region = nullptr;
     CHECK_SUCCESS(sv.getRegion("foo", region));
     POINTERS_EQUAL(region, &gRegionFoo);

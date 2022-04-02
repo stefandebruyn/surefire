@@ -8,7 +8,7 @@ class AnalogIO final
 {
 public:
 
-    static Result create(AnalogIO& kAio);
+    static Result init(AnalogIO& kAio);
 
     AnalogIO();
 
