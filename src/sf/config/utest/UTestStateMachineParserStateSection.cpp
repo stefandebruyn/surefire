@@ -1065,6 +1065,161 @@ TEST(StateMachineParserStateSection, EmptyLabels)
     CHECK_TRUE(parse.exit->assert == nullptr);
 }
 
+TEST(StateMachineParserStateSection, IfElseIf)
+{
+    // Parse state.
+    TOKENIZE(
+        "[Foo]\n"
+        ".ENTRY\n"
+        "    IF a: b = 1\n"
+        "    ELSE: IF c: d = 2\n");
+    StateMachineParse::StateParse parse{};
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
+    CHECK_TRUE(it.eof());
+
+    // State name was parsed correctly.
+    CHECK_EQUAL(toks[0], parse.tokName);
+
+    // Only an entry label was parsed.
+    CHECK_TRUE(parse.entry != nullptr);
+    CHECK_TRUE(parse.step == nullptr);
+    CHECK_TRUE(parse.exit == nullptr);
+
+    // a
+    Ref<const StateMachineParse::BlockParse> block = parse.entry;
+    CHECK_TRUE(block->guard != nullptr);
+    CHECK_TRUE(block->ifBlock != nullptr);
+    CHECK_TRUE(block->elseBlock != nullptr);
+    CHECK_TRUE(block->action == nullptr);
+    CHECK_TRUE(block->next == nullptr);
+
+    Ref<const ExpressionParse> node = block->guard;
+    CHECK_EQUAL(toks[5], node->data);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // b = 1
+    block = parse.entry->ifBlock;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->action != nullptr);
+    CHECK_TRUE(block->next == nullptr);
+    CHECK_EQUAL(toks[7], block->action->tokLhs);
+    CHECK_EQUAL(toks[9], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
+
+    // c
+    block = parse.entry->elseBlock;
+    CHECK_TRUE(block->guard != nullptr);
+    CHECK_TRUE(block->ifBlock != nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->action == nullptr);
+    CHECK_TRUE(block->next == nullptr);
+
+    node = block->guard;
+    CHECK_EQUAL(toks[14], node->data);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // d = 2
+    block = parse.entry->elseBlock->ifBlock;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->action != nullptr);
+    CHECK_TRUE(block->next == nullptr);
+    CHECK_EQUAL(toks[16], block->action->tokLhs);
+    CHECK_EQUAL(toks[18], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
+}
+
+TEST(StateMachineParserStateSection, IfElseIfElse)
+{
+    // Parse state.
+    TOKENIZE(
+        "[Foo]\n"
+        ".ENTRY\n"
+        "    IF a: b = 1\n"
+        "    ELSE { IF c: d = 2\n"
+        "           ELSE: e = 3 }\n");
+    StateMachineParse::StateParse parse{};
+    CHECK_SUCCESS(StateMachineParser::parseStateSection(it, parse, nullptr));
+    CHECK_TRUE(it.eof());
+
+    // State name was parsed correctly.
+    CHECK_EQUAL(toks[0], parse.tokName);
+
+    // Only an entry label was parsed.
+    CHECK_TRUE(parse.entry != nullptr);
+    CHECK_TRUE(parse.step == nullptr);
+    CHECK_TRUE(parse.exit == nullptr);
+
+    // a
+    Ref<const StateMachineParse::BlockParse> block = parse.entry;
+    CHECK_TRUE(block->guard != nullptr);
+    CHECK_TRUE(block->ifBlock != nullptr);
+    CHECK_TRUE(block->elseBlock != nullptr);
+    CHECK_TRUE(block->action == nullptr);
+    CHECK_TRUE(block->next == nullptr);
+
+    Ref<const ExpressionParse> node = block->guard;
+    CHECK_EQUAL(toks[5], node->data);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // b = 1
+    block = parse.entry->ifBlock;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->action != nullptr);
+    CHECK_TRUE(block->next == nullptr);
+    CHECK_EQUAL(toks[7], block->action->tokLhs);
+    CHECK_EQUAL(toks[9], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
+
+    // c
+    block = parse.entry->elseBlock;
+    CHECK_TRUE(block->guard != nullptr);
+    CHECK_TRUE(block->ifBlock != nullptr);
+    CHECK_TRUE(block->elseBlock != nullptr);
+    CHECK_TRUE(block->action == nullptr);
+    CHECK_TRUE(block->next == nullptr);
+
+    node = block->guard;
+    CHECK_EQUAL(toks[14], node->data);
+    CHECK_TRUE(node->left == nullptr);
+    CHECK_TRUE(node->right == nullptr);
+
+    // d = 2
+    block = parse.entry->elseBlock->ifBlock;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->action != nullptr);
+    CHECK_TRUE(block->next == nullptr);
+    CHECK_EQUAL(toks[16], block->action->tokLhs);
+    CHECK_EQUAL(toks[18], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
+
+    // e = 3
+    block = parse.entry->elseBlock->elseBlock;
+    CHECK_TRUE(block->guard == nullptr);
+    CHECK_TRUE(block->ifBlock == nullptr);
+    CHECK_TRUE(block->elseBlock == nullptr);
+    CHECK_TRUE(block->action != nullptr);
+    CHECK_TRUE(block->next == nullptr);
+    CHECK_EQUAL(toks[22], block->action->tokLhs);
+    CHECK_EQUAL(toks[24], block->action->rhs->data);
+    CHECK_TRUE(block->action->rhs->left == nullptr);
+    CHECK_TRUE(block->action->rhs->right == nullptr);
+}
+
 ///////////////////////////////// Error Tests //////////////////////////////////
 
 TEST_GROUP(StateMachineParserStateSectionErrors)
