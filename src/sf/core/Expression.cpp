@@ -1,4 +1,16 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/Expression.hpp"
+
+////////////////////////////////// IExprNode ///////////////////////////////////
 
 template<>
 ElementType IExprNode<I8>::type() const
@@ -338,7 +350,7 @@ U64 safeCast<U64, F64>(const F64 kRhs)
     }
 
     // Note the >= here in constrast to the usual >. This is the same case as
-    // noted in `safeCast<I64, F64>`.
+    // noted in safeCast<I64, F64>.
     if (kRhs >= Limits::max<U64>())
     {
         return Limits::max<U64>();

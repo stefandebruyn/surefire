@@ -39,6 +39,7 @@
 ///
 /// @see IAction
 /// @see IExprNode
+/// @see IExpressionStats
 ///
 class StateMachine final
 {

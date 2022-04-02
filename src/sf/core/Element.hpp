@@ -101,7 +101,8 @@ public:
     /// not the element. The backing must live at least as long as the element
     /// it backs.
     ///
-    /// @param[in] backing  Element backing.
+    /// @param[in] backing  Element backing. The backing must live at least as
+    ///                     long as the element.
     ///
     Element(T& kBacking) : mBacking(kBacking)
     {
