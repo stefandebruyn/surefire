@@ -1069,6 +1069,54 @@ TEST(StateScriptCompiler, EmptyStateSection)
     CHECK_SV_ELEM("time", U64, 0);
 }
 
+TEST(StateScriptCompiler, ImperativeInputs)
+{
+    // General logic: state machine has no interesting logic, state script has
+    // a chain of guarded inputs that trigger each other and stop the script
+    // after one step.
+
+    // Compile objects.
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n");
+    INIT_SM(
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "\n"
+        "[local]\n"
+        "I32 foo = 0\n"
+        "\n"
+        "[Foo]\n");
+    INIT_SS(
+        "[config]\n"
+        "delta_t 1\n"
+        "\n"
+        "[all_states]\n"
+        "true: foo = 1\n"
+        "foo == 1: foo = 2\n"
+        "foo == 2: foo = 3\n"
+        "foo == 3 {\n"
+        "    @assert true\n"
+        "    @stop\n"
+        "}\n");
+
+    // Run state script.
+    StateScriptAssembly::Report report{};
+    CHECK_SUCCESS(ssAsm->run(ssTokInfo, report));
+
+    // Report contains expected data.
+    CHECK_EQUAL(true, report.pass);
+    CHECK_EQUAL(1, report.steps);
+    CHECK_EQUAL(1, report.asserts);
+    CHECK_TRUE(report.text.size() > 0);
+
+    // Final state vector contains expected values.
+    CHECK_SV_ELEM("state", U32, 1);
+    CHECK_SV_ELEM("time", U64, 0);
+}
+
 ///////////////////////////////// Error Tests //////////////////////////////////
 
 TEST_GROUP(StateScriptCompilerErrors)

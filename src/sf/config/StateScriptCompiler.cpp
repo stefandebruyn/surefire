@@ -463,9 +463,7 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
         SF_SAFE_ASSERT(res == SUCCESS);
     }
 
-    // The inputs and asserts to run in a given step will be collected in these
-    // vectors.
-    Vec<StateScriptAssembly::Input*> activeInputs;
+    // The asserts to run in a given step will be collected in these vectors.
     Vec<StateScriptAssembly::Assert*> activeAsserts;
 
     // Global time starts at zero.
@@ -503,20 +501,22 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
             }
         }
 
-        // Collect inputs and asserts for the current step based on the current
-        // state and guard evaluations.
+        // Execute inputs and collect asserts for the current step based on the
+        // current state and guard evaluations.
         for (StateScriptAssembly::Section& section : mSections)
         {
             if ((section.stateId == StateMachine::NO_STATE)
                 || (section.stateId == elemState.read()))
             {
-                // Collect inputs.
+                // Execute inputs as we go along so that they are reflected in
+                // later guards.
                 for (StateScriptAssembly::Input& input : section.inputs)
                 {
                     SF_SAFE_ASSERT(input.guard != nullptr);
                     if (input.guard->evaluate())
                     {
-                        activeInputs.push_back(&input);
+                        SF_SAFE_ASSERT(input.action != nullptr);
+                        input.action->execute();
                     }
                 }
 
@@ -530,14 +530,6 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
                     }
                 }
             }
-        }
-
-        // Execute inputs.
-        for (StateScriptAssembly::Input* const input : activeInputs)
-        {
-            SF_SAFE_ASSERT(input != nullptr);
-            SF_SAFE_ASSERT(input->action != nullptr);
-            input->action->execute();
         }
 
         // Step state machine.
@@ -573,8 +565,7 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
             break;
         }
 
-        // Clear active inputs and asserts.
-        activeInputs.clear();
+        // Clear active asserts.
         activeAsserts.clear();
 
         // Increment global time by the configured delta T.
