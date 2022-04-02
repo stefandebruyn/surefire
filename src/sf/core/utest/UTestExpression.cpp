@@ -16,7 +16,7 @@
 #include "sf/utest/UTest.hpp"
 
 ///
-/// @brief Expression node tests.
+/// @brief Unit tests for expression node types.
 ///
 TEST_GROUP(Expression)
 {

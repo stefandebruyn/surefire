@@ -32,7 +32,7 @@ static Result foo(const bool kFail)
 //////////////////////////////////// Tests /////////////////////////////////////
 
 ///
-/// @brief Assert macro tests.
+/// @brief Unit tests for assert macros.
 ///
 TEST_GROUP(Assert)
 {

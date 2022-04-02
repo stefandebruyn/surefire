@@ -16,7 +16,7 @@
 #include "sf/utest/UTest.hpp"
 
 ///
-/// @brief Memory utility tests.
+/// @brief Unit tests for the MemOps namespace.
 ///
 TEST_GROUP(MemOps)
 {

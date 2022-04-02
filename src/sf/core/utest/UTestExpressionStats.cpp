@@ -16,7 +16,7 @@
 #include "sf/utest/UTest.hpp"
 
 ///
-/// @brief ExpressionStats tests.
+/// @brief Unit tests for the ExpressionStats template.
 ///
 TEST_GROUP(ExpressionStats)
 {

@@ -88,7 +88,7 @@ static void testGetSize()
 //////////////////////////////////// Tests /////////////////////////////////////
 
 ///
-/// @brief Element tests.
+/// @brief Unit tests for Element.
 ///
 TEST_GROUP(Element)
 {
