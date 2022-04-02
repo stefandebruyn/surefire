@@ -116,8 +116,6 @@
        should match the precision used by the harness. */                      \
     expectOut << std::setprecision(std::numeric_limits<F64>::digits10);        \
     runStateMachine(svAsm, smAsm, kSmSteps, expectOut);                        \
-    std::ofstream dump("dump.txt", std::ofstream::out); \
-    dump << expectOut.str(); \
     CHECK_EQUAL(expectOut.str(), hout.str());
 
 #define SET_SV_ELEM(kElemName, kType, kVal)                                    \
@@ -188,10 +186,10 @@ TEST_GROUP(StateMachineAutocoder)
     void teardown()
     {
         // Delete files that may have been created.
-        // std::remove(SV_AUTOCODE_PATH);
-        // std::remove(SM_AUTOCODE_PATH);
+        std::remove(SV_AUTOCODE_PATH);
+        std::remove(SM_AUTOCODE_PATH);
         std::remove(HARNESS_BIN_PATH);
-        // std::remove(HARNESS_OUT_PATH);
+        std::remove(HARNESS_OUT_PATH);
     }
 };
 
