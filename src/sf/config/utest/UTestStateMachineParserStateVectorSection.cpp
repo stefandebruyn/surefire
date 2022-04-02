@@ -38,7 +38,7 @@ TEST_GROUP(StateMachineParseStateVectorSection)
 
 TEST(StateMachineParseStateVectorSection, Empty)
 {
-    TOKENIZE("[STATE_VECTOR]");
+    TOKENIZE("[state_vector]");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, parse, nullptr));
@@ -49,7 +49,7 @@ TEST(StateMachineParseStateVectorSection, Empty)
 
 TEST(StateMachineParseStateVectorSection, EmptyWithNewlines)
 {
-    TOKENIZE("[STATE_VECTOR]\n\n\n");
+    TOKENIZE("[state_vector]\n\n\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, parse, nullptr));
@@ -61,7 +61,7 @@ TEST(StateMachineParseStateVectorSection, EmptyWithNewlines)
 TEST(StateMachineParseStateVectorSection, OneElement)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "I32 foo\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
@@ -78,8 +78,8 @@ TEST(StateMachineParseStateVectorSection, OneElement)
 TEST(StateMachineParseStateVectorSection, ReadOnlyAnnotation)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo @READ_ONLY\n");
+        "[state_vector]\n"
+        "I32 foo @read_only\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, parse, nullptr));
@@ -95,8 +95,8 @@ TEST(StateMachineParseStateVectorSection, ReadOnlyAnnotation)
 TEST(StateMachineParseStateVectorSection, AliasAnnotation)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS bar\n");
+        "[state_vector]\n"
+        "I32 foo @alias bar\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, parse, nullptr));
@@ -113,8 +113,8 @@ TEST(StateMachineParseStateVectorSection, AliasAnnotation)
 TEST(StateMachineParseStateVectorSection, MultipleAnnotations)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS bar @READ_ONLY\n");
+        "[state_vector]\n"
+        "I32 foo @alias bar @read_only\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, parse, nullptr));
@@ -131,7 +131,7 @@ TEST(StateMachineParseStateVectorSection, MultipleAnnotations)
 TEST(StateMachineParseStateVectorSection, MultipleElements)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "I32 foo\n"
         "F64 bar\n"
         "bool baz\n");
@@ -158,7 +158,7 @@ TEST(StateMachineParseStateVectorSection, MultipleElements)
 TEST(StateMachineParseStateVectorSection, AllElementTypes)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "I8 a\n"
         "I16 b\n"
         "I32 c\n"
@@ -225,10 +225,10 @@ TEST(StateMachineParseStateVectorSection, AllElementTypes)
 TEST(StateMachineParseStateVectorSection, MultipleElementsWithAnnotations)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "I32 foo\n"
-        "F64 bar @READ_ONLY\n"
-        "bool baz @ALIAS qux\n");
+        "F64 bar @read_only\n"
+        "bool baz @alias qux\n");
     Vec<StateMachineParse::StateVectorElementParse> parse;
     CHECK_SUCCESS(
         StateMachineParser::parseStateVectorSection(it, parse, nullptr));
@@ -259,39 +259,39 @@ TEST_GROUP(StateMachineParseStateVectorSectionErrors)
 TEST(StateMachineParseStateVectorSectionErrors, RedundantReadOnlyAnnotation)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo @READ_ONLY @READ_ONLY\n");
+        "[state_vector]\n"
+        "I32 foo @read_only @read_only\n");
     checkParseError(it, E_SMP_RO_MULT, 2, 20);
 }
 
 TEST(StateMachineParseStateVectorSectionErrors, MultipleAliasAnnotations)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS bar @ALIAS baz\n");
+        "[state_vector]\n"
+        "I32 foo @alias bar @alias baz\n");
     checkParseError(it, E_SMP_AL_MULT, 2, 20);
 }
 
 TEST(StateMachineParseStateVectorSectionErrors, UnexpectedTokenAfterAlias)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS 10\n");
+        "[state_vector]\n"
+        "I32 foo @alias 10\n");
     checkParseError(it, E_SMP_ALIAS, 2, 9);
 }
 
 TEST(StateMachineParseStateVectorSectionErrors, EofAfterAlias)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS\n");
+        "[state_vector]\n"
+        "I32 foo @alias\n");
     checkParseError(it, E_SMP_ALIAS, 2, 9);
 }
 
 TEST(StateMachineParseStateVectorSectionErrors, ExpectedElementType)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "@I32 foo\n");
     checkParseError(it, E_SMP_ELEM_TYPE, 2, 1);
 }
@@ -299,7 +299,7 @@ TEST(StateMachineParseStateVectorSectionErrors, ExpectedElementType)
 TEST(StateMachineParseStateVectorSectionErrors, EofAfterElementType)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "I32\n");
     checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
@@ -307,7 +307,7 @@ TEST(StateMachineParseStateVectorSectionErrors, EofAfterElementType)
 TEST(StateMachineParseStateVectorSectionErrors, UnexpectedTokenAfterElementType)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "I32 @foo\n");
     checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
@@ -315,7 +315,7 @@ TEST(StateMachineParseStateVectorSectionErrors, UnexpectedTokenAfterElementType)
 TEST(StateMachineParseStateVectorSectionErrors, UnknownAnnotation)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo @FOO\n");
+        "[state_vector]\n"
+        "I32 foo @foo\n");
     checkParseError(it, E_SMP_ANNOT, 2, 9);
 }

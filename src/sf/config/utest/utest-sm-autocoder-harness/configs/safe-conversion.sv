@@ -11,4 +11,4 @@ U32 g
 U64 h
 F32 i
 F64 j
-BOOL k
+bool k

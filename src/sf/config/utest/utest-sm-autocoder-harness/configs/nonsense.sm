@@ -1,16 +1,16 @@
 # A bunch of random, complex logic meant to exercise the full range of language
 # syntax.
 
-[STATE_VECTOR]
-U32 state @ALIAS S
-U64 time @ALIAS G
+[state_vector]
+U32 state @alias S
+U64 time @alias G
 I8 a
 I16 b
 I32 c
 I64 d
 U8 e
-U16 f @READ_ONLY @ALIAS spam
-U32 g @ALIAS eggs
+U16 f @read_only @alias spam
+U32 g @alias eggs
 U64 h
 F32 i
 F64 j
@@ -37,29 +37,29 @@ F64 tau_sv
 F32 euler_sv
 F64 tintin_sv
 F64 haddock_sv
-BOOL calculus_sv
+bool calculus_sv
 
-[LOCAL]
+[local]
 I8 alpha = 10
 I16 beta = -87
 I32 gamma = 32000
-I64 delta = 4 @READ_ONLY
+I64 delta = 4 @read_only
 U8 epsilon = 0
 U16 zeta = (1337 + alpha) * delta
 U32 eta = 1522
 U64 theta = 10000000000
 F32 iota = 1522.47238947289439
 F64 kappa = -978.4378927472389300000003213
-bool lambda = TRUE
-F64 pi = 3.14159265359 @READ_ONLY
-F64 tau = pi * 2 @READ_ONLY
-F32 euler = 2.71828 @READ_ONLY
+bool lambda = true
+F64 pi = 3.14159265359 @read_only
+F64 tau = pi * 2 @read_only
+F32 euler = 2.71828 @read_only
 F64 tintin = 0
 F64 haddock = 0
-BOOL calculus = FALSE
+bool calculus = false
 
 [Foo]
-.ENTRY
+.entry
     # Entry actions
     lambda = !lambda
     kappa = kappa + (delta * iota / beta) + pi + euler
@@ -67,7 +67,7 @@ BOOL calculus = FALSE
     # randomized when run in unit tests.
     tintin = (a + b / d + e) / f * g - ((h - i) / j)
     haddock = k + foo + bar + baz + qux + corge + grault
-.STEP
+.step
     # Copy local elements to state vector.
     alpha_sv = alpha
     beta_sv = beta
@@ -89,45 +89,45 @@ BOOL calculus = FALSE
     # If branch using braces
     k = !k
     k {
-        TRUE: alpha = alpha + 1
+        true: alpha = alpha + 1
         kappa = kappa * -1
     }
-    # ROLL_AVG function; stats function with a window size expression that
+    # roll_avg function; stats function with a window size expression that
     # references variables
-    gamma = ROLL_AVG(kappa + zeta, alpha + 2) - 10.433
-    T < 20 OR k {
+    gamma = roll_avg(kappa + zeta, alpha + 2) - 10.433
+    T < 20 or k {
         # Nested if branch
-        lambda OR k == FALSE {
+        lambda or k == false {
             theta = theta - 3
             # If branch using colon
             k: theta = theta + eta / 10
             # Else branch using colon
-            ELSE: theta = theta - 2
+            else: theta = theta - 2
         }
         theta = theta - 4
     }
     # Else branch using braces
-    ELSE {
+    else {
         theta = theta + zeta
-        # ROLL_MEDIAN function
-        iota = iota - tau + ROLL_MEDIAN(gamma + 3, 4)
+        # roll_median function
+        iota = iota - tau + roll_median(gamma + 3, 4)
     }
     # Transition
     T >= 50: -> Bar
     a = a + 1
     # Use of global time element
     G < 17: lambda = kappa
-    ELSE: lambda = T > 5
-.EXIT
+    else: lambda = T > 5
+.exit
     # Exit action; expression using all arithmetic operators
     kappa = iota - euler * euler + pi - (tau + alpha / eta)
     # Expression using all logical operators
-    calculus = k OR !TRUE OR NOT NOT (!!!FALSE AND TRUE)
+    calculus = k or !true or not not (!!!false and true)
 
 [Bar]
-.ENTRY
+.entry
     eggs = 1
-.STEP
+.step
     # Copy local elements to state vector.
     alpha_sv = alpha
     beta_sv = beta
@@ -146,19 +146,19 @@ BOOL calculus = FALSE
     tintin_sv = tintin
     haddock_sv = haddock
     calculus_sv = calculus
-    # If branch using IF keyword
+    # If branch using if keyword
     eggs = eggs + eggs
-    IF eggs > 2 {
+    if eggs > 2 {
         iota = iota / (eggs - 4)
     }
-    # ROLL_MIN function
-    ROLL_MIN(eggs, alpha / 5) > 10: -> Baz
+    # roll_min function
+    roll_min(eggs, alpha / 5) > 10: -> Baz
 
 [Baz]
-.ENTRY
+.entry
     d = 2
     haddock = 0
-.STEP
+.step
     # Copy local elements to state vector.
     alpha_sv = alpha
     beta_sv = beta
@@ -177,10 +177,10 @@ BOOL calculus = FALSE
     tintin_sv = tintin
     haddock_sv = haddock
     calculus_sv = calculus
-    # ROLL_MAX function
-    tintin = ROLL_MAX(haddock, 3)
-    # ROLL_RANGE function
-    qux = ROLL_RANGE(tintin, 7)
+    # roll_max function
+    tintin = roll_max(haddock, 3)
+    # roll_range function
+    qux = roll_range(tintin, 7)
     # Double inequality
     lambda = (5 < T <= 8)
     d = d * 2

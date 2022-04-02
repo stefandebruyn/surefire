@@ -1,19 +1,19 @@
 # Computes the nth Fibonacci number and puts the result in fib_n.
 
-[STATE_VECTOR]
-U32 state @ALIAS S
-U64 time @ALIAS G
+[state_vector]
+U32 state @alias S
+U64 time @alias G
 U64 n
 U64 fib_n
 
-[LOCAL]
+[local]
 U64 i = 0       # Loop index
 U64 fib_im1 = 0 # fib(i-1)
 U64 fib_im2 = 0 # fib(i-2)
 U64 tmp = 0
 
 [Calculate]
-.ENTRY
+.entry
     # Base case
     n <= 1 {
         fib_n = n
@@ -22,7 +22,7 @@ U64 tmp = 0
     i = 2
     fib_im1 = 1
     fib_im2 = 0
-.STEP
+.step
     # Bottom-up calculation loop
     i <= n {
         fib_n = fib_im1 + fib_im2

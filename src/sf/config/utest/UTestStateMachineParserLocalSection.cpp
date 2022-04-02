@@ -37,7 +37,7 @@ TEST_GROUP(StateMachineParserLocalSection)
 TEST(StateMachineParserLocalSection, Empty)
 {
     // Parse local section.
-    TOKENIZE("[LOCAL]");
+    TOKENIZE("[local]");
     Vec<StateMachineParse::LocalElementParse> parse;
     CHECK_SUCCESS(StateMachineParser::parseLocalSection(it, parse, nullptr));
 
@@ -49,7 +49,7 @@ TEST(StateMachineParserLocalSection, Empty)
 
 TEST(StateMachineParserLocalSection, EmptyWithNewlines)
 {
-    TOKENIZE("[LOCAL]\n\n\n");
+    TOKENIZE("[local]\n\n\n");
     Vec<StateMachineParse::LocalElementParse> parse;
     CHECK_SUCCESS(StateMachineParser::parseLocalSection(it, parse, nullptr));
     CHECK_EQUAL(0, parse.size());
@@ -60,7 +60,7 @@ TEST(StateMachineParserLocalSection, OneElement)
 {
     // Parse local section.
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 0\n");
     Vec<StateMachineParse::LocalElementParse> parse;
     CHECK_SUCCESS(StateMachineParser::parseLocalSection(it, parse, nullptr));
@@ -84,8 +84,8 @@ TEST(StateMachineParserLocalSection, ReadOnlyAnnotation)
 {
     // Parse local section.
     TOKENIZE(
-        "[LOCAL]\n"
-        "I32 foo = 0 @READ_ONLY\n");
+        "[local]\n"
+        "I32 foo = 0 @read_only\n");
     Vec<StateMachineParse::LocalElementParse> parse;
     CHECK_SUCCESS(StateMachineParser::parseLocalSection(it, parse, nullptr));
 
@@ -108,10 +108,10 @@ TEST(StateMachineParserLocalSection, MultipleElements)
 {
     // Parse local section.
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 10\n"
         "F64 bar = 0.0\n"
-        "BOOL baz = FALSE\n");
+        "bool baz = false\n");
     Vec<StateMachineParse::LocalElementParse> parse;
     CHECK_SUCCESS(StateMachineParser::parseLocalSection(it, parse, nullptr));
 
@@ -152,10 +152,10 @@ TEST(StateMachineParserLocalSection, MultipleElementsWithAnnotations)
 {
     // Parse local section.
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 10\n"
-        "F64 bar = 0.0 @READ_ONLY\n"
-        "BOOL baz = FALSE @READ_ONLY\n");
+        "F64 bar = 0.0 @read_only\n"
+        "bool baz = false @read_only\n");
     Vec<StateMachineParse::LocalElementParse> parse;
     CHECK_SUCCESS(StateMachineParser::parseLocalSection(it, parse, nullptr));
 
@@ -173,7 +173,7 @@ TEST(StateMachineParserLocalSection, MultipleElementsWithAnnotations)
     CHECK_TRUE(node->right == nullptr);
     CHECK_TRUE(!parse[0].readOnly);
 
-    // F64 bar = 0.0 @READ_ONLY
+    // F64 bar = 0.0 @read_only
     CHECK_TRUE(parse[1].tokType == toks[7]);
     CHECK_TRUE(parse[1].tokName == toks[8]);
     node = parse[1].initValExpr;
@@ -182,7 +182,7 @@ TEST(StateMachineParserLocalSection, MultipleElementsWithAnnotations)
     CHECK_TRUE(node->right == nullptr);
     CHECK_TRUE(parse[1].readOnly);
 
-    // BOOL baz = FALSE @READ_ONLY
+    // BOOL baz = FALSE @read_only
     CHECK_TRUE(parse[2].tokType == toks[13]);
     CHECK_TRUE(parse[2].tokName == toks[14]);
     node = parse[2].initValExpr;
@@ -196,7 +196,7 @@ TEST(StateMachineParserLocalSection, AllElementTypes)
 {
     // Parse local section.
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I8 a = 0\n"
         "I16 b = 0\n"
         "I32 c = 0\n"
@@ -207,7 +207,7 @@ TEST(StateMachineParserLocalSection, AllElementTypes)
         "U64 h = 0\n"
         "F32 i = 0.0\n"
         "F64 j = 0.0\n"
-        "BOOL k = FALSE\n");
+        "bool k = false\n");
     Vec<StateMachineParse::LocalElementParse> parse;
     CHECK_SUCCESS(StateMachineParser::parseLocalSection(it, parse, nullptr));
 
@@ -320,7 +320,7 @@ TEST(StateMachineParserLocalSection, MultipleTermsInElementAssignment)
 {
     // Parse local section.
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = a + b\n");
     Vec<StateMachineParse::LocalElementParse> parse;
     CHECK_SUCCESS(StateMachineParser::parseLocalSection(it, parse, nullptr));
@@ -357,15 +357,15 @@ TEST_GROUP(StateMachineParserLocalSectionErrors)
 TEST(StateMachineParserLocalSectionErrors, RedundantReadOnlyAnnotation)
 {
     TOKENIZE(
-        "[LOCAL]\n"
-        "I32 foo = 0 @READ_ONLY @READ_ONLY\n");
+        "[local]\n"
+        "I32 foo = 0 @read_only @read_only\n");
     checkParseError(it, E_SMP_RO_MULT, 2, 24);
 }
 
 TEST(StateMachineParserLocalSectionErrors, ExpectedElementType)
 {
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "@foo bar = 0\n");
     checkParseError(it, E_SMP_ELEM_TYPE, 2, 1);
 }
@@ -373,7 +373,7 @@ TEST(StateMachineParserLocalSectionErrors, ExpectedElementType)
 TEST(StateMachineParserLocalSectionErrors, EofAfterElementType)
 {
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I32\n");
     checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
@@ -381,7 +381,7 @@ TEST(StateMachineParserLocalSectionErrors, EofAfterElementType)
 TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterElementType)
 {
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 @foo = 0\n");
     checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
@@ -389,7 +389,7 @@ TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterElementType)
 TEST(StateMachineParserLocalSectionErrors, EofAfterElementName)
 {
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo\n");
     checkParseError(it, E_SMP_LOC_OP, 2, 5);
 }
@@ -397,7 +397,7 @@ TEST(StateMachineParserLocalSectionErrors, EofAfterElementName)
 TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterElementName)
 {
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo @foo\n 0");
     checkParseError(it, E_SMP_LOC_OP, 2, 5);
 }
@@ -405,7 +405,7 @@ TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterElementName)
 TEST(StateMachineParserLocalSectionErrors, WrongOperatorAfterElementName)
 {
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo > 0\n");
     checkParseError(it, E_SMP_LOC_OP, 2, 5);
 }
@@ -413,7 +413,7 @@ TEST(StateMachineParserLocalSectionErrors, WrongOperatorAfterElementName)
 TEST(StateMachineParserLocalSectionErrors, EofAfterAssignmentOp)
 {
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo =\n");
     checkParseError(it, E_SMP_LOC_VAL, 2, 9);
 }
@@ -421,7 +421,7 @@ TEST(StateMachineParserLocalSectionErrors, EofAfterAssignmentOp)
 TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterAssignmentOp)
 {
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = @foo\n");
     checkParseError(it, E_SMP_LOC_VAL, 2, 9);
 }
@@ -429,7 +429,7 @@ TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterAssignmentOp)
 TEST(StateMachineParserLocalSectionErrors, UnknownAnnotation)
 {
     TOKENIZE(
-        "[LOCAL]\n"
-        "I32 foo = 0 @FOO\n");
+        "[local]\n"
+        "I32 foo = 0 @foo\n");
     checkParseError(it, E_SMP_ANNOT, 2, 13);
 }

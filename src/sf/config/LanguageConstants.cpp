@@ -1,14 +1,14 @@
 #include "sf/config/LanguageConstants.hpp"
 
-const String LangConst::funcRollAvg = "ROLL_AVG";
+const String LangConst::funcRollAvg = "roll_avg";
 
-const String LangConst::funcRollMedian = "ROLL_MEDIAN";
+const String LangConst::funcRollMedian = "roll_median";
 
-const String LangConst::funcRollMin = "ROLL_MIN";
+const String LangConst::funcRollMin = "roll_min";
 
-const String LangConst::funcRollMax = "ROLL_MAX";
+const String LangConst::funcRollMax = "roll_max";
 
-const String LangConst::funcRollRange = "ROLL_RANGE";
+const String LangConst::funcRollRange = "roll_range";
 
 const U32 LangConst::rollWindowMaxSize = 100000;
 
@@ -18,41 +18,41 @@ const String LangConst::elemGlobalTime = "G";
 
 const String LangConst::elemState = "S";
 
-const String LangConst::optDeltaT = "DELTA_T";
+const String LangConst::optDeltaT = "delta_t";
 
-const String LangConst::optInitState = "INIT_STATE";
+const String LangConst::optInitState = "init_state";
 
-const String LangConst::labelEntry = ".ENTRY";
+const String LangConst::labelEntry = ".entry";
 
-const String LangConst::labelStep = ".STEP";
+const String LangConst::labelStep = ".step";
 
-const String LangConst::labelExit = ".EXIT";
+const String LangConst::labelExit = ".exit";
 
-const String LangConst::annotationAssert = "@ASSERT";
+const String LangConst::annotationAssert = "@assert";
 
-const String LangConst::annotationAlias = "@ALIAS";
+const String LangConst::annotationAlias = "@alias";
 
-const String LangConst::annotationReadOnly = "@READ_ONLY";
+const String LangConst::annotationReadOnly = "@read_only";
 
-const String LangConst::annotationStop = "@STOP";
+const String LangConst::annotationStop = "@stop";
 
-const String LangConst::sectionStateVector = "[STATE_VECTOR]";
+const String LangConst::sectionStateVector = "[state_vector]";
 
-const String LangConst::sectionLocal = "[LOCAL]";
+const String LangConst::sectionLocal = "[local]";
 
-const String LangConst::sectionAllStates = "[ALL_STATES]";
+const String LangConst::sectionAllStates = "[all_states]";
 
-const String LangConst::sectionConfig = "[CONFIG]";
+const String LangConst::sectionConfig = "[config]";
 
-const String LangConst::keywordIf = "IF";
+const String LangConst::keywordIf = "if";
 
-const String LangConst::keywordElse = "ELSE";
+const String LangConst::keywordElse = "else";
 
 const String LangConst::keywordTransition = "->";
 
-const String LangConst::constantTrue = "TRUE";
+const String LangConst::constantTrue = "true";
 
-const String LangConst::constantFalse = "FALSE";
+const String LangConst::constantFalse = "false";
 
 const TypeInfo TypeInfo::i8 =
     {ElementType::INT8, "I8", 1, true, false, true};
@@ -100,7 +100,6 @@ const Map<String, TypeInfo> TypeInfo::fromName =
     {f32.name, f32},
     {f64.name, f64},
     {boolean.name, boolean},
-    {"BOOL", boolean} // Alias for `bool`
 };
 
 const Map<ElementType, TypeInfo> TypeInfo::fromEnum =
@@ -119,7 +118,7 @@ const Map<ElementType, TypeInfo> TypeInfo::fromEnum =
 };
 
 const OpInfo OpInfo::lnot =
-    {OpInfo::Type::NOT, "NOT", "!", 11, true, false, false, true};
+    {OpInfo::Type::NOT, "not", "!", 11, true, false, false, true};
 
 const OpInfo OpInfo::mult =
     {OpInfo::Type::MULT, "*", "*", 10, false, true, true, false};
@@ -152,15 +151,15 @@ const OpInfo OpInfo::neq =
     {OpInfo::Type::NEQ, "!=", "!=", 7, false, false, true, true};
 
 const OpInfo OpInfo::land =
-    {OpInfo::Type::AND, "AND", "&&", 6, false, false, false, true};
+    {OpInfo::Type::AND, "and", "&&", 6, false, false, false, true};
 
 const OpInfo OpInfo::lor =
-    {OpInfo::Type::OR, "OR", "||", 5, false, false, false, true};
+    {OpInfo::Type::OR, "or", "||", 5, false, false, false, true};
 
 const Map<String, OpInfo> OpInfo::fromStr =
 {
     {lnot.str, lnot},
-    {"!", lnot}, // Alias for `NOT`
+    {"!", lnot}, // Alias for logical not
     {mult.str, mult},
     {divide.str, divide},
     {add.str, add},

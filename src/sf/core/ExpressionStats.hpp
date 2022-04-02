@@ -22,7 +22,7 @@
 /// computes stats on a rolling window of past values. The object is updated
 /// periodically by external code, and stats are queried through the interface.
 ///
-/// @remark Used to implement stat functions like ROLL_AVG() in the state
+/// @remark Used to implement stat functions like roll_avg() in the state
 /// machine config language.
 ///
 class IExpressionStats

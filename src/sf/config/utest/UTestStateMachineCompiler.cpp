@@ -91,15 +91,15 @@ TEST(StateMachineCompiler, EntryLabel)
         "U64 time\n"
         "U32 state\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G \n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G \n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 0\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 1\n");
 
     // Element `foo` is set to 1 in the initial state entry label.
@@ -116,15 +116,15 @@ TEST(StateMachineCompiler, StepLabel)
         "U64 time\n"
         "U32 state\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 0\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
+        ".step\n"
         "    foo = foo + 1\n");
 
     // Element `foo` is incremented twice in the initial state step label.
@@ -141,21 +141,21 @@ TEST(StateMachineCompiler, TransitionInEntryDoExitLabel)
         "U64 time\n"
         "U32 state\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 0\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    -> Foo\n"
-        ".EXIT\n"
+        ".exit\n"
         "    foo = 1\n"
         "\n"
         "[Foo]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 2\n");
 
     // Element `foo` is set to 1 in the initial state exit label.
@@ -175,21 +175,21 @@ TEST(StateMachineCompiler, TransitionInStepDoExitLabel)
         "U64 time\n"
         "U32 state\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 0\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
+        ".step\n"
         "    -> Foo\n"
-        ".EXIT\n"
+        ".exit\n"
         "    foo = 1\n"
         "\n"
         "[Foo]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 2\n");
 
     // Element `foo` is set to 1 in the initial state exit label.
@@ -210,18 +210,18 @@ TEST(StateMachineCompiler, GuardTakeIfBranch)
         "U64 time\n"
         "U32 state\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 0\n"
         "I32 bar = 0\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
-        "    TRUE: foo = 1\n"
-        "    ELSE: foo = 2\n"
+        ".entry\n"
+        "    true: foo = 1\n"
+        "    else: foo = 2\n"
         "    bar = 1\n");
 
     // Element `foo` is set to 1 in the if branch.
@@ -239,18 +239,18 @@ TEST(StateMachineCompiler, GuardTakeElseBranch)
         "U64 time\n"
         "U32 state\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 0\n"
         "I32 bar = 0\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
-        "    FALSE: foo = 1\n"
-        "    ELSE: foo = 2\n"
+        ".entry\n"
+        "    false: foo = 1\n"
+        "    else: foo = 2\n"
         "    bar = 1\n");
 
     // Element `foo` is set to 2 in the else branch.
@@ -270,14 +270,14 @@ TEST(StateMachineCompiler, UseAlias)
         "I32 foo\n"
         "I32 baz\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
-        "I32 foo @ALIAS bar\n"
-        "I32 baz @ALIAS qux\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
+        "I32 foo @alias bar\n"
+        "I32 baz @alias qux\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    baz = 1\n"
         "    bar = qux\n");
 
@@ -302,12 +302,12 @@ TEST(StateMachineCompiler, AllElementTypes)
         "U64 h\n"
         "F32 i\n"
         "F64 j\n"
-        "BOOL k\n"
+        "bool k\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I8 a\n"
         "I16 b\n"
         "I32 c\n"
@@ -318,10 +318,10 @@ TEST(StateMachineCompiler, AllElementTypes)
         "U64 h\n"
         "F32 i\n"
         "F64 j\n"
-        "BOOL k\n"
+        "bool k\n"
         "I32 foo\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I8 l = 0\n"
         "I16 m = 0\n"
         "I32 n = 0\n"
@@ -332,10 +332,10 @@ TEST(StateMachineCompiler, AllElementTypes)
         "U64 s = 0\n"
         "F32 t = 0\n"
         "F64 u = 0\n"
-        "BOOL v = 0\n"
+        "bool v = 0\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    a = 1\n"
         "    b = 1\n"
         "    c = 1\n"
@@ -346,7 +346,7 @@ TEST(StateMachineCompiler, AllElementTypes)
         "    h = 1\n"
         "    i = 1\n"
         "    j = 1\n"
-        "    k = TRUE\n"
+        "    k = true\n"
         "    l = 1\n"
         "    m = 1\n"
         "    n = 1\n"
@@ -357,8 +357,8 @@ TEST(StateMachineCompiler, AllElementTypes)
         "    s = 1\n"
         "    t = 1\n"
         "    u = 1\n"
-        "    v = TRUE\n"
-        ".STEP\n"
+        "    v = true\n"
+        ".step\n"
         "    foo = a + b + c + d + e + f + g + h + i + j + k + l + m + n + o"
         "          + p + q + r + s + t + u + v\n");
 
@@ -374,12 +374,12 @@ TEST(StateMachineCompiler, SpecialElements)
         "U64 time\n"
         "U32 state\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
+        ".step\n"
         "    T == 10: -> Foo\n"
         "\n"
         "[Foo]\n");
@@ -421,17 +421,17 @@ TEST(StateMachineCompiler, StatsFunctionUsingStateVectorElement)
         "U32 state\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I32 foo\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 bar = 0\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
-        "    bar = ROLL_AVG(foo, 2)\n");
+        ".step\n"
+        "    bar = roll_avg(foo, 2)\n");
 
     SET_SV_ELEM("foo", I32, 3);
     CHECK_SUCCESS(sm.step());
@@ -457,19 +457,19 @@ TEST(StateMachineCompiler, TransitionToCurrentState)
         "I32 foo\n"
         "I32 bar\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I32 foo\n"
         "I32 bar\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 0\n"
-        ".STEP\n"
+        ".step\n"
         "    foo = foo + 1\n"
         "    foo == 3: -> Initial\n"
-        ".EXIT\n"
+        ".exit\n"
         "    bar = bar + 1\n");
 
     CHECK_SUCCESS(sm.step());
@@ -503,11 +503,11 @@ TEST(StateMachineCompiler, LocalElementInitialValues)
         "U64 time\n"
         "U32 state\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I8 a = 1\n"
         "I16 b = 2\n"
         "I32 c = 3\n"
@@ -518,7 +518,7 @@ TEST(StateMachineCompiler, LocalElementInitialValues)
         "U64 h = 8\n"
         "F32 i = 9\n"
         "F64 j = 10\n"
-        "BOOL k = TRUE\n"
+        "bool k = true\n"
         "\n"
         "[Initial]\n");
 
@@ -542,11 +542,11 @@ TEST(StateMachineCompiler, InitLocalElemsWithLocalElems)
         "U64 time\n"
         "U32 state\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 1\n"
         "I32 bar = foo + 1\n"
         "I32 baz = bar + 1\n"
@@ -574,11 +574,11 @@ TEST(StateMachineCompiler, AssignmentDoesSafeCast)
         "U64 h\n"
         "F32 i\n"
         "F64 j\n"
-        "BOOL k\n");
+        "bool k\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I8 a\n"
         "I16 b\n"
         "I32 c\n"
@@ -589,10 +589,10 @@ TEST(StateMachineCompiler, AssignmentDoesSafeCast)
         "U64 h\n"
         "F32 i\n"
         "F64 j\n"
-        "BOOL k\n"
+        "bool k\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    a = 1\n"
         "    b = 1\n"
         "    c = 1\n"
@@ -603,8 +603,8 @@ TEST(StateMachineCompiler, AssignmentDoesSafeCast)
         "    h = 1\n"
         "    i = 1\n"
         "    j = 1\n"
-        "    k = TRUE\n"
-        ".STEP\n"
+        "    k = true\n"
+        ".step\n"
         "    a = 0 / 0\n"
         "    b = 0 / 0\n"
         "    c = 0 / 0\n"
@@ -639,19 +639,19 @@ TEST(StateMachineCompiler, SpecifyInitialState)
         "U64 time\n"
         "U32 state\n");
     std::stringstream smSrc(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 0\n"
         "\n"
         "[Foo]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 10\n"
         "\n"
         "[Bar]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 100\n");
     Ref<const StateMachineAssembly> smAsm;
     CHECK_SUCCESS(
@@ -674,7 +674,7 @@ TEST(StateMachineCompilerErrors, UnknownStateVectorElement)
         "[Foo]\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "I32 bar\n"
         "\n"
         "[Initial]\n");
@@ -689,7 +689,7 @@ TEST(StateMachineCompilerErrors, UnknownStateVectorElementType)
         "[Foo]\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "I33 foo\n"
         "\n"
         "[Initial]\n");
@@ -704,7 +704,7 @@ TEST(StateMachineCompilerErrors, StateVectorElementTypeMismatch)
         "[Foo]\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "F32 foo\n"
         "\n"
         "[Initial]\n");
@@ -719,7 +719,7 @@ TEST(StateMachineCompilerErrors, StateVectorElementListedTwice)
         "[Foo]\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "I32 foo\n"
         "I32 foo\n"
         "\n"
@@ -735,8 +735,8 @@ TEST(StateMachineCompilerErrors, GlobalTimeElementWrongType)
         "[Foo]\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS G\n"
+        "[state_vector]\n"
+        "I32 foo @alias G\n"
         "\n"
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
@@ -750,8 +750,8 @@ TEST(StateMachineCompilerErrors, StateElementWrongType)
         "[Foo]\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "I32 foo @ALIAS S\n"
+        "[state_vector]\n"
+        "I32 foo @alias S\n"
         "\n"
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
@@ -767,12 +767,12 @@ TEST(StateMachineCompilerErrors, LocalElementReusesSvElementName)
         "U32 state\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I32 foo\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "F64 foo = 0\n"
         "\n"
         "[Initial]\n");
@@ -788,12 +788,12 @@ TEST(StateMachineCompilerErrors, AssignmentActionUnknownElement)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -808,13 +808,13 @@ TEST(StateMachineCompilerErrors, ErrorInAssignmentActionExpression)
         "U32 state\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = bar\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -828,12 +828,12 @@ TEST(StateMachineCompilerErrors, TransitionToUnknownState)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    -> Foo\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -848,13 +848,13 @@ TEST(StateMachineCompilerErrors, ErrorInGuardExpression)
         "U32 state\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    bar: foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -869,13 +869,13 @@ TEST(StateMachineCompilerErrors, ErrorInIfBranch)
         "U32 state\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo == 0: bar = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -890,15 +890,15 @@ TEST(StateMachineCompilerErrors, ErrorInElseBranch)
         "U32 state\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo == 0: foo = 1\n"
-        "    ELSE: bar = 1\n");
+        "    else: bar = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
     checkCompileError(smParse, svAsm, E_SMC_ASG_ELEM, 9, 11);
@@ -912,15 +912,15 @@ TEST(StateMachineCompilerErrors, ErrorInNextBlock)
         "U32 state\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo == 0: foo = 1\n"
-        "    ELSE: foo = 2\n"
+        "    else: foo = 2\n"
         "    bar = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -934,12 +934,12 @@ TEST(StateMachineCompilerErrors, ErrorInStepLabel)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
+        ".step\n"
         "    foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -953,12 +953,12 @@ TEST(StateMachineCompilerErrors, ErrorInExitLabel)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n"
-        ".EXIT\n"
+        ".exit\n"
         "    foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -973,18 +973,18 @@ TEST(StateMachineCompilerErrors, ErrorInNonInitialState)
         "U32 state\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 1\n"
         "    -> Foo\n"
         "\n"
         "[Foo]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    bar = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -998,8 +998,8 @@ TEST(StateMachineCompilerErrors, NoGlobalTimeElement)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
@@ -1014,8 +1014,8 @@ TEST(StateMachineCompilerErrors, NoStateElement)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
         "\n"
         "[Initial]\n");
     Ref<const StateMachineParse> smParse;
@@ -1031,13 +1031,13 @@ TEST(StateMachineCompilerErrors, WriteReadOnlyStateVectorElement)
         "U32 state\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
-        "I32 foo @READ_ONLY\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
+        "I32 foo @read_only\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -1052,13 +1052,13 @@ TEST(StateMachineCompilerErrors, WriteReadOnlyStateVectorElementAlias)
         "U32 state\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
-        "I32 foo @READ_ONLY @ALIAS bar\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
+        "I32 foo @read_only @alias bar\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    bar = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -1072,15 +1072,15 @@ TEST(StateMachineCompilerErrors, WriteReadOnlyLocalElement)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
-        "I32 foo = 0 @READ_ONLY\n"
+        "[local]\n"
+        "I32 foo = 0 @read_only\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -1094,12 +1094,12 @@ TEST(StateMachineCompilerErrors, WriteGlobalTimeElement)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    G = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -1113,12 +1113,12 @@ TEST(StateMachineCompilerErrors, WriteLocalTimeElement)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    T = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -1132,12 +1132,12 @@ TEST(StateMachineCompilerErrors, WriteStateElement)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    S = 1\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
@@ -1151,12 +1151,12 @@ TEST(StateMachineCompilerErrors, TransitionInExitLabel)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n"
-        ".EXIT\n"
+        ".exit\n"
         "    -> Foo\n"
         "\n"
         "[Foo]\n");
@@ -1172,13 +1172,13 @@ TEST(StateMachineCompilerErrors, IllegalAssert)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
-        "    @ASSERT T == 0\n");
+        ".entry\n"
+        "    @assert T == 0\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
     checkCompileError(smParse, svAsm, E_SMC_ASSERT, 7, 5);
@@ -1191,13 +1191,13 @@ TEST(StateMachineCompilerErrors, IllegalStopAnnotation)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Initial]\n"
-        ".ENTRY\n"
-        "    @STOP\n");
+        ".entry\n"
+        "    @stop\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
     checkCompileError(smParse, svAsm, E_SMC_STOP, 7, 5);
@@ -1211,12 +1211,12 @@ TEST(StateMachineCompilerErrors, LocalElementReferencesStateVectorElement)
         "U32 state\n"
         "I32 foo\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "I32 foo\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 bar = 1 + foo\n"
         "\n"
         "[Initial]\n");
@@ -1232,11 +1232,11 @@ TEST(StateMachineCompilerErrors, LocalElementReferencesItself)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 bar = 1 + bar\n"
         "\n"
         "[Initial]\n");
@@ -1252,11 +1252,11 @@ TEST(StateMachineCompilerErrors, LocalElementUseBeforeInitialization)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = bar + 1\n"
         "I32 bar = 0\n"
         "\n"
@@ -1284,11 +1284,11 @@ TEST(StateMachineCompilerErrors, AllStatesSectionNameReserved)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[ALL_STATES]\n");
+        "[all_states]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
     checkCompileError(smParse, svAsm, E_SMC_RSVD, 5, 1);
@@ -1301,11 +1301,11 @@ TEST(StateMachineCompilerErrors, ConfigSectionNameReserved)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
-        "[CONFIG]\n");
+        "[config]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
     checkCompileError(smParse, svAsm, E_SMC_RSVD, 5, 1);
@@ -1318,9 +1318,9 @@ TEST(StateMachineCompiler, UnknownInitialState)
         "U64 time\n"
         "U32 state\n");
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "U64 time @ALIAS G\n"
-        "U32 state @ALIAS S\n"
+        "[state_vector]\n"
+        "U64 time @alias G\n"
+        "U32 state @alias S\n"
         "\n"
         "[Foo]\n");
     Ref<const StateMachineParse> smParse;

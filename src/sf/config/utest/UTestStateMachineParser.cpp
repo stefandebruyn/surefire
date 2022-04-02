@@ -38,14 +38,14 @@ TEST(StateMachineParser, AllSections)
 {
     // Parse state machine config.
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "I32 foo\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 bar = 0\n"
         "\n"
         "[Foo]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 0\n");
     Ref<const StateMachineParse> parse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, parse, nullptr));
@@ -93,8 +93,8 @@ TEST(StateMachineParser, EmptySections)
 {
     // Parse state machine config.
     TOKENIZE(
-        "[STATE_VECTOR]\n"
-        "[LOCAL]\n"
+        "[state_vector]\n"
+        "[local]\n"
         "[Foo]\n");
     Ref<const StateMachineParse> parse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, parse, nullptr));
@@ -131,7 +131,7 @@ TEST(StateMachineParserErrors, UnexpectedToken)
 TEST(StateMachineParserErrors, ErrorInStateVectorSection)
 {
     TOKENIZE(
-        "[STATE_VECTOR]\n"
+        "[state_vector]\n"
         "@foo\n");
     checkParseError(toks, E_SMP_ELEM_TYPE, 2, 1);
 }
@@ -139,7 +139,7 @@ TEST(StateMachineParserErrors, ErrorInStateVectorSection)
 TEST(StateMachineParserErrors, ErrorInLocalSection)
 {
     TOKENIZE(
-        "[LOCAL]\n"
+        "[local]\n"
         "@foo\n");
     checkParseError(toks, E_SMP_ELEM_TYPE, 2, 1);
 }

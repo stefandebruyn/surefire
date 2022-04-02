@@ -5,18 +5,18 @@
 ///////////////////////////// State Machine Config /////////////////////////////
 
 /*
-[LOCAL]
+[local]
 I32 foo = 0
 I32 bar = 0
 I32 baz = 0
 
 [State1]
-.ENTRY
+.entry
     foo = 100
-.STEP
+.step
     foo = foo + 1
     foo == 110: -> State1
-.EXIT
+.exit
     foo = 0
 
 [State2]

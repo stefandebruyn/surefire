@@ -42,7 +42,7 @@ static const char* const gElemTypeNames[] =
     "U64",
     "F32",
     "F64",
-    "BOOL"
+    "bool"
 };
 
 ///

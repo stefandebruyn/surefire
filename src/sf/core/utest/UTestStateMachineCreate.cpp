@@ -4,15 +4,15 @@
 ///////////////////////////// State Machine Config /////////////////////////////
 
 /*
-[LOCAL]
+[local]
 bool foo
 bool bar
 bool baz
 
 [State1]
-.ENTRY
+.entry
     foo: -> State2
-.STEP
+.step
     foo {
         bar {
             baz {
@@ -22,7 +22,7 @@ bool baz
         ELSE: -> State2
     }
     -> State2
-.EXIT
+.exit
 
 [State2]
 */

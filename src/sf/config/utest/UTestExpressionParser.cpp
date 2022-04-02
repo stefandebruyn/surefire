@@ -207,10 +207,10 @@ TEST(ExpressionParser, BinaryOperatorLeftAssociativity)
 
 TEST(ExpressionParser, UnaryOperator)
 {
-    // NOT
+    // not
     //   \
     //   foo
-    TOKENIZE("NOT foo");
+    TOKENIZE("not foo");
     Ref<const ExpressionParse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
@@ -228,12 +228,12 @@ TEST(ExpressionParser, UnaryOperator)
 
 TEST(ExpressionParser, UnaryAndBinaryOperator)
 {
-    //   AND
-    //   /  \
-    // foo  NOT
-    //        \
+    //   and
+    //  /  \
+    // foo  not
+    //       \
     //        bar
-    TOKENIZE("foo AND NOT bar");
+    TOKENIZE("foo and not bar");
     Ref<const ExpressionParse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
@@ -416,15 +416,15 @@ TEST(ExpressionParser, ComparisonOperators)
 
 TEST(ExpressionParser, LogicalOperators)
 {
-    //     OR
+    //     or
     //    / \
-    //   AND \
+    //   and \
     //  / \   \
     // a   b   \
-    //          NOT
+    //          not
     //           \
     //            c
-    TOKENIZE("a AND b OR NOT c");
+    TOKENIZE("a and b or not c");
     Ref<const ExpressionParse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
@@ -461,16 +461,16 @@ TEST(ExpressionParser, LogicalOperators)
 
 TEST(ExpressionParser, NestedParentheses)
 {
-    //       AND
+    //       and
     //      / \
-    //     OR  e
+    //     or  e
     //    /  \
-    //   AND  d
+    //   and  d
     //  / \
-    // a   OR
+    // a   or
     //    / \
     //   b   c
-    TOKENIZE("((a AND (b OR c)) OR d) AND e");
+    TOKENIZE("((a and (b or c)) or d) and e");
     Ref<const ExpressionParse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
@@ -530,23 +530,23 @@ TEST(ExpressionParser, ExtraParenthesesOnOneTerm)
 
 TEST(ExpressionParser, UnaryOperatorRightAssociativity)
 {
-    // NOT
+    // not
     //  \
-    //   NOT
+    //   not
     //    \
     //     a
-    TOKENIZE("NOT NOT a");
+    TOKENIZE("not not a");
     Ref<const ExpressionParse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
     Ref<const ExpressionParse> node;
 
-    // NOT
+    // not
     node = parse;
     CHECK_TRUE(node->data == toks[0]);
     CHECK_TRUE(node->left == nullptr);
 
-    // NOT a
+    // not a
     node = parse->right;
     CHECK_TRUE(node->data == toks[1]);
     CHECK_TRUE(node->left == nullptr);
@@ -596,23 +596,23 @@ TEST(ExpressionParser, ParenthesesAfterBinaryOperator)
 
 TEST(ExpressionParser, ParenthesesAfterUnaryOperator)
 {
-    // NOT
+    // not
     //  \
-    //   AND
+    //   and
     //  / \
     // a   b
-    TOKENIZE("NOT (a AND b)");
+    TOKENIZE("not (a and b)");
     Ref<const ExpressionParse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
     Ref<const ExpressionParse> node;
 
-    // NOT
+    // not
     node = parse;
     CHECK_TRUE(node->data == toks[0]);
     CHECK_TRUE(node->left == nullptr);
 
-    // a AND b
+    // a and b
     node = parse->right->left;
     CHECK_TRUE(node->data == toks[2]);
     CHECK_TRUE(node->left == nullptr);
@@ -635,7 +635,7 @@ TEST(ExpressionParser, ExpandDoubleInequalityLtLte)
 
     Ref<const ExpressionParse> parseExpect;
     {
-        TOKENIZE("a < b AND b <= c");
+        TOKENIZE("a < b and b <= c");
         CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
     }
 
@@ -650,7 +650,7 @@ TEST(ExpressionParser, ExpandDoubleInequalityGtGte)
 
     Ref<const ExpressionParse> parseExpect;
     {
-        TOKENIZE("a > b AND b >= c");
+        TOKENIZE("a > b and b >= c");
         CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
     }
 
@@ -665,7 +665,7 @@ TEST(ExpressionParser, ExpandTripleInequality)
 
     Ref<const ExpressionParse> parseExpect;
     {
-        TOKENIZE("a < b AND b < c AND c < d");
+        TOKENIZE("a < b and b < c and c < d");
         CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
     }
 
@@ -680,7 +680,7 @@ TEST(ExpressionParser, ExpandDoubleInequalityNestedExpression)
 
     Ref<const ExpressionParse> parseExpect;
     {
-        TOKENIZE("a + b < c + d AND c + d < e + f");
+        TOKENIZE("a + b < c + d and c + d < e + f");
         CHECK_SUCCESS(ExpressionParser::parse(it, parseExpect, nullptr));
     }
 
@@ -860,10 +860,10 @@ TEST(ExpressionParser, FunctionCallTwoExpressionArgs)
     //  /   a   b
     // arg2
     //  \
-    //   OR
+    //   or
     //  / \
     // c   d
-    TOKENIZE("foo(a + b, c OR d)");
+    TOKENIZE("foo(a + b, c or d)");
     Ref<const ExpressionParse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 
@@ -953,10 +953,10 @@ TEST(ExpressionParser, FunctionCallMultipleParenthesizedExpressionArgs)
     //  /   a   b
     // arg2
     //  \
-    //   OR
+    //   or
     //  / \
     // c   d
-    TOKENIZE("foo((a + b), (c OR d))");
+    TOKENIZE("foo((a + b), (c or d))");
     Ref<const ExpressionParse> parse;
     CHECK_SUCCESS(ExpressionParser::parse(it, parse, nullptr));
 

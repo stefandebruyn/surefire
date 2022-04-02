@@ -335,7 +335,7 @@ Result StateMachineParser::parse(const Vec<Token>& kToks,
                 break;
 
             case Token::SECTION:
-                if (it.str() == "[STATE_VECTOR]")
+                if (it.str() == "[state_vector]")
                 {
                     // Check that state vector section was not already parsed.
                     if (hasStateVectorSection)
@@ -356,7 +356,7 @@ Result StateMachineParser::parse(const Vec<Token>& kToks,
 
                     hasStateVectorSection = true;
                 }
-                else if (it.str() == "[LOCAL]")
+                else if (it.str() == "[local]")
                 {
                     // Check that local section was not already parsed.
                     if (hasLocalSection)

@@ -1,6 +1,6 @@
-[STATE_VECTOR]
-U32 state @ALIAS S
-U64 time @ALIAS G
+[state_vector]
+U32 state @alias S
+U64 time @alias G
 I8 a
 I16 b
 I32 c
@@ -11,10 +11,10 @@ U32 g
 U64 h
 F32 i
 F64 j
-BOOL k
+bool k
 
 [Nan]
-.ENTRY
+.entry
     a = 0 / 0
     b = 0 / 0
     c = 0 / 0
@@ -29,7 +29,7 @@ BOOL k
     -> Inf
 
 [Inf]
-.ENTRY
+.entry
     a = 1 / 0
     b = 1 / 0
     c = 1 / 0
@@ -44,7 +44,7 @@ BOOL k
     -> NegInf
 
 [NegInf]
-.ENTRY
+.entry
     a = -1 / 0
     b = -1 / 0
     c = -1 / 0
@@ -59,7 +59,7 @@ BOOL k
     -> SaturateUpper
 
 [SaturateUpper]
-.ENTRY
+.entry
     a = 128
     b = 32768
     c = 2147483648
@@ -74,7 +74,7 @@ BOOL k
     -> SaturateLower
 
 [SaturateLower]
-.ENTRY
+.entry
     a = -129
     b = -32769
     c = -2147483649

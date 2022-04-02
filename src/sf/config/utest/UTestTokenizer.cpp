@@ -75,8 +75,8 @@ TEST(Tokenizer, Operator)
     CHECK_TOKEN("<", Token::OPERATOR, "<", 1, 1);
     CHECK_TOKEN(">=", Token::OPERATOR, ">=", 1, 1);
     CHECK_TOKEN(">", Token::OPERATOR, ">", 1, 1);
-    CHECK_TOKEN("AND", Token::OPERATOR, "AND", 1, 1);
-    CHECK_TOKEN("OR", Token::OPERATOR, "OR", 1, 1);
+    CHECK_TOKEN("and", Token::OPERATOR, "and", 1, 1);
+    CHECK_TOKEN("or", Token::OPERATOR, "or", 1, 1);
     CHECK_TOKEN("+", Token::OPERATOR, "+", 1, 1);
     CHECK_TOKEN("-", Token::OPERATOR, "-", 1, 1);
     CHECK_TOKEN("*", Token::OPERATOR, "*", 1, 1);
@@ -88,8 +88,8 @@ TEST(Tokenizer, Constant)
     CHECK_TOKEN("123", Token::CONSTANT, "123", 1, 1);
     CHECK_TOKEN(".123", Token::CONSTANT, ".123", 1, 1);
     CHECK_TOKEN("123.456", Token::CONSTANT, "123.456", 1, 1);
-    CHECK_TOKEN("TRUE", Token::CONSTANT, "TRUE", 1, 1);
-    CHECK_TOKEN("FALSE", Token::CONSTANT, "FALSE", 1, 1);
+    CHECK_TOKEN("true", Token::CONSTANT, "true", 1, 1);
+    CHECK_TOKEN("false", Token::CONSTANT, "false", 1, 1);
 }
 
 TEST(Tokenizer, Colon)
@@ -140,8 +140,8 @@ TEST(Tokenizer, Comma)
 
 TEST(Tokenizer, Keyword)
 {
-    CHECK_TOKEN("IF", Token::KEYWORD, "IF", 1, 1);
-    CHECK_TOKEN("ELSE", Token::KEYWORD, "ELSE", 1, 1);
+    CHECK_TOKEN("if", Token::KEYWORD, "if", 1, 1);
+    CHECK_TOKEN("else", Token::KEYWORD, "else", 1, 1);
     CHECK_TOKEN("->", Token::KEYWORD, "->", 1, 1);
 }
 
@@ -175,11 +175,11 @@ TEST(Tokenizer, EveryToken)
         {Token::NEWLINE, "(newline)", 6, 16},
         {Token::LABEL, ".foo", 7, 2},
         {Token::OPERATOR, "!=", 7, 9},
-        {Token::CONSTANT, "FALSE", 7, 11},
+        {Token::CONSTANT, "false", 7, 11},
         {Token::NEWLINE, "(newline)", 7, 22},
         {Token::RPAREN, ")", 8, 1},
         {Token::COLON, ":", 8, 2},
-        {Token::OPERATOR, "AND", 8, 4},
+        {Token::OPERATOR, "and", 8, 4},
         {Token::CONSTANT, "123", 8, 8},
         {Token::COMMA, ",", 8, 11},
         {Token::COMMA, ",", 8, 12},
@@ -192,8 +192,8 @@ TEST(Tokenizer, EveryToken)
         "\n"
         "# foo\n"
         "    [foo]({@foo\n"
-        " .foo   !=FALSE # foo\n"
-        "): AND 123,,->",
+        " .foo   !=false # foo\n"
+        "): and 123,,->",
         toksExpect);
 }
 

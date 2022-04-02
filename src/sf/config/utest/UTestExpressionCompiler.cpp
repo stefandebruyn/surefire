@@ -82,10 +82,10 @@ TEST(ExpressionCompiler, SimplePrecedenceWithParens)
 
 TEST(ExpressionCompiler, Not)
 {
-    checkEvalConstExpr("NOT FALSE", 1.0);
-    checkEvalConstExpr("NOT TRUE", 0.0);
-    checkEvalConstExpr("NOT NOT FALSE", 0.0);
-    checkEvalConstExpr("NOT NOT NOT FALSE", 1.0);
+    checkEvalConstExpr("not false", 1.0);
+    checkEvalConstExpr("not true", 0.0);
+    checkEvalConstExpr("not not false", 0.0);
+    checkEvalConstExpr("not not not false", 1.0);
 }
 
 TEST(ExpressionCompiler, Multiply)
@@ -179,18 +179,18 @@ TEST(ExpressionCompiler, NotEqual)
 
 TEST(ExpressionCompiler, And)
 {
-    checkEvalConstExpr("FALSE AND FALSE", 0.0);
-    checkEvalConstExpr("FALSE AND TRUE", 0.0);
-    checkEvalConstExpr("TRUE AND FALSE", 0.0);
-    checkEvalConstExpr("TRUE AND TRUE", 1.0);
+    checkEvalConstExpr("false and false", 0.0);
+    checkEvalConstExpr("false and true", 0.0);
+    checkEvalConstExpr("true and false", 0.0);
+    checkEvalConstExpr("true and true", 1.0);
 }
 
 TEST(ExpressionCompiler, Or)
 {
-    checkEvalConstExpr("FALSE OR FALSE", 0.0);
-    checkEvalConstExpr("FALSE OR TRUE", 1.0);
-    checkEvalConstExpr("TRUE OR FALSE", 1.0);
-    checkEvalConstExpr("TRUE OR TRUE", 1.0);
+    checkEvalConstExpr("false or false", 0.0);
+    checkEvalConstExpr("false or true", 1.0);
+    checkEvalConstExpr("true or false", 1.0);
+    checkEvalConstExpr("true or true", 1.0);
 }
 
 TEST(ExpressionCompiler, ComplexLogic)
@@ -200,9 +200,9 @@ TEST(ExpressionCompiler, ComplexLogic)
          || ((true && !true || false) || !!true) || false && true || false
          && (!false && true) && !(!(true || false) || (!false || true)));
     checkEvalConstExpr(
-        "(TRUE OR !(FALSE AND TRUE AND !(FALSE AND !FALSE)) OR TRUE AND FALSE"
-        " OR ((TRUE AND !TRUE OR FALSE) OR !!TRUE) OR FALSE AND TRUE OR FALSE"
-        " AND (!FALSE AND TRUE) AND !(!(TRUE OR FALSE) OR (!FALSE OR TRUE)))",
+        "(true or !(false and true and !(false and !false)) or true and false"
+        " or ((true and !true or false) or !!true) or false and true or false"
+        " and (!false and true) and !(!(true or false) or (!false or true)))",
         expectVal);
 }
 
@@ -436,7 +436,7 @@ TEST(ExpressionCompiler, AllElementTypes)
 TEST(ExpressionCompiler, RollAvgFunction)
 {
     // Parse expression.
-    PARSE_EXPR("ROLL_AVG(foo, 2)");
+    PARSE_EXPR("roll_avg(foo, 2)");
 
     // Create element bindings.
     I32 foo = 0;
@@ -485,7 +485,7 @@ TEST(ExpressionCompiler, RollAvgFunction)
 TEST(ExpressionCompiler, RollMedianFunction)
 {
     // Parse expression.
-    PARSE_EXPR("ROLL_MEDIAN(foo, 3)");
+    PARSE_EXPR("roll_median(foo, 3)");
 
     // Create element bindings.
     I32 foo = 0;
@@ -539,7 +539,7 @@ TEST(ExpressionCompiler, RollMedianFunction)
 TEST(ExpressionCompiler, RollMinFunction)
 {
     // Parse expression.
-    PARSE_EXPR("ROLL_MIN(foo, 2)");
+    PARSE_EXPR("roll_min(foo, 2)");
 
     // Create element bindings.
     I32 foo = 0;
@@ -588,7 +588,7 @@ TEST(ExpressionCompiler, RollMinFunction)
 TEST(ExpressionCompiler, RollMaxFunction)
 {
     // Parse expression.
-    PARSE_EXPR("ROLL_MAX(foo, 2)");
+    PARSE_EXPR("roll_max(foo, 2)");
 
     // Create element bindings.
     I32 foo = 0;
@@ -637,7 +637,7 @@ TEST(ExpressionCompiler, RollMaxFunction)
 TEST(ExpressionCompiler, RollRangeFunction)
 {
     // Parse expression.
-    PARSE_EXPR("ROLL_RANGE(foo, 2)");
+    PARSE_EXPR("roll_range(foo, 2)");
 
     // Create element bindings.
     I32 foo = 0;
@@ -687,7 +687,7 @@ TEST(ExpressionCompiler, RollRangeFunction)
 TEST(ExpressionCompiler, StatsFunctionExpressionArgs)
 {
     // Parse expression.
-    PARSE_EXPR("ROLL_MIN(foo + 1, bar * -1)");
+    PARSE_EXPR("roll_min(foo + 1, bar * -1)");
 
     // Create element bindings.
     I32 foo = 0;
@@ -713,7 +713,7 @@ TEST(ExpressionCompiler, StatsFunctionExpressionArgs)
                                               nullptr));
 
     // Set `bar` to something else. This doesn't affect the expression since the
-    // `ROLL_MIN` window size is evaluated at compile time.
+    // `roll_min` window size is evaluated at compile time.
     elemBar.write(10);
 
     // Get expression stats used by function.
@@ -771,49 +771,49 @@ TEST(ExpressionCompilerErrors, OutOfRangeNumber)
 
 TEST(ExpressionCompilerErrors, StatsFunctionArity)
 {
-    PARSE_EXPR("ROLL_AVG(1)");
+    PARSE_EXPR("roll_avg(1)");
     checkCompileError(exprParse, {}, E_EXC_ARITY, 1, 1);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg1)
 {
-    PARSE_EXPR("ROLL_AVG(foo, 4)");
+    PARSE_EXPR("roll_avg(foo, 4)");
     checkCompileError(exprParse, {}, E_EXC_ELEM, 1, 10);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg2)
 {
-    PARSE_EXPR("ROLL_AVG(4, foo)");
+    PARSE_EXPR("roll_avg(4, foo)");
     checkCompileError(exprParse, {}, E_EXC_ELEM, 1, 13);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionZeroWindowSize)
 {
-    PARSE_EXPR("ROLL_AVG(4, 0)");
+    PARSE_EXPR("roll_avg(4, 0)");
     checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionNegativeWindowSize)
 {
-    PARSE_EXPR("ROLL_AVG(4, -1)");
+    PARSE_EXPR("roll_avg(4, -1)");
     checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionNonIntegerWindowSize)
 {
-    PARSE_EXPR("ROLL_AVG(4, 1.5)");
+    PARSE_EXPR("roll_avg(4, 1.5)");
     checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionNaNWindowSize)
 {
-    PARSE_EXPR("ROLL_AVG(4, 0 / 0)");
+    PARSE_EXPR("roll_avg(4, 0 / 0)");
     checkCompileError(exprParse, {}, E_EXC_WIN, 1, 15);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionWindowTooBig)
 {
-    PARSE_EXPR("ROLL_AVG(4, 100001)");
+    PARSE_EXPR("roll_avg(4, 100001)");
     checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 

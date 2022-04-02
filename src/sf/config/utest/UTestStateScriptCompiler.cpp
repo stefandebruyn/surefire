@@ -104,28 +104,28 @@ TEST(StateScriptCompiler, SingleStepPass)
         "[Foo]\n"
         "U32 state\n"
         "U64 time\n"
-        "BOOL foo\n");
+        "bool foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
-        "BOOL foo\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "bool foo\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 bar = 0\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
+        ".step\n"
         "    foo: bar = bar + 1\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Initial]\n"
         "T == 0 {\n"
-        "    foo = TRUE\n"
-        "    @ASSERT bar == 1\n"
-        "    @STOP\n"
+        "    foo = true\n"
+        "    @assert bar == 1\n"
+        "    @stop\n"
         "}\n");
 
     // Run state script.
@@ -156,28 +156,28 @@ TEST(StateScriptCompiler, SingleStepFail)
         "[Foo]\n"
         "U32 state\n"
         "U64 time\n"
-        "BOOL foo\n");
+        "bool foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
-        "BOOL foo\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "bool foo\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 bar = 0\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
+        ".step\n"
         "    foo: bar = bar + 1\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Initial]\n"
         "T == 0 {\n"
-        "    foo = TRUE\n"
-        "    @ASSERT bar == 2\n" // Assert fails on T=0
-        "    @STOP\n"
+        "    foo = true\n"
+        "    @assert bar == 2\n" // Assert fails on T=0
+        "    @stop\n"
         "}\n");
 
     // Run state script.
@@ -213,50 +213,50 @@ TEST(StateScriptCompiler, MultiStepPass)
         "[Foo]\n"
         "U32 state\n"
         "U64 time\n"
-        "BOOL foo\n");
+        "bool foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
-        "BOOL foo\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "bool foo\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 bar = 0\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
+        ".step\n"
         "    T < 5 {\n"
         "        foo: bar = bar + 1\n"
-        "        ELSE: bar = -1\n"
+        "        else: bar = -1\n"
         "    }\n"
-        "    ELSE: bar = bar + 2\n");
+        "    else: bar = bar + 2\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Initial]\n"
         "T == 0 {\n"
-        "    foo = FALSE\n"
-        "    @ASSERT bar == -1\n"
+        "    foo = false\n"
+        "    @assert bar == -1\n"
         "}\n"
         "T == 1 {\n"
-        "    foo = TRUE\n"
-        "    @ASSERT bar == 0\n"
+        "    foo = true\n"
+        "    @assert bar == 0\n"
         "}\n"
-        "T == 2: @ASSERT bar == 1\n"
+        "T == 2: @assert bar == 1\n"
         "T == 3 {\n"
-        "    foo = FALSE\n"
-        "    @ASSERT bar == -1\n"
+        "    foo = false\n"
+        "    @assert bar == -1\n"
         "}\n"
         "T == 4 {\n"
-        "    foo = TRUE\n"
-        "    @ASSERT bar == 0\n"
+        "    foo = true\n"
+        "    @assert bar == 0\n"
         "}\n"
         "T >= 5 {\n"
-        "    foo = FALSE\n"
-        "    @ASSERT bar == 2 * (T - 4)\n"
+        "    foo = false\n"
+        "    @assert bar == 2 * (T - 4)\n"
         "}\n"
-        "T == 10: @STOP\n");
+        "T == 10: @stop\n");
 
     // Run state script.
     StateScriptAssembly::Report report{};
@@ -286,50 +286,50 @@ TEST(StateScriptCompiler, MultiStepFail)
         "[Foo]\n"
         "U32 state\n"
         "U64 time\n"
-        "BOOL foo\n");
+        "bool foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
-        "BOOL foo\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "bool foo\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 bar = 0\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
+        ".step\n"
         "    T < 5 {\n"
         "        foo: bar = bar + 1\n"
-        "        ELSE: bar = -1\n"
+        "        else: bar = -1\n"
         "    }\n"
-        "    ELSE: T != 8: bar = bar + 2\n");
+        "    else: T != 8: bar = bar + 2\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Initial]\n"
         "T == 0 {\n"
-        "    foo = FALSE\n"
-        "    @ASSERT bar == -1\n"
+        "    foo = false\n"
+        "    @assert bar == -1\n"
         "}\n"
         "T == 1 {\n"
-        "    foo = TRUE\n"
-        "    @ASSERT bar == 0\n"
+        "    foo = true\n"
+        "    @assert bar == 0\n"
         "}\n"
-        "T == 2: @ASSERT bar == 1\n"
+        "T == 2: @assert bar == 1\n"
         "T == 3 {\n"
-        "    foo = FALSE\n"
-        "    @ASSERT bar == -1\n"
+        "    foo = false\n"
+        "    @assert bar == -1\n"
         "}\n"
         "T == 4 {\n"
-        "    foo = TRUE\n"
-        "    @ASSERT bar == 0\n"
+        "    foo = true\n"
+        "    @assert bar == 0\n"
         "}\n"
         "T >= 5 {\n"
-        "    foo = FALSE\n"
-        "    @ASSERT bar == 2 * (T - 4)\n" // Assert fails on T=8
+        "    foo = false\n"
+        "    @assert bar == 2 * (T - 4)\n" // Assert fails on T=8
         "}\n"
-        "T == 10: @STOP\n");
+        "T == 10: @stop\n");
 
     // Run state script.
     StateScriptAssembly::Report report{};
@@ -365,22 +365,22 @@ TEST(StateScriptCompiler, DeltaT)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "U64 sum = 0\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
+        ".step\n"
         "    sum = sum + T\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 3\n"
+        "[config]\n"
+        "delta_t 3\n"
         "\n"
         "[Initial]\n"
-        "T == 9: @STOP\n");
+        "T == 9: @stop\n");
 
     // Run state script.
     StateScriptAssembly::Report report{};
@@ -412,29 +412,29 @@ TEST(StateScriptCompiler, StateTime)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
-        "[LOCAL]\n"
-        "BOOL foo = FALSE\n"
+        "[local]\n"
+        "bool foo = false\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
-        "    foo = (T == 1 OR T == 3 OR T == 5)\n"
+        ".step\n"
+        "    foo = (T == 1 or T == 3 or T == 5)\n"
         "    T == 5: -> Initial\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Initial]\n"
-        "T == 0: @ASSERT !foo\n"
-        "T == 1: @ASSERT foo\n"
-        "T == 2: @ASSERT !foo\n"
-        "T == 3: @ASSERT foo\n"
-        "T == 4: @ASSERT !foo\n"
-        "T == 5: @ASSERT foo\n"
-        "G == 11: @STOP\n");
+        "T == 0: @assert !foo\n"
+        "T == 1: @assert foo\n"
+        "T == 2: @assert !foo\n"
+        "T == 3: @assert foo\n"
+        "T == 4: @assert !foo\n"
+        "T == 5: @assert foo\n"
+        "G == 11: @stop\n");
 
     // Run state script.
     StateScriptAssembly::Report report{};
@@ -464,33 +464,33 @@ TEST(StateScriptCompiler, StateTimeFail)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
-        "[LOCAL]\n"
-        "BOOL foo = FALSE\n"
-        "BOOL looped = FALSE\n"
+        "[local]\n"
+        "bool foo = false\n"
+        "bool looped = false\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
-        "    foo = (T == 1 OR T == 3 OR T == 5)\n"
-        "    looped AND T == 4: foo = TRUE\n"
+        ".step\n"
+        "    foo = (T == 1 or T == 3 or T == 5)\n"
+        "    looped and T == 4: foo = true\n"
         "    T == 5: -> Initial\n"
-        ".EXIT\n"
-        "    looped = TRUE\n");
+        ".exit\n"
+        "    looped = true\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Initial]\n"
-        "T == 0: @ASSERT !foo\n"
-        "T == 1: @ASSERT foo\n"
-        "T == 2: @ASSERT !foo\n"
-        "T == 3: @ASSERT foo\n"
-        "T == 4: @ASSERT !foo\n"
-        "T == 5: @ASSERT foo\n"
-        "G == 11: @STOP\n");
+        "T == 0: @assert !foo\n"
+        "T == 1: @assert foo\n"
+        "T == 2: @assert !foo\n"
+        "T == 3: @assert foo\n"
+        "T == 4: @assert !foo\n"
+        "T == 5: @assert foo\n"
+        "G == 11: @stop\n");
 
     // Run state script.
     StateScriptAssembly::Report report{};
@@ -527,62 +527,62 @@ TEST(StateScriptCompiler, MultiState)
         "[Foo]\n"
         "U32 state\n"
         "U64 time\n"
-        "BOOL trans\n");
+        "bool trans\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
-        "BOOL trans\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "bool trans\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 0\n"
         "I32 bar = 0\n"
         "F64 baz = 0\n"
         "\n"
         "[Foo]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 1\n"
-        ".STEP\n"
+        ".step\n"
         "    baz = T / 2\n"
         "    trans: -> Bar\n"
         "    foo = foo * 2\n"
-        ".EXIT\n"
-        "    trans = FALSE\n"
+        ".exit\n"
+        "    trans = false\n"
         "\n"
         "[Bar]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    bar = foo\n"
-        ".STEP\n"
+        ".step\n"
         "    baz = T / 2\n"
         "    trans: -> Foo\n"
         "    bar = bar + 1\n"
-        ".EXIT\n"
-        "    trans = FALSE\n");
+        ".exit\n"
+        "    trans = false\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
-        "[ALL_STATES]\n"
-        "TRUE: @ASSERT baz == T / 2\n"
+        "[all_states]\n"
+        "true: @assert baz == T / 2\n"
         "\n"
         "[Foo]\n"
-        "T == 0: @ASSERT foo == 2\n"
-        "T == 1: @ASSERT foo == 4\n"
-        "T == 2: @ASSERT foo == 8\n"
+        "T == 0: @assert foo == 2\n"
+        "T == 1: @assert foo == 4\n"
+        "T == 2: @assert foo == 8\n"
         "T == 3 {\n"
-        "    trans = TRUE\n"
-        "    @ASSERT foo == 8\n"
+        "    trans = true\n"
+        "    @assert foo == 8\n"
         "}\n"
         "\n"
         "[Bar]\n"
-        "T == 0: @ASSERT bar == 9\n"
-        "T == 1: @ASSERT bar == 10\n"
-        "T == 2: @ASSERT bar == 11\n"
+        "T == 0: @assert bar == 9\n"
+        "T == 1: @assert bar == 10\n"
+        "T == 2: @assert bar == 11\n"
         "T == 3 {\n"
-        "    trans = TRUE\n"
-        "    @ASSERT bar == 11\n"
-        "    @ASSERT foo == 8\n"
-        "    @STOP\n"
+        "    trans = true\n"
+        "    @assert bar == 11\n"
+        "    @assert foo == 8\n"
+        "    @stop\n"
         "}\n");
 
     // Run state script.
@@ -614,62 +614,62 @@ TEST(StateScriptCompiler, MultiStateFailInStateSection)
         "[Foo]\n"
         "U32 state\n"
         "U64 time\n"
-        "BOOL trans\n");
+        "bool trans\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
-        "BOOL trans\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "bool trans\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 0\n"
         "I32 bar = 0\n"
         "F64 baz = 0\n"
         "\n"
         "[Foo]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 1\n"
-        ".STEP\n"
+        ".step\n"
         "    baz = T / 2\n"
         "    trans: -> Bar\n"
         "    foo = foo * 2\n"
-        ".EXIT\n"
-        "    trans = FALSE\n"
+        ".exit\n"
+        "    trans = false\n"
         "\n"
         "[Bar]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    bar = foo\n"
-        ".STEP\n"
+        ".step\n"
         "    baz = T / 2\n"
         "    trans: -> Foo\n"
         "    T != 2: bar = bar + 1\n"
-        ".EXIT\n"
-        "    trans = FALSE\n");
+        ".exit\n"
+        "    trans = false\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
-        "[ALL_STATES]\n"
-        "TRUE: @ASSERT baz == T / 2\n"
+        "[all_states]\n"
+        "true: @assert baz == T / 2\n"
         "\n"
         "[Foo]\n"
-        "T == 0: @ASSERT foo == 2\n"
-        "T == 1: @ASSERT foo == 4\n"
-        "T == 2: @ASSERT foo == 8\n"
+        "T == 0: @assert foo == 2\n"
+        "T == 1: @assert foo == 4\n"
+        "T == 2: @assert foo == 8\n"
         "T == 3 {\n"
-        "    trans = TRUE\n"
-        "    @ASSERT foo == 8\n"
+        "    trans = true\n"
+        "    @assert foo == 8\n"
         "}\n"
         "\n"
         "[Bar]\n"
-        "T == 0: @ASSERT bar == 9\n"
-        "T == 1: @ASSERT bar == 10\n"
-        "T == 2: @ASSERT bar == 11\n" // Failing assert
+        "T == 0: @assert bar == 9\n"
+        "T == 1: @assert bar == 10\n"
+        "T == 2: @assert bar == 11\n" // Failing assert
         "T == 3 {\n"
-        "    trans = TRUE\n"
-        "    @ASSERT bar == 11\n"
-        "    @ASSERT foo == 8\n"
-        "    @STOP\n"
+        "    trans = true\n"
+        "    @assert bar == 11\n"
+        "    @assert foo == 8\n"
+        "    @stop\n"
         "}\n");
 
     // Run state script.
@@ -705,62 +705,62 @@ TEST(StateScriptCompiler, MultiStateFailInAllStatesSection)
         "[Foo]\n"
         "U32 state\n"
         "U64 time\n"
-        "BOOL trans\n");
+        "bool trans\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
-        "BOOL trans\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "bool trans\n"
         "\n"
-        "[LOCAL]\n"
+        "[local]\n"
         "I32 foo = 0\n"
         "I32 bar = 0\n"
         "F64 baz = 0\n"
         "\n"
         "[Foo]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    foo = 1\n"
-        ".STEP\n"
+        ".step\n"
         "    baz = T / 2\n"
         "    trans: -> Bar\n"
         "    foo = foo * 2\n"
-        ".EXIT\n"
-        "    trans = FALSE\n"
+        ".exit\n"
+        "    trans = false\n"
         "\n"
         "[Bar]\n"
-        ".ENTRY\n"
+        ".entry\n"
         "    bar = foo\n"
-        ".STEP\n"
+        ".step\n"
         "    T != 2: baz = T / 2\n"
         "    trans: -> Foo\n"
         "    bar = bar + 1\n"
-        ".EXIT\n"
-        "    trans = FALSE\n");
+        ".exit\n"
+        "    trans = false\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
-        "[ALL_STATES]\n"
-        "TRUE: @ASSERT baz == T / 2\n" // Failing assert
+        "[all_states]\n"
+        "true: @assert baz == T / 2\n" // Failing assert
         "\n"
         "[Foo]\n"
-        "T == 0: @ASSERT foo == 2\n"
-        "T == 1: @ASSERT foo == 4\n"
-        "T == 2: @ASSERT foo == 8\n"
+        "T == 0: @assert foo == 2\n"
+        "T == 1: @assert foo == 4\n"
+        "T == 2: @assert foo == 8\n"
         "T == 3 {\n"
-        "    trans = TRUE\n"
-        "    @ASSERT foo == 8\n"
+        "    trans = true\n"
+        "    @assert foo == 8\n"
         "}\n"
         "\n"
         "[Bar]\n"
-        "T == 0: @ASSERT bar == 9\n"
-        "T == 1: @ASSERT bar == 10\n"
-        "T == 2: @ASSERT bar == 11\n"
+        "T == 0: @assert bar == 9\n"
+        "T == 1: @assert bar == 10\n"
+        "T == 2: @assert bar == 11\n"
         "T == 3 {\n"
-        "    trans = TRUE\n"
-        "    @ASSERT bar == 11\n"
-        "    @ASSERT foo == 8\n"
-        "    @STOP\n"
+        "    trans = true\n"
+        "    @assert bar == 11\n"
+        "    @assert foo == 8\n"
+        "    @stop\n"
         "}\n");
 
     // Run state script.
@@ -798,22 +798,22 @@ TEST(StateScriptCompiler, UseAliasInAssert)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
-        "I32 foo @ALIAS bar\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "I32 foo @alias bar\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
+        ".step\n"
         "    foo = foo + 1\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Initial]\n"
         "T == 10 {\n"
-        "    @ASSERT bar == 11\n"
-        "    @STOP\n"
+        "    @assert bar == 11\n"
+        "    @stop\n"
         "}\n");
 
     // Run state script.
@@ -842,27 +842,27 @@ TEST(StateScriptCompiler, UseAliasInInput)
         "[Foo]\n"
         "U32 state\n"
         "U64 time\n"
-        "BOOL foo\n"
-        "BOOL bar\n");
+        "bool foo\n"
+        "bool bar\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
-        "BOOL foo @ALIAS baz\n"
-        "BOOL bar\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "bool foo @alias baz\n"
+        "bool bar\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
-        "    foo: bar = TRUE\n");
+        ".step\n"
+        "    foo: bar = true\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Initial]\n"
-        "TRUE {\n"
-        "    baz = TRUE\n"
-        "    @ASSERT bar == TRUE\n"
-        "    @STOP\n"
+        "true {\n"
+        "    baz = true\n"
+        "    @assert bar == true\n"
+        "    @stop\n"
         "}\n");
 
     // Run state script.
@@ -892,24 +892,24 @@ TEST(StateScriptCompiler, UseAliasInGuard)
         "[Foo]\n"
         "U32 state\n"
         "U64 time\n"
-        "BOOL foo\n");
+        "bool foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
-        "BOOL foo @ALIAS bar\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "bool foo @alias bar\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
-        "    T == 5: foo = TRUE\n");
+        ".step\n"
+        "    T == 5: foo = true\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Initial]\n"
         "bar {\n"
-        "    @ASSERT T == 6\n"
-        "    @STOP\n"
+        "    @assert T == 6\n"
+        "    @stop\n"
         "}\n");
 
     // Run state script.
@@ -941,24 +941,24 @@ TEST(StateScriptCompiler, UpdateExpressionStats)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Initial]\n"
-        ".STEP\n"
+        ".step\n"
         "    T == 0: foo = 3\n"
         "    T == 1: foo = 2\n"
         "    T == 2: foo = 1\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Initial]\n"
-        "ROLL_MAX(foo, 2) == 2 {\n"
-        "    @ASSERT T == 3\n"
-        "    @STOP\n"
+        "roll_max(foo, 2) == 2 {\n"
+        "    @assert T == 3\n"
+        "    @stop\n"
         "}\n");
 
     // Run state script.
@@ -989,25 +989,25 @@ TEST(StateScriptCompiler, ConfigInitialState)
         "[Foo]\n"
         "U32 state\n"
         "U64 time\n"
-        "BOOL foo\n");
+        "bool foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
-        "BOOL foo\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "bool foo\n"
         "\n"
         "[Foo]\n"
-        ".ENTRY\n"
-        "    foo = TRUE\n"
+        ".entry\n"
+        "    foo = true\n"
         "\n"
         "[Bar]\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
-        "INIT_STATE Bar\n"
+        "[config]\n"
+        "delta_t 1\n"
+        "init_state Bar\n"
         "\n"
-        "[ALL_STATES]\n"
-        "TRUE: @STOP\n");
+        "[all_states]\n"
+        "true: @stop\n");
 
     // Run state script.
     StateScriptAssembly::Report report{};
@@ -1038,21 +1038,21 @@ TEST(StateScriptCompiler, EmptyStateSection)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
         "[Foo]\n"
         "\n"
         "[Bar]\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
         "\n"
-        "[ALL_STATES]\n"
-        "TRUE: @STOP\n");
+        "[all_states]\n"
+        "true: @stop\n");
 
     // Run state script.
     StateScriptAssembly::Report report{};
@@ -1082,9 +1082,9 @@ TEST(StateScriptCompilerErrors, NullParse)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
         "[Foo]\n");
     Ref<StateScriptAssembly> ssAsm;
@@ -1103,14 +1103,14 @@ TEST(StateScriptCompilerErrors, DupeSection)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
         "[Foo]\n");
@@ -1124,14 +1124,14 @@ TEST(StateScriptCompilerErrors, UnknownState)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Bar]\n");
     checkCompileError(ss, smAsm, E_SSC_STATE, 4, 1);
@@ -1145,15 +1145,15 @@ TEST(StateScriptCompilerErrors, UnguardedInput)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
         "foo = 1\n");
@@ -1168,18 +1168,18 @@ TEST(StateScriptCompilerErrors, UnguardedAssert)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
-        "@ASSERT foo == 0\n");
+        "@assert foo == 0\n");
     checkCompileError(ss, smAsm, E_SSC_GUARD, 5, 1);
 }
 
@@ -1191,18 +1191,18 @@ TEST(StateScriptCompilerErrors, UnguardedStop)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
-        "@STOP\n");
+        "@stop\n");
     checkCompileError(ss, smAsm, E_SSC_GUARD, 5, 1);
 }
 
@@ -1214,19 +1214,19 @@ TEST(StateScriptCompilerErrors, IllegalElse)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
         "T == 0: foo = 1\n"
-        "ELSE: foo = 2\n");
+        "else: foo = 2\n");
     checkCompileError(ss, smAsm, E_SSC_ELSE, 6, 1);
 }
 
@@ -1238,15 +1238,15 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInGuardExpression)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
         "bar == 1: foo = 1\n");
@@ -1261,15 +1261,15 @@ TEST(StateScriptCompilerErrors, NestedGuard)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
         "foo == 1: T == 0: foo = 2\n");
@@ -1284,19 +1284,19 @@ TEST(StateScriptCompilerErrors, UnreachableInput)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
-        "TRUE {\n"
-        "    @STOP\n"
+        "true {\n"
+        "    @stop\n"
         "    foo = 1\n"
         "}\n");
     checkCompileError(ss, smAsm, E_SSC_UNRCH, 7, 5);
@@ -1310,20 +1310,20 @@ TEST(StateScriptCompilerErrors, UnreachableAssert)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
-        "TRUE {\n"
-        "    @STOP\n"
-        "    @ASSERT foo == 0\n"
+        "true {\n"
+        "    @stop\n"
+        "    @assert foo == 0\n"
         "}\n");
     checkCompileError(ss, smAsm, E_SSC_UNRCH, 7, 5);
 }
@@ -1336,18 +1336,18 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInAssertExpression)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
-        "TRUE: @ASSERT bar == 1\n");
+        "true: @assert bar == 1\n");
     checkCompileError(ss, smAsm, E_EXC_ELEM, 5, 15);
 }
 
@@ -1359,18 +1359,18 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInAction)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
-        "TRUE: bar = 1\n");
+        "true: bar = 1\n");
     checkCompileError(ss, smAsm, E_SMC_ASG_ELEM, 5, 7);
 }
 
@@ -1382,18 +1382,18 @@ TEST(StateScriptCompilerErrors, NoStop)
         "U64 time\n"
         "I32 foo\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "I32 foo\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
-        "TRUE: foo = 1\n");
+        "true: foo = 1\n");
     checkCompileError(ss, smAsm, E_SSC_STOP, -1, -1);
 }
 
@@ -1405,17 +1405,17 @@ TEST(StateScriptCompilerErrors, GlobalClockOverflow)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
         "[Initial]\n");
     INIT_SS(
-        "[CONFIG]\n"
-        "DELTA_T 9223372036854775806\n" // I64 max value - 1
+        "[config]\n"
+        "delta_t 9223372036854775806\n" // I64 max value - 1
         "\n"
         "[Initial]\n"
-        "T == 3: @STOP\n");
+        "T == 3: @stop\n");
 
     // Run state script. Expect an error due to global clock overflow.
     StateScriptAssembly::Report report{};
@@ -1429,17 +1429,17 @@ TEST(StateScriptCompilerErrors, DeltaTFloating)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1.5\n"
+        "[config]\n"
+        "delta_t 1.5\n"
         "\n"
         "[Foo]\n"
-        "TRUE: @STOP\n");
+        "true: @stop\n");
     checkCompileError(ss, smAsm, E_SSC_DT, 2, 9);
 }
 
@@ -1450,17 +1450,17 @@ TEST(StateScriptCompilerErrors, DeltaTNegative)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T -1\n"
+        "[config]\n"
+        "delta_t -1\n"
         "\n"
         "[Foo]\n"
-        "TRUE: @STOP\n");
+        "true: @stop\n");
     checkCompileError(ss, smAsm, E_SSC_DT, 2, 9);
 }
 
@@ -1471,17 +1471,17 @@ TEST(StateScriptCompilerErrors, DeltaTTooLarge)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 999999999999999999999999999999999999999999999999999999999999\n"
+        "[config]\n"
+        "delta_t 999999999999999999999999999999999999999999999999999999999999\n"
         "\n"
         "[Foo]\n"
-        "TRUE: @STOP\n");
+        "true: @stop\n");
     checkCompileError(ss, smAsm, E_SSC_DT, 2, 9);
 }
 
@@ -1492,17 +1492,17 @@ TEST(StateScriptCompilerErrors, UnknownInitialState)
         "U32 state\n"
         "U64 time\n");
     INIT_SM(
-        "[STATE_VECTOR]\n"
-        "U32 state @ALIAS S\n"
-        "U64 time @ALIAS G\n"
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
-        "INIT_STATE Bar\n"
+        "[config]\n"
+        "delta_t 1\n"
+        "init_state Bar\n"
         "\n"
         "[Foo]\n"
-        "TRUE: @STOP\n");
+        "true: @stop\n");
     checkCompileError(ss, smAsm, E_SSC_STATE, 3, 12);
 }

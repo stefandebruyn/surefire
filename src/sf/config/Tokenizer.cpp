@@ -123,13 +123,13 @@ const Map<Token::Type, String> Token::names =
 const Vec<std::pair<Token::Type, std::regex>> Token::regexes =
 {
     {Token::SECTION, std::regex("\\s*(\\[[a-zA-Z0-9_/]+\\])\\s*")},
-    {Token::LABEL, std::regex("\\s*([.][a-zA-Z][a-zA-Z0-9_\\[\\]-]+)\\s*")},
-    {Token::KEYWORD, std::regex("\\s*(IF|ELSE|->)\\s*")},
-    {Token::CONSTANT, std::regex("\\s*(TRUE|FALSE|[-]?[0-9]*\\.?[0-9]+)\\s*")},
-    {Token::ANNOTATION, std::regex("\\s*(@[a-zA-Z][a-zA-Z0-9_=]*)\\s*")},
+    {Token::LABEL, std::regex("\\s*([.][a-zA-Z_][a-zA-Z0-9_\\[\\]-]+)\\s*")},
+    {Token::KEYWORD, std::regex("\\s*(if|else|->)\\s*")},
+    {Token::CONSTANT, std::regex("\\s*(true|false|[-]?[0-9]*\\.?[0-9]+)\\s*")},
+    {Token::ANNOTATION, std::regex("\\s*(@[a-zA-Z_][a-zA-Z0-9_=]*)\\s*")},
     {Token::OPERATOR, std::regex(
-        "\\s*(==|!=|=|!|<=|<|>=|>|AND|OR|NOT|\\+|\\-|\\*|/)\\s*")},
-    {Token::IDENTIFIER, std::regex("\\s*([a-zA-Z][a-zA-Z0-9_]*)\\s*")},
+        "\\s*(==|!=|=|!|<=|<|>=|>|and|or|not|\\+|\\-|\\*|/)\\s*")},
+    {Token::IDENTIFIER, std::regex("\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*")},
     {Token::COLON, std::regex("\\s*(:)\\s*")},
     {Token::LPAREN, std::regex("\\s*(\\()\\s*")},
     {Token::RPAREN, std::regex("\\s*(\\))\\s*")},

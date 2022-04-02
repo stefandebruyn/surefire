@@ -38,8 +38,8 @@ TEST(StateScriptParser, NoStateSections)
 {
     TOKENIZE(
         "\n\n\n"
-        "[CONFIG]\n"
-        "DELTA_T 1\n");
+        "[config]\n"
+        "delta_t 1\n");
     Ref<const StateScriptParse> parse;
     CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
     CHECK_EQUAL(0, parse->sections.size());
@@ -49,8 +49,8 @@ TEST(StateScriptParser, NoStateSections)
 TEST(StateScriptParser, ConfigInitStateOption)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "INIT_STATE foo\n");
+        "[config]\n"
+        "init_state foo\n");
     Ref<const StateScriptParse> parse;
     CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
     CHECK_EQUAL(0, parse->sections.size());
@@ -60,8 +60,8 @@ TEST(StateScriptParser, ConfigInitStateOption)
 TEST(StateScriptParser, EmptyStateSection)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n");
     Ref<const StateScriptParse> parse;
@@ -81,8 +81,8 @@ TEST(StateScriptParser, EmptyStateSection)
 TEST(StateScriptParser, OneSection)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
         "foo = 1\n"
@@ -130,8 +130,8 @@ TEST(StateScriptParser, OneSection)
 TEST(StateScriptParser, TwoSections)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
         "foo = 1\n"
@@ -217,11 +217,11 @@ TEST(StateScriptParser, TwoSections)
 TEST(StateScriptParser, Assertion)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
-        "@ASSERT foo == 1\n"
+        "@assert foo == 1\n"
         "bar = 2\n");
     Ref<const StateScriptParse> parse;
     CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
@@ -232,7 +232,7 @@ TEST(StateScriptParser, Assertion)
     CHECK_EQUAL(parse->sections[0].tokName, toks[6]);
     CHECK_TRUE(parse->sections[0].block != nullptr);
 
-    // `@ASSERT foo = 1` block
+    // `@assert foo = 1` block
     Ref<const StateMachineParse::BlockParse> block = parse->sections[0].block;
     CHECK_TRUE(block->guard == nullptr);
     CHECK_TRUE(block->action == nullptr);
@@ -281,8 +281,8 @@ TEST(StateScriptParser, ErrorExpectedSection)
 TEST(StateScriptParser, ErrorInBlock)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
         "foo = 1 +\n");
@@ -292,58 +292,58 @@ TEST(StateScriptParser, ErrorInBlock)
 TEST(StateScriptParser, ErrorInAssertion)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "DELTA_T 1\n"
+        "[config]\n"
+        "delta_t 1\n"
         "\n"
         "[Foo]\n"
-        "@ASSERT foo +\n");
+        "@assert foo +\n");
     checkParseError(toks, E_EXP_SYNTAX, 5, 13);
 }
 
 TEST(StateScriptParser, ErrorUnexpectedTokenAfterDeltaT)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "DELTA_T foo\n");
+        "[config]\n"
+        "delta_t foo\n");
     checkParseError(toks, E_SSP_DT, 2, 1);
 }
 
 TEST(StateScriptParser, ErrorEofAfterDeltaT)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "DELTA_T\n");
+        "[config]\n"
+        "delta_t\n");
     checkParseError(toks, E_SSP_DT, 2, 1);
 }
 
 TEST(StateScriptParser, ErrorUnexpectedTokenAfterInitState)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "INIT_STATE @foo\n");
+        "[config]\n"
+        "init_state @foo\n");
     checkParseError(toks, E_SSP_STATE, 2, 1);
 }
 
 TEST(StateScriptParser, ErrorEofAfterInitState)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "INIT_STATE\n");
+        "[config]\n"
+        "init_state\n");
     checkParseError(toks, E_SSP_STATE, 2, 1);
 }
 
 TEST(StateScriptParser, ErrorUnknownConfigOption)
 {
     TOKENIZE(
-        "[CONFIG]\n"
-        "FOO 3\n");
+        "[config]\n"
+        "foo 3\n");
     checkParseError(toks, E_SSP_CONFIG, 2, 1);
 }
 
 TEST(StateScriptParser, ErrorExtraTokenAfterStop)
 {
     TOKENIZE(
-        "[ALL_STATES]\n"
-        "TRUE: @STOP foo\n");
+        "[all_states]\n"
+        "true: @stop foo\n");
     checkParseError(toks, E_SMP_JUNK, 2, 13);
 }
