@@ -106,6 +106,11 @@ public:
     ///
     virtual Result step() final;
 
+    ITask(const ITask&) = delete;
+    ITask(ITask&&) = delete;
+    ITask& operator=(const ITask&) = delete;
+    ITask& operator=(ITask&&) = delete;
+
 protected:
 
     ///

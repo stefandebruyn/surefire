@@ -263,6 +263,11 @@ public:
     ///
     Result setState(const U32 kStateId);
 
+    StateMachine(const StateMachine&) = delete;
+    StateMachine(StateMachine&&) = delete;
+    StateMachine& operator=(const StateMachine&) = delete;
+    StateMachine& operator=(StateMachine&&) = delete;
+
 private:
 
     ///

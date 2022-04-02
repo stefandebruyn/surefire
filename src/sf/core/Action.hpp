@@ -52,6 +52,11 @@ public:
     /// @return Whether the action triggered a transition.
     ///
     virtual bool execute() = 0;
+
+    IAction(const IAction&) = delete;
+    IAction(IAction&&) = delete;
+    IAction& operator=(const IAction&) = delete;
+    IAction& operator=(IAction&&) = delete;
 };
 
 ///

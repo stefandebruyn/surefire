@@ -43,6 +43,11 @@ public:
         return Autocode::formatStep(kFmt, kT, kArgs...);
     }
 
+    Autocode(const Autocode&) = delete;
+    Autocode(Autocode&&) = delete;
+    Autocode& operator=(const Autocode&) = delete;
+    Autocode& operator=(Autocode&&) = delete;
+
 private:
 
     std::ostream& mOs;
