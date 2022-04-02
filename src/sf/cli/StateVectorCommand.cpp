@@ -2,8 +2,8 @@
 
 #include "sf/cli/CliUtil.hpp"
 #include "sf/cli/StateVectorCommand.hpp"
-#include "sf/config/StateVectorCompiler.hpp"
 #include "sf/config/StateVectorAutocoder.hpp"
+#include "sf/config/StateVectorCompiler.hpp"
 #include "sf/core/Assert.hpp"
 #include "sf/pal/Console.hpp"
 
@@ -112,7 +112,6 @@ I32 Cli::svAutocode(const Vec<String> kArgs)
     Result res = Tokenizer::tokenize(svFile, toks, &err);
     if (res != SUCCESS)
     {
-        // Tokenization failed.
         std::cout << err.prettifyError() << std::endl;
         return EXIT_FAILURE;
     }
@@ -122,7 +121,15 @@ I32 Cli::svAutocode(const Vec<String> kArgs)
     res = StateVectorParser::parse(toks, svParse, &err, regions);
     if (res != SUCCESS)
     {
-        // Parsing failed.
+        std::cout << err.prettifyError() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Compile state vector.
+    Ref<const StateVectorAssembly> svAsm;
+    res = StateVectorCompiler::compile(svParse, svAsm, &err);
+    if (res != SUCCESS)
+    {
         std::cout << err.prettifyError() << std::endl;
         return EXIT_FAILURE;
     }
@@ -137,11 +144,11 @@ I32 Cli::svAutocode(const Vec<String> kArgs)
     }
 
     // Invoke autocoder.
-    res = StateVectorAutocoder::code(ofs, svName, svParse, &err);
+    res = StateVectorAutocoder::code(ofs, svName, svAsm);
     if (res != SUCCESS)
     {
-        // Autocoding failed.
-        std::cout << err.prettifyError() << std::endl;
+        Cli::error() << "autocoder failed with internal error " << res
+                     << std::endl;
         return EXIT_FAILURE;
     }
 

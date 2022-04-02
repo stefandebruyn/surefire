@@ -1,5 +1,5 @@
-#ifndef SF_CONFIG_SOURCE_HPP
-#define SF_CONFIG_SOURCE_HPP
+#ifndef SF_ERROR_INFO_HPP
+#define SF_ERROR_INFO_HPP
 
 #include "sf/config/StlTypes.hpp"
 #include "sf/config/Token.hpp"

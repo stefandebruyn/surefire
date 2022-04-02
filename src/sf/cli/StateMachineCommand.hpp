@@ -11,6 +11,8 @@ namespace Cli
     I32 smCheck(const Vec<String> kArgs);
 
     I32 smTest(const Vec<String> kArgs);
+
+    I32 smAutocode(const Vec<String> kArgs);
 }
 
 #endif

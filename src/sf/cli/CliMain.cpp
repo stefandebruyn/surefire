@@ -36,10 +36,11 @@ static void printHelpMsg()
               << "    " << Console::yellow
               << "=> validate state machine config" << Console::reset << "\n";
 
-    std::cout << "  sm autocode <" << Console::cyan << "sm config path"
-              << Console::reset << "> <" << Console::cyan
-              << "autocode output path" << Console::reset << ">\n"
-              << "    " << Console::yellow
+    std::cout << "  sm autocode <" << Console::cyan << "sv config path"
+              << Console::reset << "> <" << Console::cyan << "sm config path"
+              << Console::reset << "> <" << Console::cyan << "autocode path"
+              << Console::reset << "> <" << Console::cyan << "name"
+              << Console::reset << ">\n    " << Console::yellow
               << "=> generate state machine autocode" << Console::reset << "\n";
 
     std::cout << "  sm test <" << Console::cyan << "sv config path"
