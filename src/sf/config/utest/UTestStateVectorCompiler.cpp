@@ -432,7 +432,7 @@ TEST(StateVectorCompilerErrors, DuplicateElementNameSameRegion)
         "[Foo]\n"
         "I32 foo\n"
         "F64 foo\n");
-    checkCompileError(toks, E_SVA_ELEM_DUPE, 3, 5);
+    checkCompileError(toks, E_SVC_ELEM_DUPE, 3, 5);
 }
 
 TEST(StateVectorCompilerErrors, DuplicateElementNameDifferentRegion)
@@ -442,7 +442,7 @@ TEST(StateVectorCompilerErrors, DuplicateElementNameDifferentRegion)
         "I32 foo\n"
         "[Bar]\n"
         "F64 foo\n");
-    checkCompileError(toks, E_SVA_ELEM_DUPE, 4, 5);
+    checkCompileError(toks, E_SVC_ELEM_DUPE, 4, 5);
 }
 
 TEST(StateVectorCompilerErrors, DuplicateRegionName)
@@ -452,14 +452,14 @@ TEST(StateVectorCompilerErrors, DuplicateRegionName)
         "I32 foo\n"
         "[Foo]\n"
         "F64 bar\n");
-    checkCompileError(toks, E_SVA_RGN_DUPE, 3, 1);
+    checkCompileError(toks, E_SVC_RGN_DUPE, 3, 1);
 }
 
 TEST(StateVectorCompilerErrors, EmptyRegion)
 {
     TOKENIZE(
         "[Foo]\n");
-    checkCompileError(toks, E_SVA_RGN_EMPTY, 1, 1);
+    checkCompileError(toks, E_SVC_RGN_EMPTY, 1, 1);
 }
 
 TEST(StateVectorCompilerErrors, UnknownElementType)
@@ -467,14 +467,14 @@ TEST(StateVectorCompilerErrors, UnknownElementType)
     TOKENIZE(
         "[Foo]\n"
         "I33 foo\n");
-    checkCompileError(toks, E_SVA_ELEM_TYPE, 2, 1);
+    checkCompileError(toks, E_SVC_ELEM_TYPE, 2, 1);
 }
 
 TEST(StateVectorCompilerErrors, NullParse)
 {
     const Ref<const StateVectorParse> smParse;
     Ref<const StateVectorAssembly> smAsm;
-    CHECK_ERROR(E_SVA_NULL,
+    CHECK_ERROR(E_SVC_NULL,
                 StateVectorCompiler::compile(smParse, smAsm, nullptr));
     CHECK_TRUE(smAsm == nullptr);
 }

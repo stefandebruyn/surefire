@@ -12,11 +12,14 @@ static const char* const gErrText = "state machine config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
 
+const String StateMachineCompiler::FIRST_STATE;
+
 Result StateMachineCompiler::compile(
     const String kFilePath,
     const Ref<const StateVectorAssembly> kSvAsm,
     Ref<const StateMachineAssembly>& kAsm,
-    ErrorInfo* const kErr)
+    ErrorInfo* const kErr,
+    const String kInitState)
 {
     // Open file input stream.
     std::ifstream ifs(kFilePath);
@@ -27,7 +30,7 @@ Result StateMachineCompiler::compile(
             kErr->text = "error";
             kErr->subtext = "failed to open file `" + kFilePath + "`";
         }
-        return E_SMA_FILE;
+        return E_SMC_FILE;
     }
 
     // Set the error info file path for error messages generated further into
@@ -38,14 +41,15 @@ Result StateMachineCompiler::compile(
     }
 
     // Send input stream into the next compilation phase.
-    return StateMachineCompiler::compile(ifs, kSvAsm, kAsm, kErr);
+    return StateMachineCompiler::compile(ifs, kSvAsm, kAsm, kErr, kInitState);
 }
 
 Result StateMachineCompiler::compile(
     std::istream& kIs,
     const Ref<const StateVectorAssembly> kSvAsm,
     Ref<const StateMachineAssembly>& kAsm,
-    ErrorInfo* const kErr)
+    ErrorInfo* const kErr,
+    const String kInitState)
 {
     // Tokenize the input stream.
     Vec<Token> toks;
@@ -72,19 +76,20 @@ Result StateMachineCompiler::compile(
     }
 
     // Send state machine config into the next compilation phase.
-    return StateMachineCompiler::compile(parse, kSvAsm, kAsm, kErr);
+    return StateMachineCompiler::compile(parse, kSvAsm, kAsm, kErr, kInitState);
 }
 
 Result StateMachineCompiler::compile(
     const Ref<const StateMachineParse> kParse,
     const Ref<const StateVectorAssembly> kSvAsm,
     Ref<const StateMachineAssembly>& kAsm,
-    ErrorInfo* const kErr)
+    ErrorInfo* const kErr,
+    const String kInitState)
 {
     // Check that state machine parse is non-null.
     if (kParse == nullptr)
     {
-        return E_SMA_NULL;
+        return E_SMC_NULL;
     }
 
     // Initialize a blank workspace for the compilation.
@@ -192,9 +197,23 @@ Result StateMachineCompiler::compile(
         ws.exprStatArr->data()
     };
 
-    // Set initial state 1. TODO make this configurable
+    // Set initial state as specified.
     SF_SAFE_ASSERT(smConfig.elemState != nullptr);
-    smConfig.elemState->write(1);
+    if (kInitState == StateMachineCompiler::FIRST_STATE)
+    {
+        smConfig.elemState->write(1);
+    }
+    else
+    {
+        auto stateIdIt = ws.stateIds.find(kInitState);
+        if (stateIdIt == ws.stateIds.end())
+        {
+            // Unknown initial state.
+            return E_SMC_INIT;
+        }
+        const U32 initStateId = (*stateIdIt).second;
+        smConfig.elemState->write(initStateId);
+    }
 
     // Create state machine.
     ws.sm.reset(new StateMachine());
@@ -261,7 +280,7 @@ Result StateMachineCompiler::checkStateVector(
             ErrorInfo::set(kErr, elem.tokName, gErrText,
                            ("element `" + elem.tokName.str
                             + "` does not exist in state vector"));
-            return E_SMA_SV_ELEM;
+            return E_SMC_SV_ELEM;
         }
         SF_SAFE_ASSERT(elemObj != nullptr);
 
@@ -272,7 +291,7 @@ Result StateMachineCompiler::checkStateVector(
             // Unknown type.
             ErrorInfo::set(kErr, elem.tokType, gErrText,
                            ("unknown type `" + elem.tokType.str + "`"));
-            return E_SMA_TYPE;
+            return E_SMC_TYPE;
         }
         const TypeInfo& smTypeInfo = (*smTypeInfoIt).second;
 
@@ -290,7 +309,7 @@ Result StateMachineCompiler::checkStateVector(
                << typeInfo.name << " in the state vector but type "
                << smTypeInfo.name << " here";
             ErrorInfo::set(kErr, elem.tokType, gErrText, ss.str());
-            return E_SMA_TYPE_MISM;
+            return E_SMC_TYPE_MISM;
         }
 
         // Check that element does not appear twice in the state machine.
@@ -299,7 +318,7 @@ Result StateMachineCompiler::checkStateVector(
             ErrorInfo::set(kErr, elem.tokName, gErrText,
                            ("element `" + elem.tokName.str
                             + "` is listed more than once"));
-            return E_SMA_ELEM_DUPE;
+            return E_SMC_ELEM_DUPE;
         }
 
         // Add element to the symbol table.
@@ -323,7 +342,7 @@ Result StateMachineCompiler::checkStateVector(
                 ss << "`" << LangConst::elemGlobalTime
                    << "` must be type U64 (" << elem.tokType.str << " here)";
                 ErrorInfo::set(kErr, elem.tokName, gErrText, ss.str());
-                return E_SMA_G_TYPE;
+                return E_SMC_G_TYPE;
             }
         }
 
@@ -341,7 +360,7 @@ Result StateMachineCompiler::checkStateVector(
                 ss << "`" << LangConst::elemState << "` must be type U32 ("
                    << elem.tokType.str << " here)";
                 ErrorInfo::set(kErr, elem.tokName, gErrText, ss.str());
-                return E_SMA_S_TYPE;
+                return E_SMC_S_TYPE;
             }
         }
 
@@ -371,7 +390,7 @@ Result StateMachineCompiler::checkStateVector(
             kErr->subtext = ("no global time element aliased to `"
                              + LangConst::elemGlobalTime + "`");
         }
-        return E_SMA_NO_G;
+        return E_SMC_NO_G;
     }
 
     // Check that a state element was provided.
@@ -383,7 +402,7 @@ Result StateMachineCompiler::checkStateVector(
             kErr->subtext = ("no state element aliased to `"
                              + LangConst::elemState + "`");
         }
-        return E_SMA_NO_S;
+        return E_SMC_NO_S;
     }
 
     return SUCCESS;
@@ -428,7 +447,7 @@ Result StateMachineCompiler::compileLocalStateVector(
                    << "` (previously used on line " << svElem.tokName.lineNum
                    << ")";
                 ErrorInfo::set(kErr, elem.tokName, gErrText, ss.str());
-                return E_SMA_ELEM_DUPE;
+                return E_SMC_ELEM_DUPE;
             }
         }
 
@@ -497,7 +516,7 @@ Result StateMachineCompiler::checkLocalElemInitExprs(
         {
             ErrorInfo::set(kErr, kExpr->data, gErrText,
                            "cannot use element to initialize itself");
-            return E_SMA_SELF_REF;
+            return E_SMC_SELF_REF;
         }
 
         // Check that element is not a non-local state vector element.
@@ -509,7 +528,7 @@ Result StateMachineCompiler::checkLocalElemInitExprs(
             ss << "illegal reference to non-local element `"
                << kExpr->data.type << "`";
             ErrorInfo::set(kErr, kExpr->data, gErrText, ss.str());
-            return E_SMA_LOC_SV_REF;
+            return E_SMC_LOC_SV_REF;
         }
 
         // Check that element is not used before it's initialized.
@@ -534,7 +553,7 @@ Result StateMachineCompiler::checkLocalElemInitExprs(
                 ss << "element `" << kExpr->data.str
                    << "` is not yet initialized";
                 ErrorInfo::set(kErr, kExpr->data, gErrText, ss.str());
-                return E_SMA_UBI;
+                return E_SMC_UBI;
             }
         }
     }
@@ -740,7 +759,7 @@ Result StateMachineCompiler::compileAssignmentAction(
         // Unknown element.
         ErrorInfo::set(kErr, kParse->tokLhs, gErrText,
                        ("unknown element `" + kParse->tokLhs.str + "`"));
-        return E_SMA_ASG_ELEM;
+        return E_SMC_ASG_ELEM;
     }
     IElement* const elemObj = (*elemIt).second;
     SF_SAFE_ASSERT(elemObj != nullptr);
@@ -750,7 +769,7 @@ Result StateMachineCompiler::compileAssignmentAction(
     {
         ErrorInfo::set(kErr, kParse->tokLhs, gErrText,
                        ("element `" + kParse->tokLhs.str + "` is read-only"));
-        return E_SMA_ELEM_RO;
+        return E_SMC_ELEM_RO;
     }
 
     // Compile RHS expression.
@@ -902,7 +921,7 @@ Result StateMachineCompiler::compileAction(
         {
             ErrorInfo::set(kErr, kParse->tokTransitionKeyword, gErrText,
                            "illegal transition in exit label");
-            return E_SMA_TR_EXIT;
+            return E_SMC_TR_EXIT;
         }
 
         // Validate destination state.
@@ -912,7 +931,7 @@ Result StateMachineCompiler::compileAction(
             ErrorInfo::set(kErr, kParse->tokDestState, gErrText,
                            ("unknown state `" + kParse->tokDestState.str
                             + "`"));
-            return E_SMA_STATE;
+            return E_SMC_STATE;
         }
 
         // Create transition action with destination state.
@@ -942,7 +961,7 @@ Result StateMachineCompiler::compileBlock(
         ErrorInfo::set(kErr, kParse->tokAssert, gErrText,
                        ("`" + kParse->tokAssert.str
                         + "` may only be used in state scripts"));
-        return E_SMA_ASSERT;
+        return E_SMC_ASSERT;
     }
 
     // Check that a stop annotation, which is only allowed in state scripts, is
@@ -952,7 +971,7 @@ Result StateMachineCompiler::compileBlock(
         ErrorInfo::set(kErr, kParse->tokStop, gErrText,
                        ("`" + kParse->tokStop.str
                         + "` may only be used in state scripts"));
-        return E_SMA_STOP;
+        return E_SMC_STOP;
     }
 
     // Allocate new block and add to workspace.
@@ -1082,7 +1101,7 @@ Result StateMachineCompiler::compileState(
     {
         ErrorInfo::set(kErr, kParse.tokName, gErrText,
                        "state name is reserved");
-        return E_SMA_RSVD;
+        return E_SMC_RSVD;
     }
 
     // State ID is the current number of compiled states + 1 so that state IDs

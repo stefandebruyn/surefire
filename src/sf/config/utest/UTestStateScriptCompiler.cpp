@@ -1089,7 +1089,7 @@ TEST(StateScriptCompilerErrors, NullParse)
         "[Foo]\n");
     Ref<StateScriptAssembly> ssAsm;
     Ref<const StateScriptParse> ssParse;
-    CHECK_ERROR(E_SSA_NULL, StateScriptCompiler::compile(ssParse,
+    CHECK_ERROR(E_SSC_NULL, StateScriptCompiler::compile(ssParse,
                                                          smAsm,
                                                          ssAsm,
                                                          nullptr));
@@ -1114,7 +1114,7 @@ TEST(StateScriptCompilerErrors, DupeSection)
         "\n"
         "[Foo]\n"
         "[Foo]\n");
-    checkCompileError(ss, smAsm, E_SSA_DUPE, 5, 1);
+    checkCompileError(ss, smAsm, E_SSC_DUPE, 5, 1);
 }
 
 TEST(StateScriptCompilerErrors, UnknownState)
@@ -1134,7 +1134,7 @@ TEST(StateScriptCompilerErrors, UnknownState)
         "DELTA_T 1\n"
         "\n"
         "[Bar]\n");
-    checkCompileError(ss, smAsm, E_SSA_STATE, 4, 1);
+    checkCompileError(ss, smAsm, E_SSC_STATE, 4, 1);
 }
 
 TEST(StateScriptCompilerErrors, UnguardedInput)
@@ -1157,7 +1157,7 @@ TEST(StateScriptCompilerErrors, UnguardedInput)
         "\n"
         "[Foo]\n"
         "foo = 1\n");
-    checkCompileError(ss, smAsm, E_SSA_GUARD, 5, 1);
+    checkCompileError(ss, smAsm, E_SSC_GUARD, 5, 1);
 }
 
 TEST(StateScriptCompilerErrors, UnguardedAssert)
@@ -1180,7 +1180,7 @@ TEST(StateScriptCompilerErrors, UnguardedAssert)
         "\n"
         "[Foo]\n"
         "@ASSERT foo == 0\n");
-    checkCompileError(ss, smAsm, E_SSA_GUARD, 5, 1);
+    checkCompileError(ss, smAsm, E_SSC_GUARD, 5, 1);
 }
 
 TEST(StateScriptCompilerErrors, UnguardedStop)
@@ -1203,7 +1203,7 @@ TEST(StateScriptCompilerErrors, UnguardedStop)
         "\n"
         "[Foo]\n"
         "@STOP\n");
-    checkCompileError(ss, smAsm, E_SSA_GUARD, 5, 1);
+    checkCompileError(ss, smAsm, E_SSC_GUARD, 5, 1);
 }
 
 TEST(StateScriptCompilerErrors, IllegalElse)
@@ -1227,7 +1227,7 @@ TEST(StateScriptCompilerErrors, IllegalElse)
         "[Foo]\n"
         "T == 0: foo = 1\n"
         "ELSE: foo = 2\n");
-    checkCompileError(ss, smAsm, E_SSA_ELSE, 6, 1);
+    checkCompileError(ss, smAsm, E_SSC_ELSE, 6, 1);
 }
 
 TEST(StateScriptCompilerErrors, SurfaceErrorInGuardExpression)
@@ -1250,7 +1250,7 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInGuardExpression)
         "\n"
         "[Foo]\n"
         "bar == 1: foo = 1\n");
-    checkCompileError(ss, smAsm, E_EXA_ELEM, 5, 1);
+    checkCompileError(ss, smAsm, E_EXC_ELEM, 5, 1);
 }
 
 TEST(StateScriptCompilerErrors, NestedGuard)
@@ -1273,7 +1273,7 @@ TEST(StateScriptCompilerErrors, NestedGuard)
         "\n"
         "[Foo]\n"
         "foo == 1: T == 0: foo = 2\n");
-    checkCompileError(ss, smAsm, E_SSA_NEST, 5, 11);
+    checkCompileError(ss, smAsm, E_SSC_NEST, 5, 11);
 }
 
 TEST(StateScriptCompilerErrors, UnreachableInput)
@@ -1299,7 +1299,7 @@ TEST(StateScriptCompilerErrors, UnreachableInput)
         "    @STOP\n"
         "    foo = 1\n"
         "}\n");
-    checkCompileError(ss, smAsm, E_SSA_UNRCH, 7, 5);
+    checkCompileError(ss, smAsm, E_SSC_UNRCH, 7, 5);
 }
 
 TEST(StateScriptCompilerErrors, UnreachableAssert)
@@ -1325,7 +1325,7 @@ TEST(StateScriptCompilerErrors, UnreachableAssert)
         "    @STOP\n"
         "    @ASSERT foo == 0\n"
         "}\n");
-    checkCompileError(ss, smAsm, E_SSA_UNRCH, 7, 5);
+    checkCompileError(ss, smAsm, E_SSC_UNRCH, 7, 5);
 }
 
 TEST(StateScriptCompilerErrors, SurfaceErrorInAssertExpression)
@@ -1348,7 +1348,7 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInAssertExpression)
         "\n"
         "[Foo]\n"
         "TRUE: @ASSERT bar == 1\n");
-    checkCompileError(ss, smAsm, E_EXA_ELEM, 5, 15);
+    checkCompileError(ss, smAsm, E_EXC_ELEM, 5, 15);
 }
 
 TEST(StateScriptCompilerErrors, SurfaceErrorInAction)
@@ -1371,7 +1371,7 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInAction)
         "\n"
         "[Foo]\n"
         "TRUE: bar = 1\n");
-    checkCompileError(ss, smAsm, E_SMA_ASG_ELEM, 5, 7);
+    checkCompileError(ss, smAsm, E_SMC_ASG_ELEM, 5, 7);
 }
 
 TEST(StateScriptCompilerErrors, NoStop)
@@ -1394,7 +1394,7 @@ TEST(StateScriptCompilerErrors, NoStop)
         "\n"
         "[Foo]\n"
         "TRUE: foo = 1\n");
-    checkCompileError(ss, smAsm, E_SSA_STOP, -1, -1);
+    checkCompileError(ss, smAsm, E_SSC_STOP, -1, -1);
 }
 
 TEST(StateScriptCompilerErrors, GlobalClockOverflow)
@@ -1419,7 +1419,7 @@ TEST(StateScriptCompilerErrors, GlobalClockOverflow)
 
     // Run state script. Expect an error due to global clock overflow.
     StateScriptAssembly::Report report{};
-    CHECK_ERROR(E_SSA_OVFL, ssAsm->run(ssTokInfo, report));
+    CHECK_ERROR(E_SSC_OVFL, ssAsm->run(ssTokInfo, report));
 }
 
 TEST(StateScriptCompilerErrors, DeltaTFloating)
@@ -1440,7 +1440,7 @@ TEST(StateScriptCompilerErrors, DeltaTFloating)
         "\n"
         "[Foo]\n"
         "TRUE: @STOP\n");
-    checkCompileError(ss, smAsm, E_SSA_DT, 2, 9);
+    checkCompileError(ss, smAsm, E_SSC_DT, 2, 9);
 }
 
 TEST(StateScriptCompilerErrors, DeltaTNegative)
@@ -1461,7 +1461,7 @@ TEST(StateScriptCompilerErrors, DeltaTNegative)
         "\n"
         "[Foo]\n"
         "TRUE: @STOP\n");
-    checkCompileError(ss, smAsm, E_SSA_DT, 2, 9);
+    checkCompileError(ss, smAsm, E_SSC_DT, 2, 9);
 }
 
 TEST(StateScriptCompilerErrors, DeltaTTooLarge)
@@ -1482,7 +1482,7 @@ TEST(StateScriptCompilerErrors, DeltaTTooLarge)
         "\n"
         "[Foo]\n"
         "TRUE: @STOP\n");
-    checkCompileError(ss, smAsm, E_SSA_DT, 2, 9);
+    checkCompileError(ss, smAsm, E_SSC_DT, 2, 9);
 }
 
 TEST(StateScriptCompilerErrors, UnknownInitialState)
@@ -1504,5 +1504,5 @@ TEST(StateScriptCompilerErrors, UnknownInitialState)
         "\n"
         "[Foo]\n"
         "TRUE: @STOP\n");
-    checkCompileError(ss, smAsm, E_SSA_STATE, 3, 12);
+    checkCompileError(ss, smAsm, E_SSC_STATE, 3, 12);
 }

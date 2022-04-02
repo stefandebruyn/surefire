@@ -56,20 +56,25 @@ class StateMachineCompiler final
 {
 public:
 
+    static const String FIRST_STATE;
+
     static Result compile(const String kFilePath,
                           const Ref<const StateVectorAssembly> kSvAsm,
                           Ref<const StateMachineAssembly>& kAsm,
-                          ErrorInfo* const kErr);
+                          ErrorInfo* const kErr,
+                          const String kInitState = FIRST_STATE);
 
     static Result compile(std::istream& kIs,
                           const Ref<const StateVectorAssembly> kSvAsm,
                           Ref<const StateMachineAssembly>& kAsm,
-                          ErrorInfo* const kErr);
+                          ErrorInfo* const kErr,
+                          const String kInitState = FIRST_STATE);
 
     static Result compile(const Ref<const StateMachineParse> kParse,
                           const Ref<const StateVectorAssembly> kSvAsm,
                           Ref<const StateMachineAssembly>& kAsm,
-                          ErrorInfo* const kErr);
+                          ErrorInfo* const kErr,
+                          const String kInitState = FIRST_STATE);
 
     StateMachineCompiler() = delete;
 

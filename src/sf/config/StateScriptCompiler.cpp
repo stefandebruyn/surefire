@@ -28,7 +28,7 @@ Result StateScriptCompiler::compile(
             kErr->text = "error";
             kErr->subtext = "failed to open file `" + kFilePath + "`";
         }
-        return E_SMA_FILE;
+        return E_SMC_FILE;
     }
 
     // Set the error info file path for error messages generated further into
@@ -87,7 +87,7 @@ Result StateScriptCompiler::compile(
     // Check that parse and state machine assembly are non-null.
     if ((kParse == nullptr) || (kSmAsm == nullptr))
     {
-        return E_SSA_NULL;
+        return E_SSC_NULL;
     }
 
     // Compile state script config.
@@ -138,7 +138,7 @@ Result StateScriptCompiler::compile(
                 // Unknown state.
                 ErrorInfo::set(kErr, sectionParse.tokName, gErrText,
                                ("unknown state `" + stateName + "`"));
-                return E_SSA_STATE;
+                return E_SSC_STATE;
             }
             section.stateId = (*stateIdIt).second;
 
@@ -148,7 +148,7 @@ Result StateScriptCompiler::compile(
                 ErrorInfo::set(kErr, sectionParse.tokName, gErrText,
                                ("state `" + stateName
                                 + "` has more than one section"));
-                return E_SSA_DUPE;
+                return E_SSC_DUPE;
             }
             scriptStates.insert(stateName);
         }
@@ -197,7 +197,7 @@ Result StateScriptCompiler::compile(
                 }
 
                 ErrorInfo::set(kErr, tokErr, gErrText, "unguarded statement");
-                return E_SSA_GUARD;
+                return E_SSC_GUARD;
             }
 
             // Check that block has no else branch, which is disallowed in state
@@ -207,7 +207,7 @@ Result StateScriptCompiler::compile(
                 ErrorInfo::set(kErr, block->tokElse, gErrText,
                                ("state scripts may not use `"
                                 + LangConst::keywordElse + "`"));
-                return E_SSA_ELSE;
+                return E_SSC_ELSE;
             }
 
             // Compile guard.
@@ -252,7 +252,7 @@ Result StateScriptCompiler::compile(
 
                     ErrorInfo::set(kErr, node->data, gErrText,
                                    "state scripts may not use nested guards");
-                    return E_SSA_NEST;
+                    return E_SSC_NEST;
                 }
 
                 // Check that block is not occurring after a step annotation (in
@@ -282,7 +282,7 @@ Result StateScriptCompiler::compile(
                                    ("statement after `"
                                     + LangConst::annotationStop
                                     + "` can never execute"));
-                    return E_SSA_UNRCH;
+                    return E_SSC_UNRCH;
                 }
 
                 // Check that block is well-formed. Expect it to have no if or
@@ -411,7 +411,7 @@ Result StateScriptCompiler::compile(
                              + "`");
         }
 
-        return E_SSA_STOP;
+        return E_SSC_STOP;
     }
 
     // Create final assembly.
@@ -585,7 +585,7 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
         // Check for overflow of the global clock.
         if (elemGlobalTime.read() <= lastGlobalTime)
         {
-            return E_SSA_OVFL;
+            return E_SSC_OVFL;
         }
     }
 
@@ -648,7 +648,7 @@ Result StateScriptCompiler::compileConfig(
             kErr->subtext = ss.str();
         }
 
-        return E_SSA_DT;
+        return E_SSC_DT;
     }
 
     // Convert delta T string to F64.
@@ -660,7 +660,7 @@ Result StateScriptCompiler::compileConfig(
     if (end == str)
     {
         ErrorInfo::set(kErr, kParse.tokDeltaT, gErrText, "invalid number");
-        return E_SSA_DT;
+        return E_SSC_DT;
     }
 
     // Check that delta T is an integer greater than zero.
@@ -669,14 +669,14 @@ Result StateScriptCompiler::compileConfig(
         ErrorInfo::set(kErr, kParse.tokDeltaT, gErrText,
                        ("`" + LangConst::optDeltaT
                         + "` must be an integer > 0"));
-        return E_SSA_DT;
+        return E_SSC_DT;
     }
 
     // Check that delta T is not too large.
     if (val > Limits::max<U64>())
     {
         ErrorInfo::set(kErr, kParse.tokDeltaT, gErrText, "value is too large");
-        return E_SSA_DT;
+        return E_SSC_DT;
     }
 
     // Delta T is valid.
@@ -691,7 +691,7 @@ Result StateScriptCompiler::compileConfig(
             // Unknown state.
             ErrorInfo::set(kErr, kParse.tokInitState, gErrText,
                            ("unknown state `" + kParse.tokInitState.str + "`"));
-            return E_SSA_STATE;
+            return E_SSC_STATE;
         }
 
         kConfig.initState = (*stateIt).second;

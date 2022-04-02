@@ -78,13 +78,13 @@ enum : Result
     E_TOK_INVALID = 256,
     E_TOK_FILE = 257,
 
-    // StateVectorParse
+    // StateVectorParser
     E_SVP_ELEM_NAME = 288,
     E_SVP_ELEM_TYPE = 289,
     E_SVP_RGN = 290,
     E_SVP_TOK = 291,
 
-    // StateMachineParse
+    // StateMachineParser
     E_SMP_SEC = 320,
     E_SMP_ELEM_TYPE = 321,
     E_SMP_ELEM_NAME = 322,
@@ -119,72 +119,73 @@ enum : Result
     E_SMP_LAB = 351,
     E_SMP_ALIAS = 352,
 
-    // ExpressionParse
+    // ExpressionParser
     E_EXP_OP = 384,
     E_EXP_SYNTAX = 385,
     E_EXP_TOK = 386,
     E_EXP_EMPTY = 387,
     E_EXP_PAREN = 388,
 
-    // StateVectorAssembly
-    E_SVA_FILE = 416,
-    E_SVA_RGN_EMPTY = 417,
-    E_SVA_ELEM_TYPE = 418,
-    E_SVA_RGN_DUPE = 419,
-    E_SVA_ELEM_DUPE = 420,
-    E_SVA_NULL = 421,
+    // StateVectorCompiler
+    E_SVC_FILE = 416,
+    E_SVC_RGN_EMPTY = 417,
+    E_SVC_ELEM_TYPE = 418,
+    E_SVC_RGN_DUPE = 419,
+    E_SVC_ELEM_DUPE = 420,
+    E_SVC_NULL = 421,
 
-    // StateMachineAssembly
-    E_SMA_FILE = 448,
-    E_SMA_SV_ELEM = 449,
-    E_SMA_TYPE = 450,
-    E_SMA_TYPE_MISM = 451,
-    E_SMA_G_TYPE = 452,
-    E_SMA_S_TYPE = 453,
-    E_SMA_NO_G = 454,
-    E_SMA_NO_S = 455,
-    E_SMA_ELEM_DUPE = 456,
-    E_SMA_ASG_ELEM = 457,
-    E_SMA_STATE = 458,
-    E_SMA_ELEM_RO = 459,
-    E_SMA_TR_EXIT = 460,
-    E_SMA_ASSERT = 461,
-    E_SMA_NULL = 462,
-    E_SMA_LOC_SV_REF = 463,
-    E_SMA_SELF_REF = 464,
-    E_SMA_UBI = 465,
-    E_SMA_STOP = 466,
-    E_SMA_RSVD = 467,
+    // StateMachineCompiler
+    E_SMC_FILE = 448,
+    E_SMC_SV_ELEM = 449,
+    E_SMC_TYPE = 450,
+    E_SMC_TYPE_MISM = 451,
+    E_SMC_G_TYPE = 452,
+    E_SMC_S_TYPE = 453,
+    E_SMC_NO_G = 454,
+    E_SMC_NO_S = 455,
+    E_SMC_ELEM_DUPE = 456,
+    E_SMC_ASG_ELEM = 457,
+    E_SMC_STATE = 458,
+    E_SMC_ELEM_RO = 459,
+    E_SMC_TR_EXIT = 460,
+    E_SMC_ASSERT = 461,
+    E_SMC_NULL = 462,
+    E_SMC_LOC_SV_REF = 463,
+    E_SMC_SELF_REF = 464,
+    E_SMC_UBI = 465,
+    E_SMC_STOP = 466,
+    E_SMC_RSVD = 467,
+    E_SMC_INIT = 468,
 
-    // ExpressionAssembly
-    E_EXA_NULL = 480,
-    E_EXA_NUM = 481,
-    E_EXA_TYPE = 482,
-    E_EXA_ELEM = 483,
-    E_EXA_OVFL = 484,
-    E_EXA_ARITY = 485,
-    E_EXA_FUNC = 486,
-    E_EXA_WIN = 487,
-    E_EXA_ELEM_NULL = 488,
+    // ExpressionCompiler
+    E_EXC_NULL = 480,
+    E_EXC_NUM = 481,
+    E_EXC_TYPE = 482,
+    E_EXC_ELEM = 483,
+    E_EXC_OVFL = 484,
+    E_EXC_ARITY = 485,
+    E_EXC_FUNC = 486,
+    E_EXC_WIN = 487,
+    E_EXC_ELEM_NULL = 488,
 
-    // StateScriptParse
+    // StateScriptParser
     E_SSP_SEC = 512,
     E_SSP_DT = 513,
     E_SSP_STATE = 514,
     E_SSP_CONFIG = 515,
 
-    // StateScriptAssembly
-    E_SSA_NULL = 544,
-    E_SSA_DUPE = 545,
-    E_SSA_STATE = 546,
-    E_SSA_GUARD = 547,
-    E_SSA_ELSE = 548,
-    E_SSA_NEST = 549,
-    E_SSA_UNRCH = 550,
-    E_SSA_STOP = 551,
-    E_SSA_OVFL = 552,
-    E_SSA_DT = 553,
-    E_SSA_NUM = 554,
+    // StateScriptCompiler
+    E_SSC_NULL = 544,
+    E_SSC_DUPE = 545,
+    E_SSC_STATE = 546,
+    E_SSC_GUARD = 547,
+    E_SSC_ELSE = 548,
+    E_SSC_NEST = 549,
+    E_SSC_UNRCH = 550,
+    E_SSC_STOP = 551,
+    E_SSC_OVFL = 552,
+    E_SSC_DT = 553,
+    E_SSC_NUM = 554,
 
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 

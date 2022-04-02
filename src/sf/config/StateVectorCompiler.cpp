@@ -23,7 +23,7 @@ Result StateVectorCompiler::compile(const String kFilePath,
             kErr->subtext = "failed to open file `" + kFilePath + "`";
         }
 
-        return E_SMA_FILE;
+        return E_SMC_FILE;
     }
 
     // Set the error info file path for error messages generated further into
@@ -78,7 +78,7 @@ Result StateVectorCompiler::compile(const Ref<const StateVectorParse> kParse,
     // Check that state vector parse is non-null.
     if (kParse == nullptr)
     {
-        return E_SVA_NULL;
+        return E_SVC_NULL;
     }
 
     // Check that region names are unique. While we do this, collect all the
@@ -94,7 +94,7 @@ Result StateVectorCompiler::compile(const Ref<const StateVectorParse> kParse,
                 ss << "reuse of region name `" << j.plainName
                    << "` (previously used on line " << i.tokName.lineNum << ")";
                 ErrorInfo::set(kErr, j.tokName, gErrText, ss.str());
-                return E_SVA_RGN_DUPE;
+                return E_SVC_RGN_DUPE;
             }
         }
 
@@ -118,7 +118,7 @@ Result StateVectorCompiler::compile(const Ref<const StateVectorParse> kParse,
                    << "` (previously used on line "
                    << elems[i]->tokName.lineNum << ")";
                 ErrorInfo::set(kErr, elems[j]->tokName, gErrText, ss.str());
-                return E_SVA_ELEM_DUPE;
+                return E_SVC_ELEM_DUPE;
             }
         }
     }
@@ -133,7 +133,7 @@ Result StateVectorCompiler::compile(const Ref<const StateVectorParse> kParse,
         if (region.elems.size() == 0)
         {
             ErrorInfo::set(kErr, region.tokName, gErrText, "region is empty");
-            return E_SVA_RGN_EMPTY;
+            return E_SVC_RGN_EMPTY;
         }
 
         // Add elements into element count.
@@ -148,7 +148,7 @@ Result StateVectorCompiler::compile(const Ref<const StateVectorParse> kParse,
             {
                 // Unknown element type.
                 ErrorInfo::set(kErr, elem.tokType, gErrText, "unknown type");
-                return E_SVA_ELEM_TYPE;
+                return E_SVC_ELEM_TYPE;
             }
 
             const TypeInfo& typeInfo = (*typeInfoIt).second;

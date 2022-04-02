@@ -753,7 +753,7 @@ TEST_GROUP(ExpressionCompilerErrors)
 TEST(ExpressionCompilerErrors, UnknownElement)
 {
     PARSE_EXPR("foo");
-    checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 1);
+    checkCompileError(exprParse, {}, E_EXC_ELEM, 1, 1);
 }
 
 TEST(ExpressionCompilerErrors, OutOfRangeNumber)
@@ -766,61 +766,61 @@ TEST(ExpressionCompilerErrors, OutOfRangeNumber)
                "9999999999999999999999999999999999999999999999999999999999999"
                "9999999999999999999999999999999999999999999999999999999999999"
                "9999999999999999999999999999999999999999999999999999999999999");
-    checkCompileError(exprParse, {}, E_EXA_OVFL, 1, 5);
+    checkCompileError(exprParse, {}, E_EXC_OVFL, 1, 5);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionArity)
 {
     PARSE_EXPR("ROLL_AVG(1)");
-    checkCompileError(exprParse, {}, E_EXA_ARITY, 1, 1);
+    checkCompileError(exprParse, {}, E_EXC_ARITY, 1, 1);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg1)
 {
     PARSE_EXPR("ROLL_AVG(foo, 4)");
-    checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 10);
+    checkCompileError(exprParse, {}, E_EXC_ELEM, 1, 10);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg2)
 {
     PARSE_EXPR("ROLL_AVG(4, foo)");
-    checkCompileError(exprParse, {}, E_EXA_ELEM, 1, 13);
+    checkCompileError(exprParse, {}, E_EXC_ELEM, 1, 13);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionZeroWindowSize)
 {
     PARSE_EXPR("ROLL_AVG(4, 0)");
-    checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
+    checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionNegativeWindowSize)
 {
     PARSE_EXPR("ROLL_AVG(4, -1)");
-    checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
+    checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionNonIntegerWindowSize)
 {
     PARSE_EXPR("ROLL_AVG(4, 1.5)");
-    checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
+    checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionNaNWindowSize)
 {
     PARSE_EXPR("ROLL_AVG(4, 0 / 0)");
-    checkCompileError(exprParse, {}, E_EXA_WIN, 1, 15);
+    checkCompileError(exprParse, {}, E_EXC_WIN, 1, 15);
 }
 
 TEST(ExpressionCompilerErrors, StatsFunctionWindowTooBig)
 {
     PARSE_EXPR("ROLL_AVG(4, 100001)");
-    checkCompileError(exprParse, {}, E_EXA_WIN, 1, 13);
+    checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 
 TEST(ExpressionCompilerErrors, UnknownFunction)
 {
     PARSE_EXPR("FOO()");
-    checkCompileError(exprParse, {}, E_EXA_FUNC, 1, 1);
+    checkCompileError(exprParse, {}, E_EXC_FUNC, 1, 1);
 }
 
 TEST(ExpressionCompilerErrors, NullElementInBindings)
@@ -828,7 +828,7 @@ TEST(ExpressionCompilerErrors, NullElementInBindings)
     PARSE_EXPR("foo");
     const Map<String, IElement*> bindings = {{"foo", nullptr}};
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_ERROR(E_EXA_ELEM_NULL,
+    CHECK_ERROR(E_EXC_ELEM_NULL,
                 ExpressionCompiler::compile(exprParse,
                                             bindings,
                                             ElementType::FLOAT64,
@@ -840,7 +840,7 @@ TEST(ExpressionCompilerErrors, NullParse)
 {
     const Ref<const ExpressionParse> exprParse;
     Ref<const ExpressionAssembly> exprAsm;
-    CHECK_ERROR(E_EXA_NULL, ExpressionCompiler::compile(exprParse,
+    CHECK_ERROR(E_EXC_NULL, ExpressionCompiler::compile(exprParse,
                                                         {},
                                                         ElementType::FLOAT64,
                                                         exprAsm,

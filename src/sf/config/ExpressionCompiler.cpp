@@ -20,7 +20,7 @@ Result ExpressionCompiler::compile(const Ref<const ExpressionParse> kParse,
     // Check that expression parse is non-null.
     if (kParse == nullptr)
     {
-        return E_EXA_NULL;
+        return E_EXC_NULL;
     }
 
     // Compile expression starting at root.
@@ -138,7 +138,7 @@ Result ExpressionCompiler::tokenToF64(const Token& kTok,
     {
         // Invalid numeric constant.
         ErrorInfo::set(kErr, kTok, gErrText, "invalid number");
-        return E_EXA_NUM;
+        return E_EXC_NUM;
     }
 
     if (val == HUGE_VAL)
@@ -146,7 +146,7 @@ Result ExpressionCompiler::tokenToF64(const Token& kTok,
         // Numeric constant is out of range.
         ErrorInfo::set(kErr, kTok, gErrText,
                        "number is outside the representable range");
-        return E_EXA_OVFL;
+        return E_EXC_OVFL;
     }
 
     // Success- return converted value.
@@ -180,7 +180,7 @@ Result ExpressionCompiler::compileStatsFunc(
         ss << "`" << kParse->data.str << + "` expects 2 arguments, got "
            << argNodes.size();
         ErrorInfo::set(kErr, kParse->data, gErrText, ss.str());
-        return E_EXA_ARITY;
+        return E_EXC_ARITY;
     }
 
     // Compile first argument expression; the expression which stats are being
@@ -222,7 +222,7 @@ Result ExpressionCompiler::compileStatsFunc(
     {
         ErrorInfo::set(kErr, argNodes[1]->right->data, gErrText,
                        "rolling window size must be an integer > 0");
-        return E_EXA_WIN;
+        return E_EXC_WIN;
     }
 
     // Enforce maximum window size.
@@ -232,7 +232,7 @@ Result ExpressionCompiler::compileStatsFunc(
         std::stringstream ss;
         ss << "rolling window size must be <= " << LangConst::rollWindowMaxSize;
         ErrorInfo::set(kErr, argNodes[1]->right->data, gErrText, ss.str());
-        return E_EXA_WIN;
+        return E_EXC_WIN;
     }
 
     // Allocate storage arrays needed by expression stats and add them to the
@@ -310,7 +310,7 @@ Result ExpressionCompiler::compileFunction(
     // If we got this far, the function is not recognized.
     ErrorInfo::set(kErr, kParse->data, gErrText,
                    ("unknown function `" + kParse->data.str + "`"));
-    return E_EXA_FUNC;
+    return E_EXC_FUNC;
 }
 
 Result ExpressionCompiler::compileOperator(
@@ -547,14 +547,14 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
         if (elemIt == kBindings.end())
         {
             ErrorInfo::set(kErr, kParse->data, gErrText, "unknown element");
-            return E_EXA_ELEM;
+            return E_EXC_ELEM;
         }
         IElement* const elemObj = (*elemIt).second;
 
         // Check that element is non-null.
         if (elemObj == nullptr)
         {
-            return E_EXA_ELEM_NULL;
+            return E_EXC_ELEM_NULL;
         }
 
         // Narrow the element pointer to a template instantiation of the
