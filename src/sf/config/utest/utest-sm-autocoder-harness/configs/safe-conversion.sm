@@ -1,0 +1,88 @@
+[STATE_VECTOR]
+U32 state @ALIAS S
+U64 time @ALIAS G
+I8 a
+I16 b
+I32 c
+I64 d
+U8 e
+U16 f
+U32 g
+U64 h
+F32 i
+F64 j
+BOOL k
+
+[Nan]
+.ENTRY
+    a = 0 / 0
+    b = 0 / 0
+    c = 0 / 0
+    d = 0 / 0
+    e = 0 / 0
+    f = 0 / 0
+    g = 0 / 0
+    h = 0 / 0
+    i = 0 / 0
+    j = 0 / 0
+    k = 0 / 0
+    -> Inf
+
+[Inf]
+.ENTRY
+    a = 1 / 0
+    b = 1 / 0
+    c = 1 / 0
+    d = 1 / 0
+    e = 1 / 0
+    f = 1 / 0
+    g = 1 / 0
+    h = 1 / 0
+    i = 1 / 0
+    j = 1 / 0
+    k = 1 / 0
+    -> NegInf
+
+[NegInf]
+.ENTRY
+    a = -1 / 0
+    b = -1 / 0
+    c = -1 / 0
+    d = -1 / 0
+    e = -1 / 0
+    f = -1 / 0
+    g = -1 / 0
+    h = -1 / 0
+    i = -1 / 0
+    j = -1 / 0
+    k = -1 / 0
+    -> SaturateUpper
+
+[SaturateUpper]
+.ENTRY
+    a = 128
+    b = 32768
+    c = 2147483648
+    d = 9223372036854775808
+    e = 256
+    f = 65536
+    g = 4294967296
+    h = 18446744073709551616
+    i = 1 / 0
+    j = 1 / 0
+    k = 2
+    -> SaturateLower
+
+[SaturateLower]
+.ENTRY
+    a = -129
+    b = -32769
+    c = -2147483649
+    d = -9223372036854775809
+    e = -1
+    f = -1
+    g = -1
+    h = -1
+    i = -1 / 0
+    j = -1 / 0
+    k = -1

@@ -22,17 +22,18 @@
 ///
 enum ElementType : U32
 {
-    INT8 = 0,
-    INT16 = 1,
-    INT32 = 2,
-    INT64 = 3,
-    UINT8 = 4,
-    UINT16 = 5,
-    UINT32 = 6,
-    UINT64 = 7,
-    FLOAT32 = 8,
-    FLOAT64 = 9,
-    BOOL = 10
+    NONE = 0,
+    INT8 = 1,
+    INT16 = 2,
+    INT32 = 3,
+    INT64 = 4,
+    UINT8 = 5,
+    UINT16 = 6,
+    UINT32 = 7,
+    UINT64 = 8,
+    FLOAT32 = 9,
+    FLOAT64 = 10,
+    BOOL = 11
 };
 
 ///

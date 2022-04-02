@@ -589,6 +589,82 @@ TEST(StateMachineCompiler, InitLocalElemsWithLocalElems)
     CHECK_LOCAL_ELEM("baz", I32, 3);
 }
 
+TEST(StateMachineCompiler, AssignmentDoesSafeCast)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U64 time\n"
+        "U32 state\n"
+        "I8 a\n"
+        "I16 b\n"
+        "I32 c\n"
+        "I64 d\n"
+        "U8 e\n"
+        "U16 f\n"
+        "U32 g\n"
+        "U64 h\n"
+        "F32 i\n"
+        "F64 j\n"
+        "BOOL k\n");
+    INIT_SM(
+        "[STATE_VECTOR]\n"
+        "U64 time @ALIAS G\n"
+        "U32 state @ALIAS S\n"
+        "I8 a\n"
+        "I16 b\n"
+        "I32 c\n"
+        "I64 d\n"
+        "U8 e\n"
+        "U16 f\n"
+        "U32 g\n"
+        "U64 h\n"
+        "F32 i\n"
+        "F64 j\n"
+        "BOOL k\n"
+        "\n"
+        "[Initial]\n"
+        ".ENTRY\n"
+        "    a = 1\n"
+        "    b = 1\n"
+        "    c = 1\n"
+        "    d = 1\n"
+        "    e = 1\n"
+        "    f = 1\n"
+        "    g = 1\n"
+        "    h = 1\n"
+        "    i = 1\n"
+        "    j = 1\n"
+        "    k = TRUE\n"
+        ".STEP\n"
+        "    a = 0 / 0\n"
+        "    b = 0 / 0\n"
+        "    c = 0 / 0\n"
+        "    d = 0 / 0\n"
+        "    e = 0 / 0\n"
+        "    f = 0 / 0\n"
+        "    g = 0 / 0\n"
+        "    h = 0 / 0\n"
+        "    i = 0 / 0\n"
+        "    j = 0 / 0\n"
+        "    k = 0 / 0\n",
+        "state",
+        1);
+
+    CHECK_SUCCESS(sm.step());
+
+    CHECK_SV_ELEM("a", I8, 0);
+    CHECK_SV_ELEM("b", I16, 0);
+    CHECK_SV_ELEM("c", I32, 0);
+    CHECK_SV_ELEM("d", I64, 0);
+    CHECK_SV_ELEM("e", U8, 0);
+    CHECK_SV_ELEM("f", U16, 0);
+    CHECK_SV_ELEM("g", U32, 0);
+    CHECK_SV_ELEM("h", U64, 0);
+    CHECK_SV_ELEM("i", F32, 0.0f);
+    CHECK_SV_ELEM("j", F64, 0.0);
+    CHECK_SV_ELEM("k", bool, false);
+}
+
 ///////////////////////////////// Error Tests //////////////////////////////////
 
 TEST_GROUP(StateMachineCompilerErrors)

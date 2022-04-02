@@ -31,6 +31,7 @@ if (kExpect != kActual)                                                        \
 ///
 static const char* const gElemTypeNames[] =
 {
+    "(none)",
     "I8",
     "I16",
     "I32",

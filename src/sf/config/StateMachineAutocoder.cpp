@@ -275,6 +275,9 @@ void StateMachineAutocoder::codeLocalStateVector(
                 initValStr = (initVal ? "true" : "false");
                 break;
             }
+
+            default:
+                SF_ASSERT(false);
         }
 
         // Define element struct member with initial value.
@@ -413,7 +416,7 @@ String StateMachineAutocoder::codeFunctionCall(
 String StateMachineAutocoder::codeExpression(
     const Ref<const ExpressionParse> kParse,
     const Ref<const StateMachineAssembly> kSmAsm,
-    const ElementType kEvalType,
+    const ElementType kCastType,
     Autocode& kAutocode,
     StateMachineAutocoder::Workspace& kWs)
 {
@@ -446,6 +449,12 @@ String StateMachineAutocoder::codeExpression(
         else
         {
             valStr = kParse->data.str;
+            // Ensure numeric constants are autocoded as double literals so
+            // the compiler doesn't warn about signedness, overflow, etc.
+            if (valStr.find('.') == std::string::npos)
+            {
+                valStr += ".0";
+            }
         }
 
         // Define constant node.
@@ -476,13 +485,13 @@ String StateMachineAutocoder::codeExpression(
         // unary and binary operators have.
         SF_ASSERT(kParse->data.opInfo != nullptr);
         const String rhsAddr = StateMachineAutocoder::codeExpression(
-            kParse->right, kSmAsm, ElementType::FLOAT64, a, kWs);
+            kParse->right, kSmAsm, ElementType::NONE, a, kWs);
 
         if (!kParse->data.opInfo->unary)
         {
             // Node is a binary operator - code LHS expression as well.
             const String lhsAddr = StateMachineAutocoder::codeExpression(
-                kParse->left, kSmAsm, ElementType::FLOAT64, a, kWs);
+                kParse->left, kSmAsm, ElementType::NONE, a, kWs);
 
             // Define operator node. We implement the node's operation as a
             // lambda, which the C++ compiler will convert to a function pointer
@@ -503,11 +512,10 @@ String StateMachineAutocoder::codeExpression(
         }
     }
 
-    // If specified evaluation type is not F64, add a cast.
-    if (kEvalType != ElementType::FLOAT64)
+    if (kCastType != ElementType::NONE)
     {
         // Look up cast type info.
-        auto typeInfoIt = TypeInfo::fromEnum.find(kEvalType);
+        auto typeInfoIt = TypeInfo::fromEnum.find(kCastType);
         SF_ASSERT(typeInfoIt != TypeInfo::fromEnum.end());
         const TypeInfo& typeInfo = (*typeInfoIt).second;
 

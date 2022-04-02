@@ -49,7 +49,7 @@ private:
 
     static String codeExpression(const Ref<const ExpressionParse> kParse,
                                  const Ref<const StateMachineAssembly> kSmAsm,
-                                 const ElementType kEvalType,
+                                 const ElementType kCastType,
                                  Autocode& kAutocode,
                                  StateMachineAutocoder::Workspace& kWs);
 
