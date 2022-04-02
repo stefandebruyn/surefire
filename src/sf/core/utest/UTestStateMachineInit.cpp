@@ -1,3 +1,17 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestStateMachineInit.cpp
+/// @brief Unit tests for StateMachine::init().
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/StateMachine.hpp"
 #include "sf/utest/UTest.hpp"
 
@@ -99,7 +113,10 @@ static StateMachine::Config gConfig =
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
-TEST_GROUP(StateMachineCreate)
+///
+/// @brief Unit tests for StateMachine::init().
+///
+TEST_GROUP(StateMachineInit)
 {
     void setup()
     {
@@ -108,7 +125,10 @@ TEST_GROUP(StateMachineCreate)
     }
 };
 
-TEST(StateMachineCreate, Create)
+///
+/// @test State machine initialization succeeds with a valid config.
+///
+TEST(StateMachineInit, Init)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -116,13 +136,19 @@ TEST(StateMachineCreate, Create)
     CHECK_SUCCESS(sm.step());
 }
 
-TEST(StateMachineCreate, Uninitialized)
+///
+/// @test Stepping an uninitialized state machine returns an error.
+///
+TEST(StateMachineInit, Uninitialized)
 {
     StateMachine sm;
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }
 
-TEST(StateMachineCreate, ErrorReinitialize)
+///
+/// @test Initializing a state machine twice returns an error.
+///
+TEST(StateMachineInit, ErrorReinitialize)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -130,13 +156,21 @@ TEST(StateMachineCreate, ErrorReinitialize)
     CHECK_ERROR(E_SM_REINIT, StateMachine::init(gConfig, sm));
 }
 
-TEST(StateMachineCreate, ErrorInvalidInitialState)
+///
+/// @test Initializing a state machine with an invalid initial state returns an
+/// error.
+///
+TEST(StateMachineInit, ErrorInvalidInitialState)
 {
     StateMachine sm;
     CHECK_ERROR(E_SM_STATE, StateMachine::init(gConfig, sm));
 }
 
-TEST(StateMachineCreate, ErrorNullStateElem)
+///
+/// @test Initializing a state machine with a null state element returns an
+/// error.
+///
+TEST(StateMachineInit, ErrorNullStateElem)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -150,7 +184,11 @@ TEST(StateMachineCreate, ErrorNullStateElem)
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }
 
-TEST(StateMachineCreate, ErrorNullStateTimeElem)
+///
+/// @test Initializing a state machine with a null state time element returns an
+/// error.
+///
+TEST(StateMachineInit, ErrorNullStateTimeElem)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -164,7 +202,11 @@ TEST(StateMachineCreate, ErrorNullStateTimeElem)
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }
 
-TEST(StateMachineCreate, ErrorNullGlobalTimeElem)
+///
+/// @test Initializing a state machine with a null global time element returns
+/// an error.
+///
+TEST(StateMachineInit, ErrorNullGlobalTimeElem)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -178,7 +220,11 @@ TEST(StateMachineCreate, ErrorNullGlobalTimeElem)
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }
 
-TEST(StateMachineCreate, ErrorNullStatesArray)
+///
+/// @test Initializing a state machine with a null state config array returns
+/// an error.
+///
+TEST(StateMachineInit, ErrorNullStatesArray)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -192,7 +238,11 @@ TEST(StateMachineCreate, ErrorNullStatesArray)
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }
 
-TEST(StateMachineCreate, ErrorEmptyStatesArray)
+///
+/// @test Initializing a state machine with an empty state config array returns
+/// an error.
+///
+TEST(StateMachineInit, ErrorEmptyStatesArray)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -211,7 +261,11 @@ TEST(StateMachineCreate, ErrorEmptyStatesArray)
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }
 
-TEST(StateMachineCreate, ErrorInvalidTransitionInEntryLabel)
+///
+/// @test A transition to an invalid state in an entry label returns an error
+/// on initialization.
+///
+TEST(StateMachineInit, ErrorInvalidTransitionInEntryLabel)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -227,7 +281,11 @@ TEST(StateMachineCreate, ErrorInvalidTransitionInEntryLabel)
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }
 
-TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelIfBlock)
+///
+/// @test A transition to an invalid state in a step label if branch returns an
+/// error on initialization.
+///
+TEST(StateMachineInit, ErrorInvalidTransitionInStepLabelIfBlock)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -243,7 +301,11 @@ TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelIfBlock)
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }
 
-TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelElseBlock)
+///
+/// @test A transition to an invalid state in a step label else branch returns
+/// an error on initialization.
+///
+TEST(StateMachineInit, ErrorInvalidTransitionInStepLabelElseBlock)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -259,7 +321,11 @@ TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelElseBlock)
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }
 
-TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelNextBlock)
+///
+/// @test A transition to an invalid state in the middle of a step label (i.e.,
+/// not the first block) returns an error on initialization.
+///
+TEST(StateMachineInit, ErrorInvalidTransitionInStepLabelNextBlock)
 {
     StateMachine sm;
     gElemState.write(1);
@@ -275,7 +341,10 @@ TEST(StateMachineCreate, ErrorInvalidTransitionInStepLabelNextBlock)
     CHECK_ERROR(E_SM_UNINIT, sm.step());
 }
 
-TEST(StateMachineCreate, ErrorIllegalTransitionInExitLabel)
+///
+/// @brief A transition in an exit label returns an error on initialization.
+///
+TEST(StateMachineInit, ErrorIllegalTransitionInExitLabel)
 {
     StateMachine sm;
     gElemState.write(1);

@@ -1,3 +1,17 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestAssert.cpp
+/// @brief Unit tests for assert macros.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/Assert.hpp"
 #include "sf/core/MemOps.hpp"
 #include "sf/pal/Console.hpp"
@@ -5,6 +19,9 @@
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Function which asserts the value of a bool argument.
+///
 static Result foo(const bool kFail)
 {
     SF_SAFE_ASSERT(kFail);
@@ -14,6 +31,9 @@ static Result foo(const bool kFail)
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Assert macro tests.
+///
 TEST_GROUP(Assert)
 {
     void teardown()
@@ -24,6 +44,10 @@ TEST_GROUP(Assert)
     }
 };
 
+///
+/// @test SF_SAFE_ASSERT fails when expected and saves the assert fail site
+/// if configured.
+///
 TEST(Assert, SafeAssert)
 {
     // No assert fail site.
@@ -49,6 +73,10 @@ TEST(Assert, SafeAssert)
 #endif
 }
 
+///
+/// @brief SF_ASSERT does nothing when the assert passes, and nothing when the
+/// assert fails but asserts are disabled.
+///
 TEST(Assert, UnsafeAssert)
 {
     // Asserting true never halts.

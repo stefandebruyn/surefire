@@ -1,3 +1,17 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestStateVectorAccess.cpp
+/// @brief Unit tests for accessing StateVector elements and regions.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/StateVector.hpp"
 #include "sf/utest/UTest.hpp"
 
@@ -74,6 +88,13 @@ static StateVector::Config gConfig = {gElems, gRegions};
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that StateVector::getElement() and StateVector::getIElement()
+/// return the correct pointers.
+///
+/// @param[in] kName  Element name.
+/// @param[in] kElem  Element object.
+///
 template<typename T>
 static void testGetElement(const char* const kName, const Element<T>& kElem)
 {
@@ -89,11 +110,16 @@ static void testGetElement(const char* const kName, const Element<T>& kElem)
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for accessing StateVector elements and regions.
+///
 TEST_GROUP(StateVectorAccess)
 {
 };
 
-// Getting elements.
+///
+/// @brief Element lookup returns the correct pointer.
+///
 TEST(StateVectorAccess, GetElement)
 {
     testGetElement<I8>("i8", gElemI8);
@@ -109,7 +135,9 @@ TEST(StateVectorAccess, GetElement)
     testGetElement<bool>("bool", gElemBool);
 }
 
-// Getting regions.
+///
+/// @brief Region lookup returns the correct pointer.
+///
 TEST(StateVectorAccess, GetRegion)
 {
     StateVector sv;

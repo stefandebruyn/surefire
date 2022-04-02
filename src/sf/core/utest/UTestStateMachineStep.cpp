@@ -1,3 +1,17 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestStateMachineStep.cpp
+/// @brief Unit tests for StateMachine::step().
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/StateMachine.hpp"
 #include "sf/pal/Clock.hpp"
 #include "sf/utest/UTest.hpp"
@@ -101,6 +115,9 @@ static StateMachine::Config gConfig =
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for StateMachine::step().
+///
 TEST_GROUP(StateMachineStep)
 {
     void setup()
@@ -110,6 +127,10 @@ TEST_GROUP(StateMachineStep)
     }
 };
 
+///
+/// @test State machine correctly executes entry and step labels of the current
+/// state.
+///
 TEST(StateMachineStep, EntryAndStep)
 {
     // Initialize the state machine in state 1.
@@ -137,6 +158,10 @@ TEST(StateMachineStep, EntryAndStep)
     CHECK_EQUAL(1, gElemGlobalTime.read());
 }
 
+///
+/// @test State machine correctly triggers a transition and executes the exit
+/// label of the current state.
+///
 TEST(StateMachineStep, TransitionAndExit)
 {
     // Initialize the state machine in state 1.
@@ -170,6 +195,9 @@ TEST(StateMachineStep, TransitionAndExit)
     CHECK_EQUAL(2, gElemGlobalTime.read());
 }
 
+///
+/// @test An empty state is a nop.
+///
 TEST(StateMachineStep, EmptyState)
 {
     // Initialize the state machine in state 2.
@@ -192,6 +220,9 @@ TEST(StateMachineStep, EmptyState)
     CHECK_EQUAL(99, gElemGlobalTime.read());
 }
 
+///
+/// @test State machine correctly updates the state elapsed time element.
+///
 TEST(StateMachineStep, UpdateStateTime)
 {
     // Initialize the state machine in state 2.
@@ -215,6 +246,10 @@ TEST(StateMachineStep, UpdateStateTime)
     CHECK_EQUAL(25, gElemStateTime.read());
 }
 
+///
+/// @test Stepping a state machine with an invalid global time value returns an
+/// error.
+///
 TEST(StateMachineStep, ErrorInvalidTime)
 {
     // Initialize the state machine in state 1.
@@ -233,6 +268,10 @@ TEST(StateMachineStep, ErrorInvalidTime)
     CHECK_EQUAL(Clock::NO_TIME, gElemGlobalTime.read());
 }
 
+///
+/// @test Stepping a state machine with global time not monotonically increasing
+/// returns an error.
+///
 TEST(StateMachineStep, ErrorNonMonotonicTime)
 {
     // Initialize the state machine.
@@ -258,6 +297,10 @@ TEST(StateMachineStep, ErrorNonMonotonicTime)
     CHECK_EQUAL(0, gElemGlobalTime.read());
 }
 
+///
+/// @brief State machine updates configured ExpressionStats at the beginning
+/// of a step.
+///
 TEST(StateMachineStep, UpdateExpressionStats)
 {
     // State machine will update stats for elements `bar` and `baz`.

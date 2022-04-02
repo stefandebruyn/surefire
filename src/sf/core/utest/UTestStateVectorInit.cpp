@@ -1,3 +1,17 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestStateVectorInit.cpp
+/// @brief Unit tests for StateVector::init().
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/StateVector.hpp"
 #include "sf/utest/UTest.hpp"
 
@@ -50,6 +64,12 @@ static StateVector::Config gConfig = {gElems, gRegions};
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that a StateVector is uninitialized by invoking all its
+/// methods and expecting E_SV_UNINIT.
+///
+/// @param[in] kSv  State vector to check.
+///
 static void checkStateVectorUninitialized(StateVector& kSv)
 {
     // Getting an element fails.
@@ -65,7 +85,10 @@ static void checkStateVectorUninitialized(StateVector& kSv)
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
-TEST_GROUP(StateVectorCreate)
+///
+/// @brief Unit tests for StateVector::init().
+///
+TEST_GROUP(StateVectorInit)
 {
     void teardown()
     {
@@ -75,26 +98,39 @@ TEST_GROUP(StateVectorCreate)
     }
 };
 
-TEST(StateVectorCreate, Success)
+///
+/// @test State vector initialization succeeds with a valid config.
+///
+TEST(StateVectorInit, Success)
 {
     StateVector sv;
     CHECK_SUCCESS(StateVector::init(gConfig, sv));
 }
 
-TEST(StateVectorCreate, Uninitialized)
+///
+/// @test A default-constructed state vector is uninitialized.
+///
+TEST(StateVectorInit, Uninitialized)
 {
     StateVector sv;
     checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorCreate, ErrorReinitialize)
+///
+/// @test Initializing a state vector twice fails.
+///
+TEST(StateVectorInit, ErrorReinitialize)
 {
     StateVector sv;
     CHECK_SUCCESS(StateVector::init(gConfig, sv));
     CHECK_ERROR(E_SV_REINIT, StateVector::init(gConfig, sv));
 }
 
-TEST(StateVectorCreate, ErrorNullElementArray)
+///
+/// @test Initializing a state vector with a null element array returns an
+/// error.
+///
+TEST(StateVectorInit, ErrorNullElementArray)
 {
     // Replace element array with nullptr.
     StateVector::ElementConfig* const tmp = gConfig.elems;
@@ -110,7 +146,11 @@ TEST(StateVectorCreate, ErrorNullElementArray)
     checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorCreate, ErrorNullElementPointer)
+///
+/// @test Initializing a state vector with a null element pointer in one of the
+/// element configs returns an error.
+///
+TEST(StateVectorInit, ErrorNullElementPointer)
 {
     // Replace element `bar` pointer with nullptr.
     IElement* const tmp = gConfig.elems[1].elem;
@@ -126,7 +166,11 @@ TEST(StateVectorCreate, ErrorNullElementPointer)
     checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorCreate, ErrorNullRegionPointer)
+///
+/// @test Initializing a state vector with a null region pointer in one of the
+/// region configs returns an error.
+///
+TEST(StateVectorInit, ErrorNullRegionPointer)
 {
     // Replace region `bar` pointer with nullptr.
     Region* const tmp = gConfig.regions[1].region;
@@ -142,7 +186,11 @@ TEST(StateVectorCreate, ErrorNullRegionPointer)
     checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorCreate, ErrorMisalignedElementMiddleOfRegion)
+///
+/// @test Initializing a state vector with an element in the middle of a region
+/// having backing memory outside the region returns an error.
+///
+TEST(StateVectorInit, ErrorMisalignedElementMiddleOfRegion)
 {
     // Replace element `foo` with one outside the state vector backing storage.
     I32 backing = 0.0;
@@ -160,7 +208,11 @@ TEST(StateVectorCreate, ErrorMisalignedElementMiddleOfRegion)
     checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorCreate, ErrorMisalignedElementLastInRegion)
+///
+/// @test Initializing a state vector with the last element in a region having
+/// backing memory outside the region returns an error.
+///
+TEST(StateVectorInit, ErrorMisalignedElementLastInRegion)
 {
     // Replace element `bar` with one outside the state vector backing storage.
     F64 backing = 0.0;
@@ -178,7 +230,11 @@ TEST(StateVectorCreate, ErrorMisalignedElementLastInRegion)
     checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorCreate, ErrorMisalignedElementFirstInRegion)
+///
+/// @test Initializing a state vector with the first element in a region having
+/// backing memory outside the region returns an error.
+///
+TEST(StateVectorInit, ErrorMisalignedElementFirstInRegion)
 {
     // Replace element `baz` with one outside the state vector backing storage.
     bool backing = 0.0;
@@ -196,8 +252,11 @@ TEST(StateVectorCreate, ErrorMisalignedElementFirstInRegion)
     checkStateVectorUninitialized(sv);
 }
 
-// Non-contiguous elements are allowed when not using regions.
-TEST(StateVectorCreate, AllowElementMisalignmentWithoutRegions)
+///
+/// @test Element backing memory alignment is not enforced when the state vector
+/// is configured without regions.
+///
+TEST(StateVectorInit, AllowElementMisalignmentWithoutRegions)
 {
     // Replace element `bar` with one outside the state vector backing storage
     // and null out the regions array.
@@ -222,7 +281,11 @@ TEST(StateVectorCreate, AllowElementMisalignmentWithoutRegions)
     POINTERS_EQUAL(&elem, elemBar);
 }
 
-TEST(StateVectorCreate, DupeElementName)
+///
+/// @test Initializing a state vector that uses the same element name twice
+/// return an error.
+///
+TEST(StateVectorInit, DupeElementName)
 {
     // Rename element `bar` to `foo`.
     const char* const tmp = gConfig.elems[1].name;
@@ -238,7 +301,11 @@ TEST(StateVectorCreate, DupeElementName)
     checkStateVectorUninitialized(sv);
 }
 
-TEST(StateVectorCreate, DupeRegionName)
+///
+/// @test Initializing a state vector that uses the same region name twice
+/// return an error.
+///
+TEST(StateVectorInit, DupeRegionName)
 {
     // Rename region `bar` to `foo`.
     const char* const tmp = gConfig.regions[1].name;

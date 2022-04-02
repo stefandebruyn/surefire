@@ -1,16 +1,39 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestStateMachineBlock.cpp
+/// @brief Unit tests for StateMachine::Block.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/StateMachine.hpp"
 #include "sf/utest/UTest.hpp"
 
+///
+/// @brief Unit tests for StateMachine::Block.
+///
 TEST_GROUP(StateMachineBlock)
 {
 };
 
+///
+/// @test Executing an all-null block is a nop.
+///
 TEST(StateMachineBlock, BlockNull)
 {
     StateMachine::Block block = {nullptr, nullptr, nullptr, nullptr, nullptr};
     CHECK_EQUAL(0, block.execute());
 }
 
+///
+/// @test Executing a block executes its action.
+///
 TEST(StateMachineBlock, BlockExecuteAction)
 {
     // Action `foo = 10`
@@ -28,6 +51,9 @@ TEST(StateMachineBlock, BlockExecuteAction)
     CHECK_EQUAL(10, elemFoo.read());
 }
 
+///
+/// @test Executing a block executes its next block.
+///
 TEST(StateMachineBlock, BlockExecuteLink)
 {
     // Action `foo = foo + 1`
@@ -60,6 +86,10 @@ TEST(StateMachineBlock, BlockExecuteLink)
     CHECK_EQUAL(-2, elemFoo.read());
 }
 
+///
+/// @test Executing a guarded block executes its if branch if the guard is true,
+/// else branch if the guard is false, and next block in either case.
+///
 TEST(StateMachineBlock, BlockGuard)
 {
     // Expression `foo == TRUE`

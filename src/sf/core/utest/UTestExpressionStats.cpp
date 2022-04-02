@@ -1,10 +1,30 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestExpressionStats.cpp
+/// @brief Unit tests for the ExpressionStats template.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/ExpressionStats.hpp"
 #include "sf/utest/UTest.hpp"
 
+///
+/// @brief ExpressionStats tests.
+///
 TEST_GROUP(ExpressionStats)
 {
 };
 
+///
+/// @test All stats are 0 when the rolling window is empty.
+///
 TEST(ExpressionStats, EmptyHistory)
 {
     ConstExprNode<I32> expr(0);
@@ -18,6 +38,10 @@ TEST(ExpressionStats, EmptyHistory)
     CHECK_EQUAL(0.0, stats.range());
 }
 
+///
+/// @test Expected stats are computed when the rolling window is full of the
+/// same value.
+///
 TEST(ExpressionStats, AllSameValue)
 {
     I32 elemBacking = 0;
@@ -43,6 +67,9 @@ TEST(ExpressionStats, AllSameValue)
     CHECK_EQUAL(0.0, stats.range());
 }
 
+///
+/// @test All stats are 0 when the rolling window has size 0.
+///
 TEST(ExpressionStats, ZeroSize)
 {
     ConstExprNode<I32> expr(0);
@@ -61,6 +88,9 @@ TEST(ExpressionStats, ZeroSize)
     CHECK_EQUAL(0.0, stats.range());
 }
 
+///
+/// @test Stats are not updated when a null rolling window array is provided.
+///
 TEST(ExpressionStats, NullHistoryArray)
 {
     I32 elemBacking = 0;
@@ -78,6 +108,9 @@ TEST(ExpressionStats, NullHistoryArray)
     CHECK_EQUAL(0.0, stats.range());
 }
 
+///
+/// @test Stats are not updated when a null rolling window array is provided.
+///
 TEST(ExpressionStats, NullSortedArray)
 {
     I32 elemBacking = 0;
@@ -95,6 +128,9 @@ TEST(ExpressionStats, NullSortedArray)
     CHECK_EQUAL(0.0, stats.range());
 }
 
+///
+/// @test Stats are not updated when both provided arrays are null.
+///
 TEST(ExpressionStats, BothArraysNull)
 {
     I32 elemBacking = 0;
@@ -111,6 +147,9 @@ TEST(ExpressionStats, BothArraysNull)
     CHECK_EQUAL(0.0, stats.range());
 }
 
+///
+/// @test Rolling window mean is computed correctly.
+///
 TEST(ExpressionStats, Mean)
 {
     I32 elemBacking = 0;
@@ -141,6 +180,9 @@ TEST(ExpressionStats, Mean)
     CHECK_EQUAL(((2.0 + 7.0 + -40.0 + 11.0) / (4.0)), stats.mean());
 }
 
+///
+/// @test Rolling window median is computed correctly.
+///
 TEST(ExpressionStats, Median)
 {
     I32 elemBacking = 0;
@@ -171,6 +213,9 @@ TEST(ExpressionStats, Median)
     CHECK_EQUAL(((-10.0 + 2.0) / (2.0)), stats.median());
 }
 
+///
+/// @test Rolling window min is computed correctly.
+///
 TEST(ExpressionStats, Min)
 {
     I32 elemBacking = 0;
@@ -213,6 +258,9 @@ TEST(ExpressionStats, Min)
     CHECK_EQUAL(-39.0, stats.min());
 }
 
+///
+/// @test Rolling window max is computed correctly.
+///
 TEST(ExpressionStats, Max)
 {
     I32 elemBacking = 0;
@@ -255,6 +303,9 @@ TEST(ExpressionStats, Max)
     CHECK_EQUAL(39.0, stats.max());
 }
 
+///
+/// @test Rolling window range is computed correctly.
+///
 TEST(ExpressionStats, Range)
 {
     I32 elemBacking = 0;

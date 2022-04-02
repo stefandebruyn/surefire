@@ -1,3 +1,17 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestTask.cpp
+/// @brief Unit tests for the ITask interface.
+////////////////////////////////////////////////////////////////////////////////
+
 #include <cstring>
 
 #include "sf/core/Task.hpp"
@@ -5,6 +19,7 @@
 
 /////////////////////////////////// Globals ////////////////////////////////////
 
+// Test state vector backing storage.
 #pragma pack(push, 1)
 static struct
 {
@@ -14,10 +29,12 @@ static struct
 } gSvBacking;
 #pragma pack(pop)
 
+// Test state vector elements.
 static Element<U8> gElemMode(gSvBacking.mode);
 static Element<I32> gElemFoo(gSvBacking.foo);
 static Element<bool> gElemBar(gSvBacking.bar);
 
+// Test state vector element configs.
 static StateVector::ElementConfig gElemConfigs[] =
 {
     {"mode", &gElemMode},
@@ -26,13 +43,21 @@ static StateVector::ElementConfig gElemConfigs[] =
     {}
 };
 
+// Test state vector config.
 static StateVector::Config gSvConfig = {gElemConfigs, nullptr};
 
+// State vector config with no elements.
 static StateVector::ElementConfig gEmptyElemConfigs[] = {{}};
 static StateVector::Config gEmptySvConfig = {gEmptyElemConfigs, nullptr};
 
 ////////////////////////////////// Test Task ///////////////////////////////////
 
+///
+/// @brief Test task that require 2 state vector elements: `I32 foo` and `bool
+/// bar`. The task returns an error if stepped when bar is false. When
+/// successfully stepped in safe mode, foo is decremented. When successfully
+/// stepped in enable mode, foo is incremented.
+///
 class TestTask final : public ITask
 {
 public:
@@ -83,6 +108,9 @@ private:
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for the ITask interface.
+///
 TEST_GROUP(Task)
 {
     void teardown()
@@ -92,6 +120,9 @@ TEST_GROUP(Task)
     }
 };
 
+///
+/// @brief Stepping a task before initializing it returns an error.
+///
 TEST(Task, Uninitialized)
 {
     StateVector sv;
@@ -103,6 +134,9 @@ TEST(Task, Uninitialized)
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
+///
+/// @brief Errors returned by ITask::initImpl() are surfaced by ITask::init().
+///
 TEST(Task, InitializeFail)
 {
     StateVector sv;
@@ -115,6 +149,9 @@ TEST(Task, InitializeFail)
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
+///
+/// @brief Initializing a task twice returns an error.
+///
 TEST(Task, ErrorReinitialize)
 {
     StateVector sv;
@@ -124,6 +161,9 @@ TEST(Task, ErrorReinitialize)
     CHECK_ERROR(E_TSK_REINIT, task.init());
 }
 
+///
+/// @brief Stepping a task with an invalid mode fails.
+///
 TEST(Task, ErrorInvalidMode)
 {
     StateVector sv;
@@ -137,6 +177,9 @@ TEST(Task, ErrorInvalidMode)
     CHECK_EQUAL(0, gElemFoo.read());
 }
 
+///
+/// @brief Task always steps in enable mode when no mode element is provided.
+///
 TEST(Task, RunEnableWhenNoModeElem)
 {
     StateVector sv;
@@ -144,12 +187,15 @@ TEST(Task, RunEnableWhenNoModeElem)
     TestTask task(sv, nullptr);
     CHECK_SUCCESS(task.init());
 
-    // No mode element was provided, so task always steps in enabled mode.
+    // No mode element was provided, so task always steps in enable mode.
     gElemBar.write(true);
     CHECK_SUCCESS(task.step());
     CHECK_EQUAL(1, gElemFoo.read());
 }
 
+///
+/// @brief Task executes correct step method based on value of mode element.
+///
 TEST(Task, ModeSwitching)
 {
     StateVector sv;
@@ -177,6 +223,9 @@ TEST(Task, ModeSwitching)
     CHECK_EQUAL(1, gElemFoo.read());
 }
 
+///
+/// @brief Errors returned by ITask::stepSafe() are surfaced by ITask::step().
+///
 TEST(Task, StepSafeSurfaceError)
 {
     StateVector sv;
@@ -189,6 +238,9 @@ TEST(Task, StepSafeSurfaceError)
     CHECK_ERROR(-1, task.step());
 }
 
+///
+/// @brief Errors returned by ITask::stepEnable() are surfaced by ITask::step().
+///
 TEST(Task, StepEnableSurfaceError)
 {
     StateVector sv;
@@ -196,7 +248,7 @@ TEST(Task, StepEnableSurfaceError)
     TestTask task(sv, &gElemMode);
     CHECK_SUCCESS(task.init());
 
-    // With element `bar` false, stepping in enabled mode returns -2.
+    // With element `bar` false, stepping in enable mode returns -2.
     gElemMode.write(TaskMode::ENABLE);
     CHECK_ERROR(-2, task.step());
 }

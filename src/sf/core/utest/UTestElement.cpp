@@ -1,9 +1,30 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestElement.cpp
+/// @brief Unit tests for Element.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Element.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that Element::type() returns the expected enum.
+///
+/// @tparam T  Element type.
+///
+/// @param[in] kType  Expected type enum.
+///
 template<typename T>
 static void testGetType(const ElementType kType)
 {
@@ -12,17 +33,37 @@ static void testGetType(const ElementType kType)
     CHECK_EQUAL(kType, elem.type());
 }
 
+///
+/// @brief Checks that an element can be read, and writing the element updates
+/// its backing.
+///
+/// @tparam T  Element type.
+///
+/// @param[in] kInitVal   Element initial value.
+/// @param[in] kWriteVal  Value to write to element and then read back.
+///
 template<typename T>
 static void testReadWrite(const T kInitVal, const T kWriteVal)
 {
+    // Create element with initial value.
     T backing = kInitVal;
     Element<T> elem(backing);
+
+    // Reading element returns initial value.
     CHECK_EQUAL(kInitVal, elem.read());
+
+    // Write new value. Reading element returns the new value, and the element
+    // backing was updated accordingly.
     elem.write(kWriteVal);
     CHECK_EQUAL(kWriteVal, elem.read());
     CHECK_EQUAL(kWriteVal, backing);
 }
 
+///
+/// @brief Checks that Element::addr() returns the backing address.
+///
+/// @tparam T  Element type.
+///
 template<typename T>
 static void testGetAddr()
 {
@@ -31,6 +72,11 @@ static void testGetAddr()
     POINTERS_EQUAL(&backing, elem.addr());
 }
 
+///
+/// @brief Checks that Element::size() returns the element type size.
+///
+/// @tparam T  Element type.
+///
 template<typename T>
 static void testGetSize()
 {
@@ -41,10 +87,16 @@ static void testGetSize()
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Element tests.
+///
 TEST_GROUP(Element)
 {
 };
 
+///
+/// @test Elements are read and written correctly.
+///
 TEST(Element, ReadWrite)
 {
     testReadWrite<I8>(-101, 23);
@@ -60,6 +112,9 @@ TEST(Element, ReadWrite)
     testReadWrite<bool>(false, true);
 }
 
+///
+/// @test Element::type() returns the correct type enum.
+///
 TEST(Element, GetType)
 {
     testGetType<I8>(ElementType::INT8);
@@ -75,6 +130,9 @@ TEST(Element, GetType)
     testGetType<bool>(ElementType::BOOL);
 }
 
+///
+/// @test Element::addr() returns the correct backing address.
+///
 TEST(Element, GetAddr)
 {
     testGetAddr<I8>();
@@ -90,6 +148,9 @@ TEST(Element, GetAddr)
     testGetAddr<bool>();
 }
 
+///
+/// @test Element::size() returns the correct type size.
+///
 TEST(Element, GetSize)
 {
     testGetSize<I8>();

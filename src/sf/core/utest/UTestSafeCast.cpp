@@ -1,8 +1,31 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building avionics
+/// software applications. Built in Austin, Texas at the University of Texas at
+/// Austin. Surefire is open-source under the Apache License 2.0 - a copy of the
+/// license may be obtained at https://www.apache.org/licenses/LICENSE-2.0.
+/// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestRegion.cpp
+/// @brief Unit tests for safeCast().
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/core/Expression.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that casting between two types with safeCast() yields the
+/// expected value.
+///
+/// @param[in] TTo      Cast destination type name.
+/// @param[in] TFrom    Cast source type name.
+/// @param[in] kExpect  Expected value after cast.
+/// @param[in] kVal     Value to cast.
+///
 #define CHECK_CAST(TTo, TFrom, kExpect, kVal)                                  \
 {                                                                              \
     const TTo expect = kExpect;                                                \
@@ -10,18 +33,33 @@
     CHECK_EQUAL(expect, actual);                                               \
 }
 
+///
+/// @brief Positive infinity constant.
+///
 static const F64 gInf = (1.0 / 0.0);
 
+///
+/// @brief Negative infinity constant.
+///
 static const F64 gNegInf = (-1.0 / 0.0);
 
+///
+/// @brief NaN infinity constant.
+///
 static const F64 gNan = (0.0 / 0.0);
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for safeCast().
+///
 TEST_GROUP(SafeCast)
 {
 };
 
+///
+/// @test F64 is cast to I8 correctly.
+///
 TEST(SafeCast, F64ToI8)
 {
     CHECK_CAST(I8, F64, 100, 100.0);
@@ -35,6 +73,9 @@ TEST(SafeCast, F64ToI8)
     CHECK_CAST(I8, F64, 0, gNan);
 }
 
+///
+/// @test F64 is cast to I16 correctly.
+///
 TEST(SafeCast, F64ToI16)
 {
     CHECK_CAST(I16, F64, 100, 100.0);
@@ -48,6 +89,9 @@ TEST(SafeCast, F64ToI16)
     CHECK_CAST(I16, F64, 0, gNan);
 }
 
+///
+/// @test F64 is cast to I32 correctly.
+///
 TEST(SafeCast, F64ToI32)
 {
     CHECK_CAST(I32, F64, 100, 100.0);
@@ -61,6 +105,9 @@ TEST(SafeCast, F64ToI32)
     CHECK_CAST(I32, F64, 0, gNan);
 }
 
+///
+/// @test F64 is cast to I64 correctly.
+///
 TEST(SafeCast, F64ToI64)
 {
     // Spot check a few numbers.
@@ -106,6 +153,9 @@ TEST(SafeCast, F64ToI64)
     CHECK_CAST(I64, F64, 0, gNan);
 }
 
+///
+/// @test F64 is cast to U8 correctly.
+///
 TEST(SafeCast, F64ToU8)
 {
     CHECK_CAST(U8, F64, 100, 100.0);
@@ -117,6 +167,9 @@ TEST(SafeCast, F64ToU8)
     CHECK_CAST(U8, F64, 0, gNan);
 }
 
+///
+/// @test F64 is cast to U16 correctly.
+///
 TEST(SafeCast, F64ToU16)
 {
     CHECK_CAST(U16, F64, 100, 100.0);
@@ -128,6 +181,9 @@ TEST(SafeCast, F64ToU16)
     CHECK_CAST(U16, F64, 0, gNan);
 }
 
+///
+/// @test F64 is cast to U32 correctly.
+///
 TEST(SafeCast, F64ToU32)
 {
     CHECK_CAST(U32, F64, 100, 100.0);
@@ -139,6 +195,9 @@ TEST(SafeCast, F64ToU32)
     CHECK_CAST(U32, F64, 0, gNan);
 }
 
+///
+/// @test F64 is cast to U64 correctly.
+///
 TEST(SafeCast, F64ToU64)
 {
     // Spot check a few values.
@@ -170,6 +229,9 @@ TEST(SafeCast, F64ToU64)
     CHECK_CAST(U64, F64, 0, gNan);
 }
 
+///
+/// @test F64 is cast to F32 correctly.
+///
 TEST(SafeCast, F64ToF32)
 {
     CHECK_CAST(F32, F64, static_cast<F32>(9.807), 9.807);
@@ -179,6 +241,9 @@ TEST(SafeCast, F64ToF32)
     CHECK_CAST(F32, F64, 0.0f, gNan);
 }
 
+///
+/// @test F64 is cast to F64 correctly.
+///
 TEST(SafeCast, F64ToF64)
 {
     CHECK_CAST(F64, F64, 9.807, 9.807);
@@ -188,6 +253,9 @@ TEST(SafeCast, F64ToF64)
     CHECK_CAST(F64, F64, 0.0, gNan);
 }
 
+///
+/// @test F64 is cast to bool correctly.
+///
 TEST(SafeCast, F64ToBool)
 {
     CHECK_CAST(bool, F64, true, 9.807);
@@ -200,6 +268,9 @@ TEST(SafeCast, F64ToBool)
     CHECK_CAST(bool, F64, false, gNan);
 }
 
+///
+/// @test I8 is cast to F64 correctly.
+///
 TEST(SafeCast, I8ToF64)
 {
     CHECK_CAST(F64, I8, 100.0, 100);
@@ -208,6 +279,9 @@ TEST(SafeCast, I8ToF64)
     CHECK_CAST(F64, I8, -128.0, Limits::min<I8>());
 }
 
+///
+/// @test I16 is cast to F64 correctly.
+///
 TEST(SafeCast, I16ToF64)
 {
     CHECK_CAST(F64, I16, 100.0, 100);
@@ -216,6 +290,9 @@ TEST(SafeCast, I16ToF64)
     CHECK_CAST(F64, I16, -32768.0, Limits::min<I16>());
 }
 
+///
+/// @test I32 is cast to F64 correctly.
+///
 TEST(SafeCast, I32ToF64)
 {
     CHECK_CAST(F64, I32, 100.0, 100);
@@ -224,6 +301,9 @@ TEST(SafeCast, I32ToF64)
     CHECK_CAST(F64, I32, -2147483648.0, Limits::min<I32>());
 }
 
+///
+/// @test I64 is cast to F64 correctly.
+///
 TEST(SafeCast, I64ToF64)
 {
     CHECK_CAST(F64, I64, 100.0, 100);
@@ -232,6 +312,9 @@ TEST(SafeCast, I64ToF64)
     CHECK_CAST(F64, I64, -9223372036854775808.0, Limits::min<I64>());
 }
 
+///
+/// @test U8 is cast to F64 correctly.
+///
 TEST(SafeCast, U8ToF64)
 {
     CHECK_CAST(F64, U8, 100.0, 100);
@@ -239,6 +322,9 @@ TEST(SafeCast, U8ToF64)
     CHECK_CAST(F64, U8, 0.0, Limits::min<U8>());
 }
 
+///
+/// @test U16 is cast to F64 correctly.
+///
 TEST(SafeCast, U16ToF64)
 {
     CHECK_CAST(F64, U16, 100.0, 100);
@@ -246,6 +332,9 @@ TEST(SafeCast, U16ToF64)
     CHECK_CAST(F64, U16, 0.0, Limits::min<U16>());
 }
 
+///
+/// @test U32 is cast to F64 correctly.
+///
 TEST(SafeCast, U32ToF64)
 {
     CHECK_CAST(F64, U32, 100.0, 100);
@@ -253,6 +342,9 @@ TEST(SafeCast, U32ToF64)
     CHECK_CAST(F64, U32, 0.0, Limits::min<U32>());
 }
 
+///
+/// @test U64 is cast to F64 correctly.
+///
 TEST(SafeCast, U64ToF64)
 {
     CHECK_CAST(F64, U64, 100.0, 100);
@@ -262,6 +354,9 @@ TEST(SafeCast, U64ToF64)
     CHECK_CAST(F64, U64, 0.0, Limits::min<U64>());
 }
 
+///
+/// @test F32 is cast to F64 correctly.
+///
 TEST(SafeCast, F32ToF64)
 {
     CHECK_CAST(F64, F32, static_cast<F64>(9.807f), 9.807f);
@@ -271,6 +366,9 @@ TEST(SafeCast, F32ToF64)
     CHECK_CAST(F64, F32, 0.0, gNan);
 }
 
+///
+/// @test Bool is cast to F64 correctly.
+///
 TEST(SafeCast, BoolToF64)
 {
     CHECK_CAST(F64, bool, 1.0, true);
