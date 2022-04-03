@@ -235,6 +235,7 @@ enum : Result
     E_AIO_REINIT = 1143,
     E_AIO_PIN = 1144,
     E_AIO_RANGE = 1145,
+    E_AIO_OUT = 1146,
 };
 
 #endif

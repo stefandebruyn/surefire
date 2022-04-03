@@ -20,7 +20,7 @@ DigitalIO::DigitalIO() : mInit(false)
 
 DigitalIO::~DigitalIO()
 {
-    (void) this->close();
+    (void) this->release();
 }
 
 Result DigitalIO::setMode(const U32 kPin, const Mode kMode)
@@ -82,7 +82,7 @@ Result DigitalIO::write(const U32 kPin, const bool kVal)
     return SUCCESS;
 }
 
-Result DigitalIO::close()
+Result DigitalIO::release()
 {
     if (!mInit)
     {
