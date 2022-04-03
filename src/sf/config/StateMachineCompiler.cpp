@@ -188,7 +188,7 @@ Result StateMachineCompiler::compile(
                    == ElementType::UINT64);
     SF_SAFE_ASSERT(ws.elems[LangConst::elemGlobalTime]->type()
                    == ElementType::UINT64);
-    const StateMachine::Config smConfig =
+    ws.smConfig =
     {
         static_cast<Element<U32>*>(ws.elems[LangConst::elemState]),
         static_cast<Element<U64>*>(ws.elems[LangConst::elemStateTime]),
@@ -198,10 +198,10 @@ Result StateMachineCompiler::compile(
     };
 
     // Set initial state as specified.
-    SF_SAFE_ASSERT(smConfig.elemState != nullptr);
+    SF_SAFE_ASSERT(ws.smConfig.elemState != nullptr);
     if (kInitState == StateMachineCompiler::FIRST_STATE)
     {
-        smConfig.elemState->write(1);
+        ws.smConfig.elemState->write(1);
     }
     else
     {
@@ -212,12 +212,12 @@ Result StateMachineCompiler::compile(
             return E_SMC_INIT;
         }
         const U32 initStateId = (*stateIdIt).second;
-        smConfig.elemState->write(initStateId);
+        ws.smConfig.elemState->write(initStateId);
     }
 
     // Create state machine.
     ws.sm.reset(new StateMachine());
-    res = StateMachine::init(smConfig, *ws.sm);
+    res = StateMachine::init(ws.smConfig, *ws.sm);
     if (res != SUCCESS)
     {
         // Since the state machine config is known correct, the most likely
@@ -628,7 +628,7 @@ Result StateMachineCompiler::initLocalElementValues(
             {
                 SF_SAFE_ASSERT(iroot->type() == ElementType::INT8);
                 Element<I8>* const elem = static_cast<Element<I8>*>(elemObj);
-                IExprNode<I8>* const root = static_cast<IExprNode<I8>*>(iroot);
+                IExprNode<I8>* const root = dynamic_cast<IExprNode<I8>*>(iroot);
                 elem->write(root->evaluate());
                 break;
             }
@@ -638,7 +638,7 @@ Result StateMachineCompiler::initLocalElementValues(
                 SF_SAFE_ASSERT(iroot->type() == ElementType::INT16);
                 Element<I16>* const elem = static_cast<Element<I16>*>(elemObj);
                 IExprNode<I16>* const root =
-                    static_cast<IExprNode<I16>*>(iroot);
+                    dynamic_cast<IExprNode<I16>*>(iroot);
                 elem->write(root->evaluate());
                 break;
             }
@@ -648,7 +648,7 @@ Result StateMachineCompiler::initLocalElementValues(
                 SF_SAFE_ASSERT(iroot->type() == ElementType::INT32);
                 Element<I32>* const elem = static_cast<Element<I32>*>(elemObj);
                 IExprNode<I32>* const root =
-                    static_cast<IExprNode<I32>*>(iroot);
+                    dynamic_cast<IExprNode<I32>*>(iroot);
                 elem->write(root->evaluate());
                 break;
             }
@@ -658,7 +658,7 @@ Result StateMachineCompiler::initLocalElementValues(
                 SF_SAFE_ASSERT(iroot->type() == ElementType::INT64);
                 Element<I64>* const elem = static_cast<Element<I64>*>(elemObj);
                 IExprNode<I64>* const root =
-                    static_cast<IExprNode<I64>*>(iroot);
+                    dynamic_cast<IExprNode<I64>*>(iroot);
                 elem->write(root->evaluate());
                 break;
             }
@@ -667,7 +667,7 @@ Result StateMachineCompiler::initLocalElementValues(
             {
                 SF_SAFE_ASSERT(iroot->type() == ElementType::UINT8);
                 Element<U8>* const elem = static_cast<Element<U8>*>(elemObj);
-                IExprNode<U8>* const root = static_cast<IExprNode<U8>*>(iroot);
+                IExprNode<U8>* const root = dynamic_cast<IExprNode<U8>*>(iroot);
                 elem->write(root->evaluate());
                 break;
             }
@@ -677,7 +677,7 @@ Result StateMachineCompiler::initLocalElementValues(
                 SF_SAFE_ASSERT(iroot->type() == ElementType::UINT16);
                 Element<U16>* const elem = static_cast<Element<U16>*>(elemObj);
                 IExprNode<U16>* const root =
-                    static_cast<IExprNode<U16>*>(iroot);
+                    dynamic_cast<IExprNode<U16>*>(iroot);
                 elem->write(root->evaluate());
                 break;
             }
@@ -687,7 +687,7 @@ Result StateMachineCompiler::initLocalElementValues(
                 SF_SAFE_ASSERT(iroot->type() == ElementType::UINT32);
                 Element<U32>* const elem = static_cast<Element<U32>*>(elemObj);
                 IExprNode<U32>* const root =
-                    static_cast<IExprNode<U32>*>(iroot);
+                    dynamic_cast<IExprNode<U32>*>(iroot);
                 elem->write(root->evaluate());
                 break;
             }
@@ -697,7 +697,7 @@ Result StateMachineCompiler::initLocalElementValues(
                 SF_SAFE_ASSERT(iroot->type() == ElementType::UINT64);
                 Element<U64>* const elem = static_cast<Element<U64>*>(elemObj);
                 IExprNode<U64>* const root =
-                    static_cast<IExprNode<U64>*>(iroot);
+                    dynamic_cast<IExprNode<U64>*>(iroot);
                 elem->write(root->evaluate());
                 break;
             }
@@ -707,7 +707,7 @@ Result StateMachineCompiler::initLocalElementValues(
                 SF_SAFE_ASSERT(iroot->type() == ElementType::FLOAT32);
                 Element<F32>* const elem = static_cast<Element<F32>*>(elemObj);
                 IExprNode<F32>* const root =
-                    static_cast<IExprNode<F32>*>(iroot);
+                    dynamic_cast<IExprNode<F32>*>(iroot);
                 elem->write(root->evaluate());
                 break;
             }
@@ -717,7 +717,7 @@ Result StateMachineCompiler::initLocalElementValues(
                 SF_SAFE_ASSERT(iroot->type() == ElementType::FLOAT64);
                 Element<F64>* const elem = static_cast<Element<F64>*>(elemObj);
                 IExprNode<F64>* const root =
-                    static_cast<IExprNode<F64>*>(iroot);
+                    dynamic_cast<IExprNode<F64>*>(iroot);
                 elem->write(root->evaluate());
                 break;
             }
@@ -728,7 +728,7 @@ Result StateMachineCompiler::initLocalElementValues(
                 Element<bool>* const elem =
                     static_cast<Element<bool>*>(elemObj);
                 IExprNode<bool>* const root =
-                    static_cast<IExprNode<bool>*>(iroot);
+                    dynamic_cast<IExprNode<bool>*>(iroot);
                 elem->write(root->evaluate());
                 break;
             }
@@ -802,77 +802,77 @@ Result StateMachineCompiler::compileAssignmentAction(
             SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::INT8);
             kAction.reset(new AssignmentAction<I8>(
                 *static_cast<Element<I8>*>(elemObj),
-                *static_cast<IExprNode<I8>*>(kRhsAsm->root().get())));
+                *dynamic_cast<IExprNode<I8>*>(kRhsAsm->root().get())));
             break;
 
         case ElementType::INT16:
             SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::INT16);
             kAction.reset(new AssignmentAction<I16>(
                 *static_cast<Element<I16>*>(elemObj),
-                *static_cast<IExprNode<I16>*>(kRhsAsm->root().get())));
+                *dynamic_cast<IExprNode<I16>*>(kRhsAsm->root().get())));
             break;
 
         case ElementType::INT32:
             SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::INT32);
             kAction.reset(new AssignmentAction<I32>(
                 *static_cast<Element<I32>*>(elemObj),
-                *static_cast<IExprNode<I32>*>(kRhsAsm->root().get())));
+                *dynamic_cast<IExprNode<I32>*>(kRhsAsm->root().get())));
             break;
 
         case ElementType::INT64:
             SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::INT64);
             kAction.reset(new AssignmentAction<I64>(
                 *static_cast<Element<I64>*>(elemObj),
-                *static_cast<IExprNode<I64>*>(kRhsAsm->root().get())));
+                *dynamic_cast<IExprNode<I64>*>(kRhsAsm->root().get())));
             break;
 
         case ElementType::UINT8:
             SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::UINT8);
             kAction.reset(new AssignmentAction<U8>(
                 *static_cast<Element<U8>*>(elemObj),
-                *static_cast<IExprNode<U8>*>(kRhsAsm->root().get())));
+                *dynamic_cast<IExprNode<U8>*>(kRhsAsm->root().get())));
             break;
 
         case ElementType::UINT16:
             SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::UINT16);
             kAction.reset(new AssignmentAction<U16>(
                 *static_cast<Element<U16>*>(elemObj),
-                *static_cast<IExprNode<U16>*>(kRhsAsm->root().get())));
+                *dynamic_cast<IExprNode<U16>*>(kRhsAsm->root().get())));
             break;
 
         case ElementType::UINT32:
             SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::UINT32);
             kAction.reset(new AssignmentAction<U32>(
                 *static_cast<Element<U32>*>(elemObj),
-                *static_cast<IExprNode<U32>*>(kRhsAsm->root().get())));
+                *dynamic_cast<IExprNode<U32>*>(kRhsAsm->root().get())));
             break;
 
         case ElementType::UINT64:
             SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::UINT64);
             kAction.reset(new AssignmentAction<U64>(
                 *static_cast<Element<U64>*>(elemObj),
-                *static_cast<IExprNode<U64>*>(kRhsAsm->root().get())));
+                *dynamic_cast<IExprNode<U64>*>(kRhsAsm->root().get())));
             break;
 
         case ElementType::FLOAT32:
             SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::FLOAT32);
             kAction.reset(new AssignmentAction<F32>(
                 *static_cast<Element<F32>*>(elemObj),
-                *static_cast<IExprNode<F32>*>(kRhsAsm->root().get())));
+                *dynamic_cast<IExprNode<F32>*>(kRhsAsm->root().get())));
             break;
 
         case ElementType::FLOAT64:
             SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::FLOAT64);
             kAction.reset(new AssignmentAction<F64>(
                 *static_cast<Element<F64>*>(elemObj),
-                *static_cast<IExprNode<F64>*>(kRhsAsm->root().get())));
+                *dynamic_cast<IExprNode<F64>*>(kRhsAsm->root().get())));
             break;
 
         case ElementType::BOOL:
             SF_SAFE_ASSERT(kRhsAsm->root()->type() == ElementType::BOOL);
             kAction.reset(new AssignmentAction<bool>(
                 *static_cast<Element<bool>*>(elemObj),
-                *static_cast<IExprNode<bool>*>(kRhsAsm->root().get())));
+                *dynamic_cast<IExprNode<bool>*>(kRhsAsm->root().get())));
             break;
 
         default:
@@ -1007,7 +1007,7 @@ Result StateMachineCompiler::compileBlock(
         SF_SAFE_ASSERT(guardAsm != nullptr);
         SF_SAFE_ASSERT(guardAsm->root() != nullptr);
         SF_SAFE_ASSERT(guardAsm->root()->type() == ElementType::BOOL);
-        kBlock->guard = static_cast<IExprNode<bool>*>(guardAsm->root().get());
+        kBlock->guard = dynamic_cast<IExprNode<bool>*>(guardAsm->root().get());
 
         if (kParse->ifBlock != nullptr)
         {

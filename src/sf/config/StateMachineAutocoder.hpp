@@ -14,12 +14,10 @@ public:
 
     StateMachineAutocoder() = delete;
 
-private:
-
-    static Map<String, String> mFuncNodeTypeNames;
-
     struct Workspace final
     {
+        Ref<const StateMachineAssembly> smAsm;
+
         U32 blockCnt;
         U32 exprNodeCnt;
         U32 stateCnt;
@@ -31,6 +29,10 @@ private:
         Map<String, U32> stateIds;
         Map<String, String> elemTrueNames;
     };
+
+private:
+
+    static Map<String, String> mFuncNodeTypeNames;
 
     static void codeLocalStateVector(
         const Ref<const StateMachineParse> kParse,

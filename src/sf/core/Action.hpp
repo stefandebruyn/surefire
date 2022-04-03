@@ -59,6 +59,17 @@ public:
     IAction& operator=(IAction&&) = delete;
 };
 
+class IAssignmentAction : public IAction
+{
+public:
+
+    IAssignmentAction(const U32 kDestState);
+
+    virtual const IElement& elem() const = 0;
+
+    virtual const IExpression& expr() const = 0;
+};
+
 ///
 /// @brief Action which evaluates an expression and writes the value to a state
 /// vector element.
@@ -66,7 +77,7 @@ public:
 /// @tparam T  Type of element and expression evaluation.
 ///
 template<typename T>
-class AssignmentAction final : public IAction
+class AssignmentAction final : public IAssignmentAction
 {
 public:
 
@@ -77,7 +88,7 @@ public:
     /// @param[in] kExpr  Assignment RHS expression.
     ///
     AssignmentAction(Element<T>& kElem, IExprNode<T>& kExpr) :
-        IAction(0), mElem(kElem), mExpr(kExpr)
+        IAssignmentAction(0), mElem(kElem), mExpr(kExpr)
     {
     }
 
@@ -90,6 +101,16 @@ public:
     {
         mElem.write(mExpr.evaluate());
         return false;
+    }
+
+    const IElement& elem() const final override
+    {
+        return static_cast<const IElement&>(mElem);
+    }
+
+    const IExpression& expr() const final override
+    {
+        return static_cast<const IExpression&>(mExpr);
     }
 
 private:

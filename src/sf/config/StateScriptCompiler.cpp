@@ -309,7 +309,7 @@ Result StateScriptCompiler::compile(
                     // expression.
                     StateScriptAssembly::Assert stop
                     {
-                        static_cast<IExprNode<bool>*>(guardAsm->root().get()),
+                        dynamic_cast<IExprNode<bool>*>(guardAsm->root().get()),
                         nullptr,
                         {}
                     };
@@ -345,8 +345,8 @@ Result StateScriptCompiler::compile(
                     // Add assert to section with the previously compiled guard.
                     StateScriptAssembly::Assert assert
                     {
-                        static_cast<IExprNode<bool>*>(guardAsm->root().get()),
-                        static_cast<IExprNode<bool>*>(assertAsm->root().get()),
+                        dynamic_cast<IExprNode<bool>*>(guardAsm->root().get()),
+                        dynamic_cast<IExprNode<bool>*>(assertAsm->root().get()),
                         innerBlock->tokAssert
                     };
                     section.asserts.push_back(assert);
@@ -361,7 +361,7 @@ Result StateScriptCompiler::compile(
                     // Compile input.
                     StateScriptAssembly::Input input
                     {
-                        static_cast<IExprNode<bool>*>(guardAsm->root().get()),
+                        dynamic_cast<IExprNode<bool>*>(guardAsm->root().get()),
                         nullptr
                     };
                     Ref<const ExpressionAssembly> rhsAsm;

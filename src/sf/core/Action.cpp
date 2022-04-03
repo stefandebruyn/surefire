@@ -14,6 +14,10 @@ IAction::IAction(const U32 kDestState) : destState(kDestState)
 {
 }
 
+IAssignmentAction::IAssignmentAction(const U32 kDestState) : IAction(kDestState)
+{
+}
+
 TransitionAction::TransitionAction(const U32 kDestState) :
     IAction(kDestState)
 {

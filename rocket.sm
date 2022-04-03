@@ -10,21 +10,22 @@ bool ventOpen
 
 [Countdown]
 .step
-    T == 10: -> Ascent
+    ventOpen + 1 + roll_avg(10, 2): altitude = 0
+    -> Ascent
 
 [Ascent]
-.entry
-    enableEngine = true
-.step
-    T == 5: enableEngine = false
-    verticalVelocity < 0: -> Descent
-.exit
-    popNosecone = true
+#.entry
+#    enableEngine = true
+#.step
+#    T == 5: enableEngine = false
+#    verticalVelocity < 0: -> Descent
+#.exit
+#    popNosecone = true
+#
+#[Descent]
+#.step
+#    ventOpen = (5 <= T < 10)
+#    altitude <= 100: deployParachute = true
+#   altitude == 0: -> Touchdown
 
-[Descent]
-.step
-    ventOpen = (5 <= T < 10)
-    altitude <= 100: deployParachute = true
-    altitude == 0: -> Touchdown
-
-[Touchdown]
+#[Touchdown]

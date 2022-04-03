@@ -215,7 +215,7 @@ Result ExpressionCompiler::compileStatsFunc(
     SF_SAFE_ASSERT(arg2Asm->root() != nullptr);
     SF_SAFE_ASSERT(arg2Asm->root()->type() == ElementType::FLOAT64);
     const F64 windowSizeFp =
-        static_cast<IExprNode<F64>*>(arg2Asm->root().get())->evaluate();
+        dynamic_cast<IExprNode<F64>*>(arg2Asm->root().get())->evaluate();
     if ((windowSizeFp != windowSizeFp)                // NaN
         || (windowSizeFp <= 0)                        // Negative or zero
         || (std::ceil(windowSizeFp) != windowSizeFp)) // Non-integer
@@ -360,109 +360,95 @@ Result ExpressionCompiler::compileOperator(
     {
         case OpInfo::Type::NOT:
         {
-            kNode.reset(new UnaryOpExprNode<F64>(
-                [] (const F64 a) -> F64 { return !a; },
-                *nodeRight));
+            kNode.reset(new UnaryOpExprNode<F64>(lnot<F64>, *nodeRight));
             break;
         }
 
         case OpInfo::Type::MULT:
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a * b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(mult<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
 
         case OpInfo::Type::DIV:
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a / b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(div<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
 
         case OpInfo::Type::ADD:
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a + b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(add<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
 
         case OpInfo::Type::SUB:
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a - b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(sub<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
 
         case OpInfo::Type::LT:
         {
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a < b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(lt<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
         }
 
         case OpInfo::Type::LTE:
         {
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a <= b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(lte<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
         }
 
         case OpInfo::Type::GT:
         {
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a > b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(gt<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
         }
 
         case OpInfo::Type::GTE:
         {
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a >= b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(gte<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
         }
 
         case OpInfo::Type::EQ:
         {
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a == b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(eq<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
         }
 
         case OpInfo::Type::NEQ:
         {
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a != b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(neq<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
         }
 
         case OpInfo::Type::AND:
         {
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a && b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(land<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
         }
 
         case OpInfo::Type::OR:
         {
-            kNode.reset(new BinOpExprNode<F64>(
-                [] (const F64 a, const F64 b) -> F64 { return (a || b); },
-                *nodeLeft,
-                *nodeRight));
+            kNode.reset(new BinOpExprNode<F64>(lor<F64>,
+                                               *nodeLeft,
+                                               *nodeRight));
             break;
         }
 

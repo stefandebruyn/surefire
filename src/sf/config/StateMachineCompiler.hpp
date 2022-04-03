@@ -18,16 +18,6 @@ public:
 
     Ref<const StateMachineParse> parse() const;
 
-private:
-
-    friend class StateMachineCompiler;
-
-    friend class StateMachineAutocoder;
-
-    friend class StateScriptCompiler;
-
-    friend class StateScriptAssembly;
-
     struct Workspace final
     {
         Map<String, IElement*> elems;
@@ -48,6 +38,16 @@ private:
     };
 
     const StateMachineAssembly::Workspace mWs;
+
+private:
+
+    friend class StateMachineCompiler;
+
+    friend class StateMachineAutocoder;
+
+    friend class StateScriptCompiler;
+
+    friend class StateScriptAssembly;
 
     StateMachineAssembly(const StateMachineAssembly::Workspace& kWs);
 };

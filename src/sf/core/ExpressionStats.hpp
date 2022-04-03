@@ -103,6 +103,10 @@ public:
     ///
     virtual U32 size() const = 0;
 
+    virtual ElementType type() const = 0;
+
+    virtual const IExpression& expr() const = 0;
+
     IExpressionStats(const IExpressionStats&) = delete;
     IExpressionStats(IExpressionStats&&) = delete;
     IExpressionStats& operator=(const IExpressionStats&) = delete;
@@ -172,13 +176,13 @@ public:
         mCnt = ((mUpdates < mSize) ? mUpdates : mSize);
 
         // Add value to rolling sum.
-        mSum += val;
+        mSum += safeCast<F64, T>(val);
 
         // If an old value was just overwritten, subtract it from the rolling
         // sum.
         if (mUpdates > mSize)
         {
-            mSum -= oldVal;
+            mSum -= safeCast<F64, T>(oldVal);
         }
     }
 
@@ -194,7 +198,7 @@ public:
             return 0.0;
         }
 
-        return (static_cast<F64>(mSum) / mCnt);
+        return (mSum / mCnt);
     }
 
     ///
@@ -310,6 +314,13 @@ public:
         return mSize;
     }
 
+    ElementType type() const final override;
+
+    const IExpression& expr() const final override
+    {
+        return static_cast<IExpression&>(mExpr);
+    }
+
 private:
 
     ///
@@ -346,14 +357,31 @@ private:
     ///
     /// @brief Sum of the rolling window, updated as calls to update() are made.
     ///
-    T mSum;
+    F64 mSum;
+};
+
+class IExprStatsNode : public IExprNode<F64>
+{
+public:
+
+    IExprStatsNode(IExpressionStats& kStats);
+
+    virtual F64 evaluate() = 0;
+
+    virtual IExpression::NodeType nodeType() const = 0;
+
+    const IExpressionStats& stats() const;
+
+protected:
+
+    IExpressionStats& mStats;
 };
 
 ///
 /// @brief Expression node which evaluates to the rolling average of an
 /// expression.
 ///
-class RollAvgNode final : public IExprNode<F64>
+class RollAvgNode final : public IExprStatsNode
 {
 public:
 
@@ -373,19 +401,14 @@ public:
     ///
     F64 evaluate() final override;
 
-private:
-
-    ///
-    /// @brief Expression stats.
-    ///
-    IExpressionStats& mStats;
+    IExpression::NodeType nodeType() const final override;
 };
 
 ///
 /// @brief Expression node which evaluates to the rolling median of an
 /// expression.
 ///
-class RollMedianNode final : public IExprNode<F64>
+class RollMedianNode final : public IExprStatsNode
 {
 public:
 
@@ -405,18 +428,13 @@ public:
     ///
     F64 evaluate() final override;
 
-private:
-
-    ///
-    /// @brief Expression stats.
-    ///
-    IExpressionStats& mStats;
+    IExpression::NodeType nodeType() const final override;
 };
 
 ///
 /// @brief Expression node which evaluates to the rolling min of an expression.
 ///
-class RollMinNode final : public IExprNode<F64>
+class RollMinNode final : public IExprStatsNode
 {
 public:
 
@@ -436,18 +454,13 @@ public:
     ///
     F64 evaluate() final override;
 
-private:
-
-    ///
-    /// @brief Expression stats.
-    ///
-    IExpressionStats& mStats;
+    IExpression::NodeType nodeType() const final override;
 };
 
 ///
 /// @brief Expression node which evaluates to the rolling max of an expression.
 ///
-class RollMaxNode final : public IExprNode<F64>
+class RollMaxNode final : public IExprStatsNode
 {
 public:
 
@@ -467,19 +480,14 @@ public:
     ///
     F64 evaluate() final override;
 
-private:
-
-    ///
-    /// @brief Expression stats.
-    ///
-    IExpressionStats& mStats;
+    IExpression::NodeType nodeType() const final override;
 };
 
 ///
 /// @brief Expression node which evaluates to the rolling range of an
 /// expression.
 ///
-class RollRangeNode final : public IExprNode<F64>
+class RollRangeNode final : public IExprStatsNode
 {
 public:
 
@@ -499,12 +507,7 @@ public:
     ///
     F64 evaluate() final override;
 
-private:
-
-    ///
-    /// @brief Expression stats.
-    ///
-    IExpressionStats& mStats;
+    IExpression::NodeType nodeType() const final override;
 };
 
 #endif

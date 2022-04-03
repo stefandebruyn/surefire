@@ -26,6 +26,19 @@ class IExpression
 {
 public:
 
+    enum NodeType : U8
+    {
+        CONST,
+        ELEMENT,
+        BIN_OP,
+        UNARY_OP,
+        ROLL_AVG,
+        ROLL_MEDIAN,
+        ROLL_MIN,
+        ROLL_MAX,
+        ROLL_RANGE
+    };
+
     ///
     /// @brief Destructor.
     ///
@@ -37,6 +50,8 @@ public:
     /// @return Expression evaluation type.
     ///
     virtual ElementType type() const = 0;
+
+    virtual IExpression::NodeType nodeType() const = 0;
 };
 
 ///
@@ -46,7 +61,7 @@ public:
 /// @tparam T  Node evaluation type.
 ///
 template<typename T>
-class IExprNode : public IExpression
+class IExprNode : virtual public IExpression
 {
 public:
 
@@ -105,6 +120,16 @@ public:
         return mVal;
     }
 
+    IExpression::NodeType nodeType() const final override
+    {
+        return IExpression::CONST;
+    }
+
+    T val() const
+    {
+        return mVal;
+    }
+
 private:
 
     ///
@@ -113,13 +138,20 @@ private:
     const T mVal;
 };
 
+class IElementExprNode : virtual public IExpression
+{
+public:
+
+    virtual const IElement& elem() const = 0;
+};
+
 ///
 /// @brief Expression tree leaf node that evaluates to a state vector element.
 ///
 /// @tparam T  Element type.
 ///
 template<typename T>
-class ElementExprNode final : public IExprNode<T>
+class ElementExprNode final : public IExprNode<T>, public IElementExprNode
 {
 public:
 
@@ -141,12 +173,33 @@ public:
         return mElem.read();
     }
 
+    IExpression::NodeType nodeType() const final override
+    {
+        return IExpression::ELEMENT;
+    }
+
+    const IElement& elem() const final override
+    {
+        return static_cast<const IElement&>(mElem);
+    }
+
 private:
 
     ///
     /// @brief Element which node evaluates to.
     ///
     const Element<T>& mElem;
+};
+
+class IOpExprNode : virtual public IExpression
+{
+public:
+
+    virtual const void* op() const = 0;
+
+    virtual const IExpression* lhs() const = 0;
+
+    virtual const IExpression* rhs() const = 0;
 };
 
 ///
@@ -157,7 +210,7 @@ private:
 /// @tparam TOperand  Operand type.
 ///
 template<typename T, typename TOperand = T>
-class BinOpExprNode final : public IExprNode<T>
+class BinOpExprNode final : public IExprNode<T>, public IOpExprNode
 {
 public:
 
@@ -193,6 +246,26 @@ public:
         return mOp(mLhs.evaluate(), mRhs.evaluate());
     }
 
+    IExpression::NodeType nodeType() const final override
+    {
+        return IExpression::BIN_OP;
+    }
+
+    const void* op() const final override
+    {
+        return reinterpret_cast<const void*>(mOp);
+    }
+
+    const IExpression* lhs() const final override
+    {
+        return &mLhs;
+    }
+
+    const IExpression* rhs() const final override
+    {
+        return &mRhs;
+    }
+
 private:
 
     ///
@@ -222,7 +295,7 @@ private:
 /// @tparam TOperand  Operand type.
 ///
 template<typename T, typename TOperand = T>
-class UnaryOpExprNode final : public IExprNode<T>
+class UnaryOpExprNode final : public IExprNode<T>, public IOpExprNode
 {
 public:
 
@@ -252,6 +325,26 @@ public:
     T evaluate() final override
     {
         return mOp(mRhs.evaluate());
+    }
+
+    IExpression::NodeType nodeType() const final override
+    {
+        return IExpression::UNARY_OP;
+    }
+
+    const void* op() const final override
+    {
+        return reinterpret_cast<const void*>(mOp);
+    }
+
+    const IExpression* lhs() const final override
+    {
+        return nullptr;
+    }
+
+    const IExpression* rhs() const final override
+    {
+        return &mRhs;
     }
 
 private:
@@ -294,6 +387,84 @@ namespace Limits
     ///
     template<typename T>
     T max();
+}
+
+template<typename T>
+T add(const T kLhs, const T kRhs)
+{
+    return (kLhs + kRhs);
+}
+
+template<typename T>
+T sub(const T kLhs, const T kRhs)
+{
+    return (kLhs - kRhs);
+}
+
+template<typename T>
+T mult(const T kLhs, const T kRhs)
+{
+    return (kLhs * kRhs);
+}
+
+template<typename T>
+T div(const T kLhs, const T kRhs)
+{
+    return (kLhs / kRhs);
+}
+
+template<typename T>
+T lt(const T kLhs, const T kRhs)
+{
+    return (kLhs < kRhs);
+}
+
+template<typename T>
+T lte(const T kLhs, const T kRhs)
+{
+    return (kLhs < kRhs);
+}
+
+template<typename T>
+T gt(const T kLhs, const T kRhs)
+{
+    return (kLhs > kRhs);
+}
+
+template<typename T>
+T gte(const T kLhs, const T kRhs)
+{
+    return (kLhs >= kRhs);
+}
+
+template<typename T>
+T eq(const T kLhs, const T kRhs)
+{
+    return (kLhs == kRhs);
+}
+
+template<typename T>
+T neq(const T kLhs, const T kRhs)
+{
+    return (kLhs != kRhs);
+}
+
+template<typename T>
+T land(const T kLhs, const T kRhs)
+{
+    return (kLhs && kRhs);
+}
+
+template<typename T>
+T lor(const T kLhs, const T kRhs)
+{
+    return (kLhs + kRhs);
+}
+
+template<typename T>
+T lnot(const T kRhs)
+{
+    return !kRhs;
 }
 
 ///
