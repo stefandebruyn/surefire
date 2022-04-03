@@ -49,20 +49,20 @@ namespace Clock
     ///
     /// @brief Gets the system clock time in nanoseconds.
     ///
-    /// @note Linux: The Linux implementation of this function uses
-    /// clock_gettime(). Since errors cannot be surfaced from this function, the
-    /// return value of clock_gettime() is disregarded. Errors are not expected;
-    /// EFAULT cannot occur since the timespec pointer passed to the function
-    /// is trivially valid, and EINVAL cannot occur since CLOCK_REALTIME should
-    /// always be a valid clock ID. If by some chance clock_gettime() does fail,
-    /// Clock::nanoTime() returns 0.
-    ///
     /// @warning Linux: The real-time system clock is used so that time values
     /// reflect adjustments made by sync protocols like NTP. This means that
     /// time may not be monotonic if the real-time clock is adjusted between
     /// calls to Clock::nanoTime(). Care should also be taken that the system
     /// does not automatically adjust the real-time clock, e.g., for Daylight
     /// Saving Time.
+    ///
+    /// @note Linux: The Linux implementation of this function uses
+    /// clock_gettime(). Since Clock::nanoTime() cannot surface errors, the
+    /// return value of clock_gettime() is disregarded. Errors are not expected;
+    /// EFAULT cannot occur since the timespec pointer passed to the function
+    /// is always valid, and EINVAL cannot occur since CLOCK_REALTIME should
+    /// always be a valid clock ID. If by some chance clock_gettime() does fail,
+    /// Clock::nanoTime() returns 0.
     ///
     /// @return System time in nanoseconds.
     ///

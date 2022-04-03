@@ -93,7 +93,7 @@ public:
         /// @brief Recursively executes the block tree rooted at this block.
         ///
         /// @return Destination state if an action in the block tree triggered
-        /// a state machine transition, otherwise NO_STATE.
+        /// a state machine transition, otherwise StateMachine::NO_STATE.
         ///
         U32 execute() const;
     };
@@ -108,7 +108,7 @@ public:
         ///
         /// @note ID 0 is reserved.
         ///
-        /// @see NO_STATE
+        /// @see StateMachine::NO_STATE
         ///
         U32 id;
 
@@ -184,11 +184,11 @@ public:
     ///
     /// @brief Initializes a state machine from a config.
     ///
-    /// @warning The state machine object exists separately from the config. The
-    /// config is not copied. The config and all data therein must live at least
-    /// as long as the state machine. Modifying the config after using it to
-    /// initialize a state machine has undefined behavior. The same config
-    /// should not be used to initialize more than one state machine.
+    /// @warning A StateMachine exists separately from the config. The config is
+    /// not copied. The config and all data therein must live at least as long
+    /// as the StateMachine. Modifying the config after using it to initialize a
+    /// StateMachine has undefined behavior. The same config should not be used
+    /// to initialize more than one StateMachine.
     ///
     /// @param[in]  kConfig  State machine config.
     /// @param[out] kSm      State machine to initialize.
@@ -204,8 +204,11 @@ public:
     static Result init(const Config kConfig, StateMachine& kSm);
 
     ///
-    /// @brief Default constructor. The constructed state machine is initially
-    /// uninitialized and invoking any methods on it will fail.
+    /// @brief Default constructor.
+    ///
+    /// @post The constructed StateMachine is uninitialized and invoking any of
+    /// its methods returns an error.
+    ///
     StateMachine();
 
     ///

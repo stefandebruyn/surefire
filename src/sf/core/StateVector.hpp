@@ -95,11 +95,11 @@ public:
     ///
     /// @brief Initializes a state vector from a config.
     ///
-    /// @warning The state vector object exists separately from the config. The
-    /// config is not copied. The config and all data therein must live at least
-    /// as long as the state vector. Modifying the config after using it to
-    /// initialize a state vector has undefined behavior. The same config should
-    /// not be used to initialize more than one state vector.
+    /// @warning A StateVector exists separately from the config. The config is
+    /// not copied. The config and all data therein must live at least as long
+    /// as the StateVector. Modifying the config after using it to initialize a
+    /// StateVector has undefined behavior. The same config should not be used
+    /// to initialize more than one StateVector.
     ///
     /// @param[in] kConfig  State vector config.
     /// @param[in] kSv      State vector to initialize.
@@ -116,13 +116,18 @@ public:
     static Result init(const Config kConfig, StateVector& kSv);
 
     ///
-    /// @brief Default constructor. The constructed state vector is initially
-    /// uninitialized and invoking any methods on it will fail.
+    /// @brief Default constructor.
+    ///
+    /// @post The constructed StateVector is uninitialized and invoking any of
+    /// its methods returns an error.
     ///
     StateVector();
 
     ///
     /// @brief Gets a pointer to an element object by name.
+    ///
+    /// @post On success, kElem contains a pointer to the specified element.
+    /// @post On error, kElem is unchanged.
     ///
     /// @tparam T  Element data type.
     ///
@@ -140,13 +145,14 @@ public:
     ///
     /// @brief Gets an abstract pointer to an element object by name.
     ///
-    /// @remark This method is mainly used by the Surefire config library to
-    /// check element existence. It should not be called by the user.
+    /// @post On success, kElem contains a pointer to the specified element.
+    /// @post On error, kElem is unchanged.
     ///
-    /// @tparam T  Element data type.
+    /// @remark This method is useful for checking element existence, as it does
+    /// not require that the specified element be a particular type.
     ///
     /// @param[in]  kName  Element name.
-    /// @param[out] kElem  On success, assigned pointer to requested element.
+    /// @param[out] kElem  Reference to populate with pointer to element.
     ///
     /// @retval SUCCESS      Successfully got element.
     /// @retval E_SV_UNINIT  State vector is not initialized.
@@ -157,8 +163,11 @@ public:
     ///
     /// @brief Gets a pointer to a region object by name.
     ///
+    /// @post On success, kRegion contains a pointer to the specified region.
+    /// @post On error, kRegion is unchanged.
+    ///
     /// @param[in]  kName    Region name.
-    /// @param[out] kRegion  On success, assigned pointer to requested region.
+    /// @param[out] kRegion  Reference to populate with pointer to region.
     ///
     /// @retval SUCCESS      Successfully got region.
     /// @retval E_SV_UNINIT  State vector is not initialized.

@@ -193,6 +193,7 @@ void StateMachineAutocoder::codeLocalStateVector(
         IElement* elemObj = nullptr;
         const Result res = localSv.getIElement(elem.tokName.str.c_str(),
                                                elemObj);
+        (void) res;
         SF_ASSERT(res == SUCCESS);
         SF_ASSERT(elemObj != nullptr);
         String initValStr;
