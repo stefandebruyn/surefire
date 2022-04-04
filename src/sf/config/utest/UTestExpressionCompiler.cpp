@@ -26,7 +26,7 @@ static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
     // Expression evaluates to expected value.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>*>(exprAsm->root().get());
+        dynamic_cast<IExprNode<F64>*>(exprAsm->root().get());
     CHECK_EQUAL(kExpectVal, root->evaluate());
 }
 
@@ -313,7 +313,7 @@ TEST(ExpressionCompiler, OnlyElement)
     // Expression evaluates to 0, the initial value of element `foo`.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
+        dynamic_cast<IExprNode<F64>*>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set `foo` to a new value and re-evaluate expression.
@@ -351,7 +351,7 @@ TEST(ExpressionCompiler, MultipleElements)
     // Expression initially evaluates to 1.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
+        dynamic_cast<IExprNode<F64>*>(exprAsm->root().get());
     CHECK_EQUAL(1.0, root->evaluate());
 
     // Set elements to new values and re-evaluate expression.
@@ -415,7 +415,7 @@ TEST(ExpressionCompiler, AllElementTypes)
     // Expression initially evaluates to 0.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
+        dynamic_cast<IExprNode<F64>*>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set elements to new values and re-evaluate expression.
@@ -462,7 +462,7 @@ TEST(ExpressionCompiler, RollAvgFunction)
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
+        dynamic_cast<IExprNode<F64>*>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to 2 and update stats. Rolling average becomes 2.
@@ -511,7 +511,7 @@ TEST(ExpressionCompiler, RollMedianFunction)
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
+        dynamic_cast<IExprNode<F64>*>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to 2 and update stats. Rolling median becomes 2.
@@ -565,7 +565,7 @@ TEST(ExpressionCompiler, RollMinFunction)
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
+        dynamic_cast<IExprNode<F64>*>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to -3 and update stats. Rolling min becomes -3.
@@ -614,7 +614,7 @@ TEST(ExpressionCompiler, RollMaxFunction)
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
+        dynamic_cast<IExprNode<F64>*>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to 3 and update stats. Rolling max becomes 3.
@@ -663,7 +663,7 @@ TEST(ExpressionCompiler, RollRangeFunction)
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
+        dynamic_cast<IExprNode<F64>*>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to 3 and update stats. Rolling range stays 0 since
@@ -724,7 +724,7 @@ TEST(ExpressionCompiler, StatsFunctionExpressionArgs)
     // Expression initially evaluates to 0 since stats have not been updated.
     CHECK_EQUAL(ElementType::FLOAT64, exprAsm->root()->type());
     IExprNode<F64>* const root =
-        static_cast<IExprNode<F64>* const>(exprAsm->root().get());
+        dynamic_cast<IExprNode<F64>*>(exprAsm->root().get());
     CHECK_EQUAL(0.0, root->evaluate());
 
     // Set element `foo` to -3 and update stats. Rolling min becomes -2.

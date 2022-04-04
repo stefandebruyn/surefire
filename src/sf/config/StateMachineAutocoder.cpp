@@ -94,6 +94,149 @@ static String elemNameFromAddr(const IElement* const kAddr,
     return "(unknown element)";
 }
 
+static void codeLocalStateVector(Autocode& kAutocode,
+                                 StateMachineAutocoder::Workspace& kWs)
+{
+    Autocode& a = kAutocode;
+
+    const Ref<const StateVectorAssembly> localSvAsm = kWs.smAsm->mWs.localSvAsm;
+    SF_ASSERT(localSvAsm != nullptr);
+    const StateVector::Config localSvConfig = localSvAsm->config();
+
+    a("// Local state vector");
+    a("static struct");
+    a("{");
+    a.increaseIndent();
+
+    Vec<String> elemDefs;
+    for (const StateVector::ElementConfig* elem = localSvConfig.elems;
+         elem->name != nullptr;
+         ++elem)
+    {
+        const IElement* const elemObj = elem->elem;
+        SF_ASSERT(elemObj != nullptr);
+        auto typeInfoIt = TypeInfo::fromEnum.find(elemObj->type());
+        SF_ASSERT(typeInfoIt != TypeInfo::fromEnum.end());
+        const TypeInfo& elemTypeInfo = (*typeInfoIt).second;
+
+        String initValStr;
+        switch (elemObj->type())
+        {
+            case ElementType::INT8:
+            {
+                const I32 initVal =
+                    static_cast<const Element<I8>*>(elemObj)->read();
+                initValStr = Autocode::format("%%", initVal);
+                break;
+            }
+
+            case ElementType::INT16:
+            {
+                const I16 initVal =
+                    static_cast<const Element<I16>*>(elemObj)->read();
+                initValStr = Autocode::format("%%", initVal);
+                break;
+            }
+
+            case ElementType::INT32:
+            {
+                const I32 initVal =
+                    static_cast<const Element<I32>*>(elemObj)->read();
+                initValStr = Autocode::format("%%", initVal);
+                break;
+            }
+
+            case ElementType::INT64:
+            {
+                const I64 initVal =
+                    static_cast<const Element<I64>*>(elemObj)->read();
+                initValStr = Autocode::format("%%", initVal);
+                break;
+            }
+
+            case ElementType::UINT8:
+            {
+                const I32 initVal =
+                    static_cast<const Element<U8>*>(elemObj)->read();
+                initValStr = Autocode::format("%%", initVal);
+                break;
+            }
+
+            case ElementType::UINT16:
+            {
+                const U16 initVal =
+                    static_cast<const Element<U16>*>(elemObj)->read();
+                initValStr = Autocode::format("%%", initVal);
+                break;
+            }
+
+            case ElementType::UINT32:
+            {
+                const U32 initVal =
+                    static_cast<const Element<U32>*>(elemObj)->read();
+                initValStr = Autocode::format("%%U", initVal);
+                break;
+            }
+
+            case ElementType::UINT64:
+            {
+                const U64 initVal =
+                    static_cast<const Element<U64>*>(elemObj)->read();
+                initValStr = Autocode::format("%%ULL", initVal);
+                break;
+            }
+
+            case ElementType::FLOAT32:
+            {
+                const F32 initVal =
+                    static_cast<const Element<F32>*>(elemObj)->read();
+                initValStr = Autocode::format("%%", initVal);
+                break;
+            }
+
+            case ElementType::FLOAT64:
+            {
+                const F64 initVal =
+                    static_cast<const Element<F64>*>(elemObj)->read();
+                initValStr = Autocode::format("%%", initVal);
+                break;
+            }
+
+            case ElementType::BOOL:
+            {
+                const bool initVal =
+                    static_cast<const Element<bool>*>(elemObj)->read();
+                initValStr = (initVal ? "true" : "false");
+                break;
+            }
+
+            default:
+                SF_ASSERT(false);
+        }
+
+        a("%% %% = %%;", elemTypeInfo.name, elem->name, initValStr);
+
+        elemDefs.push_back(
+            Autocode::format("static Element<%%> elemObj%%(localBacking.%%);",
+            elemTypeInfo.name, elem->name, elem->name));
+        elemDefs.push_back(
+            Autocode::format("static Element<%%>* elem%% = &elemObj%%;",
+            elemTypeInfo.name, elem->name, elem->name));
+        kWs.refElems.insert(elemObj);
+    }
+
+    a.decreaseIndent();
+    a("} localBacking;");
+    a();
+
+    for (const String& elemDef : elemDefs)
+    {
+        a(elemDef);
+    }
+
+    a();
+}
+
 static String codeConstExprNode(const IExpression* const kNode,
                                 Autocode& kAutocode,
                                 StateMachineAutocoder::Workspace& kWs)
@@ -205,6 +348,31 @@ static String codeConstExprNode(const IExpression* const kNode,
     return Autocode::format("&%%", nodeId);
 }
 
+static void codeElementLookup(Autocode& kAutocode,
+                              const IElement* const kElemObj,
+                              const TypeInfo& kElemTypeInfo,
+                              const String kElemName,
+                              StateMachineAutocoder::Workspace& kWs)
+{
+    Autocode& a = kAutocode;
+
+    // If this is the first time the element is being referenced, generate code
+    // which defines a pointer to it.
+    auto elemRefIt = kWs.refElems.find(kElemObj);
+    if (elemRefIt == kWs.refElems.end())
+    {
+        a("Element<%%>* elem%% = nullptr;", kElemTypeInfo.name, kElemName);
+        a("res = kSv.getElement(\"%%\", elem%%);", kElemName, kElemName);
+        a("if (res != SUCCESS)");
+        a("{");
+        a.increaseIndent();
+        a("return res;");
+        a.decreaseIndent();
+        a("}");
+        kWs.refElems.insert(kElemObj);
+    }
+}
+
 static String codeElementExprNode(const IExpression* const kNode,
                                   Autocode& kAutocode,
                                   StateMachineAutocoder::Workspace& kWs)
@@ -228,12 +396,16 @@ static String codeElementExprNode(const IExpression* const kNode,
                                             elemTypeInfo.name);
 
     // Find element name based on the address of the element object.
-    const IElementExprNode* const nodeNarrow =
+    const IElementExprNode* const inode =
         dynamic_cast<const IElementExprNode*>(kNode);
-    const String elemName = elemNameFromAddr(&nodeNarrow->elem(), kWs);
+    const IElement* elemObj = &inode->elem();
+    const String elemName = elemNameFromAddr(elemObj, kWs);
+
+    // Generate code for element lookup if necessary.
+    codeElementLookup(a, elemObj, elemTypeInfo, elemName, kWs);
 
     // Define node.
-    a("static %% %%(elem%%);", classId, nodeId, elemName);
+    a("static %% %%(*elem%%);", classId, nodeId, elemName);
 
     // Return address of defined node.
     return Autocode::format("&%%", nodeId);
@@ -275,9 +447,9 @@ static String codeBinOpExprNode(const IExpression* const kNode,
     SF_ASSERT(typeInfoIt != TypeInfo::fromEnum.end());
     const TypeInfo& evalTypeInfo = (*typeInfoIt).second;
 
-    // Define expression node. Note that we only instantiate the template with
-    // the first parameter; the compiler will be able to deduce the remaining
-    // parameters based on the signature of the operation function passed to the
+    // Define node. Note that we only instantiate the template with the first
+    // parameter; the compiler will be able to deduce the remaining parameters
+    // based on the signature of the operation function passed to the
     // constructor.
     a("static BinOpExprNode<%%> %%(%%, *%%, *%%);",
       evalTypeInfo.name, nodeId, opFuncId, lhsAddr, rhsAddr);
@@ -315,12 +487,17 @@ static String codeUnaryOpExprNode(const IExpression* const kNode,
     SF_ASSERT(typeInfoIt != TypeInfo::fromEnum.end());
     const TypeInfo& evalTypeInfo = (*typeInfoIt).second;
 
+    // Look up type info for RHS evaluation type.
+    typeInfoIt = TypeInfo::fromEnum.find(iopNode->rhs()->type());
+    SF_ASSERT(typeInfoIt != TypeInfo::fromEnum.end());
+    const TypeInfo& rhsTypeInfo = (*typeInfoIt).second;
+
     // Define node. Note that we only instantiate the template with the first
     // parameter; the compiler will be able to deduce the remaining parameters
     // based on the signature of the operation function passed to the
     // constructor.
-    a("static UnaryOpExprNode<%%> %%(%%, *%%);",
-      evalTypeInfo.name, nodeId, opFuncId, rhsAddr);
+    a("static UnaryOpExprNode<%%, %%> %%(%%, *%%);",
+      evalTypeInfo.name, rhsTypeInfo.name, nodeId, opFuncId, rhsAddr);
 
     // Return address of defined node.
     return Autocode::format("&%%", nodeId);
@@ -361,11 +538,12 @@ static String codeExprStatsNode(const IExpression* const kNode,
     a("static %% %%ArrB[%%];", statsTypeInfo.name, nodeId, stats.size());
 
     // Define node ExpressionStats.
-    a("static ExpressionStats<%%> %%Stats(*%%, %%ArrA, %%ArrB, %%);",
-      statsTypeInfo.name, nodeId, statsExprAddr, nodeId, nodeId, stats.size());
+    const String statsId = Autocode::format("stats%%", kWs.statsCnt++);
+    a("static ExpressionStats<%%> %%(*%%, %%ArrA, %%ArrB, %%);",
+      statsTypeInfo.name, statsId, statsExprAddr, nodeId, nodeId, stats.size());
 
     // Define node.
-    a("static %% %%(%%Stats);", classId, nodeId, nodeId);
+    a("static %% %%(%%);", classId, nodeId, statsId);
 
     // Return address of defined node.
     return Autocode::format("&%%", nodeId);
@@ -444,7 +622,8 @@ static String codeAction(const IAction* const kAction,
         const String lhsAddr = codeExpression(&iact->expr(), a, kWs);
 
         // Look up element name using the address of the element object.
-        const String elemName = elemNameFromAddr(&iact->elem(), kWs);
+        const IElement* const elemObj = &iact->elem();
+        const String elemName = elemNameFromAddr(elemObj, kWs);
 
         // Look up type info for element, which matches the AssignmentAction
         // template parameter.
@@ -452,8 +631,11 @@ static String codeAction(const IAction* const kAction,
         SF_ASSERT(typeInfoIt != TypeInfo::fromEnum.end());
         const TypeInfo& elemTypeInfo = (*typeInfoIt).second;
 
+        // Generate code for element lookup if necessary.
+        codeElementLookup(a, elemObj, elemTypeInfo, elemName, kWs);
+
         // Define assignment action.
-        a("static AssignmentAction<%%> %%(elem%%, *%%);",
+        a("static AssignmentAction<%%> %%(*elem%%, *%%);",
           elemTypeInfo.name, actId, elemName, lhsAddr);
     }
     else
@@ -511,6 +693,8 @@ static void codeState(const StateMachine::StateConfig* const kState,
     SF_ASSERT(kState != nullptr);
 
     Autocode& a = kAutocode;
+
+    a("// State %% config", kState->id);
 
     // Generate code for entry block.
     const String entryAddr = codeBlock(kState->entry, a, kWs);
@@ -581,6 +765,13 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
     a("{");
     a.increaseIndent();
 
+    a("Result res = SUCCESS;");
+    a();
+
+    // Define local state vector.
+    ::codeLocalStateVector(a, ws);
+
+    // Generate code for state configs.
     const StateMachine::Config smConfig = kSmAsm->config();
     for (const StateMachine::StateConfig* state = smConfig.states;
          state->id != StateMachine::NO_STATE;
@@ -589,6 +780,8 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
         ::codeState(state, a, ws);
     }
 
+    // Define state config array.
+    a("// State machine config");
     a("static StateMachine::StateConfig stateConfigs[] =");
     a("{");
     a.increaseIndent();
@@ -602,7 +795,50 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
 
     a("{StateMachine::NO_STATE, nullptr, nullptr, nullptr}");
     a.decreaseIndent();
-    a("}");
+    a("};");
+    a();
+
+    // Define expression stats array.
+    String exprStatsArrAddr = "nullptr";
+    if (ws.statsCnt > 0)
+    {
+        a("static IExpressionStats* exprStats[] =");
+        a("{");
+        a.increaseIndent();
+
+        for (U32 i = 0; i < ws.statsCnt; ++i)
+        {
+            a("&stats%%,", i);
+        }
+
+        a("nullptr"); // Null terminator
+        a.decreaseIndent();
+        a("};");
+        a();
+
+        exprStatsArrAddr = "exprStats";
+    }
+
+    // Generate code to look up state and global time element if not already.
+    const String elemStateName = elemNameFromAddr(smConfig.elemState, ws);
+    codeElementLookup(a, smConfig.elemState, TypeInfo::u32, elemStateName, ws);
+
+    const String elemGlobalTimeName = elemNameFromAddr(smConfig.elemGlobalTime,
+                                                       ws);
+    codeElementLookup(a,
+                      smConfig.elemGlobalTime,
+                      TypeInfo::u64,
+                      elemGlobalTimeName,
+                      ws);
+    a();
+
+    // Define state machine config and return to caller.
+    a("static StateMachine::Config smConfig = {elem%%, elem%%, elem%%, stateConfigs, %%};",
+      elemStateName,
+      LangConst::elemStateTime,
+      elemGlobalTimeName,
+      exprStatsArrAddr);
+    a("kSmConfig = smConfig;");
     a();
 
     // a("Result res = SUCCESS;");

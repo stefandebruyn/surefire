@@ -17,6 +17,7 @@ public:
     struct Workspace final
     {
         Ref<const StateMachineAssembly> smAsm;
+        Set<const IElement*> refElems;
 
         U32 blockCnt;
         U32 exprNodeCnt;
