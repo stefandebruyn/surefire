@@ -183,7 +183,7 @@ U64 Limits::max<U64>()
 // non-NaN, nonzero F64 becomes true and zero becomes false. NaN becomes false.
 
 template<>
-I8 safeCast<I8, F64>(const F64 kRhs)
+I8 ExprOpFuncs::safeCast<I8, F64>(const F64 kRhs)
 {
     if (kRhs != kRhs)
     {
@@ -204,7 +204,7 @@ I8 safeCast<I8, F64>(const F64 kRhs)
 }
 
 template<>
-I16 safeCast<I16, F64>(const F64 kRhs)
+I16 ExprOpFuncs::safeCast<I16, F64>(const F64 kRhs)
 {
     if (kRhs != kRhs)
     {
@@ -225,7 +225,7 @@ I16 safeCast<I16, F64>(const F64 kRhs)
 }
 
 template<>
-I32 safeCast<I32, F64>(const F64 kRhs)
+I32 ExprOpFuncs::safeCast<I32, F64>(const F64 kRhs)
 {
     if (kRhs != kRhs)
     {
@@ -246,7 +246,7 @@ I32 safeCast<I32, F64>(const F64 kRhs)
 }
 
 template<>
-I64 safeCast<I64, F64>(const F64 kRhs)
+I64 ExprOpFuncs::safeCast<I64, F64>(const F64 kRhs)
 {
     if (kRhs != kRhs)
     {
@@ -274,7 +274,7 @@ I64 safeCast<I64, F64>(const F64 kRhs)
 }
 
 template<>
-U8 safeCast<U8, F64>(const F64 kRhs)
+U8 ExprOpFuncs::safeCast<U8, F64>(const F64 kRhs)
 {
     if (kRhs != kRhs)
     {
@@ -295,7 +295,7 @@ U8 safeCast<U8, F64>(const F64 kRhs)
 }
 
 template<>
-U16 safeCast<U16, F64>(const F64 kRhs)
+U16 ExprOpFuncs::safeCast<U16, F64>(const F64 kRhs)
 {
     if (kRhs != kRhs)
     {
@@ -316,7 +316,7 @@ U16 safeCast<U16, F64>(const F64 kRhs)
 }
 
 template<>
-U32 safeCast<U32, F64>(const F64 kRhs)
+U32 ExprOpFuncs::safeCast<U32, F64>(const F64 kRhs)
 {
     if (kRhs != kRhs)
     {
@@ -337,7 +337,7 @@ U32 safeCast<U32, F64>(const F64 kRhs)
 }
 
 template<>
-U64 safeCast<U64, F64>(const F64 kRhs)
+U64 ExprOpFuncs::safeCast<U64, F64>(const F64 kRhs)
 {
     if (kRhs != kRhs)
     {
@@ -350,7 +350,7 @@ U64 safeCast<U64, F64>(const F64 kRhs)
     }
 
     // Note the >= here in constrast to the usual >. This is the same case as
-    // noted in safeCast<I64, F64>.
+    // noted in ExprOpFuncs::safeCast<I64, F64>.
     if (kRhs >= Limits::max<U64>())
     {
         return Limits::max<U64>();
@@ -360,7 +360,7 @@ U64 safeCast<U64, F64>(const F64 kRhs)
 }
 
 template<>
-F32 safeCast<F32, F64>(const F64 kRhs)
+F32 ExprOpFuncs::safeCast<F32, F64>(const F64 kRhs)
 {
     if (kRhs != kRhs)
     {
@@ -371,7 +371,7 @@ F32 safeCast<F32, F64>(const F64 kRhs)
 }
 
 template<>
-bool safeCast<bool, F64>(const F64 kRhs)
+bool ExprOpFuncs::safeCast<bool, F64>(const F64 kRhs)
 {
     if ((kRhs != kRhs) || (kRhs == 0.0))
     {
@@ -386,55 +386,55 @@ bool safeCast<bool, F64>(const F64 kRhs)
 // approximate the rest. NaNs become 0.0.
 
 template<>
-F64 safeCast<F64, I8>(const I8 kRhs)
+F64 ExprOpFuncs::safeCast<F64, I8>(const I8 kRhs)
 {
     return static_cast<F64>(kRhs);
 }
 
 template<>
-F64 safeCast<F64, I16>(const I16 kRhs)
+F64 ExprOpFuncs::safeCast<F64, I16>(const I16 kRhs)
 {
     return static_cast<F64>(kRhs);
 }
 
 template<>
-F64 safeCast<F64, I32>(const I32 kRhs)
+F64 ExprOpFuncs::safeCast<F64, I32>(const I32 kRhs)
 {
     return static_cast<F64>(kRhs);
 }
 
 template<>
-F64 safeCast<F64, I64>(const I64 kRhs)
+F64 ExprOpFuncs::safeCast<F64, I64>(const I64 kRhs)
 {
     return static_cast<F64>(kRhs);
 }
 
 template<>
-F64 safeCast<F64, U8>(const U8 kRhs)
+F64 ExprOpFuncs::safeCast<F64, U8>(const U8 kRhs)
 {
     return static_cast<F64>(kRhs);
 }
 
 template<>
-F64 safeCast<F64, U16>(const U16 kRhs)
+F64 ExprOpFuncs::safeCast<F64, U16>(const U16 kRhs)
 {
     return static_cast<F64>(kRhs);
 }
 
 template<>
-F64 safeCast<F64, U32>(const U32 kRhs)
+F64 ExprOpFuncs::safeCast<F64, U32>(const U32 kRhs)
 {
     return static_cast<F64>(kRhs);
 }
 
 template<>
-F64 safeCast<F64, U64>(const U64 kRhs)
+F64 ExprOpFuncs::safeCast<F64, U64>(const U64 kRhs)
 {
     return static_cast<F64>(kRhs);
 }
 
 template<>
-F64 safeCast<F64, F32>(const F32 kRhs)
+F64 ExprOpFuncs::safeCast<F64, F32>(const F32 kRhs)
 {
     if (kRhs != kRhs)
     {
@@ -445,7 +445,7 @@ F64 safeCast<F64, F32>(const F32 kRhs)
 }
 
 template<>
-F64 safeCast<F64, F64>(const F64 kRhs)
+F64 ExprOpFuncs::safeCast<F64, F64>(const F64 kRhs)
 {
     if (kRhs != kRhs)
     {
@@ -456,7 +456,7 @@ F64 safeCast<F64, F64>(const F64 kRhs)
 }
 
 template<>
-F64 safeCast<F64, bool>(const bool kRhs)
+F64 ExprOpFuncs::safeCast<F64, bool>(const bool kRhs)
 {
     return static_cast<F64>(kRhs);
 }

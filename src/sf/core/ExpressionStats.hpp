@@ -176,13 +176,13 @@ public:
         mCnt = ((mUpdates < mSize) ? mUpdates : mSize);
 
         // Add value to rolling sum.
-        mSum += safeCast<F64, T>(val);
+        mSum += ExprOpFuncs::safeCast<F64, T>(val);
 
         // If an old value was just overwritten, subtract it from the rolling
         // sum.
         if (mUpdates > mSize)
         {
-            mSum -= safeCast<F64, T>(oldVal);
+            mSum -= ExprOpFuncs::safeCast<F64, T>(oldVal);
         }
     }
 

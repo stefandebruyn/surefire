@@ -59,14 +59,34 @@ public:
     IAction& operator=(IAction&&) = delete;
 };
 
+///
+/// @brief Abstract interface for the AssignmentAction template.
+///
+/// @remark This interface helps reduce boilerplate in an autocoder by
+/// allowing access to AssignmentAction members without downcasting to a
+/// specific instantiation of the AssignmentAction template.
+///
 class IAssignmentAction : public IAction
 {
 public:
 
+    ///
+    /// @see IAction::IAction(U32)
+    ///
     IAssignmentAction(const U32 kDestState);
 
+    ///
+    /// @brief Gets the assignment LHS element.
+    ///
+    /// @return Assignment LHS element.
+    ///
     virtual const IElement& elem() const = 0;
 
+    ///
+    /// @brief Gets the assignment RHS expression.
+    ///
+    /// @return Assignment RHS expression.
+    ///
     virtual const IExpression& expr() const = 0;
 };
 
@@ -103,11 +123,17 @@ public:
         return false;
     }
 
+    ///
+    /// @see IAssignmentAction::elem()
+    ///
     const IElement& elem() const final override
     {
         return static_cast<const IElement&>(mElem);
     }
 
+    ///
+    /// @see IAssignmentAction::expr()
+    ///
     const IExpression& expr() const final override
     {
         return static_cast<const IExpression&>(mExpr);

@@ -9,7 +9,7 @@
 ///
 ///                             ---------------
 /// @file  sf/core/utest/UTestRegion.cpp
-/// @brief Unit tests for safeCast().
+/// @brief Unit tests for ExprOpFuncs::safeCast().
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "sf/core/Expression.hpp"
@@ -18,8 +18,8 @@
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 ///
-/// @brief Checks that casting between two types with safeCast() yields the
-/// expected value.
+/// @brief Checks that casting between two types with ExprOpFuncs::safeCast()
+/// yields the expected value.
 ///
 /// @param[in] TTo      Cast destination type name.
 /// @param[in] TFrom    Cast source type name.
@@ -29,7 +29,7 @@
 #define CHECK_CAST(TTo, TFrom, kExpect, kVal)                                  \
 {                                                                              \
     const TTo expect = kExpect;                                                \
-    const TTo actual = safeCast<TTo, TFrom>(kVal);                             \
+    const TTo actual = ExprOpFuncs::safeCast<TTo, TFrom>(kVal);                \
     CHECK_EQUAL(expect, actual);                                               \
 }
 
@@ -51,7 +51,7 @@ static const F64 gNan = (0.0 / 0.0);
 //////////////////////////////////// Tests /////////////////////////////////////
 
 ///
-/// @brief Unit tests for safeCast().
+/// @brief Unit tests for ExprOpFuncs::safeCast().
 ///
 TEST_GROUP(SafeCast)
 {

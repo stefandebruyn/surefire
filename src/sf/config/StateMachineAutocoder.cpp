@@ -159,44 +159,79 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
 const Map<const void*, String> StateMachineAutocoder::opFuncIds =
 {
     // Binary operators
-    {reinterpret_cast<void*>(&add<F64>), "add<F64>"},
-    {reinterpret_cast<void*>(&sub<F64>), "sub<F64>"},
-    {reinterpret_cast<void*>(&mult<F64>), "mult<F64>"},
-    {reinterpret_cast<void*>(&div<F64>), "div<F64>"},
-    {reinterpret_cast<void*>(&lt<F64>), "lt<F64>"},
-    {reinterpret_cast<void*>(&lte<F64>), "lte<F64>"},
-    {reinterpret_cast<void*>(&gt<F64>), "gt<F64>"},
-    {reinterpret_cast<void*>(&gte<F64>), "gte<F64>"},
-    {reinterpret_cast<void*>(&eq<F64>), "eq<F64>"},
-    {reinterpret_cast<void*>(&neq<F64>), "neq<F64>"},
-    {reinterpret_cast<void*>(&land<F64>), "land<F64>"},
-    {reinterpret_cast<void*>(&lor<F64>), "lor<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::add<F64>),
+     "ExprOpFuncs::add<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::sub<F64>),
+     "ExprOpFuncs::sub<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::mult<F64>),
+     "ExprOpFuncs::mult<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::div<F64>),
+     "ExprOpFuncs::div<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::lt<F64>),
+     "ExprOpFuncs::lt<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::lte<F64>),
+     "ExprOpFuncs::lte<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::gt<F64>),
+     "ExprOpFuncs::gt<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::gte<F64>),
+     "ExprOpFuncs::gte<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::eq<F64>),
+     "ExprOpFuncs::eq<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::neq<F64>),
+     "ExprOpFuncs::neq<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::land<F64>),
+     "ExprOpFuncs::land<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::lor<F64>),
+     "ExprOpFuncs::lor<F64>"},
     // Unary operators
-    {reinterpret_cast<void*>(&lnot<F64>), "lnot<F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::lnot<F64>),
+     "ExprOpFuncs::lnot<F64>"},
     // Cast to F64
-    {reinterpret_cast<void*>(&safeCast<F64, I8>), "safeCast<F64, I8>"},
-    {reinterpret_cast<void*>(&safeCast<F64, I16>), "safeCast<F64, I16>"},
-    {reinterpret_cast<void*>(&safeCast<F64, I32>), "safeCast<F64, I32>"},
-    {reinterpret_cast<void*>(&safeCast<F64, I64>), "safeCast<F64, I64>"},
-    {reinterpret_cast<void*>(&safeCast<F64, U8>), "safeCast<F64, U8>"},
-    {reinterpret_cast<void*>(&safeCast<F64, U16>), "safeCast<F64, U16>"},
-    {reinterpret_cast<void*>(&safeCast<F64, U32>), "safeCast<F64, U32>"},
-    {reinterpret_cast<void*>(&safeCast<F64, U64>), "safeCast<F64, U64>"},
-    {reinterpret_cast<void*>(&safeCast<F64, F32>), "safeCast<F64, F32>"},
-    {reinterpret_cast<void*>(&safeCast<F64, F64>), "safeCast<F64, F64>"},
-    {reinterpret_cast<void*>(&safeCast<F64, bool>), "safeCast<F64, bool>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, I8>),
+     "ExprOpFuncs::safeCast<F64, I8>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, I16>),
+     "ExprOpFuncs::safeCast<F64, I16>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, I32>),
+     "ExprOpFuncs::safeCast<F64, I32>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, I64>),
+     "ExprOpFuncs::safeCast<F64, I64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, U8>),
+     "ExprOpFuncs::safeCast<F64, U8>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, U16>),
+     "ExprOpFuncs::safeCast<F64, U16>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, U32>),
+     "ExprOpFuncs::safeCast<F64, U32>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, U64>),
+     "ExprOpFuncs::safeCast<F64, U64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, F32>),
+     "ExprOpFuncs::safeCast<F64, F32>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, F64>),
+     "ExprOpFuncs::safeCast<F64, F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, bool>),
+     "ExprOpFuncs::safeCast<F64, bool>"},
     // Cast from F64
-    {reinterpret_cast<void*>(&safeCast<I8, F64>), "safeCast<I8, F64>"},
-    {reinterpret_cast<void*>(&safeCast<I16, F64>), "safeCast<I16, F64>"},
-    {reinterpret_cast<void*>(&safeCast<I32, F64>), "safeCast<I32, F64>"},
-    {reinterpret_cast<void*>(&safeCast<I64, F64>), "safeCast<I64, F64>"},
-    {reinterpret_cast<void*>(&safeCast<U8, F64>), "safeCast<U8, F64>"},
-    {reinterpret_cast<void*>(&safeCast<U16, F64>), "safeCast<U16, F64>"},
-    {reinterpret_cast<void*>(&safeCast<U32, F64>), "safeCast<U32, F64>"},
-    {reinterpret_cast<void*>(&safeCast<U64, F64>), "safeCast<U64, F64>"},
-    {reinterpret_cast<void*>(&safeCast<F32, F64>), "safeCast<F32, F64>"},
-    {reinterpret_cast<void*>(&safeCast<F64, F64>), "safeCast<F64, F64>"},
-    {reinterpret_cast<void*>(&safeCast<bool, F64>), "safeCast<bool, F64>"}
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<I8, F64>),
+     "ExprOpFuncs::safeCast<I8, F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<I16, F64>),
+     "ExprOpFuncs::safeCast<I16, F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<I32, F64>),
+     "ExprOpFuncs::safeCast<I32, F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<I64, F64>),
+     "ExprOpFuncs::safeCast<I64, F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<U8, F64>),
+     "ExprOpFuncs::safeCast<U8, F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<U16, F64>),
+     "ExprOpFuncs::safeCast<U16, F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<U32, F64>),
+     "ExprOpFuncs::safeCast<U32, F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<U64, F64>),
+     "ExprOpFuncs::safeCast<U64, F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F32, F64>),
+     "ExprOpFuncs::safeCast<F32, F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<F64, F64>),
+     "ExprOpFuncs::safeCast<F64, F64>"},
+    {reinterpret_cast<const void*>(&ExprOpFuncs::safeCast<bool, F64>),
+     "ExprOpFuncs::safeCast<bool, F64>"}
 };
 
 const Map<IExpression::NodeType, String>
@@ -594,24 +629,24 @@ String StateMachineAutocoder::codeBinOpExprNode(
     // Generate a unique identifier for the node.
     const String nodeId = Autocode::format("node%%", kWs.exprNodeCnt++);
 
-    // Generate code for operation LHS expression. This requires downcasting to
+    // Generate code for operator LHS expression. This requires downcasting to
     // IOpExprNode to get a pointer to the LHS expression root node.
     const IOpExprNode* const iopNode = dynamic_cast<const IOpExprNode*>(kNode);
     const String lhsAddr =
         StateMachineAutocoder::codeExpression(iopNode->lhs(), a, kWs);
 
-    // Generate code for operation RHS expression.
+    // Generate code for operator RHS expression.
     const String rhsAddr =
         StateMachineAutocoder::codeExpression(iopNode->rhs(), a, kWs);
 
-    // Get address of operation function and use it to look up the identifier of
-    // the operation function.
+    // Get address of operator function and use it to look up the operator
+    // function identifier.
     const void* const opFuncPtr = iopNode->op();
     auto opIdIt = StateMachineAutocoder::opFuncIds.find(opFuncPtr);
     SF_ASSERT(opIdIt != StateMachineAutocoder::opFuncIds.end());
     const String opFuncId = (*opIdIt).second;
 
-    // Look up type info for operation evaluation type.
+    // Look up type info for operator evaluation type.
     auto typeInfoIt = TypeInfo::fromEnum.find(kNode->type());
     SF_ASSERT(typeInfoIt != TypeInfo::fromEnum.end());
     const TypeInfo& evalTypeInfo = (*typeInfoIt).second;
@@ -644,20 +679,20 @@ String StateMachineAutocoder::codeUnaryOpExprNode(
     // Generate a unique identifier for the node.
     const String nodeId = Autocode::format("node%%", kWs.exprNodeCnt++);
 
-    // Generate code for operation RHS expression. This requires downcasting to
+    // Generate code for operator RHS expression. This requires downcasting to
     // IOpExprNode to get a pointer to the RHS expression root node.
     const IOpExprNode* const iopNode = dynamic_cast<const IOpExprNode*>(kNode);
     const String rhsAddr =
         StateMachineAutocoder::codeExpression(iopNode->rhs(), a, kWs);
 
-    // Get address of operation function and use it to look up the identifier of
-    // the operation function.
+    // Get address of operator function and use it to look up the operator
+    // function identifier.
     const void* const opFuncPtr = iopNode->op();
     auto opIdIt = StateMachineAutocoder::opFuncIds.find(opFuncPtr);
     SF_ASSERT(opIdIt != StateMachineAutocoder::opFuncIds.end());
     const String opFuncId = (*opIdIt).second;
 
-    // Look up type info for operation evaluation type.
+    // Look up type info for operator evaluation type.
     auto typeInfoIt = TypeInfo::fromEnum.find(kNode->type());
     SF_ASSERT(typeInfoIt != TypeInfo::fromEnum.end());
     const TypeInfo& evalTypeInfo = (*typeInfoIt).second;
@@ -669,7 +704,7 @@ String StateMachineAutocoder::codeUnaryOpExprNode(
 
     // Define node. Note that we only instantiate the template with the first
     // parameter; the compiler will be able to deduce the remaining parameters
-    // based on the signature of the operation function passed to the
+    // based on the signature of the operator function passed to the
     // constructor.
     a("static UnaryOpExprNode<%%, %%> %%(%%, *%%);",
       evalTypeInfo.name, rhsTypeInfo.name, nodeId, opFuncId, rhsAddr);

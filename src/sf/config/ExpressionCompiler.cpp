@@ -44,58 +44,58 @@ Result ExpressionCompiler::compile(const Ref<const ExpressionParse> kParse,
     switch (kEvalType)
     {
         case ElementType::INT8:
-            newRoot.reset(new UnaryOpExprNode<I8, F64>(safeCast<I8, F64>,
-                                                       *root));
+            newRoot.reset(new UnaryOpExprNode<I8, F64>(
+                ExprOpFuncs::safeCast<I8, F64>, *root));
             break;
 
         case ElementType::INT16:
-            newRoot.reset(new UnaryOpExprNode<I16, F64>(safeCast<I16, F64>,
-                                                        *root));
+            newRoot.reset(new UnaryOpExprNode<I16, F64>(
+                ExprOpFuncs::safeCast<I16, F64>, *root));
             break;
 
         case ElementType::INT32:
-            newRoot.reset(new UnaryOpExprNode<I32, F64>(safeCast<I32, F64>,
-                                                        *root));
+            newRoot.reset(new UnaryOpExprNode<I32, F64>(
+                ExprOpFuncs::safeCast<I32, F64>, *root));
             break;
 
         case ElementType::INT64:
-            newRoot.reset(new UnaryOpExprNode<I64, F64>(safeCast<I64, F64>,
-                                                        *root));
+            newRoot.reset(new UnaryOpExprNode<I64, F64>(
+                ExprOpFuncs::safeCast<I64, F64>, *root));
             break;
 
         case ElementType::UINT8:
-            newRoot.reset(new UnaryOpExprNode<U8, F64>(safeCast<U8, F64>,
-                                                       *root));
+            newRoot.reset(new UnaryOpExprNode<U8, F64>(
+                ExprOpFuncs::safeCast<U8, F64>, *root));
             break;
 
         case ElementType::UINT16:
-            newRoot.reset(new UnaryOpExprNode<U16, F64>(safeCast<U16, F64>,
-                                                        *root));
+            newRoot.reset(new UnaryOpExprNode<U16, F64>(
+                ExprOpFuncs::safeCast<U16, F64>, *root));
             break;
 
         case ElementType::UINT32:
-            newRoot.reset(new UnaryOpExprNode<U32, F64>(safeCast<U32, F64>,
-                                                        *root));
+            newRoot.reset(new UnaryOpExprNode<U32, F64>(
+                ExprOpFuncs::safeCast<U32, F64>, *root));
             break;
 
         case ElementType::UINT64:
-            newRoot.reset(new UnaryOpExprNode<U64, F64>(safeCast<U64, F64>,
-                                                        *root));
+            newRoot.reset(new UnaryOpExprNode<U64, F64>(
+                ExprOpFuncs::safeCast<U64, F64>, *root));
             break;
 
         case ElementType::FLOAT32:
-            newRoot.reset(new UnaryOpExprNode<F32, F64>(safeCast<F32, F64>,
-                                                        *root));
+            newRoot.reset(new UnaryOpExprNode<F32, F64>(
+                ExprOpFuncs::safeCast<F32, F64>, *root));
             break;
 
         case ElementType::FLOAT64:
-            newRoot.reset(new UnaryOpExprNode<F64, F64>(safeCast<F64, F64>,
-                                                        *root));
+            newRoot.reset(new UnaryOpExprNode<F64, F64>(
+                ExprOpFuncs::safeCast<F64, F64>, *root));
             break;
 
         case ElementType::BOOL:
-            newRoot.reset(new UnaryOpExprNode<bool, F64>(safeCast<bool, F64>,
-                                                         *root));
+            newRoot.reset(new UnaryOpExprNode<bool, F64>(
+                ExprOpFuncs::safeCast<bool, F64>, *root));
             break;
 
         default:
@@ -226,7 +226,7 @@ Result ExpressionCompiler::compileStatsFunc(
     }
 
     // Enforce maximum window size.
-    const U32 windowSize = safeCast<U32, F64>(windowSizeFp);
+    const U32 windowSize = ExprOpFuncs::safeCast<U32, F64>(windowSizeFp);
     if (windowSize > LangConst::rollWindowMaxSize)
     {
         std::stringstream ss;
@@ -360,37 +360,38 @@ Result ExpressionCompiler::compileOperator(
     {
         case OpInfo::Type::NOT:
         {
-            kNode.reset(new UnaryOpExprNode<F64>(lnot<F64>, *nodeRight));
+            kNode.reset(new UnaryOpExprNode<F64>(ExprOpFuncs::lnot<F64>,
+                                                 *nodeRight));
             break;
         }
 
         case OpInfo::Type::MULT:
-            kNode.reset(new BinOpExprNode<F64>(mult<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::mult<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
 
         case OpInfo::Type::DIV:
-            kNode.reset(new BinOpExprNode<F64>(div<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::div<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
 
         case OpInfo::Type::ADD:
-            kNode.reset(new BinOpExprNode<F64>(add<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::add<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
 
         case OpInfo::Type::SUB:
-            kNode.reset(new BinOpExprNode<F64>(sub<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::sub<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
 
         case OpInfo::Type::LT:
         {
-            kNode.reset(new BinOpExprNode<F64>(lt<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::lt<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
@@ -398,7 +399,7 @@ Result ExpressionCompiler::compileOperator(
 
         case OpInfo::Type::LTE:
         {
-            kNode.reset(new BinOpExprNode<F64>(lte<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::lte<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
@@ -406,7 +407,7 @@ Result ExpressionCompiler::compileOperator(
 
         case OpInfo::Type::GT:
         {
-            kNode.reset(new BinOpExprNode<F64>(gt<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::gt<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
@@ -414,7 +415,7 @@ Result ExpressionCompiler::compileOperator(
 
         case OpInfo::Type::GTE:
         {
-            kNode.reset(new BinOpExprNode<F64>(gte<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::gte<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
@@ -422,7 +423,7 @@ Result ExpressionCompiler::compileOperator(
 
         case OpInfo::Type::EQ:
         {
-            kNode.reset(new BinOpExprNode<F64>(eq<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::eq<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
@@ -430,7 +431,7 @@ Result ExpressionCompiler::compileOperator(
 
         case OpInfo::Type::NEQ:
         {
-            kNode.reset(new BinOpExprNode<F64>(neq<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::neq<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
@@ -438,7 +439,7 @@ Result ExpressionCompiler::compileOperator(
 
         case OpInfo::Type::AND:
         {
-            kNode.reset(new BinOpExprNode<F64>(land<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::land<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
@@ -446,7 +447,7 @@ Result ExpressionCompiler::compileOperator(
 
         case OpInfo::Type::OR:
         {
-            kNode.reset(new BinOpExprNode<F64>(lor<F64>,
+            kNode.reset(new BinOpExprNode<F64>(ExprOpFuncs::lor<F64>,
                                                *nodeLeft,
                                                *nodeRight));
             break;
@@ -551,7 +552,7 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<I8>> nodeElem(new ElementExprNode<I8>(
                     *static_cast<const Element<I8>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, I8>(safeCast<F64, I8>,
+                kNode.reset(new UnaryOpExprNode<F64, I8>(ExprOpFuncs::safeCast<F64, I8>,
                                                          *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
@@ -561,7 +562,7 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<I16>> nodeElem(new ElementExprNode<I16>(
                     *static_cast<const Element<I16>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, I16>(safeCast<F64, I16>,
+                kNode.reset(new UnaryOpExprNode<F64, I16>(ExprOpFuncs::safeCast<F64, I16>,
                                                           *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
@@ -571,7 +572,7 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<I32>> nodeElem(new ElementExprNode<I32>(
                     *static_cast<const Element<I32>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, I32>(safeCast<F64, I32>,
+                kNode.reset(new UnaryOpExprNode<F64, I32>(ExprOpFuncs::safeCast<F64, I32>,
                                                           *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
@@ -581,7 +582,7 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<I64>> nodeElem(new ElementExprNode<I64>(
                     *static_cast<const Element<I64>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, I64>(safeCast<F64, I64>,
+                kNode.reset(new UnaryOpExprNode<F64, I64>(ExprOpFuncs::safeCast<F64, I64>,
                                                           *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
@@ -591,7 +592,7 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<U8>> nodeElem(new ElementExprNode<U8>(
                     *static_cast<const Element<U8>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, U8>(safeCast<F64, U8>,
+                kNode.reset(new UnaryOpExprNode<F64, U8>(ExprOpFuncs::safeCast<F64, U8>,
                                                          *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
@@ -601,7 +602,7 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<U16>> nodeElem(new ElementExprNode<U16>(
                     *static_cast<const Element<U16>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, U16>(safeCast<F64, U16>,
+                kNode.reset(new UnaryOpExprNode<F64, U16>(ExprOpFuncs::safeCast<F64, U16>,
                                                           *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
@@ -611,7 +612,7 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<U32>> nodeElem(new ElementExprNode<U32>(
                     *static_cast<const Element<U32>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, U32>(safeCast<F64, U32>,
+                kNode.reset(new UnaryOpExprNode<F64, U32>(ExprOpFuncs::safeCast<F64, U32>,
                                                           *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
@@ -621,7 +622,7 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<U64>> nodeElem(new ElementExprNode<U64>(
                     *static_cast<const Element<U64>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, U64>(safeCast<F64, U64>,
+                kNode.reset(new UnaryOpExprNode<F64, U64>(ExprOpFuncs::safeCast<F64, U64>,
                                                           *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
@@ -631,7 +632,7 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<F32>> nodeElem(new ElementExprNode<F32>(
                     *static_cast<const Element<F32>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, F32>(safeCast<F64, F32>,
+                kNode.reset(new UnaryOpExprNode<F64, F32>(ExprOpFuncs::safeCast<F64, F32>,
                                                           *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
@@ -641,7 +642,7 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<F64>> nodeElem(new ElementExprNode<F64>(
                     *static_cast<const Element<F64>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, F64>(safeCast<F64, F64>,
+                kNode.reset(new UnaryOpExprNode<F64, F64>(ExprOpFuncs::safeCast<F64, F64>,
                                                           *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
@@ -651,7 +652,7 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<bool>> nodeElem(new ElementExprNode<bool>(
                     *static_cast<const Element<bool>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, bool>(safeCast<F64, bool>,
+                kNode.reset(new UnaryOpExprNode<F64, bool>(ExprOpFuncs::safeCast<F64, bool>,
                                                            *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
