@@ -20,19 +20,6 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
     StateMachineAutocoder::Workspace ws{};
     ws.smAsm = kSmAsm;
 
-    // Build map of state names to IDs.
-    const Ref<const StateMachineParse> parse = kSmAsm->parse();
-    SF_ASSERT(parse != nullptr);
-    for (std::size_t i = 0; i < parse->states.size(); ++i)
-    {
-        const StateMachineParse::StateParse& state = parse->states[i];
-        const String& sectionName = state.tokName.str;
-        SF_ASSERT(sectionName.size() >= 3);
-        const String stateName =
-            sectionName.substr(1, (sectionName.size() - 2));
-        ws.stateIds[stateName] = (i + 1);
-    }
-
     // Add preamble.
     Autocode a(kOs);
     a("///");
@@ -115,16 +102,20 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
     }
 
     // Generate code to look up state and global time element if not already.
-    const String elemStateName = elemNameFromAddr(smConfig.elemState, ws);
-    codeElementLookup(a, smConfig.elemState, TypeInfo::u32, elemStateName, ws);
-
-    const String elemGlobalTimeName = elemNameFromAddr(smConfig.elemGlobalTime,
-                                                       ws);
-    codeElementLookup(a,
-                      smConfig.elemGlobalTime,
-                      TypeInfo::u64,
-                      elemGlobalTimeName,
-                      ws);
+    const String elemStateName =
+        StateMachineAutocoder::elemNameFromAddr(smConfig.elemState, ws);
+    StateMachineAutocoder::codeElementLookup(a,
+                                             smConfig.elemState,
+                                             TypeInfo::u32,
+                                             elemStateName,
+                                             ws);
+    const String elemGlobalTimeName =
+        StateMachineAutocoder::elemNameFromAddr(smConfig.elemGlobalTime, ws);
+    StateMachineAutocoder::codeElementLookup(a,
+                                             smConfig.elemGlobalTime,
+                                             TypeInfo::u64,
+                                             elemGlobalTimeName,
+                                             ws);
     a();
 
     // Define state machine config and return to caller.

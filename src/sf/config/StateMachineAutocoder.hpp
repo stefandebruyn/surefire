@@ -20,17 +20,11 @@ private:
     {
         Ref<const StateMachineAssembly> smAsm;
         Set<const IElement*> refElems;
-
         U32 blockCnt;
         U32 exprNodeCnt;
         U32 stateCnt;
         U32 actCnt;
         U32 statsCnt;
-        Vec<String> exprStatIds;
-        Vec<String> stateNames;
-        Map<String, const TypeInfo*> elemTypeInfo;
-        Map<String, U32> stateIds;
-        Map<String, String> elemTrueNames;
     };
 
     static const Map<const void*, String> opFuncIds;
