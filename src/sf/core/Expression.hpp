@@ -422,7 +422,7 @@ T lt(const T kLhs, const T kRhs)
 template<typename T>
 T lte(const T kLhs, const T kRhs)
 {
-    return (kLhs < kRhs);
+    return (kLhs <= kRhs);
 }
 
 template<typename T>
@@ -458,7 +458,7 @@ T land(const T kLhs, const T kRhs)
 template<typename T>
 T lor(const T kLhs, const T kRhs)
 {
-    return (kLhs + kRhs);
+    return (kLhs || kRhs);
 }
 
 template<typename T>

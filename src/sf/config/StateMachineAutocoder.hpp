@@ -14,6 +14,8 @@ public:
 
     StateMachineAutocoder() = delete;
 
+private:
+
     struct Workspace final
     {
         Ref<const StateMachineAssembly> smAsm;
@@ -31,45 +33,55 @@ public:
         Map<String, String> elemTrueNames;
     };
 
-private:
+    static const Map<const void*, String> opFuncIds;
 
-    static Map<String, String> mFuncNodeTypeNames;
+    static const Map<IExpression::NodeType, String> exprStatNodeIds;
 
-    static void codeLocalStateVector(
-        const Ref<const StateMachineParse> kParse,
-        const Ref<const StateMachineAssembly> kSmAsm,
-        Autocode& kAutocode,
-        StateMachineAutocoder::Workspace& kWs);
-
-    static void codeStateVectorElems(const Ref<const StateMachineParse> kParse,
-                                     Autocode& kAutocode,
-                                     StateMachineAutocoder::Workspace& kWs);
-
-    static String codeFunctionCall(const Ref<const ExpressionParse> kParse,
-                                   const Ref<const StateMachineAssembly> kSmAsm,
-                                   Autocode& kAutocode,
+    static String elemNameFromAddr(const IElement* const kAddr,
                                    StateMachineAutocoder::Workspace& kWs);
 
-    static String codeExpression(const Ref<const ExpressionParse> kParse,
-                                 const Ref<const StateMachineAssembly> kSmAsm,
-                                 const ElementType kCastType,
+    static void codeLocalStateVector(Autocode& kAutocode,
+                                     StateMachineAutocoder::Workspace& kWs);
+
+    static String codeConstExprNode(const IExpression* const kNode,
+                                    Autocode& kAutocode,
+                                    StateMachineAutocoder::Workspace& kWs);
+
+    static void codeElementLookup(Autocode& kAutocode,
+                                  const IElement* const kElemObj,
+                                  const TypeInfo& kElemTypeInfo,
+                                  const String kElemName,
+                                  StateMachineAutocoder::Workspace& kWs);
+
+    static String codeElementExprNode(const IExpression* const kNode,
+                                      Autocode& kAutocode,
+                                      StateMachineAutocoder::Workspace& kWs);
+
+    static String codeBinOpExprNode(const IExpression* const kNode,
+                                    Autocode& kAutocode,
+                                    StateMachineAutocoder::Workspace& kWs);
+
+    static String codeUnaryOpExprNode(const IExpression* const kNode,
+                                      Autocode& kAutocode,
+                                      StateMachineAutocoder::Workspace& kWs);
+
+    static String codeExprStatsNode(const IExpression* const kNode,
+                                    Autocode& kAutocode,
+                                    StateMachineAutocoder::Workspace& kWs);
+
+    static String codeExpression(const IExpression* const kExpr,
                                  Autocode& kAutocode,
                                  StateMachineAutocoder::Workspace& kWs);
 
-    static String codeAction(
-        const Ref<const StateMachineParse::ActionParse> kParse,
-        const Ref<const StateMachineAssembly> kSmAsm,
-        Autocode& kAutocode,
-        StateMachineAutocoder::Workspace& kWs);
+    static String codeAction(const IAction* const kAction,
+                             Autocode& kAutocode,
+                             StateMachineAutocoder::Workspace& kWs);
 
-    static String codeBlock(
-        const Ref<const StateMachineParse::BlockParse> kParse,
-        const Ref<const StateMachineAssembly> kSmAsm,
-        Autocode& kAutocode,
-        StateMachineAutocoder::Workspace& kWs);
+    static String codeBlock(const StateMachine::Block* const kBlock,
+                            Autocode& kAutocode,
+                            StateMachineAutocoder::Workspace& kWs);
 
-    static void codeState(const StateMachineParse::StateParse& kParse,
-                          const Ref<const StateMachineAssembly> kSmAsm,
+    static void codeState(const StateMachine::StateConfig* const kState,
                           Autocode& kAutocode,
                           StateMachineAutocoder::Workspace& kWs);
 };
