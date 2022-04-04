@@ -278,3 +278,13 @@ TEST(StateVectorAutocoder, LargeStateVector)
         "C 160\n",
         hout.str());
 }
+
+///
+/// @test Passing a null state vector assembly to the autocoder returns an
+/// error.
+///
+TEST(StateVectorAutocoder, ErrorNullStateVectorAssembly)
+{
+    std::stringstream ss;
+    CHECK_ERROR(E_SVA_NULL, StateVectorAutocoder::code(ss, "foo", nullptr));
+}

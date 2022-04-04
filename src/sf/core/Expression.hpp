@@ -256,7 +256,7 @@ public:
     /// @remark The address is returned as a void* since the signature of the
     /// operator function may vary with node; also, the signature doesn't
     /// matter, as an autocoder can determine the function identity by comparing
-    /// the addresses of functions in the ExprOpFuncs namespace.
+    /// to the addresses of functions in the ExprOpFuncs namespace.
     ///
     /// @return Operator function address.
     ///
@@ -715,7 +715,7 @@ namespace ExprOpFuncs
 
 ///
 /// @brief Namespace of templates for getting numeric type limits, similar to
-/// the <limits> STL header.
+/// the <limits> stdlib header.
 ///
 namespace Limits
 {

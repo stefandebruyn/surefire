@@ -230,3 +230,13 @@ TEST(StateMachineAutocoder, SafeConversion)
     RUN_HARNESS("10");
     CHECK_HARNESS_OUT(10);
 }
+
+///
+/// @test Passing a null state machine assembly to the autocoder returns an
+/// error.
+///
+TEST(StateMachineAutocoder, ErrorNullStateMachineAssembly)
+{
+    std::stringstream ss;
+    CHECK_ERROR(E_SMA_NULL, StateMachineAutocoder::code(ss, "foo", nullptr));
+}

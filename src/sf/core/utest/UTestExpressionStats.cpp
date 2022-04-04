@@ -347,3 +347,30 @@ TEST(ExpressionStats, Range)
     stats.update();
     CHECK_EQUAL(50.0, stats.range());
 }
+
+///
+/// @test Stats are not updated when both provided arrays are null.
+///
+TEST(ExpressionStats, NaNBecomesZero)
+{
+    F64 elemBacking = (0.0 / 0.0);
+    Element<F64> elem(elemBacking);
+    ElementExprNode<F64> expr(elem);
+    F64 arrA[4];
+    F64 arrB[4];
+    ExpressionStats<F64> stats(expr, arrA, arrB, 4);
+
+    // Make the rolling window look like [NaN, 1, NaN].
+    stats.update();
+    elem.write(1.0);
+    stats.update();
+    elem.write(0.0 / 0.0);
+    stats.update();
+
+    // Stats are computed as if the rolling window is [0, 1, 0].
+    CHECK_EQUAL((1.0 / 3.0), stats.mean());
+    CHECK_EQUAL(0.0, stats.median());
+    CHECK_EQUAL(0.0, stats.min());
+    CHECK_EQUAL(1.0, stats.max());
+    CHECK_EQUAL(1.0, stats.range());
+}

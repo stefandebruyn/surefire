@@ -9,7 +9,7 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     // Check that parse is non-null.
     if (kSvAsm == nullptr)
     {
-        SF_ASSERT(false);
+        return E_SVA_NULL;
     }
 
     const Ref<const StateVectorParse> svParse = kSvAsm->parse();

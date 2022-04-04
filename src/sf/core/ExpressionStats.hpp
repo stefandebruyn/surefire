@@ -9,7 +9,7 @@
 ///
 ///                             ---------------
 /// @file  sf/core/ExpressionStats.hpp
-/// @brief Object for computing statistics about an expression.
+/// @brief ExpressionStats template for computing statistics on an expression.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SF_EXPRESSION_STATS_HPP
@@ -18,9 +18,10 @@
 #include "sf/core/Expression.hpp"
 
 ///
-/// @brief Abstract interface for expression stats. An expression stats object
-/// computes stats on a rolling window of past values. The object is updated
-/// periodically by external code, and stats are queried through the interface.
+/// @brief Abstract interface for the ExpressionStats template. An
+/// ExpressionStats computes stats on a rolling window of past values. The
+/// object is updated periodically by external code, and stats are queried
+/// through the interface.
 ///
 /// @remark Used to implement stat functions like roll_avg() in the state
 /// machine config language.
@@ -42,6 +43,9 @@ public:
     ///
     /// @brief Re-evaluate the underlying expression and update the rolling
     /// window. If the window is full, the oldest value is discarded.
+    ///
+    /// @note To mirror the behavior of ExprOpFuncs::safeCast(), NaNs in the
+    /// rolling window are treated like zeros.
     ///
     virtual void update() = 0;
 
@@ -103,8 +107,11 @@ public:
     ///
     virtual U32 size() const = 0;
 
-    virtual ElementType type() const = 0;
-
+    ///
+    /// @brief Gets the expression which stats are computed on.
+    ///
+    /// @return Expression.
+    ///
     virtual const IExpression& expr() const = 0;
 
     IExpressionStats(const IExpressionStats&) = delete;
@@ -114,7 +121,8 @@ public:
 };
 
 ///
-/// @brief Expression stats template.
+/// @brief Computes stats on a rolling window of past values which an expression
+/// has evaluated to.
 ///
 /// @tparam T  Evaluation type of expression which stats are computed on.
 ///
@@ -134,9 +142,11 @@ public:
     ///
     /// @param[in] kExpr  Expression which stats are computed on.
     /// @param[in] kArrA  Storage array for exclusive use by the object, kSize
-    ///                   elements long.
+    ///                   elements long. If this array is null, no stats will be
+    ///                   computed.
     /// @param[in] kArrB  Additional storage array for exclusive use by the
-    ///                   object, kSize elements long.
+    ///                   object, kSize elements long. If this array is null,
+    ///                   all stats but median will be computed.
     /// @param[in] kSize  Size of the rolling window.
     ///
     ExpressionStats(IExprNode<T>& kExpr,
@@ -165,7 +175,13 @@ public:
         }
 
         // Evaluate expression.
-        const T val = mExpr.evaluate();
+        T val = mExpr.evaluate();
+
+        // A NaN becomes 0, the same behavior as ExprOpFuncs::safeCast().
+        if (val != val)
+        {
+            val = 0;
+        }
 
         // Insert value into ring buffer and save the old value.
         const U32 insertIdx = (mUpdates++ % mSize);
@@ -176,13 +192,13 @@ public:
         mCnt = ((mUpdates < mSize) ? mUpdates : mSize);
 
         // Add value to rolling sum.
-        mSum += ExprOpFuncs::safeCast<F64, T>(val);
+        mSum += val;
 
         // If an old value was just overwritten, subtract it from the rolling
         // sum.
         if (mUpdates > mSize)
         {
-            mSum -= ExprOpFuncs::safeCast<F64, T>(oldVal);
+            mSum -= oldVal;
         }
     }
 
@@ -239,13 +255,14 @@ public:
         // If history size is even, return average of middle two values.
         if ((mCnt % 2) == 0)
         {
-            const F64 a = static_cast<F64>(mSorted[(mCnt / 2) - 1]);
-            const F64 b = static_cast<F64>(mSorted[mCnt / 2]);
+            const F64 a =
+                ExprOpFuncs::safeCast<F64, T>(mSorted[(mCnt / 2) - 1]);
+            const F64 b = ExprOpFuncs::safeCast<F64, T>(mSorted[mCnt / 2]);
             return (a + ((b - a) / 2.0));
         }
 
         // History size is odd, so return the middle element.
-        return static_cast<F64>(mSorted[mCnt / 2]);
+        return ExprOpFuncs::safeCast<F64, T>(mSorted[mCnt / 2]);
     }
 
     ///
@@ -269,7 +286,7 @@ public:
             }
         }
 
-        return static_cast<F64>(minVal);
+        return ExprOpFuncs::safeCast<F64, T>(minVal);
     }
 
     ///
@@ -293,7 +310,7 @@ public:
             }
         }
 
-        return static_cast<F64>(maxVal);
+        return ExprOpFuncs::safeCast<F64, T>(maxVal);
     }
 
     ///
@@ -314,8 +331,9 @@ public:
         return mSize;
     }
 
-    ElementType type() const final override;
-
+    ///
+    /// @see IExpressionStats::expr()
+    ///
     const IExpression& expr() const final override
     {
         return static_cast<IExpression&>(mExpr);
@@ -360,20 +378,43 @@ private:
     F64 mSum;
 };
 
+///
+/// @brief Abstract interface for an expression node which evaluates to a stat
+/// computed by an IExpressionStats.
+///
 class IExprStatsNode : public IExprNode<F64>
 {
 public:
 
+    ///
+    /// @brief Constructor.
+    ///
+    /// @param[in] kStats  IExpressionStats used by node.
+    ///
     IExprStatsNode(IExpressionStats& kStats);
 
+    ///
+    /// @see IExpression::evaluate()
+    ///
     virtual F64 evaluate() = 0;
 
+    ///
+    /// @see IExpression::nodeType()
+    ///
     virtual IExpression::NodeType nodeType() const = 0;
 
+    ///
+    /// @brief Gets the node's underlying IExpressionStats.
+    ///
+    /// @return Underlying IExpressionStats.
+    ///
     const IExpressionStats& stats() const;
 
 protected:
 
+    ///
+    /// @brief IExpressionStats used by node.
+    ///
     IExpressionStats& mStats;
 };
 
@@ -386,9 +427,7 @@ class RollAvgNode final : public IExprStatsNode
 public:
 
     ///
-    /// @brief Constructor.
-    ///
-    /// @param[in] kStats  Expression stats.
+    /// @see IExprStatsNope::IExprStatsNode()
     ///
     RollAvgNode(IExpressionStats& kStats);
 
@@ -401,6 +440,9 @@ public:
     ///
     F64 evaluate() final override;
 
+    ///
+    /// @see IExpression::nodeType()
+    ///
     IExpression::NodeType nodeType() const final override;
 };
 
@@ -413,9 +455,7 @@ class RollMedianNode final : public IExprStatsNode
 public:
 
     ///
-    /// @brief Constructor.
-    ///
-    /// @param[in] kStats  Expression stats.
+    /// @see IExprStatsNope::IExprStatsNode()
     ///
     RollMedianNode(IExpressionStats& kStats);
 
@@ -428,6 +468,9 @@ public:
     ///
     F64 evaluate() final override;
 
+    ///
+    /// @see IExpression::nodeType()
+    ///
     IExpression::NodeType nodeType() const final override;
 };
 
@@ -439,9 +482,7 @@ class RollMinNode final : public IExprStatsNode
 public:
 
     ///
-    /// @brief Constructor.
-    ///
-    /// @param[in] kStats  Expression stats.
+    /// @see IExprStatsNope::IExprStatsNode()
     ///
     RollMinNode(IExpressionStats& kStats);
 
@@ -454,6 +495,9 @@ public:
     ///
     F64 evaluate() final override;
 
+    ///
+    /// @see IExpression::nodeType()
+    ///
     IExpression::NodeType nodeType() const final override;
 };
 
@@ -465,9 +509,7 @@ class RollMaxNode final : public IExprStatsNode
 public:
 
     ///
-    /// @brief Constructor.
-    ///
-    /// @param[in] kStats  Expression stats.
+    /// @see IExprStatsNope::IExprStatsNode()
     ///
     RollMaxNode(IExpressionStats& kStats);
 
@@ -480,6 +522,9 @@ public:
     ///
     F64 evaluate() final override;
 
+    ///
+    /// @see IExpression::nodeType()
+    ///
     IExpression::NodeType nodeType() const final override;
 };
 
@@ -492,9 +537,7 @@ class RollRangeNode final : public IExprStatsNode
 public:
 
     ///
-    /// @brief Constructor.
-    ///
-    /// @param[in] kStats  Expression stats.
+    /// @see IExprStatsNope::IExprStatsNode()
     ///
     RollRangeNode(IExpressionStats& kStats);
 
@@ -507,6 +550,9 @@ public:
     ///
     F64 evaluate() final override;
 
+    ///
+    /// @see IExpression::nodeType()
+    ///
     IExpression::NodeType nodeType() const final override;
 };
 

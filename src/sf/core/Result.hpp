@@ -187,6 +187,12 @@ enum : Result
     E_SSC_DT = 553,
     E_SSC_NUM = 554,
 
+    // StateVectorAutocoder
+    E_SVA_NULL = 576,
+
+    // StateMachineAutocoder
+    E_SMA_NULL = 608,
+
 /////////////////////////////// PSL Error Codes ////////////////////////////////
 
     // Socket

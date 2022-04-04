@@ -149,3 +149,43 @@ TEST(StateVectorAccess, GetRegion)
     POINTERS_EQUAL(region, &gRegionBar);
     CHECK_ERROR(E_SV_KEY, sv.getRegion("baz", region));
 }
+
+///
+/// @brief Looking up an element that exists but whose type doesn't match the
+/// provided element pointer returns an error.
+///
+TEST(StateVectorAccess, ErrorLookUpElementWrongType)
+{
+    StateVector sv;
+    CHECK_SUCCESS(StateVector::init(gConfig, sv));
+    Element<U32>* elem = nullptr;
+    CHECK_ERROR(E_SV_TYPE, sv.getElement("i32", elem));
+    CHECK_TRUE(elem == nullptr);
+}
+
+///
+/// @brief Looking up an element that does not exist returns an error.
+///
+TEST(StateVectorAccess, ErrorUnknownElement)
+{
+    StateVector sv;
+    CHECK_SUCCESS(StateVector::init(gConfig, sv));
+    Element<U32>* elem = nullptr;
+    CHECK_ERROR(E_SV_KEY, sv.getElement("foo", elem));
+    CHECK_TRUE(elem == nullptr);
+    IElement* ielem = nullptr;
+    CHECK_ERROR(E_SV_KEY, sv.getIElement("foo", ielem));
+    CHECK_TRUE(ielem == nullptr);
+}
+
+///
+/// @brief Looking up a region that does not exist returns an error.
+///
+TEST(StateVectorAccess, ErrorUnknownRegion)
+{
+    StateVector sv;
+    CHECK_SUCCESS(StateVector::init(gConfig, sv));
+    Region* region = nullptr;
+    CHECK_ERROR(E_SV_KEY, sv.getRegion("baz", region));
+    CHECK_TRUE(region == nullptr);
+}

@@ -616,9 +616,8 @@ Result StateMachineCompiler::initLocalElementValues(
         }
 
         // Evaluate expression and write to element. The element and expression
-        // pointers are narrowed to template instantiations matching the
-        // element's type. These casts are guaranteed valid by the element and
-        // expression implementations.
+        // pointers are downcast to template instantiations matching the
+        // element's type.
         SF_SAFE_ASSERT(initExprAsm != nullptr);
         IExpression* const iroot = initExprAsm->root().get();
         SF_SAFE_ASSERT(iroot != nullptr);
@@ -791,9 +790,8 @@ Result StateMachineCompiler::compileAssignmentAction(
     }
 
     // Create assignment action based on element type. The LHS element object
-    // and RHS root node are narrowed to template instantiations that match
-    // the element type. These casts are guaranteed correct in this context
-    // by the element and expression compiler implementations.
+    // and RHS root node are downcast to template instantiations that match
+    // the element type.
     SF_SAFE_ASSERT(kRhsAsm != nullptr);
     SF_SAFE_ASSERT(kRhsAsm->root() != nullptr);
     switch (elemObj->type())

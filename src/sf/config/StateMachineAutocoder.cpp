@@ -10,10 +10,10 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
                                    const String kName,
                                    const Ref<const StateMachineAssembly> kSmAsm)
 {
-    // Check that parse and state vector assembly are non-null.
+    // Check that state machine assembly is non-null.
     if (kSmAsm == nullptr)
     {
-        SF_ASSERT(false);
+        return E_SMA_NULL;
     }
 
     // Initialize a blank workspace for the autocoder.
@@ -734,7 +734,7 @@ String StateMachineAutocoder::codeExprStatsNode(
     SF_ASSERT(classId.size() > 0);
 
     // Look up type info for ExpressionStats template parameter.
-    const ElementType statsType = stats.type();
+    const ElementType statsType = stats.expr().type();
     auto typeInfoIt = TypeInfo::fromEnum.find(statsType);
     SF_ASSERT(typeInfoIt != TypeInfo::fromEnum.end());
     const TypeInfo& statsTypeInfo = (*typeInfoIt).second;

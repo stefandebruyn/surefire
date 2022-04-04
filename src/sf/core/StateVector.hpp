@@ -259,7 +259,7 @@ private:
             return E_SV_TYPE;
         }
 
-        // Lookup is valid - narrow element pointer to template instantiation.
+        // Lookup is valid - downcast element pointer to template instantiation.
         kElem = static_cast<Element<T>*>(elem);
 
         return SUCCESS;

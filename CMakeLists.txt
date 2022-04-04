@@ -124,9 +124,9 @@ endif()
 ########################### Surefire Config Library ############################
 
 # Target `sfconfig` builds the Surefire config static library. This includes
-# components like config parsers and autocoders. This library requires an STL
-# (GCC 4.9.2+) and a heap. This library must be linked alongside the Surefire
-# core library (see target `sf`).
+# components like config parsers and autocoders. This library requires a C++
+# Standard Library (GCC 4.9.2+) and a heap. This library must be linked
+# alongside the Surefire core library (see target `sf`).
 
 file(GLOB sfconfig-src "src/sf/config/*.cpp")
 add_library(sfconfig ${sfconfig-src})
