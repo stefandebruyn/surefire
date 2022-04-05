@@ -13,15 +13,16 @@
     StateVector& sv = svAsm->get();
 
 #define INIT_SM(kSrc)                                                          \
-    /* Set initial state. */                                                   \
-    Element<U32>* elemState = nullptr;                                         \
-    CHECK_SUCCESS(sv.getElement("state", elemState));                          \
-    elemState->write(1);                                                       \
-                                                                               \
-    /* Compile state machine. */                                               \
+    /* Compile state machine, specifying not to rake the assembly. */          \
     std::stringstream smSrc(kSrc);                                             \
     Ref<const StateMachineAssembly> smAsm;                                     \
-    CHECK_SUCCESS(StateMachineCompiler::compile(smSrc, svAsm, smAsm, nullptr));\
+    CHECK_SUCCESS(StateMachineCompiler::compile(                               \
+        smSrc,                                                                 \
+        svAsm,                                                                 \
+        smAsm,                                                                 \
+        nullptr,                                                               \
+        StateMachineCompiler::FIRST_STATE,                                     \
+        false));                                                               \
                                                                                \
     /* Get state machine. */                                                   \
     StateMachine& sm = smAsm->get();                                           \
@@ -1553,4 +1554,33 @@ TEST(StateScriptCompilerErrors, UnknownInitialState)
         "[Foo]\n"
         "true: @stop\n");
     checkCompileError(ss, smAsm, E_SSC_STATE, 3, 12);
+}
+
+TEST(StateScriptCompilerErrors, RakedStateMachineAssembly)
+{
+    INIT_SV(
+        "[Foo]\n"
+        "U32 state\n"
+        "U64 time\n");
+
+    // Compile state machine, specifying to rake the assembly.
+    std::stringstream smSrc(
+        "[state_vector]\n"
+        "U32 state @alias S\n"
+        "U64 time @alias G\n"
+        "\n"
+        "[Foo]\n");
+    Ref<const StateMachineAssembly> smAsm;
+    CHECK_SUCCESS(StateMachineCompiler::compile(
+        smSrc, svAsm, smAsm, nullptr, StateMachineCompiler::FIRST_STATE, true));
+
+    std::stringstream ssSrc(
+        "[config]\n"
+        "delta_t 1\n"
+        "\n"
+        "[Foo]\n"
+        "true: @stop\n");
+    Ref<StateScriptAssembly> ssAsm;
+    CHECK_ERROR(E_SSC_RAKE,
+                StateScriptCompiler::compile(ssSrc,smAsm, ssAsm, nullptr));
 }

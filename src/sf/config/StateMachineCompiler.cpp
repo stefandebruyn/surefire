@@ -19,7 +19,8 @@ Result StateMachineCompiler::compile(
     const Ref<const StateVectorAssembly> kSvAsm,
     Ref<const StateMachineAssembly>& kAsm,
     ErrorInfo* const kErr,
-    const String kInitState)
+    const String kInitState,
+    const bool kRake)
 {
     // Open file input stream.
     std::ifstream ifs(kFilePath);
@@ -41,7 +42,12 @@ Result StateMachineCompiler::compile(
     }
 
     // Send input stream into the next compilation phase.
-    return StateMachineCompiler::compile(ifs, kSvAsm, kAsm, kErr, kInitState);
+    return StateMachineCompiler::compile(ifs,
+                                         kSvAsm,
+                                         kAsm,
+                                         kErr,
+                                         kInitState,
+                                         kRake);
 }
 
 Result StateMachineCompiler::compile(
@@ -49,7 +55,8 @@ Result StateMachineCompiler::compile(
     const Ref<const StateVectorAssembly> kSvAsm,
     Ref<const StateMachineAssembly>& kAsm,
     ErrorInfo* const kErr,
-    const String kInitState)
+    const String kInitState,
+    const bool kRake)
 {
     // Tokenize the input stream.
     Vec<Token> toks;
@@ -75,8 +82,13 @@ Result StateMachineCompiler::compile(
         return res;
     }
 
-    // Send state machine config into the next compilation phase.
-    return StateMachineCompiler::compile(parse, kSvAsm, kAsm, kErr, kInitState);
+    // Send state machine parse into the next compilation phase.
+    return StateMachineCompiler::compile(parse,
+                                         kSvAsm,
+                                         kAsm,
+                                         kErr,
+                                         kInitState,
+                                         kRake);
 }
 
 Result StateMachineCompiler::compile(
@@ -84,7 +96,8 @@ Result StateMachineCompiler::compile(
     const Ref<const StateVectorAssembly> kSvAsm,
     Ref<const StateMachineAssembly>& kAsm,
     ErrorInfo* const kErr,
-    const String kInitState)
+    const String kInitState,
+    const bool kRake)
 {
     // Check that state machine parse is non-null.
     if (kParse == nullptr)
@@ -224,6 +237,16 @@ Result StateMachineCompiler::compile(
         // error here is that the user didn't set a valid initial state in the
         // state element.
         return res;
+    }
+
+    // If the rake option was specified, clear workspace structures that aren't
+    // needed to run the state machine.
+    if (kRake)
+    {
+        ws.elems.clear();
+        ws.stateIds.clear();
+        ws.readOnlyElems.clear();
+        ws.raked = true;
     }
 
     // Create the final assembly.

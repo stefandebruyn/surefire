@@ -186,6 +186,7 @@ enum : Result
     E_SSC_OVFL = 552,
     E_SSC_DT = 553,
     E_SSC_NUM = 554,
+    E_SSC_RAKE = 555,
 
     // StateVectorAutocoder
     E_SVA_NULL = 576,

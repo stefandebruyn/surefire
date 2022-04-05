@@ -90,6 +90,13 @@ Result StateScriptCompiler::compile(
         return E_SSC_NULL;
     }
 
+    // Check that state machine assembly was not raked, otherwise the state
+    // script compiler doesn't have the metadata structures it needs to compile.
+    if (kSmAsm->mWs.raked)
+    {
+        return E_SSC_RAKE;
+    }
+
     // Compile state script config.
     StateScriptAssembly::Config config{0, StateMachine::NO_STATE};
     Result res = StateScriptCompiler::compileConfig(kParse->config,

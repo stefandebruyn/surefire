@@ -54,7 +54,7 @@ Result StateVectorCompiler::compile(std::istream& kIs,
         return res;
     }
 
-    // Parse the state machine config.
+    // Parse the state vector config.
     Ref<const StateVectorParse> parse;
     res = StateVectorParser::parse(toks, parse, kErr);
     if (res != SUCCESS)
@@ -67,7 +67,7 @@ Result StateVectorCompiler::compile(std::istream& kIs,
         return res;
     }
 
-    // Send state machine config into the next compilation phase.
+    // Send state vector parse into the next compilation phase.
     return StateVectorCompiler::compile(parse, kAsm, kErr);
 }
 

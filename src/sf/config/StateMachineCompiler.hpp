@@ -35,9 +35,9 @@ public:
         Ref<StateMachine> sm;
         StateMachine::Config smConfig;
         Ref<const StateMachineParse> smParse;
-    };
 
-    const StateMachineAssembly::Workspace mWs;
+        bool raked;
+    };
 
 private:
 
@@ -48,6 +48,8 @@ private:
     friend class StateScriptCompiler;
 
     friend class StateScriptAssembly;
+
+    const StateMachineAssembly::Workspace mWs;
 
     StateMachineAssembly(const StateMachineAssembly::Workspace& kWs);
 };
@@ -62,19 +64,22 @@ public:
                           const Ref<const StateVectorAssembly> kSvAsm,
                           Ref<const StateMachineAssembly>& kAsm,
                           ErrorInfo* const kErr,
-                          const String kInitState = FIRST_STATE);
+                          const String kInitState = FIRST_STATE,
+                          const bool kRake = true);
 
     static Result compile(std::istream& kIs,
                           const Ref<const StateVectorAssembly> kSvAsm,
                           Ref<const StateMachineAssembly>& kAsm,
                           ErrorInfo* const kErr,
-                          const String kInitState = FIRST_STATE);
+                          const String kInitState = FIRST_STATE,
+                          const bool kRake = true);
 
     static Result compile(const Ref<const StateMachineParse> kParse,
                           const Ref<const StateVectorAssembly> kSvAsm,
                           Ref<const StateMachineAssembly>& kAsm,
                           ErrorInfo* const kErr,
-                          const String kInitState = FIRST_STATE);
+                          const String kInitState = FIRST_STATE,
+                          const bool kRake = true);
 
     StateMachineCompiler() = delete;
 

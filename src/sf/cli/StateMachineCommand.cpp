@@ -104,10 +104,16 @@ I32 Cli::smTest(const Vec<String> kArgs)
         return EXIT_FAILURE;
     }
 
-    // Compile state machine.
+    // Compile state machine, specifying not to rake the assembly. This is
+    // required to compile a state script using the state machine assembly.
     err = ErrorInfo();
     Ref<const StateMachineAssembly> smAsm;
-    res = StateMachineCompiler::compile(smFile, svAsm, smAsm, &err);
+    res = StateMachineCompiler::compile(smFile,
+                                        svAsm,
+                                        smAsm,
+                                        &err,
+                                        StateMachineCompiler::FIRST_STATE,
+                                        false);
     if (res != SUCCESS)
     {
         std::cout << err.prettifyError() << std::endl;

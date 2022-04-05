@@ -43,8 +43,7 @@ public:
     static Result parse(const Vec<Token>& kToks,
                         Ref<const StateVectorParse>& kParse,
                         ErrorInfo* const kErr,
-                        const Vec<String> kRegions =
-                            StateVectorParser::ALL_REGIONS);
+                        const Vec<String> kRegions = ALL_REGIONS);
 
     StateVectorParser() = delete;
 
