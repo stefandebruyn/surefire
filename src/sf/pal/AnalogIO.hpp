@@ -79,7 +79,7 @@ public:
     /// @brief Destructor.
     ///
     /// @post If the AnalogIO was initialized, analog outputs it wrote during
-    /// its lifetime are set to 0.
+    /// its initialized lifetime are set to 0.
     ///
     ~AnalogIO();
 

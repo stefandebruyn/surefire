@@ -40,7 +40,7 @@ struct IPv4Address
 /// framework. The user default-constructs a Socket and then passes it to a
 /// factory method that initializes it. The "resource" represented by a Socket
 /// is the socket object in the underlying platform. The socket is tied to
-/// the lifetime of the Socket and is closed when it destructs.
+/// the lifetime of the Socket and is closed when the Socket destructs.
 ///
 class Socket final
 {
@@ -79,11 +79,19 @@ public:
                        Socket& kSock);
 
     ///
-    /// @brief Attempts to read from multiple sockets simultaneously with a
-    /// timeout, returning once at least one socket has data avilable or the
-    /// timeout expires.
+    /// @brief Waits for multiple sockets to have data available with a timeout,
+    /// returning once at least one socket has data avilable or the timeout
+    /// expires.
     ///
-    /// @param[in]      kSocks      Array of sockets to read.
+    /// @note Linux: The Linux PSL implementation of this function uses the
+    /// select() system call, which returns to the caller how much of the
+    /// timeout was not used. This is not required by POSIX, so if the Linux PSL
+    /// was compiled for another POSIX platform, Thread::select() might not
+    /// update the timeout value passed to it. This is one of only a few known
+    /// potential incompatibilities between the Linux PSL and other POSIX
+    /// platforms.
+    ///
+    /// @param[in]      kSocks      Array of sockets to wait on.
     /// @param[in, out] kReady      Array of socket ready flags. kSocks[i] is
     ///                             eligible for selection only if kReady[i] is
     ///                             false. On SUCCESS and kSocks[i] has data
@@ -94,10 +102,10 @@ public:
     ///                             the reference is updated to store how much
     ///                             time was not used, where 0 indicates a
     ///                             timeout. It is technically possible for the
-    ///                             for the timeout to exactly elapse as a
-    ///                             socket becomes available for reading, so the
-    ///                             caller should check kReady for a ready
-    //                              socket even when kTimeoutUs is 0.
+    ///                             timeout to exactly elapse as a socket
+    ///                             becomes available for reading, so the caller
+    ///                             should check kReady for a ready socket even
+    ///                             when kTimeoutUs is 0.
     ///
     /// @retval SUCCESS         Select successful. This does not necessarily
     ///                         mean a socket became available for reading.
@@ -105,7 +113,7 @@ public:
     ///                         contains a null pointer.
     /// @retval E_SOK_SEL_NONE  kSocks is empty.
     /// @retval E_SOK_UNINIT    kSocks contains an uninitialized socket.
-    /// @retval E_SOK_SEL       Select failed.
+    /// @retval E_SOK_SEL       Linux: select() system call failed.
     ///
     static Result select(Socket* const kSocks[],
                          bool* const kReady,

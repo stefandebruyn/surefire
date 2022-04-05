@@ -89,7 +89,7 @@ public:
     /// @brief Destructor.
     ///
     /// @post If the DigitalIO was initialized, digital outputs it wrote during
-    /// its lifetime are lowered.
+    /// its initialized lifetime are lowered.
     ///
     ~DigitalIO();
 
