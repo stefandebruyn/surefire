@@ -12,8 +12,11 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
         return E_SVA_NULL;
     }
 
-    const Ref<const StateVectorParse> svParse = kSvAsm->parse();
-    SF_ASSERT(svParse != nullptr);
+    // Get state vector config from assembly.
+    const StateVector::Config& svConfig = kSvAsm->config();
+    SF_ASSERT(svConfig.elems != nullptr);
+    SF_ASSERT(svConfig.regions != nullptr);
+
     Autocode a(kOs);
 
     // Add preamble.
@@ -54,28 +57,80 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a.increaseIndent();
 
     // Define backing storage struct. Use the `pack` pragma to remove padding
-    // between adjacent members as required by the state vector.
+    // between adjacent members as required by the state vector. Since this
+    // struct is static, all state vector elements will initially be 0.
+    a("// State vector backing");
     a("#pragma pack(push, 1)");
     a("static struct");
     a("{");
     a.increaseIndent();
 
-    // Define regions as structs nested within the backing storage struct.
-    for (const StateVectorParse::RegionParse& region : svParse->regions)
+    // Region containing current element.
+    const StateVector::RegionConfig* region = svConfig.regions;
+
+    // Whether the autocode is currently in the middle of a region struct
+    // definition.
+    bool inRegionStruct = false;
+
+    // Vectors which will collect definitions for element and region objects
+    // while we autocode the backing storage. These definitions will be inserted
+    // into the autocode after the backing storage is defined.
+    Vec<String> elemDefs;
+    Vec<String> regionDefs;
+
+    // Loop through elements. The backing for each element will be in a region
+    // struct nested within the backing struct.
+    for (const StateVector::ElementConfig* elem = svConfig.elems;
+         elem->name != nullptr;
+         ++elem)
     {
-        a("struct");
-        a("{");
-        a.increaseIndent();
-        
-        // Define elements in region.
-        for (const StateVectorParse::ElementParse& elem : region.elems)
+        // If not in a region struct, begin a new region struct definition.
+        if (!inRegionStruct)
         {
-            SF_SAFE_ASSERT(elem.tokType.typeInfo != nullptr);
-            a("%% %%;", elem.tokType.typeInfo->name, elem.tokName.str);
+            a("struct");
+            a("{");
+            a.increaseIndent();
+            inRegionStruct = true;
         }
 
-        a.decreaseIndent();
-        a("} %%;", region.plainName);
+        // Look up element type info.
+        const IElement* const elemObj = elem->elem;
+        SF_ASSERT(elemObj != nullptr);
+        auto typeInfoIt = TypeInfo::fromEnum.find(elemObj->type());
+        SF_ASSERT(typeInfoIt != TypeInfo::fromEnum.end());
+        const TypeInfo& elemTypeInfo = (*typeInfoIt).second;
+
+        // Define struct member for element.
+        a("%% %%;", elemTypeInfo.name, elem->name);
+
+        // Create element object definitions for insertion into autocode later.
+        elemDefs.push_back(
+            Autocode::format("static Element<%%> elem%%(backing.%%.%%);",
+                             elemTypeInfo.name,
+                             elem->name,
+                             region->name,
+                             elem->name));
+
+        // If the end address of the element is equal to the end address of the
+        // region, end the region struct definition.
+        const U8* const elemEnd =
+            (static_cast<const U8*>(elemObj->addr()) + elemObj->size());
+        const Region* const regionObj = region->region;
+        const U8* const regionEnd =
+            (static_cast<const U8*>(regionObj->addr()) + regionObj->size());
+        if (elemEnd == regionEnd)
+        {
+            // Save region object definition for insertion into autocode later.
+            regionDefs.push_back(
+                Autocode::format("static Region region%%(&backing.%%, sizeof(backing.%%));",
+                                 region->name, region->name, region->name));
+
+            // Close region struct definition.
+            a.decreaseIndent();
+            a("} %%;", region->name);
+            ++region;
+            inRegionStruct = false;
+        }
     }
 
     a.decreaseIndent();
@@ -84,41 +139,34 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a();
 
     // Define element objects.
-    for (const StateVectorParse::RegionParse& region : svParse->regions)
+    a("// Elements");
+    for (const String& elemDef : elemDefs)
     {
-        for (const StateVectorParse::ElementParse& elem : region.elems)
-        {
-            SF_SAFE_ASSERT(elem.tokType.typeInfo != nullptr);
-            a("static Element<%%> elem%%(backing.%%.%%);",
-              elem.tokType.typeInfo->name,
-              elem.tokName.str,
-              region.plainName,
-              elem.tokName.str);
-        }
+        a(elemDef);
     }
 
     a();
 
     // Define region objects.
-    for (const StateVectorParse::RegionParse& region : svParse->regions)
+    a("// Regions");
+    for (const String& regionDef : regionDefs)
     {
-        a("static Region region%%(&backing.%%, sizeof(backing.%%));",
-          region.plainName, region.plainName, region.plainName);
+        a(regionDef);
     }
 
     a();
 
     // Define element config array.
+    a("// Element configs");
     a("static StateVector::ElementConfig elemConfigs[] =");
     a("{");
     a.increaseIndent();
 
-    for (const StateVectorParse::RegionParse& region : svParse->regions)
+    for (const StateVector::ElementConfig* elem = svConfig.elems;
+         elem->name != nullptr;
+         ++elem)
     {
-        for (const StateVectorParse::ElementParse& elem : region.elems)
-        {
-            a("{\"%%\", &elem%%},", elem.tokName.str, elem.tokName.str);
-        }
+        a("{\"%%\", &elem%%},", elem->name, elem->name);
     }
 
     a("{nullptr, nullptr}"); // Null terminator
@@ -127,13 +175,16 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
     a();
 
     // Define region config array.
+    a("// Region configs");
     a("static StateVector::RegionConfig regionConfigs[] =");
     a("{");
     a.increaseIndent();
 
-    for (const StateVectorParse::RegionParse& region : svParse->regions)
+    for (const StateVector::RegionConfig* region = svConfig.regions;
+         region->name != nullptr;
+         ++region)
     {
-        a("{\"%%\", &region%%},", region.plainName, region.plainName);
+        a("{\"%%\", &region%%},", region->name, region->name);
     }
 
     a("{nullptr, nullptr}"); // Null terminator
