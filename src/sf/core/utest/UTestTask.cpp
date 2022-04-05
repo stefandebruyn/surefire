@@ -63,11 +63,13 @@ class TestTask final : public ITask
 public:
 
     TestTask(StateVector& kSv, const Element<U8>* kModeElem) :
-        ITask(kSv, kModeElem), mFoo(nullptr), mBar(nullptr)
+        ITask(kModeElem), mSv(kSv), mFoo(nullptr), mBar(nullptr)
     {
     }
 
 private:
+
+    StateVector& mSv;
 
     Element<I32>* mFoo;
 

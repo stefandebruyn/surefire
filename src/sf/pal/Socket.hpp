@@ -98,14 +98,14 @@ public:
     ///                             available, kReady[i] is set to true.
     /// @param[in]      kNumSocks   Size of kSocks and kReady arrays. This must
     ///                             be at least 1.
-    /// @param[in, out] kTimeoutUs  Timeout in microseconds. On SUCCESS,
-    ///                             the reference is updated to store how much
-    ///                             time was not used, where 0 indicates a
-    ///                             timeout. It is technically possible for the
-    ///                             timeout to exactly elapse as a socket
-    ///                             becomes available for reading, so the caller
-    ///                             should check kReady for a ready socket even
-    ///                             when kTimeoutUs is 0.
+    /// @param[in, out] kTimeoutUs  Timeout in microseconds. A timeout of 0 will
+    ///                             poll. On SUCCESS, the reference is updated
+    ///                             to store how much time was not used, where 0
+    ///                             indicates a timeout. It is technically
+    ///                             possible for the timeout to exactly elapse
+    ///                             as a socket becomes available to read, so
+    ///                             the caller should check kReady for a ready
+    ///                             socket even when kTimeoutUs is 0.
     ///
     /// @retval SUCCESS         Select successful. This does not necessarily
     ///                         mean a socket became available for reading.

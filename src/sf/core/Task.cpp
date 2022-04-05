@@ -10,8 +10,8 @@
 
 #include "sf/core/Task.hpp"
 
-ITask::ITask(StateVector& kSv, const Element<U8>* const kModeElem) :
-    mSv(kSv), mModeElem(kModeElem), mInit(false)
+ITask::ITask(const Element<U8>* const kModeElem) :
+    mModeElem(kModeElem), mInit(false)
 {
 }
 

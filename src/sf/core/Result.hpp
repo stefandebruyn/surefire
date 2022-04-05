@@ -72,6 +72,9 @@ enum : Result
     E_SM_TR_EXIT = 166,
     E_SM_EMPTY = 167,
 
+    // RegionTxTask
+    E_RTX_SIZE = 182,
+
 /////////////////////////// Config Library Error Codes /////////////////////////
 
     // Tokenizer

@@ -70,12 +70,11 @@ public:
     /// @brief Constructor. The constructed task is initially uninitialized and
     /// invoking any methods on it will fail.
     ///
-    /// @param[in] kSv        State vector for access by the task.
     /// @param[in] kModeElem  Read-only element controlling task mode, or null
     ///                       if not using modes, in which case the task always
     ///                       runs in enabled mode.
     ///
-    ITask(StateVector& kSv, const Element<U8>* const kModeElem);
+    ITask(const Element<U8>* const kModeElem);
 
     ///
     /// @brief Destructor.
@@ -95,9 +94,10 @@ public:
 
     ///
     /// @brief Executes 1 cycle of task logic. If the mode element is set to
-    /// ENABLE or no mode element was provided, the enable mode logic runs. If
-    /// the mode element is set to SAFE, the safe mode logic runs. If the mode
-    /// element is set to DISABLE, nothing happens.
+    /// TaskMode::ENABLE or no mode element was provided, stepEnable() is
+    /// called. If the the mode element is set to TaskMode::SAFE, stepSafe()
+    /// is called. If the mode element is set to TaskMode::DISABLE, nothing
+    /// happens.
     ///
     /// @retval SUCCESS       Task successfully stepped.
     /// @retval E_TSK_UNINIT  Task is not initialized.
@@ -112,11 +112,6 @@ public:
     ITask& operator=(ITask&&) = delete;
 
 protected:
-
-    ///
-    /// @brief State vector used by task.
-    ///
-    StateVector& mSv;
 
     ///
     /// @brief One-time task initialization logic.
