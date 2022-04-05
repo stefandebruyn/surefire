@@ -12,8 +12,8 @@ Result Socket::init(const IPv4Address kIp,
                     const Protocol kProto,
                     Socket& kSock)
 {
-    // Verify socket is not already initialized.
-    if (kSock.mFd != -1)
+    // Check that socket is not already initialized.
+    if (kSock.mInit)
     {
         return E_SOK_REINIT;
     }
@@ -52,7 +52,8 @@ Result Socket::init(const IPv4Address kIp,
         return E_SOK_BIND;
     }
 
-    // Socket is ready- set FD.
+    // Socket is ready - initialize it and set FD.
+    kSock.mInit = true;
     kSock.mFd = fd;
 
     return SUCCESS;
@@ -63,19 +64,19 @@ Result Socket::select(Socket* const kSocks[],
                       const U32 kNumSocks,
                       U32& kTimeoutUs)
 {
-    // Verify arrays are non-null.
+    // Check that arrays are non-null.
     if ((kSocks == nullptr) || (kReady == nullptr))
     {
         return E_SOK_NULL;
     }
 
-    // Verify at least 1 socket was provided.
+    // Check that at least 1 socket was provided.
     if (kNumSocks == 0)
     {
         return E_SOK_SEL_NONE;
     }
 
-    // Verify all sockets are non-null and initialized.
+    // Check that all sockets are non-null and initialized.
     for (U32 i = 0; i < kNumSocks; ++i)
     {
         if (kSocks[i] == nullptr)
@@ -83,7 +84,7 @@ Result Socket::select(Socket* const kSocks[],
             return E_SOK_NULL;
         }
 
-        if (kSocks[i]->mFd == -1)
+        if (!kSocks[i]->mInit)
         {
             return E_SOK_UNINIT;
         }
@@ -131,7 +132,7 @@ Result Socket::select(Socket* const kSocks[],
     return SUCCESS;
 }
 
-Socket::Socket() : mFd(-1)
+Socket::Socket() : mInit(false), mFd(-1)
 {
 }
 
@@ -146,13 +147,13 @@ Result Socket::send(const IPv4Address kDestIp,
                     const U32 kNumBytes,
                     U32* const kNumBytesSent)
 {
-    // Verify socket is initialized.
-    if (mFd == -1)
+    // Check that socket is initialized.
+    if (!mInit)
     {
         return E_SOK_UNINIT;
     }
 
-    // Verify buffer is non-null.
+    // Check that buffer is non-null.
     if (kBuf == nullptr)
     {
         return E_SOK_NULL;
@@ -195,13 +196,13 @@ Result Socket::recv(void* const kBuf,
                     const U32 kNumBytes,
                     U32* const kNumBytesRecvd)
 {
-    // Verify socket is initialized.
-    if (mFd == -1)
+    // Check that socket is initialized.
+    if (!mInit)
     {
         return E_SOK_UNINIT;
     }
 
-    // Verify buffer is non-null.
+    // Check that buffer is non-null.
     if (kBuf == nullptr)
     {
         return E_SOK_NULL;
@@ -229,8 +230,8 @@ Result Socket::recv(void* const kBuf,
 
 Result Socket::close()
 {
-    // Verify socket is initialized.
-    if (mFd == -1)
+    // Check that socket is initialized.
+    if (!mInit)
     {
         return E_SOK_UNINIT;
     }
@@ -241,8 +242,9 @@ Result Socket::close()
         return E_SOK_CLOSE;
     }
 
-    // Reset socket FD to uninitialize socket.
+    // Reset socket FD and uninitialize socket.
     mFd = -1;
+    mInit = false;
 
     return SUCCESS;
 }

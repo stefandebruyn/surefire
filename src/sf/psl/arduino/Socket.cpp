@@ -7,6 +7,12 @@ Result Socket::init(const IPv4Address kIp,
                       const Protocol kProto,
                       Socket& kSock)
 {
+    // Check that socket is not already initialized.
+    if (kSock.mInit)
+    {
+        return E_SOK_REINIT;
+    }
+
     // Currently only supporting UDP.
     if (kProto != UDP)
     {
@@ -37,7 +43,9 @@ Result Socket::init(const IPv4Address kIp,
         return E_SOK_OPEN;
     }
 
+    // Socket is ready - initialize it.
     kSock.mInit = true;
+
     return SUCCESS;
 }
 
@@ -57,13 +65,13 @@ Result Socket::send(const IPv4Address kDestIp,
                     const U32 kNumBytes,
                     U32* const kNumBytesSent)
 {
-    // Verify socket is initialized.
+    // Check that socket is initialized.
     if (!mInit)
     {
         return E_SOK_UNINIT;
     }
 
-    // Verify buffer is non-null.
+    // Check that buffer is non-null.
     if (kBuf == nullptr)
     {
         return E_SOK_NULL;
@@ -100,13 +108,13 @@ Result Socket::recv(void* const kBuf,
                     const U32 kNumBytes,
                     U32* const kNumBytesRecvd)
 {
-    // Verify socket is initialized.
+    // Check that socket is initialized.
     if (!mInit)
     {
         return E_SOK_UNINIT;
     }
 
-    // Verify buffer is non-null.
+    // Check that buffer is non-null.
     if (kBuf == nullptr)
     {
         return E_SOK_NULL;

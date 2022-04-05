@@ -229,7 +229,7 @@ public:
     /// script runtime (see StateScriptAssembly). The user should have no reason
     /// to call it.
     ///
-    /// @param[out] kT  Reference to populate with state time.
+    /// @param[out] kT  Reference to assign state time.
     ///
     /// @retval SUCCESS  Successfully got state time.
     /// @retval [other]  Assertion failure.

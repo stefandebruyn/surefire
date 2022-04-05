@@ -37,7 +37,7 @@
 ///
 /// DigitalIO uses the same factory method and RAII patterns as most objects in
 /// the framework. The user default-constructs a DigitalIO and then passes it to
-/// a factory method that initializes it. The "resources" acquired by a
+/// a factory method that initializes it. The "resources" represented by a
 /// DigitalIO are any digital highs it writes. These highs are tied to the
 /// lifetime of the DigitalIO and are lowered when it destructs.
 ///
@@ -65,7 +65,7 @@ public:
     /// @brief Initializes a DigitalIO.
     ///
     /// @pre  kDio is uninitialized.
-    /// @post On success, kDio is initialized and invoking methods on it may
+    /// @post On SUCCESS, kDio is initialized and invoking methods on it may
     ///       succeed.
     /// @post On error, preconditions still hold.
     ///
@@ -88,8 +88,8 @@ public:
     ///
     /// @brief Destructor.
     ///
-    /// @post Digital outputs written by the DigitalIO during its initialized
-    /// lifetime are set back to zero.
+    /// @post If the DigitalIO was initialized, digital outputs it wrote during
+    /// its lifetime are lowered.
     ///
     ~DigitalIO();
 
@@ -99,11 +99,12 @@ public:
     /// @param[in] kPin   Pin number.
     /// @param[in] kMode  Requested pin mode.
     ///
-    /// @retval SUCCESS     Successfully set pin mode.
-    /// @retval E_DIO_PIN   Invalid pin.
-    /// @retval E_DIO_MODE  Invalid mode.
+    /// @retval SUCCESS       Successfully set pin mode.
+    /// @retval E_DIO_UNINIT  DigitalIO is uninitialized.
+    /// @retval E_DIO_PIN     kPin is invalid.
+    /// @retval E_DIO_MODE    kMode is invalid.
     ///
-    Result setMode(const U32 kPin, const Mode kMode);
+    Result setMode(const U32 kPin, const DigitalIO::Mode kMode);
 
     ///
     /// @brief Reads a digital pin.
@@ -112,36 +113,38 @@ public:
     /// digital inputs. On platforms with tristate GPIO, reading a digital
     /// output pin may read the last value written to the pin.
     ///
-    /// @post On success, kVal contains the read value.
+    /// @post On SUCCESS, kVal contains the read value.
     /// @post On error, kVal is unchanged.
     ///
     /// @param[in]  kPin  Pin number.
-    /// @param[out] kVal  Reference to populate with read value. True is equal
-    ///                   to digital high, and false, digital low.
+    /// @param[out] kVal  Reference to assign read value. True represents
+    ///                   digital high, and false represents digital low.
     ///
-    /// @retval SUCCESS    Successfully read pin.
-    /// @retval E_DIO_PIN  Invalid pin.
+    /// @retval SUCCESS       Successfully read pin.
+    /// @retval E_DIO_UNINIT  DigitalIO is uninitialized.
+    /// @retval E_DIO_PIN     kPin is invalid.
     ///
     Result read(const U32 kPin, bool& kVal);
 
     ///
     /// @brief Writes a digital output pin.
     ///
-    /// @post On success, pin is outputting the specified value.
+    /// @post On SUCCESS, pin is outputting the specified value.
     /// @post On error, output of the pin is unchanged.
     ///
     /// @param[in] kPin  Pin number.
-    /// @param[in] kVal  Requested pin output value. True is equal to digital
-    ///                  high, and false, digital low.
+    /// @param[in] kVal  Requested pin output value. True represents digital
+    ///                  high, and false represents digital low.
     ///
-    /// @retval SUCCESS    Successfully wrote pin.
-    /// @retval E_DIO_PIN  Invalid pin.
+    /// @retval SUCCESS       Successfully wrote pin.
+    /// @retval E_DIO_UNINIT  DigitalIO is uninitialized.
+    /// @retval E_DIO_PIN     kPin is invalid.
     ///
     Result write(const U32 kPin, const bool kVal);
 
     ///
-    /// @brief Releases the DigitalIO's resources and uninitializes it, allowing
-    /// it to be initialized again later.
+    /// @brief Releases the DigitalIO's resources and uninitializes it. The
+    /// DigitalIO may be initialized again afterwards.
     ///
     /// @post Digital outputs written by the DigitalIO during its initialized
     /// lifetime are set back to zero.

@@ -34,7 +34,7 @@ Result Thread::init(const Function kFunc,
                     const U8 kAffinity,
                     Thread& kThread)
 {
-    // Verify thread is not already initialized.
+    // Check that thread is not already initialized.
     if (kThread.mInit)
     {
         return E_THR_REINIT;

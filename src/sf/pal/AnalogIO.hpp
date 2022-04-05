@@ -29,12 +29,12 @@
 /// docstrings as closely as possible.
 ///
 /// "Analog" in the context of this interface is implementation-defined as well.
-/// It will usually refer to a signal voltage but could also be a current, PWM
-/// signal, or something else.
+/// It will usually refer to a signal voltage but could also be a signal
+/// current, PWM signal, or something else.
 ///
 /// AnalogIO uses the same factory method and RAII patterns as most objects in
 /// the framework. The user default-constructs an AnalogIO and then passes it
-/// to a factory method that initializes it. The "resources" acquired by an
+/// to a factory method that initializes it. The "resources" represented by an
 /// AnalogIO are any analog output signals it writes. These signals are tied to
 /// the lifetime of the AnalogIO and are set back to zero when it destructs.
 ///
@@ -43,10 +43,19 @@ class AnalogIO final
 public:
 
     ///
+    /// @brief Possible modes for an analog input pin.
+    ///
+    enum InputMode : U8
+    {
+        RSE = 0,         ///< Referenced single-ended analog input.
+        DIFFERENTIAL = 1 ///< Differential analog input.
+    };
+
+    ///
     /// @brief Initializes an AnalogIO.
     ///
     /// @pre  kAio is uninitialized.
-    /// @post On success, kAio is initialized and invoking methods on it may
+    /// @post On SUCCESS, kAio is initialized and invoking methods on it may
     ///       succeed.
     /// @post On error, preconditions still hold.
     ///
@@ -69,62 +78,76 @@ public:
     ///
     /// @brief Destructor.
     ///
-    /// @post Analog outputs written by the AnalogIO during its initialized
-    /// lifetime are set back to zero.
+    /// @post If the AnalogIO was initialized, analog outputs it wrote during
+    /// its lifetime are set to 0.
     ///
     ~AnalogIO();
 
     ///
+    /// @brief Sets the mode of an analog input pin.
+    ///
+    /// @see AnalogIO::InputMode
+    ///
+    /// @param[in] kPin   Pin number.
+    /// @param[in] kMode  Input mode.
+    ///
+    /// @retval SUCCESS       Successfully set input pin mode.
+    /// @retval E_AIO_UNINIT  AnalogIO is uninitialized.
+    /// @retval E_AIO_PIN     kPin is invalid.
+    /// @retval E_AIO_MODE    kMode is invalid.
+    ///
+    Result setInputNode(const U32 kPin, const AnalogIO::InputMode kMode);
+
+    ///
     /// @brief Sets the input/output range of an analog pin.
     ///
-    /// @remark Embedded platforms that allow configuring analog I/O ranges in
-    /// software are somewhat uncommon, so this method will be rarely
-    /// implemented.
-    ///
     /// @param[in] kPin    Pin number.
-    /// @param[in] kRange  Requested pin range. The meaning of this value is
+    /// @param[in] kRange  Pin range. The meaning of this value is
     ///                    implementation-defined.
     ///
-    /// @retval SUCCESS      Successfully set pin range.
-    /// @retval E_AIO_PIN    Invalid pin.
-    /// @retval E_AIO_RANGE  Invalid range.
+    /// @retval SUCCESS       Successfully set pin range.
+    /// @retval E_AIO_UNINIT  AnalogIO is uninitialized.
+    /// @retval E_AIO_PIN     kPin is invalid.
+    /// @retval E_AIO_RANGE   kRange is invalid.
     ///
     Result setRange(const U32 kPin, const I8 kRange);
 
     ///
     /// @brief Reads an analog input pin.
     ///
-    /// @post On success, kVal contains the read value.
+    /// @post On SUCCESS, kVal contains the read value.
     /// @post On error, kVal is unchanged.
     ///
     /// @param[in]  kPin  Pin number.
-    /// @param[out] kVal  Reference to populate with read value. The meaning of
-    ///                   this value is implementation-defined.
+    /// @param[out] kVal  Reference to assign read value. The meaning of this
+    ///                   value is implementation-defined.
     ///
-    /// @retval SUCCESS    Successfully read pin.
-    /// @retval E_AIO_PIN  Invalid pin.
+    /// @retval SUCCESS       Successfully read pin.
+    /// @retval E_AIO_UNINIT  AnalogIO is uninitialized.
+    /// @retval E_AIO_PIN     kPin is invalid.
     ///
     Result read(const U32 kPin, F32& kVal);
 
     ///
     /// @brief Writes an analog output pin.
     ///
-    /// @post On success, pin is outputting the specified value.
+    /// @post On SUCCESS, pin is outputting the specified value.
     /// @post On error, output of the pin is unchanged.
     ///
     /// @param[in] kPin  Pin number.
-    /// @param[in] kVal  Requested pin output value. The meaning of this value
-    ///                  is implementation-defined.
+    /// @param[in] kVal  Pin output value. The meaning of this value is
+    ///                  implementation-defined.
     ///
-    /// @retval SUCCESS    Successfully wrote pin.
-    /// @retval E_AIO_PIN  Invalid pin.
-    /// @retval E_AIO_OUT  Invalid output value.
+    /// @retval SUCCESS       Successfully wrote pin.
+    /// @retval E_AIO_UNINIT  AnalogIO is uninitialized.
+    /// @retval E_AIO_PIN     kPin is invalid.
+    /// @retval E_AIO_OUT     kVal is invalid.
     ///
     Result write(const U32 kPin, const F32 kVal);
 
     ///
-    /// @brief Releases the AnalogIO's resources and uninitializes it, allowing
-    /// it to be initialized again later.
+    /// @brief Releases the AnalogIO's resources and uninitializes it. The
+    /// AnalogIO may be initialized again afterwards.
     ///
     /// @post Analog outputs written by the AnalogIO during its initialized
     /// lifetime are set back to zero.

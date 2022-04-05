@@ -20,13 +20,13 @@
 #include "sf/core/Result.hpp"
 
 ///
-/// @brief Abstract interface for an expression tree.
+/// @brief Abstract interface for an expression tree node.
 ///
 /// The IExpression inheritance hierarchy and interfaces of its child classes
-/// are designed to represent mixed-type expression trees of constants, state
-/// vector elements, and any binary or unary operator. Class interfaces are also
-/// designed to allow RTTI for complete expression trees so that an autocoder
-/// may reconstruct the original source code for the tree.
+/// are designed to implement mixed-type expression trees of constants,
+/// StateVector elements, binary and unary operators, and function calls. Class
+/// interfaces are also designed to allow RTTI of expression tree nodes so that
+/// an autocoder may reconstruct the original source code for the tree.
 ///
 class IExpression
 {

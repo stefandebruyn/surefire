@@ -23,9 +23,9 @@ DigitalIO::~DigitalIO()
     (void) this->release();
 }
 
-Result DigitalIO::setMode(const U32 kPin, const Mode kMode)
+Result DigitalIO::setMode(const U32 kPin, const DigitalIO::Mode kMode)
 {
-    // Verify DIO is initialized.
+    // Check that DIO is initialized.
     if (!mInit)
     {
         return E_DIO_UNINIT;
@@ -33,11 +33,11 @@ Result DigitalIO::setMode(const U32 kPin, const Mode kMode)
 
     switch (kMode)
     {
-        case IN:
+        case DigitalIO::IN:
             pinMode(kPin, INPUT);
             break;
 
-        case OUT:
+        case DigitalIO::OUT:
             pinMode(kPin, OUTPUT);
             break;
 
@@ -50,7 +50,7 @@ Result DigitalIO::setMode(const U32 kPin, const Mode kMode)
 
 Result DigitalIO::read(const U32 kPin, bool& kVal)
 {
-    // Verify DIO is initialized.
+    // Check that DIO is initialized.
     if (!mInit)
     {
         return E_DIO_UNINIT;
@@ -62,7 +62,7 @@ Result DigitalIO::read(const U32 kPin, bool& kVal)
 
 Result DigitalIO::write(const U32 kPin, const bool kVal)
 {
-    // Verify DIO is initialized.
+    // Check that DIO is initialized.
     if (!mInit)
     {
         return E_DIO_UNINIT;

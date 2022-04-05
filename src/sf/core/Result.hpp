@@ -242,6 +242,7 @@ enum : Result
     E_AIO_PIN = 1144,
     E_AIO_RANGE = 1145,
     E_AIO_OUT = 1146,
+    E_AIO_MODE = 1147
 };
 
 #endif
