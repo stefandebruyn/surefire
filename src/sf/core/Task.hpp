@@ -70,11 +70,11 @@ public:
     /// @brief Constructor. The constructed task is initially uninitialized and
     /// invoking any methods on it will fail.
     ///
-    /// @param[in] kModeElem  Read-only element controlling task mode, or null
+    /// @param[in] kElemMode  Read-only element controlling task mode, or null
     ///                       if not using modes, in which case the task always
     ///                       runs in enabled mode.
     ///
-    ITask(const Element<U8>* const kModeElem);
+    ITask(const Element<U8>* const kElemMode);
 
     ///
     /// @brief Destructor.

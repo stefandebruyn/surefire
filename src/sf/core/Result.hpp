@@ -75,6 +75,9 @@ enum : Result
     // RegionTxTask
     E_RTX_SIZE = 182,
 
+    // RegionRxTask
+    E_RRX_NULL = 183,
+
 /////////////////////////// Config Library Error Codes /////////////////////////
 
     // Tokenizer

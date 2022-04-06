@@ -10,8 +10,8 @@
 
 #include "sf/core/Task.hpp"
 
-ITask::ITask(const Element<U8>* const kModeElem) :
-    mModeElem(kModeElem), mInit(false)
+ITask::ITask(const Element<U8>* const kElemMode) :
+    mModeElem(kElemMode), mInit(false)
 {
 }
 

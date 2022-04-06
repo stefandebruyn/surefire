@@ -38,8 +38,8 @@ public:
         /// @brief Socket to send from.
         ///
         /// @note When sending a region the task will call Socket::send() in a
-        /// loop until the entire region is sent, so using a socket with a
-        /// protocol that may not send all at once is safe.
+        /// loop until the entire region is sent, so it is safe to use a socket
+        /// with a protocol that may not send all at once.
         ///
         Socket& sock;
 
@@ -67,10 +67,10 @@ public:
     ///
     /// @brief Constructor.
     ///
-    /// @param[in] kModeElem  Pointer to optional task mode element.
+    /// @param[in] kElemMode  Pointer to optional task mode element.
     /// @param[in] kConfig    Task config.
     ///
-    RegionTxTask(const Element<U8>* const kModeElem,
+    RegionTxTask(const Element<U8>* const kElemMode,
                  const RegionTxTask::Config kConfig);
 
 private:
@@ -78,7 +78,7 @@ private:
     ///
     /// @brief Task config.
     ///
-    RegionTxTask::Config mConfig;
+    const RegionTxTask::Config mConfig;
 
     ///
     /// @brief Task initialization logic.

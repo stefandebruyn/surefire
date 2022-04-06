@@ -38,7 +38,7 @@ Result Region::read(void* const kBuf, const U32 kBufSizeBytes) const
     return SUCCESS;
 }
 
-const void* Region::addr() const
+void* Region::addr() const
 {
     return mAddr;
 }

@@ -36,8 +36,12 @@ TEST_GROUP(RegionTxTask)
 ///
 TEST(RegionTxTask, SendRegion)
 {
-    // Create a region with some arbitrary data.
-    U32 data = 0xDEADBEEF;
+    // Create a 2 kB region filled with arbitrary data.
+    U8 data[2048];
+    for (U32 i = 0; i < sizeof(data); ++i)
+    {
+        data[i] = (i % 255);
+    }
     Region region(&data, sizeof(data));
 
     // Initialize socket for task to use.
@@ -54,9 +58,9 @@ TEST(RegionTxTask, SendRegion)
     CHECK_SUCCESS(task.step());
 
     // Receive region sent by task.
-    U32 recvData = 0;
+    U8 recvData[2048] = {};
     CHECK_SUCCESS(recvSock.recv(&recvData, sizeof(data), nullptr));
-    CHECK_EQUAL(data, recvData);
+    MEMCMP_EQUAL(data, recvData, sizeof(data));
 
     // Polling the socket yields nothing since only 1 region was sent.
     Socket* const sockets[] = {&recvSock};

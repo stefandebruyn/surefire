@@ -72,12 +72,9 @@ public:
     ///
     /// @brief Gets the address of the region backing.
     ///
-    /// @warning This is for testing purposes and should never be used to read
-    /// or write the region.
-    ///
     /// @return Region backing address.
     ///
-    const void* addr() const;
+    void* addr() const;
 
     ///
     /// @brief Gets the size of the region in bytes.

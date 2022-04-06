@@ -27,10 +27,10 @@
 ///
 struct IPv4Address
 {
-    U8 oct1; ///< First octet.
-    U8 oct2; ///< Second octet.
-    U8 oct3; ///< Third octet.
-    U8 oct4; ///< Fourth octet.
+    U8 oct1; ///< 1st octet
+    U8 oct2; ///< 2nd octet
+    U8 oct3; ///< 3rd octet
+    U8 oct4; ///< 4th octet
 };
 
 ///
@@ -51,7 +51,7 @@ public:
     ///
     enum Protocol : U8
     {
-        UDP = 0 ///< UDP/IPv4
+        UDP = 0 ///< UDP/IP
     };
 
     ///

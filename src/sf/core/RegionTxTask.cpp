@@ -10,9 +10,9 @@
 
 #include "sf/core/RegionTxTask.hpp"
 
-RegionTxTask::RegionTxTask(const Element<U8>* const kModeElem,
+RegionTxTask::RegionTxTask(const Element<U8>* const kElemMode,
                            const RegionTxTask::Config kConfig) :
-    ITask(kModeElem), mConfig(kConfig)
+    ITask(kElemMode), mConfig(kConfig)
 {
 }
 
@@ -27,11 +27,18 @@ Result RegionTxTask::stepEnable()
     U32 totalBytesSent = 0;
     while (totalBytesSent < mConfig.region.size())
     {
+        // Compute address in region to start send at and number of bytes to
+        // send.
+        const U8* const sendAddr =
+            (static_cast<const U8*>(mConfig.region.addr()) + totalBytesSent);
+        const U32 bytesToSend = (mConfig.region.size() - totalBytesSent);
+
+        // Do send.
         U32 bytesSent = 0;
         const Result res = mConfig.sock.send(mConfig.destIp,
                                              mConfig.destPort,
-                                             mConfig.region.addr(),
-                                             mConfig.region.size(),
+                                             sendAddr,
+                                             bytesToSend,
                                              &bytesSent);
         if (res != SUCCESS)
         {
