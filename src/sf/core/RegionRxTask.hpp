@@ -111,9 +111,9 @@ private:
         // Update configured rx count and age elements.
         for (U32 i = 0; i < TCnt; ++i)
         {
-            if ((mConfig.elemsRxCnt[i] != nullptr) && (recvdRegions[i]))
+            if ((mConfig.elemsRxCnt[i] != nullptr) && recvdRegions[i])
             {
-                // Region was receive this step, so increment rx count.
+                // Region was received this step, so increment rx count.
                 mConfig.elemsRxCnt[i]->write(mConfig.elemsRxCnt[i]->read() + 1);
             }
 
