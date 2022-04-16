@@ -8,11 +8,17 @@
 /// Surefire is maintained at https://www.github.com/stefandebruyn/surefire.
 ////////////////////////////////////////////////////////////////////////////////
 
+#include "sf/core/Assert.hpp"
 #include "sf/core/Region.hpp"
 #include "sf/core/MemOps.hpp"
 
 Region::Region(void* const kAddr, const U32 kSizeBytes) :
-    mAddr(kAddr), mSizeBytes(kSizeBytes)
+    Region(kAddr, kSizeBytes, nullptr)
+{
+}
+
+Region::Region(void* const kAddr, const U32 kSizeBytes, ILock* const kLock) :
+    mAddr(kAddr), mSizeBytes(kSizeBytes), mLock(kLock)
 {
 }
 
@@ -23,7 +29,28 @@ Result Region::write(const void* const kBuf, const U32 kBufSizeBytes)
         return E_RGN_SIZE;
     }
 
+    if (mLock != nullptr)
+    {
+        // Acquire region lock.
+        const Result res = mLock->acquire();
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+    }
+
     MemOps::memcpy(mAddr, kBuf, mSizeBytes);
+
+    if (mLock != nullptr)
+    {
+        // Release region lock.
+        const Result res = mLock->release();
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+    }
+
     return SUCCESS;
 }
 
@@ -34,7 +61,24 @@ Result Region::read(void* const kBuf, const U32 kBufSizeBytes) const
         return E_RGN_SIZE;
     }
 
+    if (mLock != nullptr)
+    {
+        // Acquire region lock.
+        const Result res = mLock->acquire();
+        (void) res;
+        SF_ASSERT(res == SUCCESS);
+    }
+
     MemOps::memcpy(kBuf, mAddr, mSizeBytes);
+
+    if (mLock != nullptr)
+    {
+        // Release region lock.
+        const Result res = mLock->release();
+        (void) res;
+        SF_ASSERT(res == SUCCESS);
+    }
+
     return SUCCESS;
 }
 

@@ -15,7 +15,9 @@
 #ifndef SF_ELEMENT_HPP
 #define SF_ELEMENT_HPP
 
+#include "sf/core/Assert.hpp"
 #include "sf/core/BasicTypes.hpp"
+#include "sf/pal/Lock.hpp"
 
 ///
 /// @brief Enumeration of possible state vector element data types.
@@ -104,28 +106,92 @@ public:
     /// @param[in] backing  Element backing. The backing must live at least as
     ///                     long as the element.
     ///
-    Element(T& kBacking) : mBacking(kBacking)
+    Element(T& kBacking) : Element(kBacking, nullptr)
+    {
+    }
+
+    ///
+    /// @brief Constructor for a thread-safe element.
+    ///
+    /// @warning Because errors cannot be surfaced from Element::read() and
+    /// Element::write(), the lock implementation must be errorless, i.e., the
+    /// acquire() and release() methods of the provided lock must always return
+    /// SUCCESS. When asserts are enabled, Element::read() and Element::write()
+    /// will assert that this is the case.
+    ///
+    /// @remark The element backing should be inaccessible to anything which is
+    /// not the element. The backing must live at least as long as the element
+    /// it backs.
+    ///
+    /// @param[in] backing  Element backing. The backing must live at least as
+    ///                     long as the element.
+    /// @param[in] mLock    Lock to be acquired and released on every element
+    ///                     access.
+    ///
+    Element(T& kBacking, ILock* const kLock) : mBacking(kBacking), mLock(kLock)
     {
     }
 
     ///
     /// @brief Sets the element value.
     ///
+    /// @warning If the element uses a lock and acquiring the lock fails, the
+    /// program will halt if asserts are enabled. If asserts are disabled, this
+    /// may create a race condition.
+    ///
     /// @param[in] kVal  Write value.
     ///
     void write(const T kVal) const
     {
+        if (mLock != nullptr)
+        {
+            // Acquire element lock.
+            const Result res = mLock->acquire();
+            (void) res;
+            SF_ASSERT(res == SUCCESS);
+        }
+
         mBacking = kVal;
+
+        if (mLock != nullptr)
+        {
+            // Release element lock.
+            const Result res = mLock->release();
+            (void) res;
+            SF_ASSERT(res == SUCCESS);
+        }
     }
 
     ///
     /// @brief Gets the element value.
     ///
+    /// @warning If the element uses a lock and acquiring the lock fails, the
+    /// program will halt if asserts are enabled. If asserts are disabled, this
+    /// may create a race condition.
+    ///
     /// @return Read value.
     ///
     T read() const
     {
-        return mBacking;
+        if (mLock != nullptr)
+        {
+            // Acquire element lock.
+            const Result res = mLock->acquire();
+            (void) res;
+            SF_ASSERT(res == SUCCESS);
+        }
+
+        const T val = mBacking;
+
+        if (mLock != nullptr)
+        {
+            // Release element lock.
+            const Result res = mLock->release();
+            (void) res;
+            SF_ASSERT(res == SUCCESS);
+        }
+
+        return val;
     }
 
     ///
@@ -160,6 +226,11 @@ private:
     /// @brief Element backing.
     ///
     T& mBacking;
+
+    ///
+    /// @brief Element lock, or null if none.
+    ///
+    ILock* const mLock;
 };
 
 #endif

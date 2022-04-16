@@ -17,6 +17,7 @@
 
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Result.hpp"
+#include "sf/pal/Lock.hpp"
 
 ///
 /// @brief A region represents the backing memory of a contiguous set of state
@@ -44,6 +45,19 @@ public:
     /// @param[in] kSizeBytes  Region size in bytes.
     ///
     Region(void* const kAddr, const U32 kSizeBytes);
+
+    ///
+    /// @brief Constructor for a thread-safe region.
+    ///
+    /// @remark The caller assumes responsibility for validating the region
+    /// address and size. Ideally the region exactly spans the backing for some
+    /// number of state vector elements and does not overlap with other regions.
+    ///
+    /// @param[in] kAddr       Region address.
+    /// @param[in] kSizeBytes  Region size in bytes.
+    /// @param[in] kLock       Lock to be acquired on every region access.
+    ///
+    Region(void* const kAddr, const U32 kSizeBytes, ILock* const kLock);
 
     ///
     /// @brief Overwrites the entire region.
@@ -99,6 +113,11 @@ private:
     /// @brief Region size in bytes.
     ///
     const U32 mSizeBytes;
+
+    ///
+    /// @brief Region lock, or null if none.
+    ///
+    ILock* const mLock;
 };
 
 #endif

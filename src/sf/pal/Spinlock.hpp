@@ -6,8 +6,9 @@
 #endif
 
 #include "sf/core/Result.hpp"
+#include "sf/pal/Lock.hpp"
 
-class Spinlock final
+class Spinlock final : public ILock
 {
 public:
 
@@ -17,9 +18,9 @@ public:
 
     ~Spinlock();
 
-    Result acquire();
+    Result acquire() final override;
 
-    Result release();
+    Result release() final override;
 
     Spinlock(const Spinlock&) = delete;
     Spinlock(Spinlock&&) = delete;
