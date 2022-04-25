@@ -25,13 +25,21 @@ public:
         Vec<StateVectorParse::ElementParse> elems;
     };
 
+    struct Options final
+    {
+        bool lock;
+    };
+
     Vec<StateVectorParse::RegionParse> regions;
+
+    Options opts;
 
 private:
 
     friend class StateVectorParser;
 
-    StateVectorParse(Vec<StateVectorParse::RegionParse>& kRegions);
+    StateVectorParse(Vec<StateVectorParse::RegionParse>& kRegions,
+                     const StateVectorParse::Options& kOpts);
 };
 
 class StateVectorParser final
@@ -52,6 +60,10 @@ private:
     static Result parseRegion(TokenIterator& kIt,
                               StateVectorParse::RegionParse& kRegion,
                               ErrorInfo* const kErr);
+
+    static Result parseOptions(TokenIterator& kIt,
+                               StateVectorParse::Options& kOpts,
+                               ErrorInfo* const kErr);
 };
 
 #endif

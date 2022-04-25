@@ -20,6 +20,9 @@ Result StateVectorParser::parse(const Vec<Token>& kToks,
     // Vector of parsed regions.
     Vec<StateVectorParse::RegionParse> regions;
 
+    // Parsed state vector options.
+    StateVectorParse::Options opts = {false};
+
     while (!it.eof())
     {
         switch (it.type())
@@ -31,37 +34,54 @@ Result StateVectorParser::parse(const Vec<Token>& kToks,
 
             case Token::SECTION:
             {
-                // Region section.
-
-                // Extract plain name of region (without the section brakets).
-                StateVectorParse::RegionParse region{};
-                region.plainName = it.str().substr(1, (it.str().size() - 2));
-
-                // Only parse region if all regions were selected for parsing or
-                // the region name appears in the passed vector.
-                if ((kRegions == ALL_REGIONS)
-                    || (std::find(kRegions.begin(),
-                                  kRegions.end(),
-                                  region.plainName) != kRegions.end()))
+                if (it.str() == LangConst::sectionOptions)
                 {
+                    // Options section.
+
                     const Result res =
-                        StateVectorParser::parseRegion(it, region, kErr);
+                        StateVectorParser::parseOptions(it, opts, kErr);
                     if (res != SUCCESS)
                     {
                         return res;
                     }
-
-                    // Add region to parse.
-                    regions.push_back(region);
                 }
                 else
                 {
-                    // Region was not selected for parsing- skip to EOF or next
-                    // section.
-                    it.take();
-                    const U32 idxNext = it.next({Token::SECTION});
-                    it.seek(idxNext);
+                    // Region section.
+
+                    // Extract plain name of region (without the section
+                    // brakets).
+                    StateVectorParse::RegionParse region{};
+                    region.plainName =
+                        it.str().substr(1, (it.str().size() - 2));
+
+                    // Only parse region if all regions were selected for
+                    // parsing or the region name appears in the passed vector.
+                    if ((kRegions == ALL_REGIONS)
+                        || (std::find(kRegions.begin(),
+                                    kRegions.end(),
+                                    region.plainName) != kRegions.end()))
+                    {
+                        const Result res =
+                            StateVectorParser::parseRegion(it, region, kErr);
+                        if (res != SUCCESS)
+                        {
+                            return res;
+                        }
+
+                        // Add region to parse.
+                        regions.push_back(region);
+                    }
+                    else
+                    {
+                        // Region was not selected for parsing- skip to EOF or
+                        // next section.
+                        it.take();
+                        const U32 idxNext = it.next({Token::SECTION});
+                        it.seek(idxNext);
+                    }
                 }
+
                 break;
             }
 
@@ -101,15 +121,16 @@ Result StateVectorParser::parse(const Vec<Token>& kToks,
     }
 
     // Return final parse.
-    kParse.reset(new StateVectorParse(regions));
+    kParse.reset(new StateVectorParse(regions, opts));
 
     return SUCCESS;
 }
 
 /////////////////////////////////// Private ////////////////////////////////////
 
-StateVectorParse::StateVectorParse(Vec<StateVectorParse::RegionParse>& kRegions)
-    : regions(kRegions)
+StateVectorParse::StateVectorParse(Vec<StateVectorParse::RegionParse>& kRegions,
+                                  const StateVectorParse::Options& kOpts)
+    : regions(kRegions), opts(kOpts)
 {
 }
 
@@ -160,6 +181,32 @@ Result StateVectorParser::parseRegion(TokenIterator& kIt,
 
         // Take element name.
         elem.tokName = kIt.take();
+    }
+
+    return SUCCESS;
+}
+
+Result StateVectorParser::parseOptions(TokenIterator& kIt,
+                                       StateVectorParse::Options& kOpts,
+                                       ErrorInfo* const kErr)
+{
+    // Take options section token.
+    kIt.take();
+
+    while (kIt.type() == Token::IDENTIFIER)
+    {
+        const Token& tok = kIt.take();
+        if (tok.str == LangConst::optLock)
+        {
+            // Lock option.
+            kOpts.lock = true;
+        }
+        else
+        {
+            // Unknown option.
+            ErrorInfo::set(kErr, tok, gErrText, "unknown option");
+            return E_SVP_OPT;
+        }
     }
 
     return SUCCESS;

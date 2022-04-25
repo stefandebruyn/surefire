@@ -119,7 +119,7 @@ TEST(StateScriptCompiler, SingleStepPass)
         ".step\n"
         "    foo: bar = bar + 1\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Initial]\n"
@@ -171,7 +171,7 @@ TEST(StateScriptCompiler, SingleStepFail)
         ".step\n"
         "    foo: bar = bar + 1\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Initial]\n"
@@ -232,7 +232,7 @@ TEST(StateScriptCompiler, MultiStepPass)
         "    }\n"
         "    else: bar = bar + 2\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Initial]\n"
@@ -305,7 +305,7 @@ TEST(StateScriptCompiler, MultiStepFail)
         "    }\n"
         "    else: T != 8: bar = bar + 2\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Initial]\n"
@@ -377,7 +377,7 @@ TEST(StateScriptCompiler, DeltaT)
         ".step\n"
         "    sum = sum + T\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 3\n"
         "\n"
         "[Initial]\n"
@@ -425,7 +425,7 @@ TEST(StateScriptCompiler, StateTime)
         "    foo = (T == 1 or T == 3 or T == 5)\n"
         "    T == 5: -> Initial\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Initial]\n"
@@ -481,7 +481,7 @@ TEST(StateScriptCompiler, StateTimeFail)
         ".exit\n"
         "    looped = true\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Initial]\n"
@@ -560,7 +560,7 @@ TEST(StateScriptCompiler, MultiState)
         ".exit\n"
         "    trans = false\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[all_states]\n"
@@ -647,7 +647,7 @@ TEST(StateScriptCompiler, MultiStateFailInStateSection)
         ".exit\n"
         "    trans = false\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[all_states]\n"
@@ -738,7 +738,7 @@ TEST(StateScriptCompiler, MultiStateFailInAllStatesSection)
         ".exit\n"
         "    trans = false\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[all_states]\n"
@@ -808,7 +808,7 @@ TEST(StateScriptCompiler, UseAliasInAssert)
         ".step\n"
         "    foo = foo + 1\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Initial]\n"
@@ -856,7 +856,7 @@ TEST(StateScriptCompiler, UseAliasInInput)
         ".step\n"
         "    foo: bar = true\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Initial]\n"
@@ -904,7 +904,7 @@ TEST(StateScriptCompiler, UseAliasInGuard)
         ".step\n"
         "    T == 5: foo = true\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Initial]\n"
@@ -953,7 +953,7 @@ TEST(StateScriptCompiler, UpdateExpressionStats)
         "    T == 1: foo = 2\n"
         "    T == 2: foo = 1\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Initial]\n"
@@ -1003,7 +1003,7 @@ TEST(StateScriptCompiler, ConfigInitialState)
         "\n"
         "[Bar]\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "init_state Bar\n"
         "\n"
@@ -1047,7 +1047,7 @@ TEST(StateScriptCompiler, EmptyStateSection)
         "\n"
         "[Bar]\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1091,7 +1091,7 @@ TEST(StateScriptCompiler, ImperativeInputs)
         "\n"
         "[Foo]\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[all_states]\n"
@@ -1158,7 +1158,7 @@ TEST(StateScriptCompilerErrors, DupeSection)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1179,7 +1179,7 @@ TEST(StateScriptCompilerErrors, UnknownState)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Bar]\n");
@@ -1201,7 +1201,7 @@ TEST(StateScriptCompilerErrors, UnguardedInput)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1224,7 +1224,7 @@ TEST(StateScriptCompilerErrors, UnguardedAssert)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1247,7 +1247,7 @@ TEST(StateScriptCompilerErrors, UnguardedStop)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1270,7 +1270,7 @@ TEST(StateScriptCompilerErrors, IllegalElse)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1294,7 +1294,7 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInGuardExpression)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1317,7 +1317,7 @@ TEST(StateScriptCompilerErrors, NestedGuard)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1340,7 +1340,7 @@ TEST(StateScriptCompilerErrors, UnreachableInput)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1366,7 +1366,7 @@ TEST(StateScriptCompilerErrors, UnreachableAssert)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1392,7 +1392,7 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInAssertExpression)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1415,7 +1415,7 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInAction)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1438,7 +1438,7 @@ TEST(StateScriptCompilerErrors, NoStop)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -1460,7 +1460,7 @@ TEST(StateScriptCompilerErrors, GlobalClockOverflow)
         "\n"
         "[Initial]\n");
     INIT_SS(
-        "[config]\n"
+        "[options]\n"
         "delta_t 9223372036854775806\n" // I64 max value - 1
         "\n"
         "[Initial]\n"
@@ -1484,7 +1484,7 @@ TEST(StateScriptCompilerErrors, DeltaTFloating)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1.5\n"
         "\n"
         "[Foo]\n"
@@ -1505,7 +1505,7 @@ TEST(StateScriptCompilerErrors, DeltaTNegative)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t -1\n"
         "\n"
         "[Foo]\n"
@@ -1526,7 +1526,7 @@ TEST(StateScriptCompilerErrors, DeltaTTooLarge)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 999999999999999999999999999999999999999999999999999999999999\n"
         "\n"
         "[Foo]\n"
@@ -1547,7 +1547,7 @@ TEST(StateScriptCompilerErrors, UnknownInitialState)
         "\n"
         "[Foo]\n");
     std::stringstream ss(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "init_state Bar\n"
         "\n"
@@ -1575,7 +1575,7 @@ TEST(StateScriptCompilerErrors, RakedStateMachineAssembly)
         smSrc, svAsm, smAsm, nullptr, StateMachineCompiler::FIRST_STATE, true));
 
     std::stringstream ssSrc(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"

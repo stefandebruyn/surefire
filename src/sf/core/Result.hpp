@@ -89,6 +89,7 @@ enum : Result
     E_SVP_ELEM_TYPE = 289,
     E_SVP_RGN = 290,
     E_SVP_TOK = 291,
+    E_SVP_OPT = 292,
 
     // StateMachineParser
     E_SMP_SEC = 320,

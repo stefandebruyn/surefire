@@ -1305,7 +1305,7 @@ TEST(StateMachineCompilerErrors, ConfigSectionNameReserved)
         "U64 time @alias G\n"
         "U32 state @alias S\n"
         "\n"
-        "[config]\n");
+        "[options]\n");
     Ref<const StateMachineParse> smParse;
     CHECK_SUCCESS(StateMachineParser::parse(toks, smParse, nullptr));
     checkCompileError(smParse, svAsm, E_SMC_RSVD, 5, 1);

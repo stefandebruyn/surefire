@@ -49,7 +49,9 @@ namespace LangConst
 
     extern const String sectionAllStates;
 
-    extern const String sectionConfig;
+    extern const String sectionOptions;
+
+    extern const String optLock;
 
     extern const String keywordIf;
 

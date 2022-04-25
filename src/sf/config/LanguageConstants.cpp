@@ -42,7 +42,9 @@ const String LangConst::sectionLocal = "[local]";
 
 const String LangConst::sectionAllStates = "[all_states]";
 
-const String LangConst::sectionConfig = "[config]";
+const String LangConst::sectionOptions = "[options]";
+
+const String LangConst::optLock = "lock";
 
 const String LangConst::keywordIf = "if";
 

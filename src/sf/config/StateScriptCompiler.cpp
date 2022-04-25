@@ -97,12 +97,12 @@ Result StateScriptCompiler::compile(
         return E_SSC_RAKE;
     }
 
-    // Compile state script config.
+    // Compile state script options.
     StateScriptAssembly::Config config{0, StateMachine::NO_STATE};
-    Result res = StateScriptCompiler::compileConfig(kParse->config,
-                                                    kSmAsm,
-                                                    config,
-                                                    kErr);
+    Result res = StateScriptCompiler::compileOptions(kParse->config,
+                                                     kSmAsm,
+                                                     config,
+                                                     kErr);
     if (res != SUCCESS)
     {
         return res;
@@ -626,7 +626,7 @@ Result StateScriptAssembly::run(ErrorInfo& kTokInfo,
 
 /////////////////////////////////// Private ////////////////////////////////////
 
-Result StateScriptCompiler::compileConfig(
+Result StateScriptCompiler::compileOptions(
     const StateScriptParse::Config& kParse,
     const Ref<const StateMachineAssembly> kSmAsm,
     StateScriptAssembly::Config& kConfig,
@@ -634,7 +634,7 @@ Result StateScriptCompiler::compileConfig(
 {
     SF_SAFE_ASSERT(kSmAsm != nullptr);
 
-    // Check that a delta T was specified in the config section.
+    // Check that a delta T was specified in the options section.
     if (kParse.tokDeltaT.str.size() == 0)
     {
         if (kErr != nullptr)
@@ -642,7 +642,7 @@ Result StateScriptCompiler::compileConfig(
             kErr->text = gErrText;
             std::stringstream ss;
             ss << "`" << LangConst::optDeltaT << "` not specified in `"
-               << LangConst::sectionConfig << "` section";
+               << LangConst::sectionOptions << "` section";
             kErr->subtext = ss.str();
         }
 

@@ -182,6 +182,18 @@ Result StateVectorCompiler::compile(const Ref<const StateVectorParse> kParse,
     // arrays.)
     ws.svBacking.reset(new Vec<U8>(svSizeBytes));
 
+    // Before we start creating element and region objects, create a lock for
+    // them if locking was specified.
+    if (kParse->opts.lock)
+    {
+        ws.lock.reset(new Spinlock());
+        const Result res = Spinlock::init(*ws.lock);
+        if (res != SUCCESS)
+        {
+            return res;
+        }
+    }
+
     // Now to initialize the members of the element and region config arrays.
     // This pointer stores the address of the next element's backing storage
     // and will be bumped along as elements are allocated.
@@ -234,7 +246,9 @@ Result StateVectorCompiler::compile(const Ref<const StateVectorParse> kParse,
 
         // Allocate region object, add it to the workspace, and put raw pointers
         // to the region name and object in the region config array.
-        const Ref<Region> region(new Region(regionPtr, regionSizeBytes));
+        const Ref<Region> region(new Region(regionPtr,
+                                            regionSizeBytes,
+                                            ws.lock.get()));
         ws.regions.push_back(region);
         (*ws.regionConfigs)[regionIdx] = {regionNameCpy->c_str(), region.get()};
     }
@@ -287,6 +301,10 @@ Result StateVectorCompiler::allocateElement(
     SF_SAFE_ASSERT(kElem.tokType.typeInfo != nullptr);
     const TypeInfo& typeInfo = *kElem.tokType.typeInfo;
 
+    // Get state vector lock pointer. This will be null if locking was not
+    // specified.
+    ILock* const lock = kWs.lock.get();
+
     // Allocate element object for element based on its type and bump the bump
     // pointer by the element's size.
     Ref<IElement> elemObj;
@@ -295,7 +313,7 @@ Result StateVectorCompiler::allocateElement(
         case ElementType::INT8:
         {
             I8& backing = *reinterpret_cast<I8*>(kBumpPtr);
-            elemObj.reset(new Element<I8>(backing));
+            elemObj.reset(new Element<I8>(backing, lock));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -303,7 +321,7 @@ Result StateVectorCompiler::allocateElement(
         case ElementType::INT16:
         {
             I16& backing = *reinterpret_cast<I16*>(kBumpPtr);
-            elemObj.reset(new Element<I16>(backing));
+            elemObj.reset(new Element<I16>(backing, lock));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -311,7 +329,7 @@ Result StateVectorCompiler::allocateElement(
         case ElementType::INT32:
         {
             I32& backing = *reinterpret_cast<I32*>(kBumpPtr);
-            elemObj.reset(new Element<I32>(backing));
+            elemObj.reset(new Element<I32>(backing, lock));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -319,7 +337,7 @@ Result StateVectorCompiler::allocateElement(
         case ElementType::INT64:
         {
             I64& backing = *reinterpret_cast<I64*>(kBumpPtr);
-            elemObj.reset(new Element<I64>(backing));
+            elemObj.reset(new Element<I64>(backing, lock));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -327,7 +345,7 @@ Result StateVectorCompiler::allocateElement(
         case ElementType::UINT8:
         {
             U8& backing = *reinterpret_cast<U8*>(kBumpPtr);
-            elemObj.reset(new Element<U8>(backing));
+            elemObj.reset(new Element<U8>(backing, lock));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -335,7 +353,7 @@ Result StateVectorCompiler::allocateElement(
         case ElementType::UINT16:
         {
             U16& backing = *reinterpret_cast<U16*>(kBumpPtr);
-            elemObj.reset(new Element<U16>(backing));
+            elemObj.reset(new Element<U16>(backing, lock));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -343,7 +361,7 @@ Result StateVectorCompiler::allocateElement(
         case ElementType::UINT32:
         {
             U32& backing = *reinterpret_cast<U32*>(kBumpPtr);
-            elemObj.reset(new Element<U32>(backing));
+            elemObj.reset(new Element<U32>(backing, lock));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -351,7 +369,7 @@ Result StateVectorCompiler::allocateElement(
         case ElementType::UINT64:
         {
             U64& backing = *reinterpret_cast<U64*>(kBumpPtr);
-            elemObj.reset(new Element<U64>(backing));
+            elemObj.reset(new Element<U64>(backing, lock));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -359,7 +377,7 @@ Result StateVectorCompiler::allocateElement(
         case ElementType::FLOAT32:
         {
             F32& backing = *reinterpret_cast<F32*>(kBumpPtr);
-            elemObj.reset(new Element<F32>(backing));
+            elemObj.reset(new Element<F32>(backing, lock));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -367,7 +385,7 @@ Result StateVectorCompiler::allocateElement(
         case ElementType::FLOAT64:
         {
             F64& backing = *reinterpret_cast<F64*>(kBumpPtr);
-            elemObj.reset(new Element<F64>(backing));
+            elemObj.reset(new Element<F64>(backing, lock));
             kBumpPtr += sizeof(backing);
             break;
         }
@@ -375,7 +393,7 @@ Result StateVectorCompiler::allocateElement(
         case ElementType::BOOL:
         {
             bool& backing = *reinterpret_cast<bool*>(kBumpPtr);
-            elemObj.reset(new Element<bool>(backing));
+            elemObj.reset(new Element<bool>(backing, lock));
             kBumpPtr += sizeof(backing);
             break;
         }

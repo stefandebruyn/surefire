@@ -280,7 +280,7 @@ Ref<const StateMachineParse> StateMachineAssembly::parse() const
 bool StateMachineCompiler::stateNameReserved(const Token& kTokSection)
 {
     return ((kTokSection.str == LangConst::sectionAllStates)
-            || (kTokSection.str == LangConst::sectionConfig));
+            || (kTokSection.str == LangConst::sectionOptions));
 }
 
 Result StateMachineCompiler::checkStateVector(

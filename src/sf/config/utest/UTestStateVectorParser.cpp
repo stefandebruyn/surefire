@@ -207,6 +207,48 @@ TEST(StateVectorParser, MultipleRegionsWithMultipleElements)
     CHECK_EQUAL(toks[15], parse->regions[1].elems[1].tokName);
 }
 
+TEST(StateVectorParser, LockOption)
+{
+    // Parse state vector.
+    TOKENIZE(
+        "[options]\n"
+        "lock\n"
+        "\n"
+        "[Foo]\n");
+    Ref<const StateVectorParse> parse;
+    CHECK_SUCCESS(StateVectorParser::parse(toks, parse, nullptr));
+
+    // Expected number of regions was parsed.
+    CHECK_EQUAL(1, parse->regions.size());
+
+    // Lock option was parsed.
+    CHECK_TRUE(parse->opts.lock);
+
+    // Foo
+    CHECK_EQUAL(toks[5], parse->regions[0].tokName);
+    CHECK_EQUAL("Foo", parse->regions[0].plainName);
+    CHECK_EQUAL(0, parse->regions[0].elems.size());
+}
+
+TEST(StateVectorParser, EmptyOptionsSection)
+{
+    // Parse state vector.
+    TOKENIZE(
+        "[options]\n"
+        "\n"
+        "[Foo]\n");
+    Ref<const StateVectorParse> parse;
+    CHECK_SUCCESS(StateVectorParser::parse(toks, parse, nullptr));
+
+    // Expected number of regions was parsed.
+    CHECK_EQUAL(1, parse->regions.size());
+
+    // Foo
+    CHECK_EQUAL(toks[3], parse->regions[0].tokName);
+    CHECK_EQUAL("Foo", parse->regions[0].plainName);
+    CHECK_EQUAL(0, parse->regions[0].elems.size());
+}
+
 ///////////////////////////////// Error Tests //////////////////////////////////
 
 TEST_GROUP(StateVectorParserErrors)
@@ -251,4 +293,12 @@ TEST(StateVectorParserErrors, SelectNonexistentRegion)
         "[Foo]\n"
         "I32 foo\n");
     checkParseError(toks, E_SVP_RGN, -1, -1, {"Bar"});
+}
+
+TEST(StateVectorParserErrors, UnknownOption)
+{
+    TOKENIZE(
+        "[options]\n"
+        "foo\n");
+    checkParseError(toks, E_SVP_OPT, 2, 1);
 }

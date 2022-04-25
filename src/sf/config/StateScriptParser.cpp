@@ -32,8 +32,8 @@ Result StateScriptParser::parse(const Vec<Token>& kToks,
             return E_SSP_SEC;
         }
 
-        // Config section gets special treatment.
-        if (it.str() == LangConst::sectionConfig)
+        // Options section gets special treatment.
+        if (it.str() == LangConst::sectionOptions)
         {
             // Take section token.
             it.take();

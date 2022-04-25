@@ -38,7 +38,7 @@ TEST(StateScriptParser, NoStateSections)
 {
     TOKENIZE(
         "\n\n\n"
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n");
     Ref<const StateScriptParse> parse;
     CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
@@ -49,7 +49,7 @@ TEST(StateScriptParser, NoStateSections)
 TEST(StateScriptParser, ConfigInitStateOption)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "init_state foo\n");
     Ref<const StateScriptParse> parse;
     CHECK_SUCCESS(StateScriptParser::parse(toks, parse, nullptr));
@@ -60,7 +60,7 @@ TEST(StateScriptParser, ConfigInitStateOption)
 TEST(StateScriptParser, EmptyStateSection)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n");
@@ -81,7 +81,7 @@ TEST(StateScriptParser, EmptyStateSection)
 TEST(StateScriptParser, OneSection)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -130,7 +130,7 @@ TEST(StateScriptParser, OneSection)
 TEST(StateScriptParser, TwoSections)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -217,7 +217,7 @@ TEST(StateScriptParser, TwoSections)
 TEST(StateScriptParser, Assertion)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -281,7 +281,7 @@ TEST(StateScriptParser, ErrorExpectedSection)
 TEST(StateScriptParser, ErrorInBlock)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -292,7 +292,7 @@ TEST(StateScriptParser, ErrorInBlock)
 TEST(StateScriptParser, ErrorInAssertion)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "delta_t 1\n"
         "\n"
         "[Foo]\n"
@@ -303,7 +303,7 @@ TEST(StateScriptParser, ErrorInAssertion)
 TEST(StateScriptParser, ErrorUnexpectedTokenAfterDeltaT)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "delta_t foo\n");
     checkParseError(toks, E_SSP_DT, 2, 1);
 }
@@ -311,7 +311,7 @@ TEST(StateScriptParser, ErrorUnexpectedTokenAfterDeltaT)
 TEST(StateScriptParser, ErrorEofAfterDeltaT)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "delta_t\n");
     checkParseError(toks, E_SSP_DT, 2, 1);
 }
@@ -319,7 +319,7 @@ TEST(StateScriptParser, ErrorEofAfterDeltaT)
 TEST(StateScriptParser, ErrorUnexpectedTokenAfterInitState)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "init_state @foo\n");
     checkParseError(toks, E_SSP_STATE, 2, 1);
 }
@@ -327,7 +327,7 @@ TEST(StateScriptParser, ErrorUnexpectedTokenAfterInitState)
 TEST(StateScriptParser, ErrorEofAfterInitState)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "init_state\n");
     checkParseError(toks, E_SSP_STATE, 2, 1);
 }
@@ -335,7 +335,7 @@ TEST(StateScriptParser, ErrorEofAfterInitState)
 TEST(StateScriptParser, ErrorUnknownConfigOption)
 {
     TOKENIZE(
-        "[config]\n"
+        "[options]\n"
         "foo 3\n");
     checkParseError(toks, E_SSP_CONFIG, 2, 1);
 }

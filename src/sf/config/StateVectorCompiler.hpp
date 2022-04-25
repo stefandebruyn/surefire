@@ -4,6 +4,7 @@
 #include <istream>
 
 #include "sf/config/StateVectorParser.hpp"
+#include "sf/pal/Spinlock.hpp"
 
 class StateVectorAssembly final
 {
@@ -27,6 +28,7 @@ private:
         Vec<Ref<String>> configStrings;
         Vec<Ref<IElement>> elems;
         Vec<Ref<Region>> regions;
+        Ref<Spinlock> lock;
 
         Ref<StateVector> sv;
         StateVector::Config svConfig;

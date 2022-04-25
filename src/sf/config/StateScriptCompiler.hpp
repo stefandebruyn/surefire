@@ -89,10 +89,10 @@ public:
 
 private:
 
-    static Result compileConfig(const StateScriptParse::Config& kParse,
-                                const Ref<const StateMachineAssembly> kSmAsm,
-                                StateScriptAssembly::Config& kConfig,
-                                ErrorInfo* const kErr);
+    static Result compileOptions(const StateScriptParse::Config& kParse,
+                                 const Ref<const StateMachineAssembly> kSmAsm,
+                                 StateScriptAssembly::Config& kConfig,
+                                 ErrorInfo* const kErr);
 };
 
 #endif
