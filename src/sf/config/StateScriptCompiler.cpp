@@ -375,7 +375,7 @@ Result StateScriptCompiler::compile(
                     res = StateMachineCompiler::compileAssignmentAction(
                         innerBlock->action,
                         kSmAsm->mWs.elems,
-                        kSmAsm->mWs.readOnlyElems,
+                        {},
                         input.action,
                         rhsAsm,
                         kErr);

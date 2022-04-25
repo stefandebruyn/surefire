@@ -71,6 +71,9 @@ static Result readRegionThread(void* kArgs)
 ///
 /// @brief Unit tests for Element and Region thread-safety.
 ///
+/// @note These tests require that the PSL supports real-time threads and at
+/// least 2 CPU cores.
+///
 TEST_GROUP(StateVectorSync)
 {
     void setup()
