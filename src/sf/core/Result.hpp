@@ -73,10 +73,16 @@ enum : Result
     E_SM_EMPTY = 167,
 
     // RegionTxTask
-    E_RTX_SIZE = 182,
+    E_RTX_SIZE = 192,
 
     // RegionRxTask
-    E_RRX_NULL = 183,
+    E_RRX_NULL = 224,
+
+    // DigitalIOTask
+    E_DIT_NULL = 256,
+
+    // AnalogIOTask
+    E_AIT_NULL = 288,
 
 /////////////////////////// Config Library Error Codes /////////////////////////
 
