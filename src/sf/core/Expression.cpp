@@ -477,7 +477,7 @@ F64 safeCast<F64, F64>(const F64 kRhs)
 template<>
 F64 safeCast<F64, bool>(const bool kRhs)
 {
-    return static_cast<F64>(kRhs);
+    return (kRhs ? 1.0 : 0.0);
 }
 
 } // namespace ExprOpFuncs

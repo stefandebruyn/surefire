@@ -106,7 +106,8 @@ Result StateMachineCompiler::compile(
     }
 
     // Initialize a blank workspace for the compilation.
-    StateMachineAssembly::Workspace ws{};
+    StateMachineAssembly::Workspace ws;
+    ws.raked = false;
 
     // Put the state machine parse in the workspace so that it can be recalled
     // later.
@@ -996,7 +997,11 @@ Result StateMachineCompiler::compileBlock(
     }
 
     // Allocate new block and add to workspace.
-    kBlock.reset(new StateMachine::Block{});
+    kBlock.reset(new StateMachine::Block{nullptr,
+                                         nullptr,
+                                         nullptr,
+                                         nullptr,
+                                         nullptr});
     kWs.blocks.push_back(kBlock);
 
     Result res = SUCCESS;

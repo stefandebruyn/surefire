@@ -157,7 +157,7 @@ Result StateVectorCompiler::compile(const Ref<const StateVectorParse> kParse,
     }
 
     // Initialize a blank workspace for the compilation.
-    StateVectorAssembly::Workspace ws{};
+    StateVectorAssembly::Workspace ws;
 
     // Put the state vector parse in the workspace so that it can be recalled
     // later.

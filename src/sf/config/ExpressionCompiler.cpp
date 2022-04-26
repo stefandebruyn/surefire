@@ -24,7 +24,7 @@ Result ExpressionCompiler::compile(const Ref<const ExpressionParse> kParse,
     }
 
     // Compile expression starting at root.
-    ExpressionAssembly::Workspace ws{};
+    ExpressionAssembly::Workspace ws;
     Ref<IExprNode<F64>> root = nullptr;
     const Result res = ExpressionCompiler::compileImpl(kParse,
                                                        kBindings,

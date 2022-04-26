@@ -51,7 +51,7 @@ Result StateVectorParser::parse(const Vec<Token>& kToks,
 
                     // Extract plain name of region (without the section
                     // brakets).
-                    StateVectorParse::RegionParse region{};
+                    StateVectorParse::RegionParse region;
                     region.plainName =
                         it.str().substr(1, (it.str().size() - 2));
 
@@ -148,7 +148,7 @@ Result StateVectorParser::parseRegion(TokenIterator& kIt,
     while (!kIt.eof() && (kIt.type() != Token::SECTION))
     {
         // Add new element to region.
-        kRegion.elems.push_back(StateVectorParse::ElementParse{});
+        kRegion.elems.push_back(StateVectorParse::ElementParse());
         StateVectorParse::ElementParse& elem = kRegion.elems.back();
 
         // Check that current token, which should be an element type, is an

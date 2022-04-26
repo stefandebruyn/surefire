@@ -17,7 +17,7 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
     }
 
     // Initialize a blank workspace for the autocoder.
-    StateMachineAutocoder::Workspace ws{};
+    StateMachineAutocoder::Workspace ws{nullptr, {}, 0, 0, 0, 0, 0};
     ws.smAsm = kSmAsm;
 
     // Add preamble.

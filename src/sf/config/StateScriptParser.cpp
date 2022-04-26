@@ -18,7 +18,8 @@ Result StateScriptParser::parse(const Vec<Token>& kToks,
     Vec<StateScriptParse::SectionParse> sections;
 
     // Parsed config options.
-    StateScriptParse::Config config{};
+    StateScriptParse::Config config;
+    config.deltaT = 0;
 
     // Consume any leading newlines.
     it.eat();
@@ -95,7 +96,7 @@ Result StateScriptParser::parse(const Vec<Token>& kToks,
         else
         {
             // Parse state section.
-            sections.push_back(StateScriptParse::SectionParse{});
+            sections.push_back(StateScriptParse::SectionParse());
             StateScriptParse::SectionParse& section = sections.back();
 
             // Take section token.

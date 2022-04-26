@@ -123,7 +123,7 @@ Result StateScriptCompiler::compile(
     // Compile all sections.
     for (const StateScriptParse::SectionParse& sectionParse : kParse->sections)
     {
-        StateScriptAssembly::Section section{};
+        StateScriptAssembly::Section section;
 
         if (sectionParse.tokName.str == LangConst::sectionAllStates)
         {
@@ -318,7 +318,7 @@ Result StateScriptCompiler::compile(
                     {
                         dynamic_cast<IExprNode<bool>*>(guardAsm->root().get()),
                         nullptr,
-                        {}
+                        TokenIterator::NONE
                     };
                     section.asserts.push_back(stop);
                 }

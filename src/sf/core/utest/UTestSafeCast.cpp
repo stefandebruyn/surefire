@@ -51,7 +51,7 @@ static const F64 gInf = (1.0 / 0.0);
 static const F64 gNegInf = (-1.0 / 0.0);
 
 ///
-/// @brief NaN infinity constant.
+/// @brief NaN constant.
 ///
 static const F64 gNan = (0.0 / 0.0);
 

@@ -56,8 +56,6 @@ TEST(Expression, BinOpExprNode)
 {
     ConstExprNode<I32> five(5);
     ConstExprNode<I32> ten(10);
-    auto mult = [] (const I32 kLhs, const I32 kRhs) -> I32
-        { return (kLhs * kRhs); };
     BinOpExprNode<I32> fiveTimesTen(
         [] (I32 a, I32 b) -> I32 { return (a * b); },
         five,

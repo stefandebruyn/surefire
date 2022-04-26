@@ -251,13 +251,13 @@ Result ExpressionParser::parseFunctionCall(TokenIterator kIt,
     Ref<ExpressionParse::MutNode> node = kNode;
     for (TokenIterator& argIt : argExprs)
     {
-        node->left.reset(new ExpressionParse::MutNode{{},
+        node->left.reset(new ExpressionParse::MutNode{TokenIterator::NONE,
                                                       nullptr,
                                                       nullptr,
                                                       false});
         const Result res = ExpressionParser::parseImpl(argIt,
-                                                      node->left->right,
-                                                      kErr);
+                                                       node->left->right,
+                                                       kErr);
         if (res != SUCCESS)
         {
             return res;

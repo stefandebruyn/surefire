@@ -13,7 +13,8 @@
     CHECK_SUCCESS(StateVectorCompiler::compile(svSrc, svAsm, nullptr));        \
                                                                                \
     /* Get state vector. */                                                    \
-    StateVector& sv = svAsm->get();
+    StateVector& sv = svAsm->get();                                            \
+    (void) sv;
 
 #define INIT_SM(kSrc)                                                          \
     /* Compile state machine. */                                               \
@@ -22,7 +23,8 @@
     CHECK_SUCCESS(StateMachineCompiler::compile(smSrc, svAsm, smAsm, nullptr));\
                                                                                \
     /* Get state machine. */                                                   \
-    StateMachine& sm = smAsm->get();
+    StateMachine& sm = smAsm->get();                                           \
+    (void) sm;
 
 #define SET_SV_ELEM(kElemName, kElemType, kSetVal)                             \
 {                                                                              \
