@@ -63,7 +63,7 @@ Result SpinExecutor::execute()
 
         // Spinwait for remainder of cycle. Subtract out the clock overhead to
         // make the spinwait slightly more accurate.
-        SF_SAFE_ASSERT(cycleEndNs >= args->clockOverheadNs);
+        SF_SAFE_ASSERT(cycleEndNs >= clockOverheadNs);
         while (Clock::nanoTime() < (cycleEndNs - clockOverheadNs));
 
         // Bump cycle end time by period.
