@@ -25,6 +25,10 @@
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Result.hpp"
 
+#ifdef SF_PLATFORM_NILRT
+#    include "sf/psl/nilrt/NiFpgaSession.hpp"
+#endif
+
 ///
 /// @brief Platform-agnostic interface for accessing digital I/O pin hardware.
 ///
@@ -168,10 +172,22 @@ private:
     bool mInit;
 
 #ifdef SF_PLATFORM_ARDUINO
-    /// Bit vector of pin output values. The rightmost bit stores the last value
-    /// written to pin 0, the 2nd rightmost stores pin 1, and so on. This is
-    /// used to lower all pins raised by the DigitalIO when it is released.
+
+    ///
+    /// @brief Bit vector of pin output values. The rightmost bit stores the
+    /// last value written to pin 0, the 2nd rightmost stores pin 1, and so on.
+    /// This is used to lower all pins raised by the DigitalIO when it is
+    /// released.
+    ///
     U64 mOutBitVec;
+
+#elif defined(SF_PLATFORM_NILRT)
+
+    ///
+    /// @brief FPGA session handle.
+    ///
+    NiFpga_Session mSession;
+
 #endif
 };
 

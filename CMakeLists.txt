@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(sf CXX)
+project(sf C CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -20,6 +20,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         # NILRT
         file(GLOB nilrt-utest-src "src/sf/psl/nilrt/utest/*.cpp")
         list(APPEND psl-utest-src ${nilrt-utest-src})
+        file (GLOB nilrt-psl-src
+            "src/sf/psl/nilrt/*.cpp"
+            "src/sf/psl/nilrt/nifpga/*.c"
+        )
+        list(APPEND psl-src ${nilrt-psl-src})
     else()
         # Some other Linux, probably the build host.
         file(GLOB linux-utest-src "src/sf/psl/linux/utest/*.cpp")
@@ -67,7 +72,7 @@ target_compile_options(cli PRIVATE
     -Wall
     -Wextra
     -Werror
-    -Wold-style-cast
+    $<$<COMPILE_LANGUAGE:CXX>:-Wold-style-cast>
 )
 
 ################################## Unit Tests ##################################
@@ -107,7 +112,7 @@ target_compile_options(sf PRIVATE
     -Wall
     -Wextra
     -Werror
-    -Wold-style-cast
+    $<$<COMPILE_LANGUAGE:CXX>:-Wold-style-cast>
 )
 
 # When cross-compiling to Arduino, link libraries needed by the Arduino PSL. If
@@ -135,5 +140,5 @@ target_compile_options(sfconfig PRIVATE
     -Wall
     -Wextra
     -Werror
-    -Wold-style-cast
+    $<$<COMPILE_LANGUAGE:CXX>:-Wold-style-cast>
 )

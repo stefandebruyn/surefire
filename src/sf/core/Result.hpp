@@ -264,6 +264,8 @@ enum : Result
     E_DIO_REINIT = 1121,
     E_DIO_PIN = 1122,
     E_DIO_MODE = 1123,
+    E_DIO_READ = 1124,
+    E_DIO_WRITE = 1125,
 
     // AnalogIO
     E_AIO_UNINIT = 1142,
@@ -271,7 +273,14 @@ enum : Result
     E_AIO_PIN = 1144,
     E_AIO_RANGE = 1145,
     E_AIO_OUT = 1146,
-    E_AIO_MODE = 1147
+    E_AIO_MODE = 1147,
+
+    // NI FPGA
+    E_NI_FPGA_INIT = 65536,
+    E_NI_FPGA_OPEN = 65537,
+    E_NI_FPGA_MAX = 65538,
+    E_NI_FPGA_CLOSE = 65539,
+    E_NI_FPGA_DMODE = 65540,
 };
 
 #endif

@@ -18,3 +18,4 @@ add_compile_options(
     --sysroot=/usr/local/oecore-x86_64/sysroots/cortexa9-vfpv3-nilrt-linux-gnueabi
 )
 add_link_options(--sysroot=/usr/local/oecore-x86_64/sysroots/cortexa9-vfpv3-nilrt-linux-gnueabi)
+link_libraries(dl)
