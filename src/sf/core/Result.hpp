@@ -95,6 +95,10 @@ enum : Result
     E_EXE_NULL = 320,
     E_EXE_OVFL = 321,
 
+    // RealTimeExecutor
+    E_MSE_CORE = 352,
+    E_MSE_CNT = 353,
+
 /////////////////////////// Config Library Error Codes /////////////////////////
 
     // Tokenizer
