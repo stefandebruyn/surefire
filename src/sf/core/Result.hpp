@@ -274,6 +274,7 @@ enum : Result
     E_AIO_RANGE = 1145,
     E_AIO_OUT = 1146,
     E_AIO_MODE = 1147,
+    E_AIO_READ = 1148,
 
     // NI FPGA
     E_NI_FPGA_INIT = 65536,
@@ -281,6 +282,7 @@ enum : Result
     E_NI_FPGA_MAX = 65538,
     E_NI_FPGA_CLOSE = 65539,
     E_NI_FPGA_DMODE = 65540,
+    E_NI_FPGA_AIMODE = 65541,
 };
 
 #endif

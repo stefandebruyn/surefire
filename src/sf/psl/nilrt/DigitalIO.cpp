@@ -1,7 +1,7 @@
-#include <cstring>
-
 #include "sf/core/Diagnostic.hpp"
 #include "sf/pal/DigitalIO.hpp"
+
+//////////////////////////////// Private Data //////////////////////////////////
 
 // FPGA API has its own bool type - assert that this type is equivalent to C++
 // bool to simplify things later.
@@ -10,9 +10,9 @@ static_assert(sizeof(NiFpga_Bool) == sizeof(bool),
 static_assert(NiFpga_True == true, "NiFpga_True unexpected value");
 static_assert(NiFpga_False == false, "NiFpga_False unexpected value");
 
-static const U32 gDigitalPinCnt = 28;
+static constexpr U32 gDigitalPinCnt = 28;
 
-static const NiFpga_IO_IndicatorBool gDinIds[gDigitalPinCnt] =
+static const NiFpga_IO_IndicatorBool gDiIds[gDigitalPinCnt] =
 {
     NiFpga_IO_IndicatorBool_inDIO0,
     NiFpga_IO_IndicatorBool_inDIO1,
@@ -44,7 +44,7 @@ static const NiFpga_IO_IndicatorBool gDinIds[gDigitalPinCnt] =
     NiFpga_IO_IndicatorBool_inDIO27
 };
 
-static const NiFpga_IO_ControlBool gDoutIds[gDigitalPinCnt] =
+static const NiFpga_IO_ControlBool gDoIds[gDigitalPinCnt] =
 {
     NiFpga_IO_ControlBool_outDIO0,
     NiFpga_IO_ControlBool_outDIO1,
@@ -76,7 +76,7 @@ static const NiFpga_IO_ControlBool gDoutIds[gDigitalPinCnt] =
     NiFpga_IO_ControlBool_outDIO27
 };
 
-static const NiFpga_IO_ControlBool gDoutEnableIds[gDigitalPinCnt] =
+static const NiFpga_IO_ControlBool gDoEnableIds[gDigitalPinCnt] =
 {
     NiFpga_IO_ControlBool_outputEnableDIO0,
     NiFpga_IO_ControlBool_outputEnableDIO1,
@@ -108,13 +108,17 @@ static const NiFpga_IO_ControlBool gDoutEnableIds[gDigitalPinCnt] =
     NiFpga_IO_ControlBool_outputEnableDIO27
 };
 
+/////////////////////////////////// Public /////////////////////////////////////
+
 Result DigitalIO::init(DigitalIO& kDio)
 {
+    // Check that DIO is not already initialized.
     if (kDio.mInit)
     {
         return E_DIO_REINIT;
     }
 
+    // Open FPGA session.
     const Result res = niFpgaSessionOpen(kDio.mSession);
     if (res != SUCCESS)
     {
@@ -167,9 +171,10 @@ Result DigitalIO::setMode(const U32 kPin, const DigitalIO::Mode kMode)
 
     // Set pin mode.
     NiFpga_Status stat = NiFpga_Status_Success;
-    NiFpga_MergeStatus(&stat, NiFpga_WriteBool(mSession,
-                                               gDoutEnableIds[kPin],
-                                               outputEnable));
+    NiFpga_MergeStatus(&stat,
+                       NiFpga_WriteBool(mSession,
+                                        gDoEnableIds[kPin],
+                                        outputEnable));
     if (stat != NiFpga_Status_Success)
     {
         return E_NI_FPGA_DMODE;
@@ -196,7 +201,7 @@ Result DigitalIO::read(const U32 kPin, bool& kVal)
     NiFpga_Status stat = NiFpga_Status_Success;
     NiFpga_MergeStatus(&stat,
                        NiFpga_ReadBool(mSession,
-                                       gDinIds[kPin],
+                                       gDiIds[kPin],
                                        reinterpret_cast<NiFpga_Bool*>(&kVal)));
     if (stat != NiFpga_Status_Success)
     {
@@ -224,7 +229,7 @@ Result DigitalIO::write(const U32 kPin, const bool kVal)
     NiFpga_Status stat = NiFpga_Status_Success;
     const NiFpga_Bool writeVal = (kVal ? NiFpga_True : NiFpga_False);
     NiFpga_MergeStatus(&stat,
-                       NiFpga_WriteBool(mSession, gDoutIds[kPin], writeVal));
+                       NiFpga_WriteBool(mSession, gDoIds[kPin], writeVal));
     if (stat != NiFpga_Status_Success)
     {
         return E_DIO_READ;

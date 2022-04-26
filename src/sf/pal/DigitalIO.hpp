@@ -79,6 +79,7 @@ public:
     /// @post On SUCCESS, kDio is initialized and invoking methods on it may
     ///       succeed.
     /// @post On error, preconditions still hold.
+    /// @post The DIO hardware state is indeterminate.
     ///
     /// @param[in] kDio  DigitalIO to initialize.
     ///

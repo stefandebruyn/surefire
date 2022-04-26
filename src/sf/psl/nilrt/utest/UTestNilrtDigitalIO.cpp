@@ -8,7 +8,67 @@ TEST_GROUP(NilrtDigitalIO)
 {
 };
 
-TEST(NilrtDigitalIO, RaiseAllLowerAll)
+TEST(NilrtDigitalIO, SetModeSuccess)
+{
+    // Initialize DIO.
+    DigitalIO dio;
+    CHECK_SUCCESS(DigitalIO::init(dio));
+
+    // Setting all modes on all pins succeeds.
+    for (U32 i = 0; i < 28; ++i)
+    {
+        CHECK_SUCCESS(dio.setMode(i, DigitalIO::IN));
+        CHECK_SUCCESS(dio.setMode(i, DigitalIO::OUT));
+    }
+
+    // Specifying an invalid pin or mode returns an error.
+    CHECK_ERROR(E_DIO_PIN, dio.setMode(28, DigitalIO::IN));
+    CHECK_ERROR(E_DIO_MODE, dio.setMode(0, static_cast<DigitalIO::Mode>(2)));
+}
+
+TEST(NilrtDigitalIO, ReadSuccess)
+{
+    // Initialize DIO.
+    DigitalIO dio;
+    CHECK_SUCCESS(DigitalIO::init(dio));
+
+    // Reading all pins succeeds.
+    bool val = false;
+    for (U32 i = 0; i < 28; ++i)
+    {
+        CHECK_SUCCESS(dio.read(i, val));
+    }
+
+    // Specifying an invalid pin returns an error.
+    CHECK_ERROR(E_DIO_PIN, dio.read(28, val));
+}
+
+TEST(NilrtDigitalIO, WriteSuccess)
+{
+    // Initialize DIO.
+    DigitalIO dio;
+    CHECK_SUCCESS(DigitalIO::init(dio));
+
+    // Writing low and high to all pins succeeds.
+    for (U32 i = 0; i < 28; ++i)
+    {
+        CHECK_SUCCESS(dio.write(i, false));
+        CHECK_SUCCESS(dio.write(i, true));
+    }
+
+    // Specifying an invalid pin returns an error.
+    CHECK_ERROR(E_DIO_PIN, dio.write(28, false));
+}
+
+TEST(NilrtDigitalIO, ReleaseAndReuseSuccess)
+{
+    DigitalIO dio;
+    CHECK_SUCCESS(DigitalIO::init(dio));
+    CHECK_SUCCESS(dio.release());
+    CHECK_SUCCESS(DigitalIO::init(dio));
+}
+
+TEST(NilrtDigitalIO, RaiseAndLower)
 {
     // Initialize DIO.
     DigitalIO dio;
@@ -17,6 +77,7 @@ TEST(NilrtDigitalIO, RaiseAllLowerAll)
     // Set all pins as output and raise them.
     for (U32 i = 0; i < gDigitalPinCnt; ++i)
     {
+        CHECK_SUCCESS(dio.setMode(i, DigitalIO::IN));
         CHECK_SUCCESS(dio.setMode(i, DigitalIO::OUT));
         CHECK_SUCCESS(dio.write(i, true));
     }
@@ -49,27 +110,3 @@ TEST(NilrtDigitalIO, RaiseAllLowerAll)
         CHECK_TRUE(!val);
     }
 }
-
-TEST(NilrtDigitalIO, ReleaseAndReuse)
-{
-    // Initialize DIO.
-    DigitalIO dio;
-    CHECK_SUCCESS(DigitalIO::init(dio));
-
-    // Raise pin 0.
-    CHECK_SUCCESS(dio.write(0, true));
-
-    // Release DIO.
-    CHECK_SUCCESS(dio.release());
-
-    // Attempting to write the DIO again returns an error.
-    CHECK_ERROR(E_DIO_UNINIT, dio.write(0, true));
-
-    // Reinitialize DIO.
-    CHECK_SUCCESS(DigitalIO::init(dio));
-
-    // Raise pin 0.
-    CHECK_SUCCESS(dio.write(0, true));
-}
-
-// TEST(NilrtDigitalIO, 

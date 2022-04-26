@@ -25,6 +25,10 @@
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Result.hpp"
 
+#ifdef SF_PLATFORM_NILRT
+#    include "sf/psl/nilrt/NiFpgaSession.hpp"
+#endif
+
 ///
 /// @brief Platform-agnostic interface for accessing analog I/O pin hardware.
 ///
@@ -50,21 +54,13 @@ class AnalogIO final
 public:
 
     ///
-    /// @brief Possible modes for an analog input pin.
-    ///
-    enum InputMode : U8
-    {
-        RSE = 0,         ///< Referenced single-ended analog input.
-        DIFFERENTIAL = 1 ///< Differential analog input.
-    };
-
-    ///
     /// @brief Initializes an AnalogIO.
     ///
     /// @pre  kAio is uninitialized.
     /// @post On SUCCESS, kAio is initialized and invoking methods on it may
     ///       succeed.
     /// @post On error, preconditions still hold.
+    /// @post The AIO hardware state is indeterminate.
     ///
     /// @param[in] kAio  AnalogIO to initialize.
     ///
@@ -91,22 +87,32 @@ public:
     ~AnalogIO();
 
     ///
-    /// @brief Sets the mode of an analog input pin.
+    /// @brief Sets the mode of an analog pin.
     ///
-    /// @see AnalogIO::InputMode
+    /// The meaning of "mode" is implementation-defined. The most common
+    /// interpretation is probably analog input mode, e.g., RSE vs.
+    /// differential.
+    ///
+    /// @note NILRT: kPin is an input pin. Mode 1 is RSE, and mode 0 is
+    /// differential. A differential pin's reference is the pin 8 above it. Pins
+    /// >=8 should not be read in differential mode, as the read value will be
+    /// negated.
     ///
     /// @param[in] kPin   Pin number.
-    /// @param[in] kMode  Input mode.
+    /// @param[in] kMode  Pin mode. The meaning of this value is
+    ///                   implementation-defined.
     ///
-    /// @retval SUCCESS       Successfully set input pin mode.
+    /// @retval SUCCESS       Successfully set pin mode.
     /// @retval E_AIO_UNINIT  AnalogIO is uninitialized.
     /// @retval E_AIO_PIN     kPin is invalid.
     /// @retval E_AIO_MODE    kMode is invalid.
     ///
-    Result setInputNode(const U32 kPin, const AnalogIO::InputMode kMode);
+    Result setMode(const U32 kPin, const I8 kMode);
 
     ///
     /// @brief Sets the input/output range of an analog pin.
+    ///
+    /// @note NILRT: Valid ranges are 1, 2, 5, and 10 for +/- that many volts.
     ///
     /// @param[in] kPin    Pin number.
     /// @param[in] kRange  Pin range. The meaning of this value is
@@ -125,6 +131,8 @@ public:
     /// @post On SUCCESS, kVal contains the read value.
     /// @post On error, kVal is unchanged.
     ///
+    /// @note NILRT: The unit of kVal is V.
+    ///
     /// @param[in]  kPin  Pin number.
     /// @param[out] kVal  Reference to assign read value. The meaning of this
     ///                   value is implementation-defined.
@@ -140,6 +148,8 @@ public:
     ///
     /// @post On SUCCESS, pin is outputting the specified value.
     /// @post On error, output of the pin is unchanged.
+    ///
+    /// @note NILRT: The unit of kVal is V.
     ///
     /// @param[in] kPin  Pin number.
     /// @param[in] kVal  Pin output value. The meaning of this value is
@@ -169,6 +179,15 @@ private:
     /// @brief Whether AnalogIO is initialized.
     ///
     bool mInit;
+
+#ifdef SF_PLATFORM_NILRT
+
+    ///
+    /// @brief FPGA session handle.
+    ///
+    NiFpga_Session mSession;
+
+#endif
 };
 
 #endif
