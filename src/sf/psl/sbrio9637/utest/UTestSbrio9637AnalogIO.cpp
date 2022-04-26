@@ -1,11 +1,11 @@
 #include "sf/pal/AnalogIO.hpp"
 #include "sf/utest/UTest.hpp"
 
-TEST_GROUP(NilrtAnalogIO)
+TEST_GROUP(Sbrio9637AnalogIO)
 {
 };
 
-TEST(NilrtAnalogIO, SetModeSuccess)
+TEST(Sbrio9637AnalogIO, SetModeSuccess)
 {
     AnalogIO aio;
     CHECK_SUCCESS(AnalogIO::init(aio));
@@ -22,7 +22,7 @@ TEST(NilrtAnalogIO, SetModeSuccess)
     CHECK_ERROR(E_AIO_MODE, aio.setMode(0, 2));
 }
 
-TEST(NilrtAnalogIO, SetRangeSuccess)
+TEST(Sbrio9637AnalogIO, SetRangeSuccess)
 {
     // Initialize AIO.
     AnalogIO aio;
@@ -42,7 +42,7 @@ TEST(NilrtAnalogIO, SetRangeSuccess)
     CHECK_ERROR(E_AIO_RANGE, aio.setRange(0, 3));
 }
 
-TEST(NilrtAnalogIO, ReadSuccess)
+TEST(Sbrio9637AnalogIO, ReadSuccess)
 {
     // Initialize AIO.
     AnalogIO aio;
@@ -59,7 +59,7 @@ TEST(NilrtAnalogIO, ReadSuccess)
     CHECK_ERROR(E_AIO_PIN, aio.read(16, val));
 }
 
-TEST(NilrtAnalogIO, WriteSuccess)
+TEST(Sbrio9637AnalogIO, WriteSuccess)
 {
     // Initialize AIO.
     AnalogIO aio;
@@ -75,7 +75,7 @@ TEST(NilrtAnalogIO, WriteSuccess)
     CHECK_ERROR(E_AIO_PIN, aio.write(4, 0.0f));
 }
 
-TEST(NilrtAnalogIO, ReleaseAndReuseSuccess)
+TEST(Sbrio9637AnalogIO, ReleaseAndReuseSuccess)
 {
     AnalogIO aio;
     CHECK_SUCCESS(AnalogIO::init(aio));

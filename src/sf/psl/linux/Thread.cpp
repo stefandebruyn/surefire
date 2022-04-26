@@ -9,7 +9,7 @@ const I32 Thread::FAIR_MIN_PRI = 0;
 const I32 Thread::FAIR_MAX_PRI = 0;
 
 const I32 Thread::REALTIME_MIN_PRI =
-#ifdef SF_PLATFORM_NILRT
+#ifdef SF_PLATFORM_SBRIO9637
     // Priority just above the RCU kernel thread, which has priority 1 on NILRT.
     2;
 #else
@@ -18,7 +18,7 @@ const I32 Thread::REALTIME_MIN_PRI =
 #endif
 
 const I32 Thread::REALTIME_MAX_PRI =
-#ifdef SF_PLATFORM_NILRT
+#ifdef SF_PLATFORM_SBRIO9637
     // Priority just below the software and hardware IRQ kernel threads, which
     // have priorities 14 and 15, respectively, on NILRT.
     13;

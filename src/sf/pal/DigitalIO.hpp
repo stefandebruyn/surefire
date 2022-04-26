@@ -25,8 +25,8 @@
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Result.hpp"
 
-#ifdef SF_PLATFORM_NILRT
-#    include "sf/psl/nilrt/NiFpgaSession.hpp"
+#ifdef SF_PLATFORM_SBRIO9637
+#    include "sf/psl/sbrio9637/NiFpgaSession.hpp"
 #endif
 
 ///
@@ -182,7 +182,7 @@ private:
     ///
     U64 mOutBitVec;
 
-#elif defined(SF_PLATFORM_NILRT)
+#elif defined(SF_PLATFORM_SBRIO9637)
 
     ///
     /// @brief FPGA session handle.

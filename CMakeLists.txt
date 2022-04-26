@@ -16,13 +16,13 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     file(GLOB psl-src "src/sf/psl/linux/*.cpp")
     link_libraries(pthread)
     # Add in distro-specific code.
-    if(SF_PLATFORM_NILRT)
-        # NILRT
-        file(GLOB nilrt-utest-src "src/sf/psl/nilrt/utest/*.cpp")
+    if(SF_PLATFORM_SBRIO9637)
+        # sbRIO-9637
+        file(GLOB nilrt-utest-src "src/sf/psl/sbrio9637/utest/*.cpp")
         list(APPEND psl-utest-src ${nilrt-utest-src})
         file (GLOB nilrt-psl-src
-            "src/sf/psl/nilrt/*.cpp"
-            "src/sf/psl/nilrt/nifpga/*.c"
+            "src/sf/psl/sbrio9637/*.cpp"
+            "src/sf/psl/sbrio9637/nifpga/*.c"
         )
         list(APPEND psl-src ${nilrt-psl-src})
     else()

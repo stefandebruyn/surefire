@@ -4,11 +4,11 @@
 
 static const U32 gDigitalPinCnt = 28;
 
-TEST_GROUP(NilrtDigitalIO)
+TEST_GROUP(Sbrio9637DigitalIO)
 {
 };
 
-TEST(NilrtDigitalIO, SetModeSuccess)
+TEST(Sbrio9637DigitalIO, SetModeSuccess)
 {
     // Initialize DIO.
     DigitalIO dio;
@@ -26,7 +26,7 @@ TEST(NilrtDigitalIO, SetModeSuccess)
     CHECK_ERROR(E_DIO_MODE, dio.setMode(0, static_cast<DigitalIO::Mode>(2)));
 }
 
-TEST(NilrtDigitalIO, ReadSuccess)
+TEST(Sbrio9637DigitalIO, ReadSuccess)
 {
     // Initialize DIO.
     DigitalIO dio;
@@ -43,7 +43,7 @@ TEST(NilrtDigitalIO, ReadSuccess)
     CHECK_ERROR(E_DIO_PIN, dio.read(28, val));
 }
 
-TEST(NilrtDigitalIO, WriteSuccess)
+TEST(Sbrio9637DigitalIO, WriteSuccess)
 {
     // Initialize DIO.
     DigitalIO dio;
@@ -60,7 +60,7 @@ TEST(NilrtDigitalIO, WriteSuccess)
     CHECK_ERROR(E_DIO_PIN, dio.write(28, false));
 }
 
-TEST(NilrtDigitalIO, ReleaseAndReuseSuccess)
+TEST(Sbrio9637DigitalIO, ReleaseAndReuseSuccess)
 {
     DigitalIO dio;
     CHECK_SUCCESS(DigitalIO::init(dio));
@@ -68,7 +68,7 @@ TEST(NilrtDigitalIO, ReleaseAndReuseSuccess)
     CHECK_SUCCESS(DigitalIO::init(dio));
 }
 
-TEST(NilrtDigitalIO, RaiseAndLower)
+TEST(Sbrio9637DigitalIO, RaiseAndLower)
 {
     // Initialize DIO.
     DigitalIO dio;

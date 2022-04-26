@@ -2,10 +2,19 @@
 
 //////////////////////////////// Private Data //////////////////////////////////
 
+///
+/// @brief Number of analog input pins on sbRIO-9637.
+///
 static constexpr U32 gAiCnt = 16;
 
+///
+/// @brief Number of analog output pins on sbRIO-9637.
+///
 static constexpr U32 gAoCnt = 4;
 
+///
+/// @brief FPGA API constants for setting AI modes, indexed by pin.
+///
 static const NiFpga_IO_ControlU8 gAiModeIds[gAiCnt] =
 {
     NiFpga_IO_ControlU8_modeAI0,
@@ -26,6 +35,9 @@ static const NiFpga_IO_ControlU8 gAiModeIds[gAiCnt] =
     NiFpga_IO_ControlU8_modeAI15
 };
 
+///
+/// @brief FPGA API constants for setting AI ranges, indexed by pin.
+///
 static const NiFpga_IO_ControlU8 gAiRangeIds[gAiCnt] =
 {
     NiFpga_IO_ControlU8_rangeAI0,
@@ -46,6 +58,9 @@ static const NiFpga_IO_ControlU8 gAiRangeIds[gAiCnt] =
     NiFpga_IO_ControlU8_rangeAI15
 };
 
+///
+/// @brief FPGA API constants for reading AI fixed points, indexed by pin.
+///
 static const uint32_t gAiFxpResourceIds[gAiCnt] =
 {
     NiFpga_IO_IndicatorFxp_inputAI0_Resource,
@@ -66,6 +81,10 @@ static const uint32_t gAiFxpResourceIds[gAiCnt] =
     NiFpga_IO_IndicatorFxp_inputAI15_Resource
 };
 
+///
+/// @brief FPGA API constants for converting AI fixed points to volts, indexed
+/// by pin.
+///
 static const NiFpga_FxpTypeInfo gAiFxpTypeInfoIds[gAiCnt] =
 {
     NiFpga_IO_IndicatorFxp_inputAI0_TypeInfo,
@@ -86,6 +105,9 @@ static const NiFpga_FxpTypeInfo gAiFxpTypeInfoIds[gAiCnt] =
     NiFpga_IO_IndicatorFxp_inputAI15_TypeInfo
 };
 
+///
+/// @brief FPGA API constants for writing AO fixed points, indexed by pin.
+///
 static const uint32_t gAoFxpResourceIds[gAoCnt] =
 {
     NiFpga_IO_ControlFxp_outputAO0_Resource,
@@ -94,6 +116,10 @@ static const uint32_t gAoFxpResourceIds[gAoCnt] =
     NiFpga_IO_ControlFxp_outputAO3_Resource
 };
 
+///
+/// @brief FPGA API constants for converting volts to AO fixed points, indexed
+/// by pin.
+///
 static const NiFpga_FxpTypeInfo gAoFxpTypeInfoIds[gAoCnt] =
 {
     NiFpga_IO_ControlFxp_outputAO0_TypeInfo,

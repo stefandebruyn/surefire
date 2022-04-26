@@ -25,8 +25,8 @@
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Result.hpp"
 
-#ifdef SF_PLATFORM_NILRT
-#    include "sf/psl/nilrt/NiFpgaSession.hpp"
+#ifdef SF_PLATFORM_SBRIO9637
+#    include "sf/psl/sbrio9637/NiFpgaSession.hpp"
 #endif
 
 ///
@@ -93,7 +93,7 @@ public:
     /// interpretation is probably analog input mode, e.g., RSE vs.
     /// differential.
     ///
-    /// @note NILRT: kPin is an input pin. Mode 1 is RSE, and mode 0 is
+    /// @note sbRIO-9637: kPin is an input pin. Mode 1 is RSE, and mode 0 is
     /// differential. A differential pin's reference is the pin 8 above it. Pins
     /// >=8 should not be read in differential mode, as the read value will be
     /// negated.
@@ -112,7 +112,8 @@ public:
     ///
     /// @brief Sets the input/output range of an analog pin.
     ///
-    /// @note NILRT: Valid ranges are 1, 2, 5, and 10 for +/- that many volts.
+    /// @note sbRIO-9637: Valid ranges are 1, 2, 5, and 10 for +/- that many
+    /// volts.
     ///
     /// @param[in] kPin    Pin number.
     /// @param[in] kRange  Pin range. The meaning of this value is
@@ -131,7 +132,7 @@ public:
     /// @post On SUCCESS, kVal contains the read value.
     /// @post On error, kVal is unchanged.
     ///
-    /// @note NILRT: The unit of kVal is V.
+    /// @note sbRIO-9637: The unit of kVal is V.
     ///
     /// @param[in]  kPin  Pin number.
     /// @param[out] kVal  Reference to assign read value. The meaning of this
@@ -149,7 +150,7 @@ public:
     /// @post On SUCCESS, pin is outputting the specified value.
     /// @post On error, output of the pin is unchanged.
     ///
-    /// @note NILRT: The unit of kVal is V.
+    /// @note sbRIO-9637: The unit of kVal is V.
     ///
     /// @param[in] kPin  Pin number.
     /// @param[in] kVal  Pin output value. The meaning of this value is
@@ -180,7 +181,7 @@ private:
     ///
     bool mInit;
 
-#ifdef SF_PLATFORM_NILRT
+#ifdef SF_PLATFORM_SBRIO9637
 
     ///
     /// @brief FPGA session handle.
