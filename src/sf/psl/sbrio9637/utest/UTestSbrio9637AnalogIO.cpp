@@ -82,3 +82,11 @@ TEST(Sbrio9637AnalogIO, ReleaseAndReuseSuccess)
     CHECK_SUCCESS(aio.release());
     CHECK_SUCCESS(AnalogIO::init(aio));
 }
+
+TEST(Sbrio9637AnalogIO, ErrorOutputOutOfRange)
+{
+    AnalogIO aio;
+    CHECK_SUCCESS(AnalogIO::init(aio));
+    CHECK_ERROR(E_AIO_OUT, aio.write(0, -10.1f));
+    CHECK_ERROR(E_AIO_OUT, aio.write(0, 10.1f));
+}

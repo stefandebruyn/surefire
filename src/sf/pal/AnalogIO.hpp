@@ -84,6 +84,8 @@ public:
     /// @post If the AnalogIO was initialized, analog outputs it wrote during
     /// its initialized lifetime are set to 0.
     ///
+    /// @see AnalogIO::release()
+    ///
     ~AnalogIO();
 
     ///
@@ -112,8 +114,7 @@ public:
     ///
     /// @brief Sets the input/output range of an analog pin.
     ///
-    /// @note sbRIO-9637: Valid ranges are 1, 2, 5, and 10 for +/- that many
-    /// volts.
+    /// @note sbRIO-9637: Valid ranges are 1, 2, 5, and 10 for +/- that many V.
     ///
     /// @param[in] kPin    Pin number.
     /// @param[in] kRange  Pin range. The meaning of this value is

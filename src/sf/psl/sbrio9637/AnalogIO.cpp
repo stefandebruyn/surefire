@@ -297,6 +297,13 @@ Result AnalogIO::write(const U32 kPin, const F32 kVal)
         return E_AIO_PIN;
     }
 
+    // Check that output value is in range.
+    static const F32 maxV = 10.0f;
+    if ((kVal < -maxV) || (kVal > maxV))
+    {
+        return E_AIO_OUT;
+    }
+
     // Convert volts to fixed point.
     const U32 fxp = NiFpga_ConvertFromFloatToFxp(gAoFxpTypeInfoIds[kPin], kVal);
 

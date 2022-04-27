@@ -103,6 +103,8 @@ public:
     /// @post If the DigitalIO was initialized, digital outputs it wrote during
     /// its initialized lifetime are lowered.
     ///
+    /// @see DigitalIO::release()
+    ///
     ~DigitalIO();
 
     ///

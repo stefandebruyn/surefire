@@ -33,7 +33,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Arduino")
     # Use the Arduino PSL.
     file(GLOB psl-src "src/sf/psl/arduino/*.cpp")
-    # Allow `F64` type to not be 8 bytes since most Arduinos lack doubles.
+    # Allow F64 type to not be 8 bytes since most Arduinos lack true doubles.
     add_compile_options(-DSF_ALLOW_MISSIZED_F64 -DSF_PLATFORM_ARDUINO)
 else()
     message(FATAL_ERROR "unsupported target platform")
@@ -84,7 +84,7 @@ target_compile_options(cli PRIVATE
 # more granular unit test suite must be done manually.
 #
 # Note: some unit tests may fail if the process does not have permission to
-# create real-time threads (mostly a concern on Linux; fix with `sudo`).
+# create real-time threads (mostly a concern on Linux; fix with sudo).
 
 file(GLOB utest-src
     "src/sf/core/utest/*.cpp"
@@ -100,8 +100,7 @@ target_link_libraries(utest PRIVATE sfconfig sf CppUTest)
 
 # Target `sf` builds the Surefire core static library, the main API layer that
 # Surefire applications rest on top of. This library also includes the PSL for
-# the target platform. This library can stand alone (no other linkages
-# necessary).
+# the target platform. This library can stand alone.
 
 file(GLOB sf-src "src/sf/core/*.cpp")
 # Add in the PSL for the target platform.
@@ -117,7 +116,7 @@ target_compile_options(sf PRIVATE
 
 # When cross-compiling to Arduino, link libraries needed by the Arduino PSL. If
 # using sockets, the user should provide the Arduino's MAC address in the form
-# of a 6-byte hex constant (e.g., 0xAABBCCDDEEFF) via a CMake variable named
+# of a 6-byte hex constant (e.g., "0xAABBCCDDEEFF") via a CMake variable named
 # `SF_ARDUINO_MAC_ADDR`.
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Arduino")
     target_link_arduino_libraries(sf PRIVATE core Ethernet)
