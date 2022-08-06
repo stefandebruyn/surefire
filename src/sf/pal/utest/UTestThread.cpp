@@ -1,3 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestThread.cpp
+/// @brief Unit tests for Thread.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "UTestThreadCommon.hpp"
 #include "sf/pal/Clock.hpp"
 
@@ -7,18 +27,40 @@ Thread gTestThreads[gTestMaxThreads];
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Thread that verifies the core it's running on.
+///
+/// @param[in] kArgs  Expected core number, reinterpreted as void*.
+///
+/// @retval SUCCESS    Thread is running on expected core.
+/// @retval E_THR_AFF  Thread is not running on expected core.
+///
 static Result checkCore(void* kArgs)
 {
     const U64 expectCore = reinterpret_cast<U64>(kArgs);
     return ((expectCore == Thread::currentCore()) ? SUCCESS : E_THR_AFF);
 }
 
+///
+/// @brief Thread that always returns an error.
+///
+/// @param[in] kArgs  Unused.
+///
+/// @retval E_THR_NULL  Always.
+///
 static Result returnError(void* kArgs)
 {
     (void) kArgs;
     return E_THR_NULL;
 }
 
+///
+/// @brief Thread that spinwaits for a bit and then sets a flag.
+///
+/// @param[in] kArgs  bool* flag to set, reinterpreted as void*.
+///
+/// @retval SUCCESS  Always.
+///
 static Result spinSetFlag(void* kArgs)
 {
     Clock::spinWait(0.1 * Clock::NS_IN_S);
@@ -27,6 +69,9 @@ static Result spinSetFlag(void* kArgs)
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for Thread.
+///
 TEST_GROUP(Thread)
 {
     void teardown()
@@ -35,12 +80,18 @@ TEST_GROUP(Thread)
     }
 };
 
+///
+/// @test Invoking methods on an uninitialized thread returns an error.
+///
 TEST(Thread, Uninitialized)
 {
     Thread thread;
     CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 
+///
+/// @test Thread is uninitialized after awaiting it.
+///
 TEST(Thread, UninitializedAfterAwait)
 {
     Thread thread;
@@ -54,6 +105,9 @@ TEST(Thread, UninitializedAfterAwait)
     CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 
+///
+/// @test Thread can be reused after awaiting it.
+///
 TEST(Thread, Reuse)
 {
     CHECK_SUCCESS(Thread::init(nop,
@@ -71,6 +125,9 @@ TEST(Thread, Reuse)
                                gTestThreads[0]));
 }
 
+///
+/// @test Thread::await() returns the thread result.
+///
 TEST(Thread, ReturnResult)
 {
     Thread thread;
@@ -85,6 +142,9 @@ TEST(Thread, ReturnResult)
     CHECK_ERROR(E_THR_NULL, threadRes);
 }
 
+///
+/// @test Threads are successfully created on all cores.
+///
 TEST(Thread, AffinityRange)
 {
     for (U8 i = 0; i < Thread::numCores(); ++i)
@@ -102,6 +162,9 @@ TEST(Thread, AffinityRange)
     }
 }
 
+///
+/// @test Threads with no affinity are successfully created.
+///
 TEST(Thread, AffinityAllCores)
 {
     // Array of flags to be set by threads.
@@ -129,6 +192,9 @@ TEST(Thread, AffinityAllCores)
     }
 }
 
+///
+/// @test Destructing an initialized thread waits for it to terminate.
+///
 TEST(Thread, DestructInitialized)
 {
     bool flag = false;
@@ -144,6 +210,9 @@ TEST(Thread, DestructInitialized)
     CHECK_TRUE(flag);
 }
 
+///
+/// @test Destructing an uninitialized thread does nothing.
+///
 TEST(Thread, DestructUninitialized)
 {
     {
@@ -151,6 +220,9 @@ TEST(Thread, DestructUninitialized)
     }
 }
 
+///
+/// @test Initializing a thread twice returns an error.
+///
 TEST(Thread, ErrorReinitialize)
 {
     bool flags[2] = {};
@@ -172,6 +244,9 @@ TEST(Thread, ErrorReinitialize)
     CHECK_TRUE(!flags[1]);
 }
 
+///
+/// @test Initializing a thread with a null function returns an error.
+///
 TEST(Thread, ErrorNullFunction)
 {
     Thread thread;
@@ -185,6 +260,9 @@ TEST(Thread, ErrorNullFunction)
     CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 
+///
+/// @test Initializing a thread with an invalid policy returns an error.
+///
 TEST(Thread, ErrorInvalidPolicy)
 {
     Thread thread;
@@ -198,6 +276,9 @@ TEST(Thread, ErrorInvalidPolicy)
     CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 
+///
+/// @test Initializing a thread with an invalid affinity returns an error.
+///
 TEST(Thread, ErrorInvalidAffinity)
 {
     Thread thread;
@@ -211,6 +292,9 @@ TEST(Thread, ErrorInvalidAffinity)
     CHECK_ERROR(E_THR_UNINIT, thread.await(nullptr));
 }
 
+///
+/// @test Current thread attributes are set successfully.
+///
 TEST(Thread, SetCurrentThread)
 {
     for (U8 i = 0; i < Thread::numCores(); ++i)

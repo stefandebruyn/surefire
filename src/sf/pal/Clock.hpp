@@ -75,13 +75,13 @@ namespace Clock
     U64 nanoTime();
 
     ///
-    /// @brief Spin-waits until some number of nanoseconds have passed according
+    /// @brief Spinwaits until some number of nanoseconds have passed according
     /// to the system clock.
     ///
-    /// @note This will usually spin-wait slightly longer than specified due to
+    /// @note This will usually spinwait slightly longer than specified due to
     /// the overhead of the Clock::nanoTime() function.
     ///
-    /// @param[in] kNs  Number of nanoseconds to spin-wait for.
+    /// @param[in] kNs  Number of nanoseconds to spinwait for.
     ///
     inline void spinWait(const U64 kNs)
     {

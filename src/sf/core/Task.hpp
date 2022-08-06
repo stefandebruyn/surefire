@@ -47,22 +47,21 @@ enum TaskMode : U8
 ///
 /// @remark Basic steps to implement a task:
 ///
-///   (1) Define a class which publicly inherits from ITask
-///   (2) Constructor takes the parameters required by the ITask constructor
+///   1. Define a class which publicly inherits from ITask
+///   2. Constructor takes the parameters required by the ITask constructor
 ///       along with anything else needed to configure the task
-///   (3) Implement task initialization logic in initImpl(); this will
+///   3. Implement task initialization logic in initImpl(); this will
 ///       usually include grabbing pointers to state vector elements that the
 ///       task uses as inputs and outputs
-///   (4) Implement task business logic in stepEnable() and optionally
-///       stepSafe()
+///   4. Implement task business logic in stepEnable() and optionally stepSafe()
 ///
 /// @remark Basic steps to run a task:
 ///
-///   (1) Construct task
-///   (2) Invoke initialize() on task
-///   (3) Invoke step() on task at the desired frequency
-///   (4) If the task was configured with a mode state vector element, change
-///       the task mode by writing this element from other code
+///   1. Construct task
+///   2. Invoke initialize() on task
+///   3. Invoke step() on task at the desired frequency
+///   4. If the task was configured with a mode state vector element, change the
+///      task mode by writing this element from other code
 ///
 /// @remark Normally tasks will be used in conjunction with an IExecutor, which
 /// automatically handles task initialization and execution. Additionally, a

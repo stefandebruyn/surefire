@@ -1,3 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestThreadRealTime.cpp
+/// @brief Unit tests for the real-time thread scheduling policy.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "UTestThreadCommon.hpp"
 #include "sf/pal/Clock.hpp"
 
@@ -5,11 +25,14 @@
 
 /////////////////////////////////// Global /////////////////////////////////////
 
+///
+/// @brief Test thread arguments.
+///
 struct ThreadArgs final
 {
-    bool flag;
-    U64 tReturnNs;
-    U64 waitNs;
+    bool flag;     ///< Flag to spin on.
+    U64 tReturnNs; ///< Set by thread to current time just before returning.
+    U64 waitNs;    ///< Time which thread should spinwait before returning.
 };
 
 static ThreadArgs gArgs1;
@@ -18,6 +41,13 @@ static ThreadArgs gArgs3;
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Thread that spins for a time and then records the time of its return.
+///
+/// @param[in] kArgs  ThreadArgs*, reinterpreted as void*.
+///
+/// @retval SUCCESS  Always succeeds.
+///
 static Result spinAndRecordTime(void* kArgs)
 {
     ThreadArgs* const args = static_cast<ThreadArgs*>(kArgs);
@@ -26,6 +56,13 @@ static Result spinAndRecordTime(void* kArgs)
     return SUCCESS;
 }
 
+///
+/// @brief Thread that spins on a flag and records the time of its return.
+///
+/// @param[in] kArgs  ThreadArgs*, reinterpreted as void*.
+///
+/// @retval SUCCESS  Always succeeds.
+///
 static Result spinOnFlagAndRecordTime(void* kArgs)
 {
     ThreadArgs* const args = static_cast<ThreadArgs*>(kArgs);
@@ -37,6 +74,9 @@ static Result spinOnFlagAndRecordTime(void* kArgs)
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for the real-time thread scheduling policy.
+///
 TEST_GROUP(ThreadRealTime)
 {
     void setup()
@@ -53,6 +93,9 @@ TEST_GROUP(ThreadRealTime)
     }
 };
 
+///
+/// @test Real-time threads are successfully created with all valid priorities.
+///
 TEST(ThreadRealTime, PriorityRange)
 {
     CHECK_TRUE(Thread::REALTIME_MIN_PRI <= Thread::REALTIME_MAX_PRI);
@@ -73,6 +116,9 @@ TEST(ThreadRealTime, PriorityRange)
     }
 }
 
+///
+/// @test Creating a real-time thread with too low of a priority fails.
+///
 TEST(ThreadRealTime, PriorityTooLow)
 {
     CHECK_ERROR(E_THR_PRI,
@@ -85,6 +131,9 @@ TEST(ThreadRealTime, PriorityTooLow)
     CHECK_ERROR(E_THR_UNINIT, gTestThreads[0].await(nullptr));
 }
 
+///
+/// @test Creating a real-time thread with too high of a priority fails.
+///
 TEST(ThreadRealTime, PriorityTooHigh)
 {
     CHECK_ERROR(E_THR_PRI,
@@ -97,8 +146,13 @@ TEST(ThreadRealTime, PriorityTooHigh)
     CHECK_ERROR(E_THR_UNINIT, gTestThreads[0].await(nullptr));
 }
 
+///
+/// @test Real-time threads with the same affinity execute in order of
+/// decreasing priority.
+///
 /// @note This test assumes that a larger priority value corresponds to higher
-///       priority.
+/// priority.
+///
 TEST(ThreadRealTime, RealTimeSameAffinity)
 {
     // Make the current thread real-time, max priority, and run on core 0 for
@@ -158,8 +212,12 @@ TEST(ThreadRealTime, RealTimeSameAffinity)
     CHECK_TRUE((gArgs3.tReturnNs - gArgs2.tReturnNs) >= gArgs3.waitNs);
 }
 
+///
+/// @test Real-time threads with different affinities execute in parallel.
+///
 /// @note This test requires that affinities 0 and 1 be valid on the current
-///       platform.
+/// platform.
+///
 TEST(ThreadRealTime, RealTimeDifferentAffinity)
 {
     // Make the current thread real-time, max priority, and run on core 0 for

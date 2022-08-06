@@ -88,18 +88,61 @@ public:
                        const U8 kAffinity,
                        Thread& kThread);
 
+    ///
+    /// @brief Gets the number of cores on the system.
+    ///
+    /// @returns Number of cores.
+    ///
     static U8 numCores();
 
+    ///
+    /// @brief Gets the core that the calling thread is currently unning on.
+    ///
+    /// @returns Core of calling thread.
+    ///
     static U8 currentCore();
 
+    ///
+    /// @brief Sets attributes of the calling thread.
+    ///
+    /// @param[in] kPriority  Thread priority.
+    /// @param[in] kPolicy    Thread scheduling policy.
+    /// @param[in] kAffinity  Thread affinity.
+    ///
+    /// @retval SUCCESS    Successfully set thread attributes.
+    /// @retval E_THR_PRI  kPriority is invalid for the specified policy.
+    /// @retval E_THR_POL  kPolicy is invalid.
+    /// @retval E_THR_AFF  kAffinity is invalid.
+    ///
     static Result set(const I32 kPriority,
                       const Policy kPolicy,
                       const U8 kAffinity);
 
+    ///
+    /// @brief Default constructor.
+    ///
+    /// @post The constructed Thread is uninitialized and invoking any of its
+    /// methods returns an error.
+    ///
     Thread();
 
+    ///
+    /// @brief Destructor. If the Thread was initialized, the destructor blocks
+    /// until the thread terminates.
+    ///
     ~Thread();
 
+    ///
+    /// @brief Waits for the thread to terminate.
+    ///
+    /// @param[out] kThreadRes  On SUCCESS, if non-null, will be set to the
+    ///                         thread return value.
+    ///
+    /// @retval SUCCESS       Successfully awaited thread.
+    /// @retval E_THR_UNINIT  Thread is uninitialized.
+    /// @retval E_THR_AWAIT   Failed to await thread. This usually indicates an
+    ///                       error in the underlying syscall.
+    ///
     Result await(Result* const kThreadRes);
 
     Thread(const Thread&) = delete;
@@ -109,22 +152,52 @@ public:
 
 private:
 
+    ///
+    /// @brief Whether the thread is initialized.
+    ///
     bool mInit;
 
 #ifdef SF_PLATFORM_LINUX
 
+    ///
+    /// @brief Handle to underlying pthread.
+    ///
     pthread_t mPthread;
 
+    ///
+    /// @brief Pthread wrapper arguments.
+    ///
     struct PthreadWrapperArgs final
     {
-        Function func;
-        void* args;
+        Function func; ///< Thread function for wrapper to run.
+        void* args;    ///< Thread arguments.
     };
 
+    ///
+    /// @brief Wrapper arguments for this thread.
+    ///
     PthreadWrapperArgs mWrapperArgs;
 
+    ///
+    /// @brief Pthread wrapper around the user-provided thread function.
+    ///
+    /// @param[in] kArgs  Pointer to PthreadWrapperArgs.
+    ///
+    /// @returns  Result of user-provided thread, reinterpreted as void*.
+    ///
     static void* pthreadWrapper(void* kArgs);
 
+    ///
+    /// @brief Gets the pthread constant corresponding to a particular Policy.
+    ///
+    /// @param[in] kPolicy        Policy.
+    /// @param[in] kPriority      Desired priority for policy.
+    /// @param[in] kThreadPolicy  On SUCCESS, set to pthread policy constant.
+    ///
+    /// @retval SUCCESS    Successfully got pthread policy.
+    /// @retval E_THR_PRI  kPriority is invalid for the specified policy.
+    /// @retval E_THR_POL  kPolicy is invalid.
+    ///
     static Result getPthreadPolicy(const Policy kPolicy,
                                    const I32 kPriority,
                                    I32& kPthreadPolicy);

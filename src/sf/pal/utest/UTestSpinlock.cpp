@@ -1,16 +1,47 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/pal/utest/UTestSpinlock.cpp
+/// @brief Unit tests for Spinlock.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "UTestThreadCommon.hpp"
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/Spinlock.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Test thread arguments.
+///
 struct ThreadArgs
 {
-    Spinlock lock;
-    U64 increments;
-    U64 counter;
+    Spinlock lock;  ///< Spinlock protecting counter access.
+    U64 increments; ///< Number of times to increment counter.
+    U64 counter;    ///< Counter.
 };
 
+///
+/// @brief Thread that atomically increments a counter some number of times.
+///
+/// @param[in] kArgs  Thread arguments.
+///
+/// @retval SUCCESS  Successfully incremented.
+/// @retval [other]  Error from acquiring or releasing spinlock.
+///
 static Result atomicIncrement(void* kArgs)
 {
     ThreadArgs* const args = static_cast<ThreadArgs*>(kArgs);
@@ -39,6 +70,9 @@ static Result atomicIncrement(void* kArgs)
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for Spinlock.
+///
 TEST_GROUP(Spinlock)
 {
     void teardown()
@@ -47,6 +81,9 @@ TEST_GROUP(Spinlock)
     }
 };
 
+///
+/// @test Acquiring or releasing an uninitialized spinlock returns an error.
+///
 TEST(Spinlock, Uninitialized)
 {
     Spinlock lock;
@@ -54,6 +91,9 @@ TEST(Spinlock, Uninitialized)
     CHECK_ERROR(E_SLK_UNINIT, lock.release());
 }
 
+///
+/// @test Initializing a spinlock twice returns an error.
+///
 TEST(Spinlock, ErrorReinitialize)
 {
     Spinlock lock;
@@ -61,6 +101,9 @@ TEST(Spinlock, ErrorReinitialize)
     CHECK_ERROR(E_SLK_REINIT, Spinlock::init(lock));
 }
 
+///
+/// @test Spinlock provides mutual exclusion.
+///
 TEST(Spinlock, MutualExclusion)
 {
     // Thread will increment the counter once.
@@ -98,8 +141,13 @@ TEST(Spinlock, MutualExclusion)
     CHECK_EQUAL(1, args.counter);
 }
 
+///
+/// @test Updates made atomic via a spinlock around a contended critical
+/// section.
+///
 /// @note This test is only valid if the platform is multicore, so that
-///       real-time threads can contend for the counter.
+/// real-time threads can contend for the counter.
+///
 TEST(Spinlock, AtomicUpdates)
 {
     // Each thread will increment the counter 1000000 times.

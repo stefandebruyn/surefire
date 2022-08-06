@@ -1,13 +1,42 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/psl/sbrio9637/utest/UTestSbrio9637DigitalIO.cpp
+/// @brief Unit tests for DigitalIO on sbRIO-9637.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/DigitalIO.hpp"
 #include "sf/utest/UTest.hpp"
 
+///
+/// @brief Number of digital pins on sbRIO-9637.
+///
 static const U32 gDigitalPinCnt = 28;
 
+///
+/// @brief Unit tests for DigitalIO on sbRIO-9637.
+///
 TEST_GROUP(Sbrio9637DigitalIO)
 {
 };
 
+///
+/// @test Setting all modes on all digital pins succeeds.
+///
 TEST(Sbrio9637DigitalIO, SetModeSuccess)
 {
     // Initialize DIO.
@@ -26,6 +55,9 @@ TEST(Sbrio9637DigitalIO, SetModeSuccess)
     CHECK_ERROR(E_DIO_MODE, dio.setMode(0, static_cast<DigitalIO::Mode>(2)));
 }
 
+///
+/// @test Reading all digital pins succeeds.
+///
 TEST(Sbrio9637DigitalIO, ReadSuccess)
 {
     // Initialize DIO.
@@ -43,6 +75,9 @@ TEST(Sbrio9637DigitalIO, ReadSuccess)
     CHECK_ERROR(E_DIO_PIN, dio.read(28, val));
 }
 
+///
+/// @test Writing all digital pins succeeds.
+///
 TEST(Sbrio9637DigitalIO, WriteSuccess)
 {
     // Initialize DIO.
@@ -60,6 +95,9 @@ TEST(Sbrio9637DigitalIO, WriteSuccess)
     CHECK_ERROR(E_DIO_PIN, dio.write(28, false));
 }
 
+///
+/// @test DigitalIO can be reinitialized after releasing.
+///
 TEST(Sbrio9637DigitalIO, ReleaseAndReuseSuccess)
 {
     DigitalIO dio;
@@ -68,6 +106,10 @@ TEST(Sbrio9637DigitalIO, ReleaseAndReuseSuccess)
     CHECK_SUCCESS(DigitalIO::init(dio));
 }
 
+///
+/// @test Digital pins read high after being raised, and low after being
+/// lowered.
+///
 TEST(Sbrio9637DigitalIO, RaiseAndLower)
 {
     // Initialize DIO.

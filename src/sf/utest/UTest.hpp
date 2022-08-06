@@ -1,3 +1,24 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/utest/UTest.hpp
+/// @brief Unit test helpers. This should be the last include at the top of
+///        every unit test file.
+////////////////////////////////////////////////////////////////////////////////
+
 #ifndef SF_UTEST_HPP
 #define SF_UTEST_HPP
 
@@ -18,18 +39,30 @@
 // Must be the last include.
 #include "CppUTest/TestHarness.h"
 
+// Find the path separator appropriate for the current platform.
 #ifdef _WIN32
 #    define PATH_SEP "\\"
 #else
 #    define PATH_SEP "/"
 #endif
 
+///
+/// @brief Checks that an expression evaluates to SUCCESS.
+///
+/// @param[in] kExpr  Expression to evaluate.
+///
 #define CHECK_SUCCESS(kExpr)                                                   \
 {                                                                              \
     const Result _res = (kExpr);                                               \
     CHECK_EQUAL(SUCCESS, _res);                                                \
 }
 
+///
+/// @brief Checks that an expression evaluates to the specified error code.
+///
+/// @param[in] kErr   Expected error code.
+/// @param[in] kExpr  Expression to evaluate.
+///
 #define CHECK_ERROR(kErr, kExpr)                                               \
 {                                                                              \
     const Result _res = (kExpr);                                               \
@@ -44,6 +77,12 @@
 
 #if defined(SF_UTEST_HAS_CONFIG)
 
+///
+/// @brief Tokenizes a string into a `Vec<Token> toks` and `TokenIterator it` in
+/// the current scope.
+///
+/// @param[in] kStr  String to tokenize.
+///
 #define TOKENIZE(kStr)                                                         \
     Vec<Token> toks;                                                           \
     {                                                                          \
@@ -52,6 +91,14 @@
     }                                                                          \
     TokenIterator it(toks.begin(), toks.end());
 
+///
+/// @brief Converts a vector to a string, so that vectors can be passed to more
+/// CppUTest macros.
+///
+/// @param[in] kVec  Vector to convert.
+///
+/// @returns Vector as string.
+///
 template<typename T>
 SimpleString StringFrom(const Vec<T>& kVec)
 {
@@ -69,6 +116,14 @@ SimpleString StringFrom(const Vec<T>& kVec)
     return SimpleString(ss.str().c_str());
 }
 
+///
+/// @brief Converts a token to a string, so that tokens can be passed to more
+/// CppUTest macros.
+///
+/// @param[in] kTok  Token to convert.
+///
+/// @returns Token as string.
+///
 SimpleString StringFrom(const Token& kTok);
 
 #endif // defined(SF_UTEST_HAS_CONFIG)

@@ -1,3 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestUdpSocket.cpp
+/// @brief Unit tests for UDP sockets.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/pal/Socket.hpp"
 #include "sf/utest/UTest.hpp"
 
@@ -14,6 +34,11 @@ static const U16 gTestPort = 7797;
 static Socket gSock1;
 static Socket gSock2;
 
+///
+/// @brief Checks that invoking all methods on a socket fail with E_SOK_UNINIT.
+///
+/// @param[in] kSock  Uninitialized socket.
+///
 inline void checkSocketUninitialized(Socket& kSock)
 {
     U64 buf;
@@ -25,6 +50,9 @@ inline void checkSocketUninitialized(Socket& kSock)
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for UDP sockets.
+///
 TEST_GROUP(UdpSocket)
 {
     void setup()
@@ -39,12 +67,18 @@ TEST_GROUP(UdpSocket)
     }
 };
 
+///
+/// @test Socket is uninitialized by default.
+///
 TEST(UdpSocket, Uninitialized)
 {
     Socket socket;
     checkSocketUninitialized(socket);
 }
 
+///
+/// @test Socket can be initialized, used to send data, and closed.
+///
 TEST(UdpSocket, CreateSendAndClose)
 {
     CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
@@ -54,6 +88,9 @@ TEST(UdpSocket, CreateSendAndClose)
     checkSocketUninitialized(gSock1);
 }
 
+///
+/// @test Socket can be reused after closing.
+///
 TEST(UdpSocket, CreateReuse)
 {
     CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
@@ -61,6 +98,9 @@ TEST(UdpSocket, CreateReuse)
     CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
 }
 
+///
+/// @test Creating a socket with an invalid protocol returns an error.
+///
 TEST(UdpSocket, ErrorCreateInvalidProtocol)
 {
     CHECK_ERROR(E_SOK_PROTO,
@@ -71,6 +111,9 @@ TEST(UdpSocket, ErrorCreateInvalidProtocol)
     checkSocketUninitialized(gSock1);
 }
 
+///
+/// @test Creating a socket with an IP to which it cannot bind returns an error.
+///
 TEST(UdpSocket, ErrorCreateInvalidIp)
 {
     const IPv4Address invalidIp = {123, 123, 123, 123};
@@ -79,6 +122,9 @@ TEST(UdpSocket, ErrorCreateInvalidIp)
     checkSocketUninitialized(gSock1);
 }
 
+///
+/// @test Creating a socket on a busy port returns an error.
+///
 TEST(UdpSocket, ErrorCreatePortInUse)
 {
     CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
@@ -87,6 +133,9 @@ TEST(UdpSocket, ErrorCreatePortInUse)
     checkSocketUninitialized(gSock2);
 }
 
+///
+/// @test Initializing a socket twice returns an error.
+///
 TEST(UdpSocket, ErrorCreateReinitialize)
 {
     CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
@@ -94,6 +143,9 @@ TEST(UdpSocket, ErrorCreateReinitialize)
                 Socket::init(gTestIp2, gTestPort, Socket::UDP, gSock1));
 }
 
+///
+/// @test Initialized socket is closed on destruction.
+///
 TEST(UdpSocket, DestructInitialized)
 {
     {
@@ -103,6 +155,9 @@ TEST(UdpSocket, DestructInitialized)
     CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
 }
 
+///
+/// @test Destructing an uninitialized socket does nothing.
+///
 TEST(UdpSocket, DestructUninitialized)
 {
     {
@@ -110,6 +165,9 @@ TEST(UdpSocket, DestructUninitialized)
     }
 }
 
+///
+/// @test Small amounts of data are sent and received successfully.
+///
 TEST(UdpSocket, SmallSendAndRecv)
 {
     // Open sockets.
@@ -139,6 +197,9 @@ TEST(UdpSocket, SmallSendAndRecv)
     MEMCMP_EQUAL(buf1, buf2, sizeof(buf1));
 }
 
+///
+/// @test Large (relatively) amounts of data are sent and received successfully.
+///
 TEST(UdpSocket, LargeSendAndRecv)
 {
     // Open sockets.
@@ -173,6 +234,9 @@ TEST(UdpSocket, LargeSendAndRecv)
     MEMCMP_EQUAL(buf1, buf2, sizeof(buf1));
 }
 
+///
+/// @test A null num bytes pointer passed to Socket::send() is not dereferenced.
+///
 TEST(UdpSocket, SendAndRecvNullNumBytesPtr)
 {
     // Open sockets.
@@ -198,6 +262,9 @@ TEST(UdpSocket, SendAndRecvNullNumBytesPtr)
     MEMCMP_EQUAL(buf1, buf2, sizeof(buf1));
 }
 
+///
+/// @test Sending a null buffer returns an error.
+///
 TEST(UdpSocket, ErrorSendNullBuffer)
 {
     CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));
@@ -208,6 +275,9 @@ TEST(UdpSocket, ErrorSendNullBuffer)
                                          nullptr));
 }
 
+///
+/// @test Receiving into a null buffer returns an error.
+///
 TEST(UdpSocket, ErrorRecvNullBuffer)
 {
     CHECK_SUCCESS(Socket::init(gTestIp1, gTestPort, Socket::UDP, gSock1));

@@ -29,7 +29,7 @@ TEST_GROUP(Region)
 };
 
 ///
-/// @brief Regions are correctly read/written to/from other memory.
+/// @test Regions are correctly read/written to/from other memory.
 ///
 TEST(Region, ReadWrite)
 {
@@ -64,7 +64,7 @@ TEST(Region, ReadWrite)
 }
 
 ///
-/// @brief Region:addr() returns the correct backing address.
+/// @test Region:addr() returns the correct backing address.
 ///
 TEST(Region, GetAddr)
 {
@@ -74,7 +74,7 @@ TEST(Region, GetAddr)
 }
 
 ///
-/// @brief Region:size() returns the correct region size in bytes.
+/// @test Region:size() returns the correct region size in bytes.
 ///
 TEST(Region, GetSize)
 {

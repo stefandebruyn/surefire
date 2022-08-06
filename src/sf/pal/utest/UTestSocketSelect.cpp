@@ -1,3 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/pal/utest/UTestSocketSelect.cpp
+/// @brief Unit tests for Socket::select().
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/pal/Socket.hpp"
 #include "sf/utest/UTest.hpp"
 
@@ -30,6 +50,9 @@ static void createSockets()
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for Socket::select().
+///
 TEST_GROUP(SocketSelect)
 {
     void teardown()
@@ -42,6 +65,10 @@ TEST_GROUP(SocketSelect)
     }
 };
 
+///
+/// @test Socket::select() is correct when all sockets already have data
+/// available.
+///
 TEST(SocketSelect, AllSocketsImmediatelyReady)
 {
     createSockets();
@@ -92,6 +119,9 @@ TEST(SocketSelect, AllSocketsImmediatelyReady)
     CHECK_EQUAL(msg3, buf);
 }
 
+///
+/// @test Socket::select() is correct when one socket becomes ready at a time.
+///
 TEST(SocketSelect, SocketsReadyOneAtATime)
 {
     createSockets();
@@ -176,6 +206,9 @@ TEST(SocketSelect, SocketsReadyOneAtATime)
     CHECK_EQUAL(msg3, buf);
 }
 
+///
+/// @test Socket::select() is correct when no sockets become ready in time.
+///
 TEST(SocketSelect, Timeout)
 {
     createSockets();
@@ -195,6 +228,9 @@ TEST(SocketSelect, Timeout)
     CHECK_EQUAL(0, timeoutUs);
 }
 
+///
+/// @test Socket::select() with an uninitialized socket returns an error.
+///
 TEST(SocketSelect, ErrorUninitializedSocket)
 {
     createSockets();
@@ -205,6 +241,9 @@ TEST(SocketSelect, ErrorUninitializedSocket)
     CHECK_ERROR(E_SOK_UNINIT, Socket::select(socks, ready, 3, timeoutUs));
 }
 
+///
+/// @test Socket::select() with a null socket returns an error.
+///
 TEST(SocketSelect, ErrorNullSocket)
 {
     createSockets();
@@ -214,6 +253,9 @@ TEST(SocketSelect, ErrorNullSocket)
     CHECK_ERROR(E_SOK_NULL, Socket::select(socks, ready, 3, timeoutUs));
 }
 
+///
+/// @test Socket::select() with no sockets returns an error.
+///
 TEST(SocketSelect, ErrorNoSockets)
 {
     createSockets();
