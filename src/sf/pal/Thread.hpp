@@ -135,7 +135,7 @@ public:
     ///
     /// @brief Waits for the thread to terminate.
     ///
-    /// @param[out] kThreadRes  On SUCCESS, if non-null, will be set to the
+    /// @param[out] kThreadRes  On success, if non-null, will be set to the
     ///                         thread return value.
     ///
     /// @retval SUCCESS       Successfully awaited thread.
@@ -192,7 +192,7 @@ private:
     ///
     /// @param[in] kPolicy        Policy.
     /// @param[in] kPriority      Desired priority for policy.
-    /// @param[in] kThreadPolicy  On SUCCESS, set to pthread policy constant.
+    /// @param[in] kThreadPolicy  On success, set to pthread policy constant.
     ///
     /// @retval SUCCESS    Successfully got pthread policy.
     /// @retval E_THR_PRI  kPriority is invalid for the specified policy.

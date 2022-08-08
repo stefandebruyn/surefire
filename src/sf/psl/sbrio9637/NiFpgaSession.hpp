@@ -28,7 +28,7 @@
 ///
 /// @brief Opens a new FPGA session.
 ///
-/// @param[in] kSession  On SUCCESS, set to new session handle.
+/// @param[in] kSession  On success, set to new session handle.
 ///
 /// @retval SUCCESS         Successfully opened new session.
 /// @retval E_NI_FPGA_INIT  Failed to initialize NiFpga API.

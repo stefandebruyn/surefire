@@ -214,6 +214,7 @@ enum : Result
     E_SSC_DT = 553,
     E_SSC_NUM = 554,
     E_SSC_RAKE = 555,
+    E_SSC_FILE = 556,
 
     // StateVectorAutocoder
     E_SVA_NULL = 576,

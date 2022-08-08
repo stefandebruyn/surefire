@@ -87,7 +87,7 @@ public:
     virtual ~ITask() = default;
 
     ///
-    /// @brief Initializes the task by calling initImpl(). On SUCCESS, step()
+    /// @brief Initializes the task by calling initImpl(). On success, step()
     /// may be successfully invoked on the task.
     ///
     /// @retval SUCCESS       Task initialized successfully.

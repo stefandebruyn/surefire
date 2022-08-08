@@ -6,8 +6,8 @@ set(CMAKE_C_COMPILER /usr/local/oecore-x86_64/sysroots/x86_64-nilrtsdk-linux/usr
 set(CMAKE_CXX_COMPILER /usr/local/oecore-x86_64/sysroots/x86_64-nilrtsdk-linux/usr/bin/arm-nilrt-linux-gnueabi/arm-nilrt-linux-gnueabi-g++)
 set(SF_PLATFORM_SBRIO9637 true)
 
-# Note the `SF_PLATFORM_SBRIO9637` symbol: this will trigger small code changes
-# in the Linux PSL.
+# Note the SF_PLATFORM_SBRIO9637 symbol: this will trigger small code changes in
+# the Linux PSL.
 add_compile_options(
     -DSF_PLATFORM_SBRIO9637
     -O0

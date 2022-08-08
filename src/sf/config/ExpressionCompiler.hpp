@@ -85,12 +85,12 @@ class ExpressionCompiler final
 public:
 
     ///
-    /// @brief Compilation entry point.
+    /// @brief Compiler entry point.
     ///
     /// @param[in]  kParse     Expression parse.
     /// @param[in]  kBindings  Map of variable identifiers to elements.
     /// @param[in]  kEvalType  Expression evaluation type.
-    /// @param[out] kAsm       On SUCCESS, points to compiled expression.
+    /// @param[out] kAsm       On success, points to compiled expression.
     /// @param[out] kErr       On error, contains error info.
     ///
     /// @retval SUCCESS          Successfully compiled expression.
@@ -113,28 +113,81 @@ public:
 
 private:
 
+    ///
+    /// @brief Converts a constant token to F64.
+    ///
+    /// @param[in]  kTok  Token to convert.
+    /// @param[out] kRet  On success, contains converted value.
+    /// @param[out] kErr  On error, contains error info.
+    ///
+    /// @returns See ExpressionCompiler::compile().
+    ///
     static Result tokenToF64(const Token& kTok,
                              F64& kRet,
                              ErrorInfo* const kErr);
 
+    ///
+    /// @brief Compiles a stats function call.
+    ///
+    /// @param[in]       kParse     Parse tree rooted at function call.
+    /// @param[in]       kBindings  Element symbol table.
+    /// @param[out]      kNode      On success, contains compiled function.
+    /// @param[in, out]  kWs        Compilation workspace.
+    /// @param[out]      kErr       On error, contains error info.
+    ///
+    /// @returns See ExpressionCompiler::compile().
+    ///
     static Result compileStatsFunc(const Ref<const ExpressionParse> kParse,
                                    const Map<String, IElement*>& kBindings,
                                    Ref<IExprNode<F64>>& kNode,
                                    ExpressionAssembly::Workspace& kWs,
                                    ErrorInfo* const kErr);
 
+    ///
+    /// @brief Compiles a function call.
+    ///
+    /// @param[in]       kParse     Parse tree rooted at function call.
+    /// @param[in]       kBindings  Element symbol table.
+    /// @param[out]      kNode      On success, contains compiled function.
+    /// @param[in, out]  kWs        Compilation workspace.
+    /// @param[out]      kErr       On error, contains error info.
+    ///
+    /// @returns See ExpressionCompiler::compile().
+    ///
     static Result compileFunction(const Ref<const ExpressionParse> kParse,
                                   const Map<String, IElement*>& kBindings,
                                   Ref<IExprNode<F64>>& kNode,
                                   ExpressionAssembly::Workspace& kWs,
                                   ErrorInfo* const kErr);
 
+    ///
+    /// @brief Compiles an operator and its operands.
+    ///
+    /// @param[in]       kParse     Parse tree rooted at operator.
+    /// @param[in]       kBindings  Element symbol table.
+    /// @param[out]      kNode      On success, contains compiled operator.
+    /// @param[in, out]  kWs        Compilation workspace.
+    /// @param[out]      kErr       On error, contains error info.
+    ///
+    /// @returns See ExpressionCompiler::compile().
+    ///
     static Result compileOperator(const Ref<const ExpressionParse> kParse,
                                   const Map<String, IElement*>& kBindings,
                                   Ref<IExprNode<F64>>& kNode,
                                   ExpressionAssembly::Workspace& kWs,
                                   ErrorInfo* const kErr);
 
+    ///
+    /// @brief Main compilation method.
+    ///
+    /// @param[in]       kParse     Expression parse.
+    /// @param[in]       kBindings  Element symbol table.
+    /// @param[out]      kNode      On success, contains compiled expression.
+    /// @param[in, out]  kWs        Compilation workspace.
+    /// @param[out]      kErr       On error, contains error info.
+    ///
+    /// @returns See ExpressionCompiler::compile().
+    ///
     static Result compileImpl(const Ref<const ExpressionParse> kParse,
                               const Map<String, IElement*>& kBindings,
                               Ref<IExprNode<F64>>& kNode,

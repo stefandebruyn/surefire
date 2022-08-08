@@ -35,7 +35,7 @@ public:
     ///
     /// @brief Acquires the lock.
     ///
-    /// @post On SUCCESS, current thread has acquired the lock.
+    /// @post On success, current thread has acquired the lock.
     /// @post On error, current thread has not acquired the lock. The lock is
     ///       unchanged.
     ///
@@ -47,7 +47,7 @@ public:
     ///
     /// @brief Releases the lock.
     ///
-    /// @post On SUCCESS, current thread has released the lock.
+    /// @post On success, current thread has released the lock.
     /// @post On error, current thread has not released the lock. The lock is
     ///       unchanged.
     ///

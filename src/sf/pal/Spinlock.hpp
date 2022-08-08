@@ -46,7 +46,7 @@ public:
     /// @brief Initializes a spinlock.
     ///
     /// @pre  kLock is uninitialized.
-    /// @post On SUCCESS, kLock is initialized and invoking methods on it may
+    /// @post On success, kLock is initialized and invoking methods on it may
     ///       succeed.
     /// @post On error, preconditions still hold.
     ///

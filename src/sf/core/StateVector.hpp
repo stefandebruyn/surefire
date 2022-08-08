@@ -132,13 +132,13 @@ public:
     ///
     /// @brief Gets a pointer to an element object by name.
     ///
-    /// @post On SUCCESS, kElem contains a pointer to the specified element.
+    /// @post On success, kElem contains a pointer to the specified element.
     /// @post On error, kElem is unchanged.
     ///
     /// @tparam T  Element data type.
     ///
     /// @param[in]  kName  Element name.
-    /// @param[out] kElem  On SUCCESS, assigned pointer to requested element.
+    /// @param[out] kElem  On success, assigned pointer to requested element.
     ///
     /// @retval SUCCESS      Successfully got element.
     /// @retval E_SV_UNINIT  State vector is not initialized.
@@ -151,7 +151,7 @@ public:
     ///
     /// @brief Gets an abstract pointer to an element object by name.
     ///
-    /// @post On SUCCESS, kElem contains a pointer to the specified element.
+    /// @post On success, kElem contains a pointer to the specified element.
     /// @post On error, kElem is unchanged.
     ///
     /// @remark This method is useful for checking element existence, as it does
@@ -169,7 +169,7 @@ public:
     ///
     /// @brief Gets a pointer to a region object by name.
     ///
-    /// @post On SUCCESS, kRegion contains a pointer to the specified region.
+    /// @post On success, kRegion contains a pointer to the specified region.
     /// @post On error, kRegion is unchanged.
     ///
     /// @param[in]  kName    Region name.
@@ -200,7 +200,7 @@ private:
     /// @brief Looks up an element config by name.
     ///
     /// @param[in] kName         Element name.
-    /// @param[out] kElemConfig  On SUCCESS, assigned pointer to requested
+    /// @param[out] kElemConfig  On success, assigned pointer to requested
     ///                          config.
     ///
     /// @retval SUCCESS   Successfully got config.
@@ -213,7 +213,7 @@ private:
     /// @brief Looks up a region config by name.
     ///
     /// @param[in]  kName        Region name.
-    /// @param[out] kElemConfig  On SUCCESS, assigned pointer to requested
+    /// @param[out] kElemConfig  On success, assigned pointer to requested
     ///                          config.
     ///
     /// @retval SUCCESS   Successfully got config.
@@ -226,7 +226,7 @@ private:
     /// @brief Element lookup helper with type checking.
     ///
     /// @param[in]  kName      Element name.
-    /// @param[out] kElem      On SUCCESS, assigned pointer to requested
+    /// @param[out] kElem      On success, assigned pointer to requested
     ///                        element.
     /// @param[in]  kElemType  Expected element type.
     ///

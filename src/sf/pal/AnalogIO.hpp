@@ -56,7 +56,7 @@ public:
     /// @brief Initializes an AnalogIO.
     ///
     /// @pre  kAio is uninitialized.
-    /// @post On SUCCESS, kAio is initialized and invoking methods on it may
+    /// @post On success, kAio is initialized and invoking methods on it may
     ///       succeed.
     /// @post On error, preconditions still hold.
     /// @post The AIO hardware state is indeterminate.
@@ -129,7 +129,7 @@ public:
     ///
     /// @brief Reads an analog input pin.
     ///
-    /// @post On SUCCESS, kVal contains the read value.
+    /// @post On success, kVal contains the read value.
     /// @post On error, kVal is unchanged.
     ///
     /// @note sbRIO-9637: The unit of kVal is V.
@@ -147,7 +147,7 @@ public:
     ///
     /// @brief Writes an analog output pin.
     ///
-    /// @post On SUCCESS, pin is outputting the specified value.
+    /// @post On success, pin is outputting the specified value.
     /// @post On error, output of the pin is unchanged.
     ///
     /// @note sbRIO-9637: The unit of kVal is V.

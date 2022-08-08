@@ -59,7 +59,8 @@ private:
     friend class ExpressionParser;
 
     ///
-    /// @brief Mutable tree node to aid tree construction.
+    /// @brief Mutable tree node to make in-place tree mutations easier during
+    /// parsing.
     ///
     struct MutNode final
     {
@@ -93,9 +94,9 @@ public:
     ///
     /// @brief Parsing entry point.
     ///
-    /// @param[in] kIt     Iterator of token sequence to parse.
-    /// @param[in] kParse  On SUCCESS, points to parsed expression.
-    /// @param[in] kErr    On error, contains error info.
+    /// @param[in]  kIt     Iterator of token sequence to parse.
+    /// @param[out] kParse  On success, points to parsed expression.
+    /// @param[out] kErr    On error, contains error info.
     ///
     /// @retval SUCCESS       Successfully parsed expression.
     /// @retval E_EXP_EMPTY   Token sequence is empty.
@@ -112,21 +113,75 @@ public:
 
 private:
 
+    ///
+    /// @brief Pops a subexpression from the operator stack onto the expression
+    /// tree according to operator precedence.
+    ///
+    /// @param[in]  kStack  Stack of nodes to pop from.
+    /// @param[out] kNodes  Stack of nodes to push to.
+    /// @param[out] kErr    On error, contains error info.
+    ///
+    /// @returns See ExpressionParser::parse().
+    ///
     static Result popSubexpression(
         std::stack<Token>& kStack,
         std::stack<Ref<ExpressionParse::MutNode>>& kNodes,
         ErrorInfo* const kErr);
 
+    ///
+    /// @brief Parses a function call. The root of the parsed subtree contains
+    /// the function identifier. The left subtree is a linked list of function
+    /// argument parses, where the left subtree of each argument is the next
+    /// argument, and the right subtree is the root of the argument expression.
+    /// For example, `foo(a, b + c)` becomes:
+    ///
+    ///       foo
+    ///      /
+    ///     arg1
+    ///    /    \
+    ///   arg2   a
+    ///       \
+    ///        +
+    ///       / \
+    ///      b   c
+    ///
+    /// @param[in]  kIt    Token iterator positioned at function call.
+    /// @param[out] kNode  On success, contains function call parse.
+    /// @param[out] kErr   On error, contains error info.
+    ///
+    /// @returns See ExpressionParser::parse().
+    ///
     static Result parseFunctionCall(TokenIterator kIt,
                                     Ref<ExpressionParse::MutNode>& kNode,
                                     ErrorInfo* const kErr);
 
+    ///
+    /// @brief Recursively expands double inequalities in an expression by
+    /// expanding them into single inequalities joined by logical ANDs. For
+    /// example, `a < b < c` becomes `a < b and b < c`.
+    ///
+    /// @param[in, out] kNode  Root of expression subtree to start at.
+    ///
     static void expandDoubleIneq(const Ref<ExpressionParse::MutNode> kNode);
 
+    ///
+    /// @brief Main parsing method.
+    ///
+    /// @param[in]  kIt     Iterator of token sequence to parse.
+    /// @param[out] kParse  On success, points to parsed expression.
+    /// @param[out] kErr    On error, contains error info.
+    ///
     static Result parseImpl(TokenIterator& kIt,
                             Ref<ExpressionParse::MutNode>& kParse,
                             ErrorInfo* const kErr);
 
+    ///
+    /// @brief Recursively converts a mutable expression tree to an immutable
+    /// one.
+    ///
+    /// @param[in]  kFrom  Root of mutable tree.
+    /// @param[out] kTo    Root of immutable tree.
+    ///
     static void convertTree(Ref<ExpressionParse::MutNode> kFrom,
                             Ref<const ExpressionParse>& kTo);
 };

@@ -1,3 +1,19 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+////////////////////////////////////////////////////////////////////////////////
+
 #include <fstream>
 
 #include "sf/config/StateVectorCompiler.hpp"
@@ -5,6 +21,9 @@
 
 /////////////////////////////////// Global /////////////////////////////////////
 
+///
+/// @brief State vector compiler error text.
+///
 extern const char* const gErrText = "state vector config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
@@ -23,7 +42,7 @@ Result StateVectorCompiler::compile(const String kFilePath,
             kErr->subtext = "failed to open file `" + kFilePath + "`";
         }
 
-        return E_SMC_FILE;
+        return E_SVC_FILE;
     }
 
     // Set the error info file path for error messages generated further into

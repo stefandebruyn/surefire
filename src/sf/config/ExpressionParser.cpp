@@ -165,8 +165,8 @@ Result ExpressionParser::popSubexpression(
     SF_SAFE_ASSERT(right != nullptr);
     if ((right->data.lineNum < op.lineNum) || (right->data.colNum < op.colNum))
     {
-        // "RHS" is actually to the left of the operator. This
-        // usually indicates a syntax error with a unary operator.
+        // "RHS" is actually to the left of the operator. This usually indicates
+        // a syntax error with a unary operator.
         ErrorInfo::set(kErr, op, gErrText, "invalid syntax");
         return E_EXP_SYNTAX;
     }

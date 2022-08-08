@@ -64,7 +64,7 @@ public:
     /// @brief Initializes a socket.
     ///
     /// @pre  kSock is uninitialized.
-    /// @post On SUCCESS, kSock is bound to the specified address and ready to
+    /// @post On success, kSock is bound to the specified address and ready to
     ///       perform network functions. Invoking methods on it may succeed.
     /// @post On error, preconditions still hold.
     ///
@@ -100,12 +100,12 @@ public:
     /// @param[in]      kSocks      Array of sockets to wait on.
     /// @param[in, out] kReady      Array of socket ready flags. kSocks[i] is
     ///                             eligible for selection only if kReady[i] is
-    ///                             false. On SUCCESS and kSocks[i] has data
+    ///                             false. On success and kSocks[i] has data
     ///                             available, kReady[i] is set to true.
     /// @param[in]      kNumSocks   Size of kSocks and kReady arrays. This must
     ///                             be at least 1.
     /// @param[in, out] kTimeoutUs  Timeout in microseconds. A timeout of 0 will
-    ///                             poll. On SUCCESS, the reference is updated
+    ///                             poll. On success, the reference is updated
     ///                             to store how much time was not used, where 0
     ///                             indicates a timeout. It is technically
     ///                             possible for the timeout to exactly elapse
@@ -148,7 +148,7 @@ public:
     /// @param[in]  kDestPort      Destination port.
     /// @param[in]  kBuf           Pointer to data to send.
     /// @param[in]  kNumBytes      Size of data to send in bytes.
-    /// @param[out] kNumBytesSent  On SUCCESS, if non-null, will be set to the
+    /// @param[out] kNumBytesSent  On success, if non-null, will be set to the
     ///                            number of bytes sent. It is not an error if
     ///                            this does not equal kNumBytes.
     ///
@@ -170,7 +170,7 @@ public:
     /// @param[out] kBuf            Pointer to buffer to read into.
     /// @param[in]  kNumBytes       Number of bytes to read. The buffer must be
     ///                             at least this size.
-    /// @param[out] kNumBytesRecvd  On SUCCESS, if non-null, will be set to the
+    /// @param[out] kNumBytesRecvd  On success, if non-null, will be set to the
     ///                             number of bytes received. It is not an error
     ///                             if this does not equal kNumBytes.
     ///

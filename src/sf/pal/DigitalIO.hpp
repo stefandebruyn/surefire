@@ -75,7 +75,7 @@ public:
     /// @brief Initializes a DigitalIO.
     ///
     /// @pre  kDio is uninitialized.
-    /// @post On SUCCESS, kDio is initialized and invoking methods on it may
+    /// @post On success, kDio is initialized and invoking methods on it may
     ///       succeed.
     /// @post On error, preconditions still hold.
     /// @post The DIO hardware state is indeterminate.
@@ -126,7 +126,7 @@ public:
     /// digital inputs. On platforms with tristate GPIO, reading a digital
     /// output pin may read the last value written to the pin.
     ///
-    /// @post On SUCCESS, kVal contains the read value.
+    /// @post On success, kVal contains the read value.
     /// @post On error, kVal is unchanged.
     ///
     /// @param[in]  kPin  Pin number.
@@ -142,7 +142,7 @@ public:
     ///
     /// @brief Writes a digital output pin.
     ///
-    /// @post On SUCCESS, pin is outputting the specified value.
+    /// @post On success, pin is outputting the specified value.
     /// @post On error, output of the pin is unchanged.
     ///
     /// @param[in] kPin  Pin number.

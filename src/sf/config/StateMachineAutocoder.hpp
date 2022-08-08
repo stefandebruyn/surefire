@@ -15,7 +15,7 @@
 ///
 ///                             ---------------
 /// @file  sf/config/StateMachineAutocoder.hpp
-/// @brief Autocoder for a compiled state machine.
+/// @brief Autocoder for state machines.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SF_STATE_MACHINE_AUTOCODER_HPP
@@ -33,6 +33,11 @@ public:
 
     ///
     /// @brief Autocoding entry point.
+    ///
+    /// @remark Very few errors can result from autocoding, since all validation
+    /// was already performed during state machine compilation. We have a
+    /// compiled state machine, which is immutable, so we can assume it valid.
+    /// Assumptions are checked via unsafe asserts (SF_ASSERT).
     ///
     /// @param[in] kOs    Autocode output stream.
     /// @param[in] kName  Name of state machine (will be used for certain
@@ -76,50 +81,157 @@ private:
     ///
     static const Map<IExpression::NodeType, String> exprStatNodeIds;
 
+    ///
+    /// @brief Gets the name of a state vector element by looking up its address
+    /// in the state vector config.
+    ///
+    /// @param[in] kAddr  Element to look up.
+    /// @param[in] kWs    Autocoder workspace.
+    ///
+    /// @returns Element name.
+    ///
     static String elemNameFromAddr(const IElement* const kAddr,
                                    StateMachineAutocoder::Workspace& kWs);
 
+    ///
+    /// @brief Autocodes the local state vector elements.
+    ///
+    /// @param[in] kAutocode  Autocode output.
+    /// @param[in] kWs        Autocoder workspace.
+    ///
     static void codeLocalStateVector(Autocode& kAutocode,
                                      StateMachineAutocoder::Workspace& kWs);
 
+    ///
+    /// @brief Autocodes a ConstExprNode.
+    ///
+    /// @param[in] kNode      Node to autocode.
+    /// @param[in] kAutocode  Autocode output.
+    /// @param[in] kWs        Autocoder workspace.
+    ///
+    /// @returns Identifier of autocoded object.
+    ///
     static String codeConstExprNode(const IExpression* const kNode,
                                     Autocode& kAutocode,
                                     StateMachineAutocoder::Workspace& kWs);
 
+    ///
+    /// @brief Autocodes a state vector element lookup.
+    ///
+    /// @remark This is done the first time each element is referenced in state
+    /// machine logic, and the Element object resulting from the lookup is used
+    /// in future autocode references.
+    ///
+    /// @param[in] kAutocode      Autocode output.
+    /// @param[in] kElemObj       Element to look up.
+    /// @param[in] kElemTypeInfo  Element type info.
+    /// @param[in] kElemName      Element name.
+    /// @param[in] kWs            Autocoder workspace.
+    ///
     static void codeElementLookup(Autocode& kAutocode,
                                   const IElement* const kElemObj,
                                   const TypeInfo& kElemTypeInfo,
                                   const String kElemName,
                                   StateMachineAutocoder::Workspace& kWs);
 
+    ///
+    /// @brief Autocodes an ElementExprNode.
+    ///
+    /// @param[in] kNode      Node to autocode.
+    /// @param[in] kAutocode  Autocode output.
+    /// @param[in] kWs        Autocoder workspace.
+    ///
+    /// @returns Identifier of autocoded object.
+    ///
     static String codeElementExprNode(const IExpression* const kNode,
                                       Autocode& kAutocode,
                                       StateMachineAutocoder::Workspace& kWs);
 
+    ///
+    /// @brief Autocodes a BinOpExprNode.
+    ///
+    /// @param[in] kNode      Node to autocode.
+    /// @param[in] kAutocode  Autocode output.
+    /// @param[in] kWs        Autocoder workspace.
+    ///
+    /// @returns Identifier of autocoded object.
+    ///
     static String codeBinOpExprNode(const IExpression* const kNode,
                                     Autocode& kAutocode,
                                     StateMachineAutocoder::Workspace& kWs);
 
+    ///
+    /// @brief Autocodes a UnaryOpExprNode.
+    ///
+    /// @param[in] kNode      Node to autocode.
+    /// @param[in] kAutocode  Autocode output.
+    /// @param[in] kWs        Autocoder workspace.
+    ///
+    /// @returns Identifier of autocoded object.
+    ///
     static String codeUnaryOpExprNode(const IExpression* const kNode,
                                       Autocode& kAutocode,
                                       StateMachineAutocoder::Workspace& kWs);
 
+    ///
+    /// @brief Autocodes an IExprStatsNode.
+    ///
+    /// @param[in] kNode      Node to autocode.
+    /// @param[in] kAutocode  Autocode output.
+    /// @param[in] kWs        Autocoder workspace.
+    ///
+    /// @returns Identifier of autocoded object.
+    ///
     static String codeExprStatsNode(const IExpression* const kNode,
                                     Autocode& kAutocode,
                                     StateMachineAutocoder::Workspace& kWs);
 
+    ///
+    /// @brief Recursively autocodes an expression.
+    ///
+    /// @param[in] kExpr      Root of expression to autocode.
+    /// @param[in] kAutocode  Autocode output.
+    /// @param[in] kWs        Autocoder workspace.
+    ///
+    /// @returns Identifier of autocoded object.
+    ///
     static String codeExpression(const IExpression* const kExpr,
                                  Autocode& kAutocode,
                                  StateMachineAutocoder::Workspace& kWs);
 
+    ///
+    /// @brief Autocodes a state machine action.
+    ///
+    /// @param[in] kAction    Action to autocode.
+    /// @param[in] kAutocode  Autocode output.
+    /// @param[in] kWs        Autocoder workspace.
+    ///
+    /// @returns Identifier of autocoded object.
+    ///
     static String codeAction(const IAction* const kAction,
                              Autocode& kAutocode,
                              StateMachineAutocoder::Workspace& kWs);
 
+    ///
+    /// @brief Recursively autocodes a state machine block.
+    ///
+    /// @param[in] kBlock     Block to autocode.
+    /// @param[in] kAutocode  Autocode output.
+    /// @param[in] kWs        Autocoder workspace.
+    ///
+    /// @returns Identifier of autocoded object.
+    ///
     static String codeBlock(const StateMachine::Block* const kBlock,
                             Autocode& kAutocode,
                             StateMachineAutocoder::Workspace& kWs);
 
+    ///
+    /// @brief Autocodes a state config.
+    ///
+    /// @param[in] kState     State to autocode.
+    /// @param[in] kAutocode  Autocode output.
+    /// @param[in] kWs        Autocoder workspace.
+    ///
     static void codeState(const StateMachine::StateConfig* const kState,
                           Autocode& kAutocode,
                           StateMachineAutocoder::Workspace& kWs);
