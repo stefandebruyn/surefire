@@ -1,8 +1,8 @@
 Directory | Description
 ---|---
 `cli` | CLI tool
-`core` | Core avionics software components (API layer)
-`pal` | Platform abstraction layer
-`psl` | Platform support layer
-`sup` | Support library (parsers, autocoders, etc.)
+`config` | Config Library
+`core` | Core Library
+`pal` | Platform Abstraction Layer
+`psl` | Platform Support Layer
 `utest` | Common unit test code
