@@ -106,7 +106,7 @@ public:
     ///
     /// @param[in]  kToks     Tokens to parse.
     /// @param[out] kParse    On success, points to state vector parse.
-    /// @param[out] kErr      On error, contains error info.
+    /// @param[out] kErr      On error, if non-null, contains error info.
     /// @param[in]  kRegions  Names of regions to parse, or ALL_REGIONS if all
     ///                       regions in the config should be parsed.
     ///
@@ -131,7 +131,7 @@ private:
     ///
     /// @param[in]  kIt      Token iterator positioned at section token.
     /// @param[out] kRegion  On success, contains region parse.
-    /// @param[out] kErr     On error, contains error info.
+    /// @param[out] kErr     On error, if non-null, contains error info.
     ///
     /// @returns See StateVectorParser::parse().
     ///
@@ -144,7 +144,7 @@ private:
     ///
     /// @param[in]  kIt      Token iterator positioned at section token.
     /// @param[out] kRegion  On success, contains options parse.
-    /// @param[out] kErr     On error, contains error info.
+    /// @param[out] kErr     On error, if non-null, contains error info.
     ///
     /// @returns See StateVectorParser::parse().
     ///

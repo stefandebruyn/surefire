@@ -1,8 +1,36 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestStateMachineParser.hpp
+/// @brief Unit tests for StateMachineParser.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/config/StateMachineParser.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that parsing a state machine generates a certain error.
+///
+/// @param[in] kToks     State machine config to parse.
+/// @param[in] kRes      Expected error code.
+/// @param[in] kLineNum  Expected error column number.
+/// @param[in] kColNum   Expected error line number.
+///
 static void checkParseError(const Vec<Token>& kToks,
                             const Result kRes,
                             const I32 kLineNum,
@@ -30,10 +58,22 @@ static void checkParseError(const Vec<Token>& kToks,
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
+///
+/// @brief Unit tests for StateMachineParser.
+///
+/// @remark This test group is relatively small because parsing of the different
+/// state machine sections is tested in section-specific test groups. The tests
+/// in this group mostly check that the results of section parsing are "bubbled
+/// up" to the final parse.
+///
 TEST_GROUP(StateMachineParser)
 {
 };
 
+///
+/// @test A state machine with state vector, local, and state sections is
+/// correctly parsed
+///
 TEST(StateMachineParser, AllSections)
 {
     // Parse state machine config.
@@ -89,6 +129,10 @@ TEST(StateMachineParser, AllSections)
     CHECK_TRUE(rhs->right == nullptr);
 }
 
+///
+/// @test A state machine with empty state vector, local, and state sections is
+/// correctly parsed
+///
 TEST(StateMachineParser, EmptySections)
 {
     // Parse state machine config.
@@ -116,10 +160,21 @@ TEST(StateMachineParser, EmptySections)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
+///
+/// @brief Unit tests for StateMachineParser errors.
+///
+/// @remark This test group is relatively small because parsing of the different
+/// state machine sections is tested in section-specific test groups. The tests
+/// in this group mostly check that the results of section parsing are "bubbled
+/// up" to the final parse.
+///
 TEST_GROUP(StateMachineParserErrors)
 {
 };
 
+///
+/// @test An unexpected token outside a section generates an error.
+///
 TEST(StateMachineParserErrors, UnexpectedToken)
 {
     TOKENIZE(
@@ -128,6 +183,9 @@ TEST(StateMachineParserErrors, UnexpectedToken)
     checkParseError(toks, E_SMP_TOK, 1, 1);
 }
 
+///
+/// @test Errors in the state vector section are surfaced.
+///
 TEST(StateMachineParserErrors, ErrorInStateVectorSection)
 {
     TOKENIZE(
@@ -136,6 +194,9 @@ TEST(StateMachineParserErrors, ErrorInStateVectorSection)
     checkParseError(toks, E_SMP_ELEM_TYPE, 2, 1);
 }
 
+///
+/// @test Errors in the local section are surfaced.
+///
 TEST(StateMachineParserErrors, ErrorInLocalSection)
 {
     TOKENIZE(
@@ -144,6 +205,9 @@ TEST(StateMachineParserErrors, ErrorInLocalSection)
     checkParseError(toks, E_SMP_ELEM_TYPE, 2, 1);
 }
 
+///
+/// @test Errors in a state section are surfaced.
+///
 TEST(StateMachineParserErrors, ErrorInStateSection)
 {
     TOKENIZE(

@@ -141,7 +141,7 @@ public:
     ///
     /// @param[in]  kFilePath  Path to to state vector config file.
     /// @param[out] kAsm       On success, points to compiled state vector.
-    /// @param[out] kErr       On error, contains error info.
+    /// @param[out] kErr       On error, if non-null, contains error info.
     ///
     /// @retval SUCCESS          Successfully compiled state vector.
     /// @retval E_SMC_FILE       Failed to open state vector config file.

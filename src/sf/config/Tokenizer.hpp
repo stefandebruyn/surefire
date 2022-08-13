@@ -38,7 +38,7 @@ namespace Tokenizer
     ///
     /// @param[in]  kFilePath  Path to file to tokenize.
     /// @param[in]  kToks      On success, contains tokens.
-    /// @param[out] kErr       On error, contains error info.
+    /// @param[out] kErr       On error, if non-null, contains error info.
     ///
     /// @retval SUCCESS        Successfully tokenized input.
     /// @retval E_TOK_INVALID  Input contains an invalid token.

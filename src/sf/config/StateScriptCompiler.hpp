@@ -195,7 +195,7 @@ public:
     ///                        data produced during state machine compilation is
     ///                        needed to run the state script.
     /// @param[out] kAsm       On success, points to compiled state script.
-    /// @param[out] kErr       On error, contains error info.
+    /// @param[out] kErr       On error, if non-null, contains error info.
     ///
     /// @retval SUCCESS      Successfully compiled state script.
     /// @retval E_SSC_FILE   Failed to open state script file.
@@ -245,7 +245,7 @@ private:
     /// @param[in]  kParse   Options parse.
     /// @param[in]  kSmAsm   State machine assembly.
     /// @param[in]  kConfig  On success, contains compiled options.
-    /// @param[out] kErr     On error, contains error info.
+    /// @param[out] kErr     On error, if non-null, contains error info.
     ///
     /// @returns See StateScriptCompiler::compile().
     ///

@@ -332,7 +332,7 @@ public:
     ///
     /// @param[in]  kToks   Tokens to parse.
     /// @param[in]  kParse  On success, points to state machine parse.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @retval SUCCESS
     /// @retval E_SMP_NO_LAB     Expected a label.
@@ -372,7 +372,7 @@ public:
     ///
     /// @param[in]  kIt     Token iterator positioned at section token.
     /// @param[out] kParse  On success, contains parsed local elements.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineParser::parse().
     ///
@@ -388,7 +388,7 @@ public:
     ///
     /// @param[in]  kIt     Token iterator positioned at section token.
     /// @param[out] kParse  On success, contains parsed state vector elements.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineParser::parse().
     ///
@@ -404,7 +404,7 @@ public:
     ///
     /// @param[in]  kIt     Token iterator positioned at section token.
     /// @param[out] kParse  On success, contains parsed state.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineParser::parse().
     ///
@@ -424,7 +424,7 @@ private:
     /// @param[in]  kIt     Token iterator positioned at first token after
     ///                     label.
     /// @param[out] kParse  On success, contains parsed block.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineParser::parse().
     ///
@@ -437,7 +437,7 @@ private:
     ///
     /// @param[in]  kIt     Token iterator positioned at first token in action.
     /// @param[out] kParse  On success, contains parsed action.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineParser::parse().
     ///
@@ -451,7 +451,7 @@ private:
     ///
     /// @param[in]  kIt     Token iterator positioned at first token in block.
     /// @param[out] kParse  On success, contains parsed block.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineParser::parse().
     ///

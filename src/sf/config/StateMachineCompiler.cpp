@@ -24,6 +24,9 @@
 
 /////////////////////////////////// Global /////////////////////////////////////
 
+///
+/// @brief State machine compiler error text.
+///
 static const char* const gErrText = "state machine config error";
 
 /////////////////////////////////// Public /////////////////////////////////////
@@ -137,7 +140,7 @@ Result StateMachineCompiler::compile(
     ws.stateConfigs.reset(new Vec<StateMachine::StateConfig>());
 
     // Validate the state machine state vector. This will partially populate
-    // the element symbol table in the compiler state.
+    // the element symbol table in the compiler workspace.
     Result res = StateMachineCompiler::checkStateVector(kParse, ws, kErr);
     if (res != SUCCESS)
     {
@@ -145,7 +148,7 @@ Result StateMachineCompiler::compile(
     }
 
     // Compile the local state vector. This will complete the element symbol
-    // table in the compiler state.
+    // table in the compiler workspace.
     res = StateMachineCompiler::compileLocalStateVector(kParse, ws, kErr);
     if (res != SUCCESS)
     {

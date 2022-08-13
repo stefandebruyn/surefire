@@ -1,8 +1,35 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestExpressionParser.hpp
+/// @brief Unit tests for ExpressionParser.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/config/ExpressionParser.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that a function parse has the expected argument count.
+///
+/// @param[in] kFuncNode   Function parse node, of type
+///                        Ref<const ExpressionParse>.
+/// @param[in] kExpectCnt  Expected number of arguments.
+///
 #define CHECK_ARG_CNT(kFuncNode, kExpectCnt)                                   \
 {                                                                              \
     U32 cnt = 0;                                                               \
@@ -15,6 +42,13 @@
     CHECK_EQUAL(kExpectCnt, cnt);                                              \
 }
 
+///
+/// @brief Recursively checks if two expression parses contain the same tree
+/// structure, with the same tokens at each node.
+///
+/// @param[in] kNodeA  An expression parse.
+/// @param[in] kNodeB  Another expression parse.
+///
 static void checkParsesEqual(const Ref<const ExpressionParse> kNodeA,
                              const Ref<const ExpressionParse> kNodeB)
 {
@@ -32,6 +66,14 @@ static void checkParsesEqual(const Ref<const ExpressionParse> kNodeA,
     checkParsesEqual(kNodeA->right, kNodeB->right);
 }
 
+///
+/// @brief Checks that parsing an expression generates the expected error.
+///
+/// @param[in] kIt       Iterator of tokens to parse.
+/// @param[in] kRes      Expected error code.
+/// @param[in] kLineNum  Expected error line number.
+/// @param[in] kColNum   Expected error column number.
+///
 static void checkParseError(TokenIterator& kIt,
                             const Result kRes,
                             const I32 kLineNum,
@@ -59,10 +101,16 @@ static void checkParseError(TokenIterator& kIt,
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
+///
+/// @brief Unit tests for ExpressionParser.
+///
 TEST_GROUP(ExpressionParser)
 {
 };
 
+///
+/// @test An expression with a single constant is parsed correctly.
+///
 TEST(ExpressionParser, OneConstant)
 {
     TOKENIZE("10");
@@ -73,6 +121,9 @@ TEST(ExpressionParser, OneConstant)
     CHECK_TRUE(parse->right == nullptr);
 }
 
+///
+/// @test An expression with a single variable is parsed correctly.
+///
 TEST(ExpressionParser, OneVariable)
 {
     TOKENIZE("foo");
@@ -83,6 +134,10 @@ TEST(ExpressionParser, OneVariable)
     CHECK_TRUE(parse->right == nullptr);
 }
 
+///
+/// @test A simple expression with operators of differing precedence is parsed
+/// correctly.
+///
 TEST(ExpressionParser, SimplePrecedence)
 {
     //   +
@@ -120,6 +175,10 @@ TEST(ExpressionParser, SimplePrecedence)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test A simple expression with parentheses and operators of differing
+/// precedence is parsed correctly.
+///
 TEST(ExpressionParser, SimplePrecedenceWithParens)
 {
     //     *
@@ -157,6 +216,9 @@ TEST(ExpressionParser, SimplePrecedenceWithParens)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test Binary operators are left-associative when equal precedence.
+///
 TEST(ExpressionParser, BinaryOperatorLeftAssociativity)
 {
     //       +
@@ -205,6 +267,9 @@ TEST(ExpressionParser, BinaryOperatorLeftAssociativity)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test A unary operator is parsed correctly.
+///
 TEST(ExpressionParser, UnaryOperator)
 {
     // not
@@ -226,6 +291,9 @@ TEST(ExpressionParser, UnaryOperator)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test Unary and binary operators together are parsed correctly.
+///
 TEST(ExpressionParser, UnaryAndBinaryOperator)
 {
     //   and
@@ -259,6 +327,9 @@ TEST(ExpressionParser, UnaryAndBinaryOperator)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test All arithmetic operators are parsed correctly.
+///
 TEST(ExpressionParser, ArithmeticOperators)
 {
     //     -
@@ -319,6 +390,9 @@ TEST(ExpressionParser, ArithmeticOperators)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test All comparison operators are parsed correctly.
+///
 TEST(ExpressionParser, ComparisonOperators)
 {
     //         ==
@@ -414,6 +488,9 @@ TEST(ExpressionParser, ComparisonOperators)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test All logical operators are parsed correctly.
+///
 TEST(ExpressionParser, LogicalOperators)
 {
     //     or
@@ -459,6 +536,9 @@ TEST(ExpressionParser, LogicalOperators)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test Nested parenthese are parsed correctly.
+///
 TEST(ExpressionParser, NestedParentheses)
 {
     //       and
@@ -518,6 +598,9 @@ TEST(ExpressionParser, NestedParentheses)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test Extraneous nested parentheses are parsed correctly.
+///
 TEST(ExpressionParser, ExtraParenthesesOnOneTerm)
 {
     TOKENIZE("(((a)))");
@@ -528,6 +611,9 @@ TEST(ExpressionParser, ExtraParenthesesOnOneTerm)
     CHECK_TRUE(parse->right == nullptr);
 }
 
+///
+/// @test Unary operators are right-associative when equal precedence.
+///
 TEST(ExpressionParser, UnaryOperatorRightAssociativity)
 {
     // not
@@ -557,6 +643,9 @@ TEST(ExpressionParser, UnaryOperatorRightAssociativity)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test Parentheses are a binary operator are parsed correctly.
+///
 TEST(ExpressionParser, ParenthesesAfterBinaryOperator)
 {
     //   +
@@ -594,6 +683,9 @@ TEST(ExpressionParser, ParenthesesAfterBinaryOperator)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test Parentheses are a unary operator are parsed correctly.
+///
 TEST(ExpressionParser, ParenthesesAfterUnaryOperator)
 {
     // not
@@ -627,6 +719,9 @@ TEST(ExpressionParser, ParenthesesAfterUnaryOperator)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test A double inequality with < and <= is expanded correctly.
+///
 TEST(ExpressionParser, ExpandDoubleInequalityLtLte)
 {
     TOKENIZE("a < b <= c");
@@ -642,6 +737,9 @@ TEST(ExpressionParser, ExpandDoubleInequalityLtLte)
     checkParsesEqual(parseExpect, parse);
 }
 
+///
+/// @test A double inequality with > and >= is expanded correctly.
+///
 TEST(ExpressionParser, ExpandDoubleInequalityGtGte)
 {
     TOKENIZE("a > b >= c");
@@ -657,6 +755,9 @@ TEST(ExpressionParser, ExpandDoubleInequalityGtGte)
     checkParsesEqual(parseExpect, parse);
 }
 
+///
+/// @test A triple inequality is expanded correctly.
+///
 TEST(ExpressionParser, ExpandTripleInequality)
 {
     TOKENIZE("a < b < c < d");
@@ -672,6 +773,10 @@ TEST(ExpressionParser, ExpandTripleInequality)
     checkParsesEqual(parseExpect, parse);
 }
 
+///
+/// @test A double inequality with more than single terms between the operators
+/// is expanded correctly.
+///
 TEST(ExpressionParser, ExpandDoubleInequalityNestedExpression)
 {
     TOKENIZE("a + b < c + d < e + f");
@@ -687,6 +792,9 @@ TEST(ExpressionParser, ExpandDoubleInequalityNestedExpression)
     checkParsesEqual(parseExpect, parse);
 }
 
+///
+/// @test A function call with no arguments is parsed correctly.
+///
 TEST(ExpressionParser, FunctionCallNoArgs)
 {
     TOKENIZE("foo()");
@@ -704,6 +812,9 @@ TEST(ExpressionParser, FunctionCallNoArgs)
     CHECK_TRUE(node->func);
 }
 
+///
+/// @test A function call with one argument is parsed correctly.
+///
 TEST(ExpressionParser, FunctionCallOneArg)
 {
     //   foo
@@ -731,6 +842,9 @@ TEST(ExpressionParser, FunctionCallOneArg)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test A function call with two arguments is parsed correctly.
+///
 TEST(ExpressionParser, FunctionCallTwoArgs)
 {
     //      foo
@@ -767,6 +881,9 @@ TEST(ExpressionParser, FunctionCallTwoArgs)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test A function call with three arguments is parsed correctly.
+///
 TEST(ExpressionParser, FunctionCallThreeArgs)
 {
     //         foo
@@ -812,6 +929,10 @@ TEST(ExpressionParser, FunctionCallThreeArgs)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test A function call with an argument that is more than a single term is
+/// parsed correctly.
+///
 TEST(ExpressionParser, FunctionCallExpressionArg)
 {
     //   foo
@@ -849,6 +970,10 @@ TEST(ExpressionParser, FunctionCallExpressionArg)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test A function call with two argumens that are more than a single term is
+/// parsed correctly.
+///
 TEST(ExpressionParser, FunctionCallTwoExpressionArgs)
 {
     //        foo
@@ -905,6 +1030,9 @@ TEST(ExpressionParser, FunctionCallTwoExpressionArgs)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test A function call with a parenthesized argument is parsed correctly.
+///
 TEST(ExpressionParser, FunctionCallParenthesizedExpressionArg)
 {
     //   foo
@@ -942,6 +1070,10 @@ TEST(ExpressionParser, FunctionCallParenthesizedExpressionArg)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test A function call with multiple parenthesized arguments is parsed
+/// correctly.
+///
 TEST(ExpressionParser, FunctionCallMultipleParenthesizedExpressionArgs)
 {
     //        foo
@@ -998,6 +1130,9 @@ TEST(ExpressionParser, FunctionCallMultipleParenthesizedExpressionArgs)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test Nested function calls are parsed correctly.
+///
 TEST(ExpressionParser, NestedFunctionCall)
 {
     //   foo
@@ -1036,6 +1171,9 @@ TEST(ExpressionParser, NestedFunctionCall)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test Multiple nested function calls are parsed correctly.
+///
 TEST(ExpressionParser, MultipleNestedFunctionCalls)
 {
     //           foo
@@ -1096,40 +1234,61 @@ TEST(ExpressionParser, MultipleNestedFunctionCalls)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
+///
+/// @brief Unit tests for ExpressionParser errors.
+///
 TEST_GROUP(ExpressionParserErrors)
 {
 };
 
+///
+/// @test A function call with just a comma generates an error.
+///
 TEST(ExpressionParserErrors, FunctionCallLoneComma)
 {
     TOKENIZE("foo(,)");
     checkParseError(it, E_EXP_SYNTAX, 1, 5);
 }
 
+///
+/// @test A function call with a trailing comma generates an error.
+///
 TEST(ExpressionParserErrors, FunctionCallTrailingComma)
 {
     TOKENIZE("foo(a,)");
     checkParseError(it, E_EXP_SYNTAX, 1, 7);
 }
 
+///
+/// @test A function call with a leading comma generates an error.
+///
 TEST(ExpressionParserErrors, FunctionCallLeadingComma)
 {
     TOKENIZE("foo(,a)");
     checkParseError(it, E_EXP_SYNTAX, 1, 5);
 }
 
+///
+/// @test A function call with multiple sequential commas generates an error.
+///
 TEST(ExpressionParserErrors, FunctionCallSequentialCommas)
 {
     TOKENIZE("foo(,,)");
     checkParseError(it, E_EXP_SYNTAX, 1, 5);
 }
 
+///
+/// @test A function call containing an invalid expression generates an error.
+///
 TEST(ExpressionParserErrors, SyntaxErrorInFunctionCallArgument)
 {
     TOKENIZE("foo(a +)");
     checkParseError(it, E_EXP_SYNTAX, 1, 7);
 }
 
+///
+/// @test Parsing an empty expression generates an error.
+///
 TEST(ExpressionParserErrors, NoTokens)
 {
     TOKENIZE("");
@@ -1138,60 +1297,90 @@ TEST(ExpressionParserErrors, NoTokens)
     CHECK_TRUE(parse == nullptr);
 }
 
+///
+/// @test Unbalanced opening parenthese generates an error.
+///
 TEST(ExpressionParserErrors, TooManyLeftParentheses)
 {
     TOKENIZE("((a + b) * c");
     checkParseError(it, E_EXP_PAREN, 1, 1);
 }
 
+///
+/// @test Unbalanced closing parenthese generates an error.
+///
 TEST(ExpressionParserErrors, TooManyRightParentheses)
 {
     TOKENIZE("(a + b) * c)");
     checkParseError(it, E_EXP_PAREN, 1, 12);
 }
 
+///
+/// @test Unexpected token in expression generates an error.
+///
 TEST(ExpressionParserErrors, UnexpectedToken)
 {
     TOKENIZE("a + b @foo");
     checkParseError(it, E_EXP_TOK, 1, 7);
 }
 
+///
+/// @test Parsing an expression of only parentheses generates an error.
+///
 TEST(ExpressionParserErrors, NoTermsInExpression)
 {
     TOKENIZE("()");
     checkParseError(it, E_EXP_EMPTY, 1, 1);
 }
 
+///
+/// @test Two sequential identifiers generates an error.
+///
 TEST(ExpressionParserErrors, SyntaxMissingOperator)
 {
     TOKENIZE("a b");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
+///
+/// @test A binary operator with no left operand generates an error.
+///
 TEST(ExpressionParserErrors, SyntaxBinaryOperatorMissingLhs)
 {
     TOKENIZE("+ a");
     checkParseError(it, E_EXP_SYNTAX, 1, 1);
 }
 
+///
+/// @test A binary operator with no right operand generates an error.
+///
 TEST(ExpressionParserErrors, SyntaxBinaryOperatorMissingRhs)
 {
     TOKENIZE("a +");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
+///
+/// @test A unary operator with no right operand generates an error.
+///
 TEST(ExpressionParserErrors, SyntaxUnaryOperatorMissingRhs)
 {
     TOKENIZE("a NOT");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
+///
+/// @test Two sequential binary operators generates an error.
+///
 TEST(ExpressionParserErrors, SyntaxAdjacentBinaryOperators)
 {
     TOKENIZE("a + + b");
     checkParseError(it, E_EXP_SYNTAX, 1, 3);
 }
 
+///
+/// @test Parsing an expression with an assignment operator generates an error.
+///
 TEST(ExpressionParserErrors, IllegalAssignmentOperator)
 {
     TOKENIZE("a = b");

@@ -1,8 +1,36 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestStateMachineParserStateSection.hpp
+/// @brief Unit tests for StateMachineParser parsing state sections.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/config/StateMachineParser.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that parsing a state machine generates a certain error.
+///
+/// @param[in] kIt       State machine config to parse.
+/// @param[in] kRes      Expected error code.
+/// @param[in] kLineNum  Expected error column number.
+/// @param[in] kColNum   Expected error line number.
+///
 static void checkParseError(TokenIterator& kIt,
                             const Result kRes,
                             const I32 kLineNum,
@@ -29,10 +57,16 @@ static void checkParseError(TokenIterator& kIt,
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
+///
+/// @brief Unit tests for StateMachineParser parsing state sections.
+///
 TEST_GROUP(StateMachineParserStateSection)
 {
 };
 
+///
+/// @test Entry label is parsed correctly.
+///
 TEST(StateMachineParserStateSection, EntryLabel)
 {
     // Parse state.
@@ -66,6 +100,9 @@ TEST(StateMachineParserStateSection, EntryLabel)
     CHECK_TRUE(parse.entry->action->rhs->right == nullptr);
 }
 
+///
+/// @test Step label is parsed correctly.
+///
 TEST(StateMachineParserStateSection, StepLabel)
 {
     // Parse state.
@@ -99,6 +136,9 @@ TEST(StateMachineParserStateSection, StepLabel)
     CHECK_TRUE(parse.step->action->rhs->right == nullptr);
 }
 
+///
+/// @test Exit label is parsed correctly.
+///
 TEST(StateMachineParserStateSection, ExitLabel)
 {
     // Parse state.
@@ -132,6 +172,9 @@ TEST(StateMachineParserStateSection, ExitLabel)
     CHECK_TRUE(parse.exit->action->rhs->right == nullptr);
 }
 
+///
+/// @test A transition is parsed correctly.
+///
 TEST(StateMachineParserStateSection, Transition)
 {
     // Parse state.
@@ -164,6 +207,9 @@ TEST(StateMachineParserStateSection, Transition)
     CHECK_EQUAL(toks[4], parse.entry->action->tokTransitionKeyword);
 }
 
+///
+/// @test Multiple sequential statements are parsed correctly.
+///
 TEST(StateMachineParserStateSection, MultipleUnguardedActions)
 {
     // Parse state.
@@ -209,6 +255,9 @@ TEST(StateMachineParserStateSection, MultipleUnguardedActions)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test An if branch is parsed correctly.
+///
 TEST(StateMachineParserStateSection, IfAction)
 {
     // Parse state.
@@ -264,6 +313,9 @@ TEST(StateMachineParserStateSection, IfAction)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test If-else branches are parsed correctly.
+///
 TEST(StateMachineParserStateSection, IfActionElseAction)
 {
     // Parse state.
@@ -332,6 +384,9 @@ TEST(StateMachineParserStateSection, IfActionElseAction)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test An if branch containing multiple statements is parsed correctly.
+///
 TEST(StateMachineParserStateSection, IfMultipleActions)
 {
     // Parse state.
@@ -402,6 +457,10 @@ TEST(StateMachineParserStateSection, IfMultipleActions)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test An if branch containing multiple statements and else branch containing
+/// a single statement are parsed correctly.
+///
 TEST(StateMachineParserStateSection, IfMultipleActionsElseAction)
 {
     // Parse state.
@@ -485,6 +544,10 @@ TEST(StateMachineParserStateSection, IfMultipleActionsElseAction)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test If-else branches that both contain multiple statements are parsed
+/// correctly.
+///
 TEST(StateMachineParserStateSection, IfMultipleActionsElseMultipleActions)
 {
     // Parse state.
@@ -583,6 +646,9 @@ TEST(StateMachineParserStateSection, IfMultipleActionsElseMultipleActions)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test Nested conditionals using colons are parsed correctly.
+///
 TEST(StateMachineParserStateSection, NestedColonGuards)
 {
     // Parse state.
@@ -661,6 +727,9 @@ TEST(StateMachineParserStateSection, NestedColonGuards)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test Nested conditionals using braces are parsed correctly.
+///
 TEST(StateMachineParserStateSection, NestedBraceGuards)
 {
     // Parse state.
@@ -743,6 +812,10 @@ TEST(StateMachineParserStateSection, NestedBraceGuards)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test A conditional using a colon followed by an unconditional statement is
+/// parsed correctly.
+///
 TEST(StateMachineParserStateSection, ColonGuardFollowedByAction)
 {
     // Parse state.
@@ -811,6 +884,10 @@ TEST(StateMachineParserStateSection, ColonGuardFollowedByAction)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test A conditional using braces followed by an unconditional statement is
+/// parsed correctly.
+///
 TEST(StateMachineParserStateSection, BraceGuardFollowedByAction)
 {
     // Parse state.
@@ -879,7 +956,11 @@ TEST(StateMachineParserStateSection, BraceGuardFollowedByAction)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
-TEST(StateMachineParserStateSection, NewlineAgnosticExceptForGuardsAndActions)
+///
+/// @test State sections are newline-agnostic except for statements (which must
+/// be followed by a newline).
+///
+TEST(StateMachineParserStateSection, NewlineAgnosticExceptForActions)
 {
     // Parse state.
     TOKENIZE(
@@ -947,6 +1028,9 @@ TEST(StateMachineParserStateSection, NewlineAgnosticExceptForGuardsAndActions)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test A state with actions in every label is parsed correctly.
+///
 TEST(StateMachineParserStateSection, ActionInEveryLabel)
 {
     // Parse state.
@@ -1007,6 +1091,9 @@ TEST(StateMachineParserStateSection, ActionInEveryLabel)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test An empty state is parsed correctly.
+///
 TEST(StateMachineParserStateSection, EmptyState)
 {
     // Parse state.
@@ -1024,6 +1111,9 @@ TEST(StateMachineParserStateSection, EmptyState)
     CHECK_TRUE(parse.exit == nullptr);
 }
 
+///
+/// @test Empty labels are parsed correctly.
+///
 TEST(StateMachineParserStateSection, EmptyLabels)
 {
     // Parse state.
@@ -1065,6 +1155,12 @@ TEST(StateMachineParserStateSection, EmptyLabels)
     CHECK_TRUE(parse.exit->assert == nullptr);
 }
 
+///
+/// @test An if-else-if statement is parsed correctly.
+///
+/// @remark This requires an extra colon after the else, as the state machine
+/// DSL has no first-class support for else-if.
+///
 TEST(StateMachineParserStateSection, IfElseIf)
 {
     // Parse state.
@@ -1136,6 +1232,12 @@ TEST(StateMachineParserStateSection, IfElseIf)
     CHECK_TRUE(block->action->rhs->right == nullptr);
 }
 
+///
+/// @test An if-else-if-else statement is parsed correctly.
+///
+/// @remark This requires braces after the first else, as the state machine DSL
+/// has no first-class support for else-if.
+///
 TEST(StateMachineParserStateSection, IfElseIfElse)
 {
     // Parse state.
@@ -1222,10 +1324,16 @@ TEST(StateMachineParserStateSection, IfElseIfElse)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
+///
+/// @brief Unit tests for StateMachineParser parsing state sections with errors.
+///
 TEST_GROUP(StateMachineParserStateSectionErrors)
 {
 };
 
+///
+/// @test A non-label token where a label is expected generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, ExpectedLabel)
 {
     TOKENIZE(
@@ -1235,6 +1343,9 @@ TEST(StateMachineParserStateSectionErrors, ExpectedLabel)
     checkParseError(it, E_SMP_NO_LAB, 2, 1);
 }
 
+///
+/// @test A colon with no conditional generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, EmptyGuard)
 {
     TOKENIZE(
@@ -1244,6 +1355,9 @@ TEST(StateMachineParserStateSectionErrors, EmptyGuard)
     checkParseError(it, E_SMP_GUARD, 3, 5);
 }
 
+///
+/// @test Errors on conditionals are surfaced.
+///
 TEST(StateMachineParserStateSectionErrors, SyntaxErrorInGuard)
 {
     TOKENIZE(
@@ -1253,6 +1367,9 @@ TEST(StateMachineParserStateSectionErrors, SyntaxErrorInGuard)
     checkParseError(it, E_EXP_SYNTAX, 3, 7);
 }
 
+///
+/// @test An unbalanced left brace generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, UnclosedLeftBrace)
 {
     TOKENIZE(
@@ -1262,6 +1379,9 @@ TEST(StateMachineParserStateSectionErrors, UnclosedLeftBrace)
     checkParseError(it, E_SMP_BRACE, 3, 7);
 }
 
+///
+/// @test Errors in an if branch are surfaced.
+///
 TEST(StateMachineParserStateSectionErrors, ErrorInIfBranch)
 {
     TOKENIZE(
@@ -1273,6 +1393,9 @@ TEST(StateMachineParserStateSectionErrors, ErrorInIfBranch)
     checkParseError(it, E_EXP_SYNTAX, 4, 11);
 }
 
+///
+/// @test Errors in an else branch are surfaced.
+///
 TEST(StateMachineParserStateSectionErrors, ErrorInElseBranch)
 {
     TOKENIZE(
@@ -1285,6 +1408,9 @@ TEST(StateMachineParserStateSectionErrors, ErrorInElseBranch)
     checkParseError(it, E_EXP_SYNTAX, 5, 11);
 }
 
+///
+/// @test Nothing after an else keyword generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, NothingAfterElse)
 {
     TOKENIZE(
@@ -1295,6 +1421,9 @@ TEST(StateMachineParserStateSectionErrors, NothingAfterElse)
     checkParseError(it, E_SMP_ELSE, 4, 9);
 }
 
+///
+/// @test Nothing after an element name generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, NothingAfterElementName)
 {
     TOKENIZE(
@@ -1304,6 +1433,9 @@ TEST(StateMachineParserStateSectionErrors, NothingAfterElementName)
     checkParseError(it, E_SMP_ACT_ELEM, 3, 5);
 }
 
+///
+/// @test A non-operator token where an operator is expected generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, UnexpectedTokenAfterElementName)
 {
     TOKENIZE(
@@ -1313,6 +1445,10 @@ TEST(StateMachineParserStateSectionErrors, UnexpectedTokenAfterElementName)
     checkParseError(it, E_SMP_ACT_OP, 3, 7);
 }
 
+///
+/// @test An operator other than the assignment operator in an assignment
+/// statement generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, WrongOperatorAfterElementName)
 {
     TOKENIZE(
@@ -1322,6 +1458,9 @@ TEST(StateMachineParserStateSectionErrors, WrongOperatorAfterElementName)
     checkParseError(it, E_SMP_ACT_OP, 3, 7);
 }
 
+///
+/// @test Nothing after an assignment operator generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, NothingAfterAssignmentOperator)
 {
     TOKENIZE(
@@ -1331,6 +1470,9 @@ TEST(StateMachineParserStateSectionErrors, NothingAfterAssignmentOperator)
     checkParseError(it, E_SMP_ACT_EXPR, 3, 7);
 }
 
+///
+/// @test Errors in assignment expressions are surfaced.
+///
 TEST(StateMachineParserStateSectionErrors, SyntaxErrorInAssignmentAction)
 {
     TOKENIZE(
@@ -1340,7 +1482,10 @@ TEST(StateMachineParserStateSectionErrors, SyntaxErrorInAssignmentAction)
     checkParseError(it, E_EXP_SYNTAX, 3, 11);
 }
 
-TEST(StateMachineParserStateSectionErrors, NothingAfterTransitionOperator)
+///
+/// @test Nothing after a transition keyword generates an error.
+///
+TEST(StateMachineParserStateSectionErrors, NothingAfterTransitionKeyword)
 {
     TOKENIZE(
         "[Foo]\n"
@@ -1349,6 +1494,9 @@ TEST(StateMachineParserStateSectionErrors, NothingAfterTransitionOperator)
     checkParseError(it, E_SMP_TR_DEST, 3, 5);
 }
 
+///
+/// @test A non-identifier token after a transition keyword generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, UnexpectedTokenAfterTransitionOp)
 {
     TOKENIZE(
@@ -1358,6 +1506,9 @@ TEST(StateMachineParserStateSectionErrors, UnexpectedTokenAfterTransitionOp)
     checkParseError(it, E_SMP_TR_TOK, 3, 8);
 }
 
+///
+/// @test An extra token after a valid transition statement generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, ExtraTokenAfterTransition)
 {
     TOKENIZE(
@@ -1367,6 +1518,9 @@ TEST(StateMachineParserStateSectionErrors, ExtraTokenAfterTransition)
     checkParseError(it, E_SMP_JUNK, 3, 12);
 }
 
+///
+/// @test An unexpected token in a label generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, InvalidFirstActionToken)
 {
     TOKENIZE(
@@ -1376,6 +1530,9 @@ TEST(StateMachineParserStateSectionErrors, InvalidFirstActionToken)
     checkParseError(it, E_SMP_ACT_TOK, 3, 5);
 }
 
+///
+/// @test Multiple entry labels generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, MultipleEntryLabels)
 {
     TOKENIZE(
@@ -1385,6 +1542,9 @@ TEST(StateMachineParserStateSectionErrors, MultipleEntryLabels)
     checkParseError(it, E_SMP_LAB_DUPE, 3, 1);
 }
 
+///
+/// @test Multiple step labels generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, MultipleStepLabels)
 {
     TOKENIZE(
@@ -1394,6 +1554,9 @@ TEST(StateMachineParserStateSectionErrors, MultipleStepLabels)
     checkParseError(it, E_SMP_LAB_DUPE, 3, 1);
 }
 
+///
+/// @test Multiple exit labels generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, MultipleExitLabels)
 {
     TOKENIZE(
@@ -1403,6 +1566,9 @@ TEST(StateMachineParserStateSectionErrors, MultipleExitLabels)
     checkParseError(it, E_SMP_LAB_DUPE, 3, 1);
 }
 
+///
+/// @test An unknown label generates an error.
+///
 TEST(StateMachineParserStateSectionErrors, UnknownLabel)
 {
     TOKENIZE(

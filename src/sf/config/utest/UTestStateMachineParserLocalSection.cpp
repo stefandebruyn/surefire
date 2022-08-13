@@ -1,8 +1,36 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestStateMachineParserLocalSection.hpp
+/// @brief Unit tests for StateMachineParser parsing local sections.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/config/StateMachineParser.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that parsing a state machine generates a certain error.
+///
+/// @param[in] kIt       State machine config to parse.
+/// @param[in] kRes      Expected error code.
+/// @param[in] kLineNum  Expected error column number.
+/// @param[in] kColNum   Expected error line number.
+///
 static void checkParseError(TokenIterator& kIt,
                             const Result kRes,
                             const I32 kLineNum,
@@ -30,10 +58,16 @@ static void checkParseError(TokenIterator& kIt,
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
+///
+/// @brief Unit tests for StateMachineParser parsing local sections.
+///
 TEST_GROUP(StateMachineParserLocalSection)
 {
 };
 
+///
+/// @test An empty local section is parsed correctly.
+///
 TEST(StateMachineParserLocalSection, Empty)
 {
     // Parse local section.
@@ -47,6 +81,9 @@ TEST(StateMachineParserLocalSection, Empty)
     CHECK_EQUAL(toks.size(), it.idx());
 }
 
+///
+/// @test An empty local section containing newlines is parsed correctly.
+///
 TEST(StateMachineParserLocalSection, EmptyWithNewlines)
 {
     TOKENIZE("[local]\n\n\n");
@@ -56,6 +93,9 @@ TEST(StateMachineParserLocalSection, EmptyWithNewlines)
     CHECK_EQUAL(toks.size(), it.idx());
 }
 
+///
+/// @test A local section containing a single element is parsed correctly.
+///
 TEST(StateMachineParserLocalSection, OneElement)
 {
     // Parse local section.
@@ -80,6 +120,9 @@ TEST(StateMachineParserLocalSection, OneElement)
     CHECK_TRUE(!parse[0].readOnly);
 }
 
+///
+/// @test A read-only annotation is parsed correctly.
+///
 TEST(StateMachineParserLocalSection, ReadOnlyAnnotation)
 {
     // Parse local section.
@@ -104,6 +147,9 @@ TEST(StateMachineParserLocalSection, ReadOnlyAnnotation)
     CHECK_TRUE(parse[0].readOnly);
 }
 
+///
+/// @test Multiple elements are parsed correctly.
+///
 TEST(StateMachineParserLocalSection, MultipleElements)
 {
     // Parse local section.
@@ -148,6 +194,9 @@ TEST(StateMachineParserLocalSection, MultipleElements)
     CHECK_TRUE(!parse[0].readOnly);
 }
 
+///
+/// @test Multiple elements with annotations are parsed correctly.
+///
 TEST(StateMachineParserLocalSection, MultipleElementsWithAnnotations)
 {
     // Parse local section.
@@ -192,6 +241,9 @@ TEST(StateMachineParserLocalSection, MultipleElementsWithAnnotations)
     CHECK_TRUE(parse[2].readOnly);
 }
 
+///
+/// @test All element types are parsed correctly.
+///
 TEST(StateMachineParserLocalSection, AllElementTypes)
 {
     // Parse local section.
@@ -316,6 +368,10 @@ TEST(StateMachineParserLocalSection, AllElementTypes)
     CHECK_TRUE(!parse[10].readOnly);
 }
 
+///
+/// @test A local element assignment expression with multiple terms is parsed
+/// correctly.
+///
 TEST(StateMachineParserLocalSection, MultipleTermsInElementAssignment)
 {
     // Parse local section.
@@ -350,10 +406,16 @@ TEST(StateMachineParserLocalSection, MultipleTermsInElementAssignment)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
+///
+/// @brief Unit tests for StateMachineParser parsing local sections with errors.
+///
 TEST_GROUP(StateMachineParserLocalSectionErrors)
 {
 };
 
+///
+/// @test Multiple read-only annotations on the same element generate an error.
+///
 TEST(StateMachineParserLocalSectionErrors, RedundantReadOnlyAnnotation)
 {
     TOKENIZE(
@@ -362,6 +424,10 @@ TEST(StateMachineParserLocalSectionErrors, RedundantReadOnlyAnnotation)
     checkParseError(it, E_SMP_RO_MULT, 2, 24);
 }
 
+///
+/// @test A non-identifier token where an element type is expected generates an
+/// error.
+///
 TEST(StateMachineParserLocalSectionErrors, ExpectedElementType)
 {
     TOKENIZE(
@@ -370,6 +436,9 @@ TEST(StateMachineParserLocalSectionErrors, ExpectedElementType)
     checkParseError(it, E_SMP_ELEM_TYPE, 2, 1);
 }
 
+///
+/// @test No tokens after the element type generates an error.
+///
 TEST(StateMachineParserLocalSectionErrors, EofAfterElementType)
 {
     TOKENIZE(
@@ -378,6 +447,10 @@ TEST(StateMachineParserLocalSectionErrors, EofAfterElementType)
     checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
 
+///
+/// @test A non-identifier token where an element identifier is expected
+/// generates an error.
+///
 TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterElementType)
 {
     TOKENIZE(
@@ -386,6 +459,9 @@ TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterElementType)
     checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
 
+///
+/// @test No tokens after the element identifier generates an error.
+///
 TEST(StateMachineParserLocalSectionErrors, EofAfterElementName)
 {
     TOKENIZE(
@@ -394,6 +470,10 @@ TEST(StateMachineParserLocalSectionErrors, EofAfterElementName)
     checkParseError(it, E_SMP_LOC_OP, 2, 5);
 }
 
+///
+/// @test A non-operator token where the assignment operator is expected
+/// generates an error.
+///
 TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterElementName)
 {
     TOKENIZE(
@@ -402,6 +482,9 @@ TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterElementName)
     checkParseError(it, E_SMP_LOC_OP, 2, 5);
 }
 
+///
+/// @test An operator other than the assignment operator generates an error.
+///
 TEST(StateMachineParserLocalSectionErrors, WrongOperatorAfterElementName)
 {
     TOKENIZE(
@@ -410,6 +493,9 @@ TEST(StateMachineParserLocalSectionErrors, WrongOperatorAfterElementName)
     checkParseError(it, E_SMP_LOC_OP, 2, 5);
 }
 
+///
+/// @test No tokens after the assignment operator generates an error.
+///
 TEST(StateMachineParserLocalSectionErrors, EofAfterAssignmentOp)
 {
     TOKENIZE(
@@ -418,6 +504,10 @@ TEST(StateMachineParserLocalSectionErrors, EofAfterAssignmentOp)
     checkParseError(it, E_SMP_LOC_VAL, 2, 9);
 }
 
+///
+/// @test An invalid expression after the assignment operator generates an
+/// error.
+///
 TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterAssignmentOp)
 {
     TOKENIZE(
@@ -426,6 +516,9 @@ TEST(StateMachineParserLocalSectionErrors, UnexpectedTokenAfterAssignmentOp)
     checkParseError(it, E_SMP_LOC_VAL, 2, 9);
 }
 
+///
+/// @test An unknown annotation generates an error.
+///
 TEST(StateMachineParserLocalSectionErrors, UnknownAnnotation)
 {
     TOKENIZE(

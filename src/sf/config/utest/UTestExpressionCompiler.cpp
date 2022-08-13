@@ -1,3 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestExpressionCompiler.hpp
+/// @brief Unit tests for ExpressionCompiler.
+////////////////////////////////////////////////////////////////////////////////
+
 #include <cstring>
 
 #include "sf/config/ExpressionCompiler.hpp"
@@ -6,11 +26,23 @@
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Creates an ExpressionParse from a string.
+///
+/// @param[in] kExprSrc  Expression string to parse.
+///
 #define PARSE_EXPR(kExprSrc)                                                   \
     TOKENIZE(kExprSrc);                                                        \
     Ref<const ExpressionParse> exprParse;                                      \
     CHECK_SUCCESS(ExpressionParser::parse(it, exprParse, nullptr));
 
+///
+/// @brief Compiles an expression containing only constants and checks that it
+/// evaluates to some value.
+///
+/// @param[in] kExprSrc    Expression to parse.
+/// @param[in] kExpectVal  Expected value of expression.
+///
 static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
 {
     PARSE_EXPR(kExprSrc);
@@ -30,6 +62,15 @@ static void checkEvalConstExpr(const char* const kExprSrc, const F64 kExpectVal)
     CHECK_EQUAL(kExpectVal, root->evaluate());
 }
 
+///
+/// @brief Check that compiling an expression generates a certain error.
+///
+/// @param[in] kExprParse  Expression to compile.
+/// @param[in] kBindings   Element symbol table.
+/// @param[in] kRes        Expected error code.
+/// @param[in] kLineNum    Expected error line number.
+/// @param[in] kColNum     Expected error column number.
+///
 static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
                               const Map<String, IElement*> kBindings,
                               const Result kRes,
@@ -66,20 +107,33 @@ static void checkCompileError(const Ref<const ExpressionParse> kExprParse,
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
+///
+/// @brief Unit tests for ExpressionCompiler.
+///
 TEST_GROUP(ExpressionCompiler)
 {
 };
 
+///
+/// @test Operator precedence in a simple expression compiles correctly.
+///
 TEST(ExpressionCompiler, SimplePrecedence)
 {
     checkEvalConstExpr("1 + 2 * 3", 7);
 }
 
+///
+/// @test Operator precedence in a simple expression with parenthese compiles
+/// correctly.
+///
 TEST(ExpressionCompiler, SimplePrecedenceWithParens)
 {
     checkEvalConstExpr("(1 + 2) * 3", 9);
 }
 
+///
+/// @test Logical not operator compiles correctly.
+///
 TEST(ExpressionCompiler, Not)
 {
     checkEvalConstExpr("not false", 1.0);
@@ -88,6 +142,9 @@ TEST(ExpressionCompiler, Not)
     checkEvalConstExpr("not not not false", 1.0);
 }
 
+///
+/// @test Multiplication operator compiles correctly.
+///
 TEST(ExpressionCompiler, Multiply)
 {
     checkEvalConstExpr("5 * 3", (5 * 3));
@@ -97,6 +154,9 @@ TEST(ExpressionCompiler, Multiply)
                        (5 * (3 * (-3.14 * 9.81)) * -1.62));
 }
 
+///
+/// @test Division operator compiles correctly.
+///
 TEST(ExpressionCompiler, Divide)
 {
     checkEvalConstExpr("5 / 3", (5.0 / 3.0));
@@ -106,6 +166,9 @@ TEST(ExpressionCompiler, Divide)
                        (5.0 / (3 / (-3.14 / 9.81)) / -1.62));
 }
 
+///
+/// @test Addition operator compiles correctly.
+///
 TEST(ExpressionCompiler, Add)
 {
     checkEvalConstExpr("5 + 3", (5.0 + 3.0));
@@ -115,6 +178,9 @@ TEST(ExpressionCompiler, Add)
                        (5 + (3 + (-3.14 + 9.81)) + -1.62));
 }
 
+///
+/// @test Subtraction operator compiles correctly.
+///
 TEST(ExpressionCompiler, Subtract)
 {
     checkEvalConstExpr("5 - 3", (5.0 - 3.0));
@@ -124,6 +190,10 @@ TEST(ExpressionCompiler, Subtract)
                        (5 - (3 - (-3.14 - 9.81)) - -1.62));
 }
 
+///
+/// @test A complex expression containing parentheses and all arithmetic
+/// operators compiles correctly.
+///
 TEST(ExpressionCompiler, ComplexArithmetic)
 {
     const F64 expectVal =
@@ -137,6 +207,9 @@ TEST(ExpressionCompiler, ComplexArithmetic)
         expectVal);
 }
 
+///
+/// @test Less than operator compiles correctly.
+///
 TEST(ExpressionCompiler, LessThan)
 {
     checkEvalConstExpr("3 < 5", 1.0);
@@ -144,6 +217,9 @@ TEST(ExpressionCompiler, LessThan)
     checkEvalConstExpr("5 < 5", 0.0);
 }
 
+///
+/// @test Less than or equal operator compiles correctly.
+///
 TEST(ExpressionCompiler, LessThanEqual)
 {
     checkEvalConstExpr("3 <= 5", 1.0);
@@ -151,6 +227,9 @@ TEST(ExpressionCompiler, LessThanEqual)
     checkEvalConstExpr("5 <= 5", 1.0);
 }
 
+///
+/// @test Greater than operator compiles correctly.
+///
 TEST(ExpressionCompiler, GreaterThan)
 {
     checkEvalConstExpr("5 > 3", 1.0);
@@ -158,6 +237,9 @@ TEST(ExpressionCompiler, GreaterThan)
     checkEvalConstExpr("5 > 5", 0.0);
 }
 
+///
+/// @test Greater than or equal operator compiles correctly.
+///
 TEST(ExpressionCompiler, GreaterThanEqual)
 {
     checkEvalConstExpr("5 >= 3", 1.0);
@@ -165,18 +247,27 @@ TEST(ExpressionCompiler, GreaterThanEqual)
     checkEvalConstExpr("5 >= 5", 1.0);
 }
 
+///
+/// @test Equal operator compiles correctly.
+///
 TEST(ExpressionCompiler, Equal)
 {
     checkEvalConstExpr("5 == 5", 1.0);
     checkEvalConstExpr("3 == 5", 0.0);
 }
 
+///
+/// @test Not equal operator compiles correctly.
+///
 TEST(ExpressionCompiler, NotEqual)
 {
     checkEvalConstExpr("3 != 5", 1.0);
     checkEvalConstExpr("5 != 5", 0.0);
 }
 
+///
+/// @test Logical and operator compiles correctly.
+///
 TEST(ExpressionCompiler, And)
 {
     checkEvalConstExpr("false and false", 0.0);
@@ -185,6 +276,9 @@ TEST(ExpressionCompiler, And)
     checkEvalConstExpr("true and true", 1.0);
 }
 
+///
+/// @test Logical or operator compiles correctly.
+///
 TEST(ExpressionCompiler, Or)
 {
     checkEvalConstExpr("false or false", 0.0);
@@ -193,6 +287,10 @@ TEST(ExpressionCompiler, Or)
     checkEvalConstExpr("true or true", 1.0);
 }
 
+///
+/// @test A complex expression containing parentheses and all logical operators
+/// compiles correctly.
+///
 TEST(ExpressionCompiler, ComplexLogic)
 {
     const bool expectVal =
@@ -206,11 +304,17 @@ TEST(ExpressionCompiler, ComplexLogic)
         expectVal);
 }
 
+///
+/// @test An expression containing both arithmetic and logic compiles correctly.
+///
 TEST(ExpressionCompiler, MixedArithmeticAndLogic)
 {
     checkEvalConstExpr("(4 + 6) / 2 == (100 - 120) / (4 * -1)", 1.0);
 }
 
+///
+/// @test Double inequalities with < compile correctly.
+///
 TEST(ExpressionCompiler, DoubleInequalityLt)
 {
     checkEvalConstExpr("1 < 2 < 3", 1.0);
@@ -220,6 +324,9 @@ TEST(ExpressionCompiler, DoubleInequalityLt)
     checkEvalConstExpr("1 < 1 + 1 < 1 + 1 + 1", 1.0);
 }
 
+///
+/// @test Double inequalities with <= compile correctly.
+///
 TEST(ExpressionCompiler, DoubleInequalityLte)
 {
     checkEvalConstExpr("1 <= 2 <= 3", 1.0);
@@ -232,6 +339,9 @@ TEST(ExpressionCompiler, DoubleInequalityLte)
     checkEvalConstExpr("1 <= 1 + 1 - 1 <= 1 + 1 + 1 - 2", 1.0);
 }
 
+///
+/// @test Double inequalities with > compile correctly.
+///
 TEST(ExpressionCompiler, DoubleInequalityGt)
 {
     checkEvalConstExpr("3 > 2 > 1", 1.0);
@@ -241,6 +351,9 @@ TEST(ExpressionCompiler, DoubleInequalityGt)
     checkEvalConstExpr("1 + 1 + 1 > 1 + 1 > 1", 1.0);
 }
 
+///
+/// @test Double inequalities with >= compile correctly.
+///
 TEST(ExpressionCompiler, DoubleInequalityGte)
 {
     checkEvalConstExpr("3 >= 2 >= 1", 1.0);
@@ -253,6 +366,9 @@ TEST(ExpressionCompiler, DoubleInequalityGte)
     checkEvalConstExpr("1 + 1 + 1 - 2 >= 1 + 1 - 1 >= 1", 1.0);
 }
 
+///
+/// @test Double inequalities with < and <= compile correctly.
+///
 TEST(ExpressionCompiler, DoubleInequalityLtLte)
 {
     checkEvalConstExpr("1 < 2 <= 3", 1.0);
@@ -261,6 +377,9 @@ TEST(ExpressionCompiler, DoubleInequalityLtLte)
     checkEvalConstExpr("2 < 2 <= 2", 0.0);
 }
 
+///
+/// @test Double inequalities with > and >= compile correctly.
+///
 TEST(ExpressionCompiler, DoubleInequalityGtGte)
 {
     checkEvalConstExpr("3 > 2 >= 1", 1.0);
@@ -269,6 +388,9 @@ TEST(ExpressionCompiler, DoubleInequalityGtGte)
     checkEvalConstExpr("2 > 2 >= 2", 0.0);
 }
 
+///
+/// @test Double inequalities with opposing comparison compile correctly.
+///
 TEST(ExpressionCompiler, DoubleInequalityOpposingComparisons)
 {
     checkEvalConstExpr("3 > 2 < 4", 1.0);
@@ -278,6 +400,9 @@ TEST(ExpressionCompiler, DoubleInequalityOpposingComparisons)
     checkEvalConstExpr("2 >= 2 < 4", 1.0);
 }
 
+///
+/// @test Triple inequalities (nested double inequalities) compile correctly.
+///
 TEST(ExpressionCompiler, TripleInequality)
 {
     checkEvalConstExpr("1 < 2 < 3 < 4", 1.0);
@@ -289,6 +414,9 @@ TEST(ExpressionCompiler, TripleInequality)
     checkEvalConstExpr("1 < 2 < 3 <= 3", 1.0);
 }
 
+///
+/// @test An expression containing a single element compiles correctly.
+///
 TEST(ExpressionCompiler, OnlyElement)
 {
     // Parse expression.
@@ -321,6 +449,9 @@ TEST(ExpressionCompiler, OnlyElement)
     CHECK_EQUAL(3.0, root->evaluate());
 }
 
+///
+/// @test An expression containing multiple elements compiles correctly.
+///
 TEST(ExpressionCompiler, MultipleElements)
 {
     // Parse expression.
@@ -361,6 +492,9 @@ TEST(ExpressionCompiler, MultipleElements)
     CHECK_EQUAL(-27.0, root->evaluate());
 }
 
+///
+/// @test An expression containing elements of all types compiles correctly.
+///
 TEST(ExpressionCompiler, AllElementTypes)
 {
     // Parse expression.
@@ -433,6 +567,9 @@ TEST(ExpressionCompiler, AllElementTypes)
     CHECK_EQUAL(66.0, root->evaluate());
 }
 
+///
+/// @test roll_avg() compiles correctly.
+///
 TEST(ExpressionCompiler, RollAvgFunction)
 {
     // Parse expression.
@@ -482,6 +619,9 @@ TEST(ExpressionCompiler, RollAvgFunction)
     CHECK_EQUAL(5.0, root->evaluate());
 }
 
+///
+/// @test roll_median() compiles correctly.
+///
 TEST(ExpressionCompiler, RollMedianFunction)
 {
     // Parse expression.
@@ -536,6 +676,9 @@ TEST(ExpressionCompiler, RollMedianFunction)
     CHECK_EQUAL(6.0, root->evaluate());
 }
 
+///
+/// @test roll_min() compiles correctly.
+///
 TEST(ExpressionCompiler, RollMinFunction)
 {
     // Parse expression.
@@ -585,6 +728,9 @@ TEST(ExpressionCompiler, RollMinFunction)
     CHECK_EQUAL(1.0, root->evaluate());
 }
 
+///
+/// @test roll_max() compiles correctly.
+///
 TEST(ExpressionCompiler, RollMaxFunction)
 {
     // Parse expression.
@@ -634,6 +780,9 @@ TEST(ExpressionCompiler, RollMaxFunction)
     CHECK_EQUAL(2.0, root->evaluate());
 }
 
+///
+/// @test roll_range() compiles correctly.
+///
 TEST(ExpressionCompiler, RollRangeFunction)
 {
     // Parse expression.
@@ -684,6 +833,10 @@ TEST(ExpressionCompiler, RollRangeFunction)
     CHECK_EQUAL(4.0, root->evaluate());
 }
 
+///
+/// @test A stats function with expressions with >1 token as arguments compiles
+/// correctly.
+///
 TEST(ExpressionCompiler, StatsFunctionExpressionArgs)
 {
     // Parse expression.
@@ -746,16 +899,27 @@ TEST(ExpressionCompiler, StatsFunctionExpressionArgs)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
+///
+/// @brief Unit tests for ExpressionCompiler errors.
+///
 TEST_GROUP(ExpressionCompilerErrors)
 {
 };
 
+///
+/// @test An expression with an element not in the symbol table generates an
+/// error.
+///
 TEST(ExpressionCompilerErrors, UnknownElement)
 {
     PARSE_EXPR("foo");
     checkCompileError(exprParse, {}, E_EXC_ELEM, 1, 1);
 }
 
+///
+/// @test An expression with a constant too large to represent generates an
+/// error.
+///
 TEST(ExpressionCompilerErrors, OutOfRangeNumber)
 {
     PARSE_EXPR("1 + 999999999999999999999999999999999999999999999999999999999"
@@ -769,60 +933,95 @@ TEST(ExpressionCompilerErrors, OutOfRangeNumber)
     checkCompileError(exprParse, {}, E_EXC_OVFL, 1, 5);
 }
 
+///
+/// @test An expression with a function call that supplies the wrong number of
+/// arguments generates an error.
+///
 TEST(ExpressionCompilerErrors, StatsFunctionArity)
 {
     PARSE_EXPR("roll_avg(1)");
     checkCompileError(exprParse, {}, E_EXC_ARITY, 1, 1);
 }
 
+///
+/// @test A stats function call with an erroneous expression as the first
+/// argument generates an error.
+///
 TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg1)
 {
     PARSE_EXPR("roll_avg(foo, 4)");
     checkCompileError(exprParse, {}, E_EXC_ELEM, 1, 10);
 }
 
+///
+/// @test A stats function call with an erroneous expression as the second
+/// argument generates an error.
+///
 TEST(ExpressionCompilerErrors, StatsFunctionErrorInArg2)
 {
     PARSE_EXPR("roll_avg(4, foo)");
     checkCompileError(exprParse, {}, E_EXC_ELEM, 1, 13);
 }
 
+///
+/// @test A stats function call with a zero window size generates an error.
+///
 TEST(ExpressionCompilerErrors, StatsFunctionZeroWindowSize)
 {
     PARSE_EXPR("roll_avg(4, 0)");
     checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 
+///
+/// @test A stats function call with a negative window size generates an error.
+///
 TEST(ExpressionCompilerErrors, StatsFunctionNegativeWindowSize)
 {
     PARSE_EXPR("roll_avg(4, -1)");
     checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 
+///
+/// @test A stats function call with a non-integer window size generates an
+/// error.
+///
 TEST(ExpressionCompilerErrors, StatsFunctionNonIntegerWindowSize)
 {
     PARSE_EXPR("roll_avg(4, 1.5)");
     checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 
+///
+/// @test A stats function call with a NaN window size generates an error.
+///
 TEST(ExpressionCompilerErrors, StatsFunctionNaNWindowSize)
 {
     PARSE_EXPR("roll_avg(4, 0 / 0)");
     checkCompileError(exprParse, {}, E_EXC_WIN, 1, 15);
 }
 
+///
+/// @test A stats function call with too large of a window size generates an
+/// error.
+///
 TEST(ExpressionCompilerErrors, StatsFunctionWindowTooBig)
 {
     PARSE_EXPR("roll_avg(4, 100001)");
     checkCompileError(exprParse, {}, E_EXC_WIN, 1, 13);
 }
 
+///
+/// @test An unknown function generates an error.
+///
 TEST(ExpressionCompilerErrors, UnknownFunction)
 {
     PARSE_EXPR("FOO()");
     checkCompileError(exprParse, {}, E_EXC_FUNC, 1, 1);
 }
 
+///
+/// @test A null value in the symbol table generates an error.
+///
 TEST(ExpressionCompilerErrors, NullElementInBindings)
 {
     PARSE_EXPR("foo");
@@ -836,6 +1035,9 @@ TEST(ExpressionCompilerErrors, NullElementInBindings)
                                             nullptr));
 }
 
+///
+/// @test Passing a null parse to the compiler generates an error.
+///
 TEST(ExpressionCompilerErrors, NullParse)
 {
     const Ref<const ExpressionParse> exprParse;

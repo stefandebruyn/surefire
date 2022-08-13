@@ -91,7 +91,7 @@ public:
     /// @param[in]  kBindings  Map of variable identifiers to elements.
     /// @param[in]  kEvalType  Expression evaluation type.
     /// @param[out] kAsm       On success, points to compiled expression.
-    /// @param[out] kErr       On error, contains error info.
+    /// @param[out] kErr       On error, if non-null, contains error info.
     ///
     /// @retval SUCCESS          Successfully compiled expression.
     /// @retval E_EXC_NULL       kParse is null.
@@ -118,7 +118,7 @@ private:
     ///
     /// @param[in]  kTok  Token to convert.
     /// @param[out] kRet  On success, contains converted value.
-    /// @param[out] kErr  On error, contains error info.
+    /// @param[out] kErr  On error, if non-null, contains error info.
     ///
     /// @returns See ExpressionCompiler::compile().
     ///
@@ -133,7 +133,7 @@ private:
     /// @param[in]       kBindings  Element symbol table.
     /// @param[out]      kNode      On success, contains compiled function.
     /// @param[in, out]  kWs        Compilation workspace.
-    /// @param[out]      kErr       On error, contains error info.
+    /// @param[out]      kErr       On error, if non-null, contains error info.
     ///
     /// @returns See ExpressionCompiler::compile().
     ///
@@ -150,7 +150,7 @@ private:
     /// @param[in]       kBindings  Element symbol table.
     /// @param[out]      kNode      On success, contains compiled function.
     /// @param[in, out]  kWs        Compilation workspace.
-    /// @param[out]      kErr       On error, contains error info.
+    /// @param[out]      kErr       On error, if non-null, contains error info.
     ///
     /// @returns See ExpressionCompiler::compile().
     ///
@@ -167,7 +167,7 @@ private:
     /// @param[in]       kBindings  Element symbol table.
     /// @param[out]      kNode      On success, contains compiled operator.
     /// @param[in, out]  kWs        Compilation workspace.
-    /// @param[out]      kErr       On error, contains error info.
+    /// @param[out]      kErr       On error, if non-null, contains error info.
     ///
     /// @returns See ExpressionCompiler::compile().
     ///
@@ -184,7 +184,7 @@ private:
     /// @param[in]       kBindings  Element symbol table.
     /// @param[out]      kNode      On success, contains compiled expression.
     /// @param[in, out]  kWs        Compilation workspace.
-    /// @param[out]      kErr       On error, contains error info.
+    /// @param[out]      kErr       On error, if non-null, contains error info.
     ///
     /// @returns See ExpressionCompiler::compile().
     ///

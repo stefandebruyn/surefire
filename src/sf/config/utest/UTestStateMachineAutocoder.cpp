@@ -1,3 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestStateMachineAutocoder.hpp
+/// @brief Unit tests for StateMachineAutocoder.
+////////////////////////////////////////////////////////////////////////////////
+
 #include <fstream>
 #include <iomanip>
 #include <limits>
@@ -12,7 +32,8 @@
 
 ///
 /// @brief String literal path to directory containing state machine harness.
-/// SF_REPO_PATH is set by the CMake project.
+/// 
+/// @remark SF_REPO_PATH and PATH_SEP are set by the CMake project.
 ///
 #define HARNESS_PATH                                                           \
     SF_REPO_PATH PATH_SEP "src" PATH_SEP "sf" PATH_SEP "config" PATH_SEP       \
@@ -46,7 +67,7 @@
 /// the global time, which is initially 1. The global time element must be
 /// named "time".
 ///
-/// @param[in] kSrc  State vector config as string literal.
+/// @param[in] kPath  Path to state vector config.
 ///
 #define AUTOCODE_SV(kPath)                                                     \
     /* Compile state vector. */                                                \
@@ -74,7 +95,7 @@
 /// @brief Generates harness state machine autocode on disk. AUTOCODE_SV should
 /// have been called prior.
 ///
-/// @param[in] kSrc  State machine config as string literal.
+/// @param[in] kPath  Path to state machine config.
 ///
 #define AUTOCODE_SM(kPath)                                                     \
     /* Compile state machine. */                                               \
@@ -94,6 +115,8 @@
 /// disk, and loads the file contents into a string stream AUTOCODE_SM should
 /// have been called prior.
 ///
+/// @param[in] kArgs  Harness command line arguments.
+///
 #define RUN_HARNESS(kArgs)                                                     \
     /* Build and run harness. */                                               \
     const I32 status = std::system(                                            \
@@ -109,6 +132,8 @@
 ///
 /// @brief Runs the state machine previously compiled in-memory and compares
 /// its output to the harness output. RUN_HARNESS should have been called prior.
+///
+/// @param[in] kSmSteps  Number of state machine steps to run for.
 ///
 #define CHECK_HARNESS_OUT(kSmSteps)                                            \
     std::stringstream expectOut;                                               \
@@ -131,9 +156,10 @@
 /// a specified output stream each step in the exact same format used by the
 /// harness.
 ///
-/// @param[in]  kSvAsm  State vector assembly used by state machine.
-/// @param[in]  kSmAsm  State machine assembly to run.
-/// @param[out] kOs     Output stream to print state vector to.
+/// @param[in]  kSvAsm    State vector assembly used by state machine.
+/// @param[in]  kSmAsm    State machine assembly to run.
+/// @param[in]  kSmSteps  Number of state machine steps to run for.
+/// @param[out] kOs       Output stream to print state vector to.
 ///
 static void runStateMachine(const Ref<const StateVectorAssembly> kSvAsm,
                             const Ref<const StateMachineAssembly> kSmAsm,

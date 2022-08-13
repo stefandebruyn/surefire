@@ -50,7 +50,7 @@ public:
 
     ///
     /// @brief True if this node is a function call (just the initial function
-    /// identifier, not the nodes therein), false otherwise.
+    /// identifier, not the descendant nodes), false otherwise.
     ///
     bool func;
 
@@ -96,7 +96,7 @@ public:
     ///
     /// @param[in]  kIt     Iterator of token sequence to parse.
     /// @param[out] kParse  On success, points to parsed expression.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @retval SUCCESS       Successfully parsed expression.
     /// @retval E_EXP_EMPTY   Token sequence is empty.
@@ -119,7 +119,7 @@ private:
     ///
     /// @param[in]  kStack  Stack of nodes to pop from.
     /// @param[out] kNodes  Stack of nodes to push to.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @returns See ExpressionParser::parse().
     ///
@@ -147,7 +147,7 @@ private:
     ///
     /// @param[in]  kIt    Token iterator positioned at function call.
     /// @param[out] kNode  On success, contains function call parse.
-    /// @param[out] kErr   On error, contains error info.
+    /// @param[out] kErr   On error, if non-null, contains error info.
     ///
     /// @returns See ExpressionParser::parse().
     ///
@@ -169,7 +169,7 @@ private:
     ///
     /// @param[in]  kIt     Iterator of token sequence to parse.
     /// @param[out] kParse  On success, points to parsed expression.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     static Result parseImpl(TokenIterator& kIt,
                             Ref<ExpressionParse::MutNode>& kParse,

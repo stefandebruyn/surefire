@@ -105,7 +105,7 @@ public:
     ///
     /// @param[in]  kToks   Tokens to parse.
     /// @param[out] kParse  On success, points to state script parse.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @retval SUCCESS       Successfully parsed state script.
     /// @retval E_SSP_SEC     Expected a section.

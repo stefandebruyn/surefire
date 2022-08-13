@@ -189,7 +189,7 @@ public:
     /// @param[in]  kFilePath   Path to state machine config file.
     /// @param[in]  kSvAsm      State vector for state machine to use.
     /// @param[out] kAsm        On success, points to compiled state machine.
-    /// @param[out] kErr        On error, contains error info.
+    /// @param[out] kErr        On error, if non-null, contains error info.
     /// @param[in]  kInitState  Name of state machine initial state, or
     ///                         FIRST_STATE for the first defined state.
     /// @param[in]  kRake       If the state machine assembly should be raked,
@@ -269,7 +269,7 @@ private:
     ///
     /// @param[in]  kParse  State machine parse.
     /// @param[in]  kWs     Compiler workspace.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineCompiler::compile().
     ///
@@ -282,7 +282,7 @@ private:
     ///
     /// @param[in]  kParse  State machine parse.
     /// @param[in]  kWs     Compiler workspace.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineCompiler::compile().
     ///
@@ -298,7 +298,7 @@ private:
     /// @param[in]  kInitElem  Parse of element being validated.
     /// @param[in]  kExpr      Root of expression tree to validate.
     /// @param[in]  kWs        Compiler workspace.
-    /// @param[out] kErr       On error, contains error info.
+    /// @param[out] kErr       On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineCompiler::compile().
     ///
@@ -314,7 +314,7 @@ private:
     ///
     /// @param[in]  kParse  State machine parse.
     /// @param[in]  kWs     Compiler workspace.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineCompiler::compile().
     ///
@@ -335,7 +335,7 @@ private:
     /// @param[in]  kReadOnlyElems  Set of read-only element names.
     /// @param[out] kAction         On success, points to compiled action.
     /// @param[in]  kRhsAsm         RHS of assignment.
-    /// @param[out] kErr            On error, contains error info.
+    /// @param[out] kErr            On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineCompiler::compile().
     ///
@@ -354,7 +354,7 @@ private:
     /// @param[in]  kWs           Compiler workspace.
     /// @param[in]  kInExitLabel  If action is in an exit block.
     /// @param[out] kAction       On success, points to compiled action.
-    /// @param[out] kErr          On error, contains error info.
+    /// @param[out] kErr          On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineCompiler::compile().
     ///
@@ -372,7 +372,7 @@ private:
     /// @param[in]  kWs           Compiler workspace.
     /// @param[in]  kInExitLabel  If action is in an exit block.
     /// @param[out] kAction       On success, points to compiled action.
-    /// @param[out] kErr          On error, contains error info.
+    /// @param[out] kErr          On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineCompiler::compile().
     ///
@@ -388,7 +388,7 @@ private:
     ///
     /// @param[in]  kParse  State parse to compile.
     /// @param[in]  kWs     Compiler workspace.
-    /// @param[out] kErr    On error, contains error info.
+    /// @param[out] kErr    On error, if non-null, contains error info.
     ///
     /// @returns See StateMachineCompiler::compile().
     ///
