@@ -62,16 +62,18 @@ add_subdirectory(examples)
 ##################################### CLI ######################################
 
 # Target `cli` builds the Surefire CLI tool (for checking config files, running
-# state machine tests, etc.).
+# state machine tests, etc.). The executable is named `sf`.
 
 file(GLOB cli-src "src/sf/cli/*.cpp")
 add_executable(cli ${cli-src})
+set_target_properties(cli PROPERTIES OUTPUT_NAME "sf")
 target_link_libraries(cli PRIVATE sfconfig sf)
 # Make the compiler as pedantic as possible.
 target_compile_options(cli PRIVATE
     -Wall
     -Wextra
     -Werror
+    -Wno-comment # Otherwise ASCII diagrams with backslashes will error out.
     $<$<COMPILE_LANGUAGE:CXX>:-Wold-style-cast>
 )
 
@@ -111,6 +113,7 @@ target_compile_options(sf PRIVATE
     -Wall
     -Wextra
     -Werror
+    -Wno-comment
     $<$<COMPILE_LANGUAGE:CXX>:-Wold-style-cast>
 )
 
@@ -139,5 +142,6 @@ target_compile_options(sfconfig PRIVATE
     -Wall
     -Wextra
     -Werror
+    -Wno-comment
     $<$<COMPILE_LANGUAGE:CXX>:-Wold-style-cast>
 )

@@ -14,7 +14,7 @@
 /// IN THE SOFTWARE.
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "sf/pal/AnalogIO.hpp"
+#include "sf/pal/AnalogIo.hpp"
 
 //////////////////////////////// Private Data //////////////////////////////////
 
@@ -146,7 +146,7 @@ static const NiFpga_FxpTypeInfo gAoFxpTypeInfoIds[gAoCnt] =
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-Result AnalogIO::init(AnalogIO& kAio)
+Result AnalogIo::init(AnalogIo& kAio)
 {
     // Check that AIO is not already initialized.
     if (kAio.mInit)
@@ -166,16 +166,16 @@ Result AnalogIO::init(AnalogIO& kAio)
     return SUCCESS;
 }
 
-AnalogIO::AnalogIO() : mInit(false), mSession(0)
+AnalogIo::AnalogIo() : mInit(false), mSession(0)
 {
 }
 
-AnalogIO::~AnalogIO()
+AnalogIo::~AnalogIo()
 {
     (void) this->release();
 }
 
-Result AnalogIO::setMode(const U32 kPin, const I8 kMode)
+Result AnalogIo::setMode(const U32 kPin, const I8 kMode)
 {
     // Check that AIO is initialized.
     if (!mInit)
@@ -211,7 +211,7 @@ Result AnalogIO::setMode(const U32 kPin, const I8 kMode)
     return SUCCESS;
 }
 
-Result AnalogIO::setRange(const U32 kPin, const I8 kRange)
+Result AnalogIo::setRange(const U32 kPin, const I8 kRange)
 {
     // Check that AIO is initialized.
     if (!mInit)
@@ -267,7 +267,7 @@ Result AnalogIO::setRange(const U32 kPin, const I8 kRange)
     return SUCCESS;
 }
 
-Result AnalogIO::read(const U32 kPin, F32& kVal)
+Result AnalogIo::read(const U32 kPin, F32& kVal)
 {
     // Check that AIO is initialized.
     if (!mInit)
@@ -299,7 +299,7 @@ Result AnalogIO::read(const U32 kPin, F32& kVal)
     return SUCCESS;
 }
 
-Result AnalogIO::write(const U32 kPin, const F32 kVal)
+Result AnalogIo::write(const U32 kPin, const F32 kVal)
 {
     // Check that AIO is initialized.
     if (!mInit)
@@ -335,7 +335,7 @@ Result AnalogIO::write(const U32 kPin, const F32 kVal)
     return SUCCESS;
 }
 
-Result AnalogIO::release()
+Result AnalogIo::release()
 {
     // Check that AIO is initialized.
     if (!mInit)

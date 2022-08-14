@@ -14,12 +14,12 @@
 /// IN THE SOFTWARE.
 ///
 ///                             ---------------
-/// @file  sf/psl/sbrio9637/utest/UTestSbrio9637DigitalIO.cpp
-/// @brief Unit tests for DigitalIO on sbRIO-9637.
+/// @file  sf/psl/sbrio9637/utest/UTestSbrio9637DigitalIo.cpp
+/// @brief Unit tests for DigitalIo on sbRIO-9637.
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "sf/pal/Clock.hpp"
-#include "sf/pal/DigitalIO.hpp"
+#include "sf/pal/DigitalIo.hpp"
 #include "sf/utest/UTest.hpp"
 
 ///
@@ -28,41 +28,41 @@
 static const U32 gDigitalPinCnt = 28;
 
 ///
-/// @brief Unit tests for DigitalIO on sbRIO-9637.
+/// @brief Unit tests for DigitalIo on sbRIO-9637.
 ///
-TEST_GROUP(Sbrio9637DigitalIO)
+TEST_GROUP(Sbrio9637DigitalIo)
 {
 };
 
 ///
 /// @test Setting all modes on all digital pins succeeds.
 ///
-TEST(Sbrio9637DigitalIO, SetModeSuccess)
+TEST(Sbrio9637DigitalIo, SetModeSuccess)
 {
     // Initialize DIO.
-    DigitalIO dio;
-    CHECK_SUCCESS(DigitalIO::init(dio));
+    DigitalIo dio;
+    CHECK_SUCCESS(DigitalIo::init(dio));
 
     // Setting all modes on all pins succeeds.
     for (U32 i = 0; i < 28; ++i)
     {
-        CHECK_SUCCESS(dio.setMode(i, DigitalIO::IN));
-        CHECK_SUCCESS(dio.setMode(i, DigitalIO::OUT));
+        CHECK_SUCCESS(dio.setMode(i, DigitalIo::IN));
+        CHECK_SUCCESS(dio.setMode(i, DigitalIo::OUT));
     }
 
     // Specifying an invalid pin or mode returns an error.
-    CHECK_ERROR(E_DIO_PIN, dio.setMode(28, DigitalIO::IN));
-    CHECK_ERROR(E_DIO_MODE, dio.setMode(0, static_cast<DigitalIO::Mode>(2)));
+    CHECK_ERROR(E_DIO_PIN, dio.setMode(28, DigitalIo::IN));
+    CHECK_ERROR(E_DIO_MODE, dio.setMode(0, static_cast<DigitalIo::Mode>(2)));
 }
 
 ///
 /// @test Reading all digital pins succeeds.
 ///
-TEST(Sbrio9637DigitalIO, ReadSuccess)
+TEST(Sbrio9637DigitalIo, ReadSuccess)
 {
     // Initialize DIO.
-    DigitalIO dio;
-    CHECK_SUCCESS(DigitalIO::init(dio));
+    DigitalIo dio;
+    CHECK_SUCCESS(DigitalIo::init(dio));
 
     // Reading all pins succeeds.
     bool val = false;
@@ -78,11 +78,11 @@ TEST(Sbrio9637DigitalIO, ReadSuccess)
 ///
 /// @test Writing all digital pins succeeds.
 ///
-TEST(Sbrio9637DigitalIO, WriteSuccess)
+TEST(Sbrio9637DigitalIo, WriteSuccess)
 {
     // Initialize DIO.
-    DigitalIO dio;
-    CHECK_SUCCESS(DigitalIO::init(dio));
+    DigitalIo dio;
+    CHECK_SUCCESS(DigitalIo::init(dio));
 
     // Writing low and high to all pins succeeds.
     for (U32 i = 0; i < 28; ++i)
@@ -96,31 +96,31 @@ TEST(Sbrio9637DigitalIO, WriteSuccess)
 }
 
 ///
-/// @test DigitalIO can be reinitialized after releasing.
+/// @test DigitalIo can be reinitialized after releasing.
 ///
-TEST(Sbrio9637DigitalIO, ReleaseAndReuseSuccess)
+TEST(Sbrio9637DigitalIo, ReleaseAndReuseSuccess)
 {
-    DigitalIO dio;
-    CHECK_SUCCESS(DigitalIO::init(dio));
+    DigitalIo dio;
+    CHECK_SUCCESS(DigitalIo::init(dio));
     CHECK_SUCCESS(dio.release());
-    CHECK_SUCCESS(DigitalIO::init(dio));
+    CHECK_SUCCESS(DigitalIo::init(dio));
 }
 
 ///
 /// @test Digital pins read high after being raised, and low after being
 /// lowered.
 ///
-TEST(Sbrio9637DigitalIO, RaiseAndLower)
+TEST(Sbrio9637DigitalIo, RaiseAndLower)
 {
     // Initialize DIO.
-    DigitalIO dio;
-    CHECK_SUCCESS(DigitalIO::init(dio));
+    DigitalIo dio;
+    CHECK_SUCCESS(DigitalIo::init(dio));
 
     // Set all pins as output and raise them.
     for (U32 i = 0; i < gDigitalPinCnt; ++i)
     {
-        CHECK_SUCCESS(dio.setMode(i, DigitalIO::IN));
-        CHECK_SUCCESS(dio.setMode(i, DigitalIO::OUT));
+        CHECK_SUCCESS(dio.setMode(i, DigitalIo::IN));
+        CHECK_SUCCESS(dio.setMode(i, DigitalIo::OUT));
         CHECK_SUCCESS(dio.write(i, true));
     }
 

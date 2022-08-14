@@ -416,7 +416,11 @@ public:
 
 private:
 
-    friend class StateScriptCompiler;
+    ///
+    /// @remark Allows StateScriptParser to reuse
+    /// StateMachineParser::parseBlock().
+    ///
+    friend class StateScriptParser;
 
     ///
     /// @brief Parses the logic under a label in a state section.

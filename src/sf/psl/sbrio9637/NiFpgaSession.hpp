@@ -41,6 +41,9 @@ Result niFpgaSessionOpen(NiFpga_Session& kSession);
 ///
 /// @brief Closes an FPGA session.
 ///
+/// @warning When the last FPGA session is closed, the FPGA will uninitialize
+/// and pins will enter a floating state.
+///
 /// @param[in] kSession  Session to close.
 ///
 /// @retval SUCCESS          Successfully closed session.

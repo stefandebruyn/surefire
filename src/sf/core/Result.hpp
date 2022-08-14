@@ -15,7 +15,7 @@
 ///
 ///                             ---------------
 /// @file  sf/core/Result.hpp
-/// @brief Return code type and enumeration.
+/// @brief Return code type and error codes.
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef SF_RESULT_HPP
@@ -84,10 +84,10 @@ enum : Result
     // RegionRxTask
     E_RRX_NULL = 224,
 
-    // DigitalIOTask
+    // DigitalIoTask
     E_DIT_NULL = 256,
 
-    // AnalogIOTask
+    // AnalogIoTask
     E_AIT_NULL = 288,
 
     // Executor
@@ -259,7 +259,7 @@ enum : Result
     E_SLK_ACQ = 1091,
     E_SLK_REL = 1092,
 
-    // DigitalIO
+    // DigitalIo
     E_DIO_UNINIT = 1120,
     E_DIO_REINIT = 1121,
     E_DIO_PIN = 1122,
@@ -267,7 +267,7 @@ enum : Result
     E_DIO_READ = 1124,
     E_DIO_WRITE = 1125,
 
-    // AnalogIO
+    // AnalogIo
     E_AIO_UNINIT = 1142,
     E_AIO_REINIT = 1143,
     E_AIO_PIN = 1144,

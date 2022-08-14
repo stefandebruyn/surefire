@@ -14,11 +14,11 @@
 /// IN THE SOFTWARE.
 ///
 ///                             ---------------
-/// @file  sf/psl/sbrio9637/utest/UTestSbrio9637AnalogIO.cpp
-/// @brief Unit tests for AnalogIO on sbRIO-9637.
+/// @file  sf/psl/sbrio9637/utest/UTestSbrio9637AnalogIo.cpp
+/// @brief Unit tests for AnalogIo on sbRIO-9637.
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "sf/pal/AnalogIO.hpp"
+#include "sf/pal/AnalogIo.hpp"
 #include "sf/utest/UTest.hpp"
 
 ///
@@ -32,23 +32,23 @@ static const U32 gAinCnt = 16;
 static const U32 gAoutCnt = 4;
 
 ///
-/// @brief Unit tests for AnalogIO on sbRIO-9637.
+/// @brief Unit tests for AnalogIo on sbRIO-9637.
 ///
 /// @remark Testing the hardware functionality of the analog I/O requires
 /// external wiring work, so these tests are mostly a smoketest to check that
-/// the AnalogIO interface works as expected.
+/// the AnalogIo interface works as expected.
 /// 
-TEST_GROUP(Sbrio9637AnalogIO)
+TEST_GROUP(Sbrio9637AnalogIo)
 {
 };
 
 ///
 /// @test Setting all modes on all analog inputs succeeds.
 ///
-TEST(Sbrio9637AnalogIO, SetModeSuccess)
+TEST(Sbrio9637AnalogIo, SetModeSuccess)
 {
-    AnalogIO aio;
-    CHECK_SUCCESS(AnalogIO::init(aio));
+    AnalogIo aio;
+    CHECK_SUCCESS(AnalogIo::init(aio));
 
     // Setting all modes on all pins succeeds.
     for (U32 i = 0; i < gAinCnt; ++i)
@@ -65,11 +65,11 @@ TEST(Sbrio9637AnalogIO, SetModeSuccess)
 ///
 /// @test Setting all ranges on all analog inputs succeeds.
 ///
-TEST(Sbrio9637AnalogIO, SetRangeSuccess)
+TEST(Sbrio9637AnalogIo, SetRangeSuccess)
 {
     // Initialize AIO.
-    AnalogIO aio;
-    CHECK_SUCCESS(AnalogIO::init(aio));
+    AnalogIo aio;
+    CHECK_SUCCESS(AnalogIo::init(aio));
 
     // Setting all ranges on all pins succeeds.
     for (U32 i = 0; i < gAinCnt; ++i)
@@ -88,11 +88,11 @@ TEST(Sbrio9637AnalogIO, SetRangeSuccess)
 ///
 /// @test Reading all analog inputs succeeds.
 ///
-TEST(Sbrio9637AnalogIO, ReadSuccess)
+TEST(Sbrio9637AnalogIo, ReadSuccess)
 {
     // Initialize AIO.
-    AnalogIO aio;
-    CHECK_SUCCESS(AnalogIO::init(aio));
+    AnalogIo aio;
+    CHECK_SUCCESS(AnalogIo::init(aio));
 
     // Reading all pins succeeds.
     F32 val = 0.0f;
@@ -108,11 +108,11 @@ TEST(Sbrio9637AnalogIO, ReadSuccess)
 ///
 /// @test Writing all analog outputs succeeds.
 ///
-TEST(Sbrio9637AnalogIO, WriteSuccess)
+TEST(Sbrio9637AnalogIo, WriteSuccess)
 {
     // Initialize AIO.
-    AnalogIO aio;
-    CHECK_SUCCESS(AnalogIO::init(aio));
+    AnalogIo aio;
+    CHECK_SUCCESS(AnalogIo::init(aio));
 
     // Writing all pins succeeds.
     for (U32 i = 0; i < gAoutCnt; ++i)
@@ -125,23 +125,23 @@ TEST(Sbrio9637AnalogIO, WriteSuccess)
 }
 
 ///
-/// @test AnalogIO can be reinitialized after releasing.
+/// @test AnalogIo can be reinitialized after releasing.
 ///
-TEST(Sbrio9637AnalogIO, ReleaseAndReuseSuccess)
+TEST(Sbrio9637AnalogIo, ReleaseAndReuseSuccess)
 {
-    AnalogIO aio;
-    CHECK_SUCCESS(AnalogIO::init(aio));
+    AnalogIo aio;
+    CHECK_SUCCESS(AnalogIo::init(aio));
     CHECK_SUCCESS(aio.release());
-    CHECK_SUCCESS(AnalogIO::init(aio));
+    CHECK_SUCCESS(AnalogIo::init(aio));
 }
 
 ///
 /// @test Writing a value outside the analog output range returns an error.
 ///
-TEST(Sbrio9637AnalogIO, ErrorOutputOutOfRange)
+TEST(Sbrio9637AnalogIo, ErrorOutputOutOfRange)
 {
-    AnalogIO aio;
-    CHECK_SUCCESS(AnalogIO::init(aio));
+    AnalogIo aio;
+    CHECK_SUCCESS(AnalogIo::init(aio));
     CHECK_ERROR(E_AIO_OUT, aio.write(0, -10.1f));
     CHECK_ERROR(E_AIO_OUT, aio.write(0, 10.1f));
 }

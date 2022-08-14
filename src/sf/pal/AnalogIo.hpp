@@ -14,7 +14,7 @@
 /// IN THE SOFTWARE.
 ///
 ///                             ---------------
-/// @file  sf/pal/AnalogIO.hpp
+/// @file  sf/pal/AnalogIo.hpp
 /// @brief Platform-agnostic interface for accessing analog I/O pin hardware.
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -31,10 +31,10 @@
 ///
 /// @brief Platform-agnostic interface for accessing analog I/O pin hardware.
 ///
-/// AnalogIO defines the interface which the framework API layer uses to access
+/// AnalogIo defines the interface which the framework API layer uses to access
 /// analog I/O pins on the target platform. The interface is designed to be
 /// general and cross-platform, and not all methods or arguments may be used on
-/// certain platforms. PSL implementations of AnalogIO have some freedom to
+/// certain platforms. PSL implementations of AnalogIo have some freedom to
 /// interpret the interface but should adhere to the language of the interface
 /// docstrings as closely as possible.
 ///
@@ -42,18 +42,23 @@
 /// It will usually refer to a signal voltage but could also be a signal
 /// current, PWM signal, or something else.
 ///
-/// AnalogIO uses the same factory method and RAII patterns as most objects in
-/// the framework. The user default-constructs an AnalogIO and then passes it
+/// AnalogIo uses the same factory method and RAII patterns as most objects in
+/// the framework. The user default-constructs an AnalogIo and then passes it
 /// to a factory method that initializes it. The "resources" represented by an
-/// AnalogIO are any analog output signals it writes. These signals are tied to
-/// the lifetime of the AnalogIO and are set back to zero when it destructs.
+/// AnalogIo are any analog output signals it writes. These signals are tied to
+/// the lifetime of the AnalogIo and are set back to zero when it destructs.
 ///
-class AnalogIO final
+class AnalogIo final
 {
 public:
 
     ///
-    /// @brief Initializes an AnalogIO.
+    /// @brief Initializes an AnalogIo.
+    ///
+    /// @warning sbRIO-9637: Each AnalogIo and other I/O objects like DigitalIo
+    /// open their own FPGA session on initialization. Each object closes its
+    /// session on release. Any time all sessions are closed, the FPGA is in an
+    /// uninitialized state, and pins are floating.
     ///
     /// @pre  kAio is uninitialized.
     /// @post On success, kAio is initialized and invoking methods on it may
@@ -61,31 +66,31 @@ public:
     /// @post On error, preconditions still hold.
     /// @post The AIO hardware state is indeterminate.
     ///
-    /// @param[in] kAio  AnalogIO to initialize.
+    /// @param[in] kAio  AnalogIo to initialize.
     ///
     /// @retval SUCCESS       Successfully initialized.
     /// @retval E_AIO_REINIT  kAio is already initialized.
     /// @retval [other]       Initialization failed.
     ///
-    static Result init(AnalogIO& kAio);
+    static Result init(AnalogIo& kAio);
 
     ///
     /// @brief Default constructor.
     ///
-    /// @post The constructed AnalogIO is uninitialized and invoking any of its
+    /// @post The constructed AnalogIo is uninitialized and invoking any of its
     /// methods returns an error.
     ///
-    AnalogIO();
+    AnalogIo();
 
     ///
     /// @brief Destructor.
     ///
-    /// @post If the AnalogIO was initialized, analog outputs it wrote during
+    /// @post If the AnalogIo was initialized, analog outputs it wrote during
     /// its initialized lifetime are set to 0.
     ///
-    /// @see AnalogIO::release()
+    /// @see AnalogIo::release()
     ///
-    ~AnalogIO();
+    ~AnalogIo();
 
     ///
     /// @brief Sets the mode of an analog pin.
@@ -104,7 +109,7 @@ public:
     ///                   implementation-defined.
     ///
     /// @retval SUCCESS       Successfully set pin mode.
-    /// @retval E_AIO_UNINIT  AnalogIO is uninitialized.
+    /// @retval E_AIO_UNINIT  AnalogIo is uninitialized.
     /// @retval E_AIO_PIN     kPin is invalid.
     /// @retval E_AIO_MODE    kMode is invalid.
     ///
@@ -120,7 +125,7 @@ public:
     ///                    implementation-defined.
     ///
     /// @retval SUCCESS       Successfully set pin range.
-    /// @retval E_AIO_UNINIT  AnalogIO is uninitialized.
+    /// @retval E_AIO_UNINIT  AnalogIo is uninitialized.
     /// @retval E_AIO_PIN     kPin is invalid.
     /// @retval E_AIO_RANGE   kRange is invalid.
     ///
@@ -139,7 +144,7 @@ public:
     ///                   value is implementation-defined.
     ///
     /// @retval SUCCESS       Successfully read pin.
-    /// @retval E_AIO_UNINIT  AnalogIO is uninitialized.
+    /// @retval E_AIO_UNINIT  AnalogIo is uninitialized.
     /// @retval E_AIO_PIN     kPin is invalid.
     ///
     Result read(const U32 kPin, F32& kVal);
@@ -157,17 +162,17 @@ public:
     ///                  implementation-defined.
     ///
     /// @retval SUCCESS       Successfully wrote pin.
-    /// @retval E_AIO_UNINIT  AnalogIO is uninitialized.
+    /// @retval E_AIO_UNINIT  AnalogIo is uninitialized.
     /// @retval E_AIO_PIN     kPin is invalid.
     /// @retval E_AIO_OUT     kVal is invalid.
     ///
     Result write(const U32 kPin, const F32 kVal);
 
     ///
-    /// @brief Releases the AnalogIO's resources and uninitializes it. The
-    /// AnalogIO may be initialized again afterwards.
+    /// @brief Releases the AnalogIo's resources and uninitializes it. The
+    /// AnalogIo may be initialized again afterwards.
     ///
-    /// @post Analog outputs written by the AnalogIO during its initialized
+    /// @post Analog outputs written by the AnalogIo during its initialized
     /// lifetime are set back to zero.
     ///
     /// @retval SUCCESS  Successfully released.
@@ -177,7 +182,7 @@ public:
 private:
 
     ///
-    /// @brief Whether AnalogIO is initialized.
+    /// @brief Whether AnalogIo is initialized.
     ///
     bool mInit;
 

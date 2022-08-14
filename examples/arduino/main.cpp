@@ -4,13 +4,13 @@
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/Console.hpp"
 #include "sf/pal/Socket.hpp"
-#include "sf/pal/DigitalIO.hpp"
+#include "sf/pal/DigitalIo.hpp"
 
 const IPv4Address gMyAddr = {10, 0, 0, 21};
 const IPv4Address gTheirAddr = {10, 0, 0, 20};
 const U16 gPort = 8080;
 Socket gSock;
-DigitalIO gDio;
+DigitalIo gDio;
 
 void setup()
 {
@@ -18,8 +18,8 @@ void setup()
     Serial.begin(9600);
     Diag::haltOnError(Socket::init(gMyAddr, gPort, Socket::UDP, gSock),
                       "Failed to create socket");
-    Diag::haltOnError(DigitalIO::init(gDio), "Failed to initialize DIO");
-    Diag::haltOnError(gDio.setMode(LED_BUILTIN, DigitalIO::OUT),
+    Diag::haltOnError(DigitalIo::init(gDio), "Failed to initialize DIO");
+    Diag::haltOnError(gDio.setMode(LED_BUILTIN, DigitalIo::OUT),
                       "failed to set DIO pin as output");
 }
 

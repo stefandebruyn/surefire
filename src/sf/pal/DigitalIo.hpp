@@ -14,7 +14,7 @@
 /// IN THE SOFTWARE.
 ///
 ///                             ---------------
-/// @file  sf/pal/DigitalIO.hpp
+/// @file  sf/pal/DigitalIo.hpp
 /// @brief Platform-agnostic interface for accessing digital I/O pin hardware.
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -31,27 +31,27 @@
 ///
 /// @brief Platform-agnostic interface for accessing digital I/O pin hardware.
 ///
-/// DigitalIO defines the interface which the framework API layer uses to access
+/// DigitalIo defines the interface which the framework API layer uses to access
 /// digital I/O pins on the target platform. The interface is designed to be
 /// general and cross-platform, and not all methods or arguments may be used on
-/// certain platforms. PSL implementations of DigitalIO have some freedom to
+/// certain platforms. PSL implementations of DigitalIo have some freedom to
 /// interpret the interface but should adhere to the language of the interface
 /// docstrings as closely as possible.
 ///
 /// "Digital" in the context of this interface refers to a discrete low/false or
 /// high/true signal. The voltage of a digital high is implementation-defined. A
-/// digital low is always 0 V. DigitalIO is intended for basic digital I/O
+/// digital low is always 0 V. DigitalIo is intended for basic digital I/O
 /// (e.g., event trigger lines) and not any kind of serial protocols like UART.
-/// The DigitalIO interface is designed for use with tristate GPIO, where each
+/// The DigitalIo interface is designed for use with tristate GPIO, where each
 /// digital pin can be configured as input or output at runtime.
 ///
-/// DigitalIO uses the same factory method and RAII patterns as most objects in
-/// the framework. The user default-constructs a DigitalIO and then passes it to
+/// DigitalIo uses the same factory method and RAII patterns as most objects in
+/// the framework. The user default-constructs a DigitalIo and then passes it to
 /// a factory method that initializes it. The "resources" represented by a
-/// DigitalIO are any digital highs it writes. These highs are tied to the
-/// lifetime of the DigitalIO and are lowered when it destructs.
+/// DigitalIo are any digital highs it writes. These highs are tied to the
+/// lifetime of the DigitalIo and are lowered when it destructs.
 ///
-class DigitalIO final
+class DigitalIo final
 {
 public:
 
@@ -65,7 +65,12 @@ public:
     };
 
     ///
-    /// @brief Initializes a DigitalIO.
+    /// @brief Initializes a DigitalIo.
+    ///
+    /// @warning sbRIO-9637: Each DigitalIo and other I/O objects like AnalogIo
+    /// open their own FPGA session on initialization. Each object closes its
+    /// session on release. Any time all sessions are closed, the FPGA is in an
+    /// uninitialized state, and pins are floating.
     ///
     /// @pre  kDio is uninitialized.
     /// @post On success, kDio is initialized and invoking methods on it may
@@ -73,31 +78,31 @@ public:
     /// @post On error, preconditions still hold.
     /// @post The DIO hardware state is indeterminate.
     ///
-    /// @param[in] kDio  DigitalIO to initialize.
+    /// @param[in] kDio  DigitalIo to initialize.
     ///
     /// @retval SUCCESS       Successfully initialized.
     /// @retval E_DIO_REINIT  kDio is already initialized.
     /// @retval [other]       Initialization failed.
     ///
-    static Result init(DigitalIO& kDio);
+    static Result init(DigitalIo& kDio);
 
     ///
     /// @brief Default constructor.
     ///
-    /// @post The constructed DigitalIO is uninitialized and invoking any of its
+    /// @post The constructed DigitalIo is uninitialized and invoking any of its
     /// methods returns an error.
     ///
-    DigitalIO();
+    DigitalIo();
 
     ///
     /// @brief Destructor.
     ///
-    /// @post If the DigitalIO was initialized, digital outputs it wrote during
+    /// @post If the DigitalIo was initialized, digital outputs it wrote during
     /// its initialized lifetime are lowered.
     ///
-    /// @see DigitalIO::release()
+    /// @see DigitalIo::release()
     ///
-    ~DigitalIO();
+    ~DigitalIo();
 
     ///
     /// @brief Sets the mode of a digital pin.
@@ -106,11 +111,11 @@ public:
     /// @param[in] kMode  Requested pin mode.
     ///
     /// @retval SUCCESS       Successfully set pin mode.
-    /// @retval E_DIO_UNINIT  DigitalIO is uninitialized.
+    /// @retval E_DIO_UNINIT  DigitalIo is uninitialized.
     /// @retval E_DIO_PIN     kPin is invalid.
     /// @retval E_DIO_MODE    kMode is invalid.
     ///
-    Result setMode(const U32 kPin, const DigitalIO::Mode kMode);
+    Result setMode(const U32 kPin, const DigitalIo::Mode kMode);
 
     ///
     /// @brief Reads a digital pin.
@@ -127,7 +132,7 @@ public:
     ///                   digital high, and false represents digital low.
     ///
     /// @retval SUCCESS       Successfully read pin.
-    /// @retval E_DIO_UNINIT  DigitalIO is uninitialized.
+    /// @retval E_DIO_UNINIT  DigitalIo is uninitialized.
     /// @retval E_DIO_PIN     kPin is invalid.
     ///
     Result read(const U32 kPin, bool& kVal);
@@ -143,16 +148,16 @@ public:
     ///                  high, and false represents digital low.
     ///
     /// @retval SUCCESS       Successfully wrote pin.
-    /// @retval E_DIO_UNINIT  DigitalIO is uninitialized.
+    /// @retval E_DIO_UNINIT  DigitalIo is uninitialized.
     /// @retval E_DIO_PIN     kPin is invalid.
     ///
     Result write(const U32 kPin, const bool kVal);
 
     ///
-    /// @brief Releases the DigitalIO's resources and uninitializes it. The
-    /// DigitalIO may be initialized again afterwards.
+    /// @brief Releases the DigitalIo's resources and uninitializes it. The
+    /// DigitalIo may be initialized again afterwards.
     ///
-    /// @post Digital outputs written by the DigitalIO during its initialized
+    /// @post Digital outputs written by the DigitalIo during its initialized
     /// lifetime are set back to zero.
     ///
     /// @retval SUCCESS  Successfully released.
@@ -162,7 +167,7 @@ public:
 private:
 
     ///
-    /// @brief Whether DigitalIO is initialized.
+    /// @brief Whether DigitalIo is initialized.
     ///
     bool mInit;
 
@@ -171,7 +176,7 @@ private:
     ///
     /// @brief Bit vector of pin output values. The rightmost bit stores the
     /// last value written to pin 0, the 2nd rightmost stores pin 1, and so on.
-    /// This is used to lower all pins raised by the DigitalIO when it is
+    /// This is used to lower all pins raised by the DigitalIo when it is
     /// released.
     ///
     U64 mOutBitVec;

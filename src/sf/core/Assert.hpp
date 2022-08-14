@@ -44,9 +44,7 @@
 /// @note Uses the PSL Console::printf and System::exit implementations.
 ///
 /// @remark Unsafe asserts are only used as a debugging tool in contexts from
-/// which surfacing error codes is impossible. See
-/// docs/error-handling-methodology.md for more info on the framework error
-/// handling methodology.
+/// which surfacing error codes is impossible.
 ///
 /// @param[in] kExpr  Expression to assert. If untrue, program halts.
 ///
@@ -93,9 +91,7 @@ SF_ENABLE_CODE_COV;
 ///
 /// @remark Safe asserts are commonly used to assert invariants and guard
 /// pointer dereferences in framework code. Failed assertions are intended to
-/// surface bugs in the framework and not mistakes by the user. See
-/// docs/error-handling-methodology.md for more info on the framework error
-/// handling methodology.
+/// surface bugs in the framework and not mistakes by the user.
 ///
 /// @param[in] kExpr  Expression to assert. If untrue, returns E_ASSERT from the
 ///                   current function.

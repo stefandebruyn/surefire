@@ -17,9 +17,9 @@
 #include <Arduino.h>
 
 #include "sf/core/Diagnostic.hpp"
-#include "sf/pal/DigitalIO.hpp"
+#include "sf/pal/DigitalIo.hpp"
 
-Result DigitalIO::init(DigitalIO& kDio)
+Result DigitalIo::init(DigitalIo& kDio)
 {
     if (kDio.mInit)
     {
@@ -30,16 +30,16 @@ Result DigitalIO::init(DigitalIO& kDio)
     return SUCCESS;
 }
 
-DigitalIO::DigitalIO() : mInit(false)
+DigitalIo::DigitalIo() : mInit(false)
 {
 }
 
-DigitalIO::~DigitalIO()
+DigitalIo::~DigitalIo()
 {
     (void) this->release();
 }
 
-Result DigitalIO::setMode(const U32 kPin, const DigitalIO::Mode kMode)
+Result DigitalIo::setMode(const U32 kPin, const DigitalIo::Mode kMode)
 {
     // Check that DIO is initialized.
     if (!mInit)
@@ -49,11 +49,11 @@ Result DigitalIO::setMode(const U32 kPin, const DigitalIO::Mode kMode)
 
     switch (kMode)
     {
-        case DigitalIO::IN:
+        case DigitalIo::IN:
             pinMode(kPin, INPUT);
             break;
 
-        case DigitalIO::OUT:
+        case DigitalIo::OUT:
             pinMode(kPin, OUTPUT);
             break;
 
@@ -64,7 +64,7 @@ Result DigitalIO::setMode(const U32 kPin, const DigitalIO::Mode kMode)
     return SUCCESS;
 }
 
-Result DigitalIO::read(const U32 kPin, bool& kVal)
+Result DigitalIo::read(const U32 kPin, bool& kVal)
 {
     // Check that DIO is initialized.
     if (!mInit)
@@ -76,7 +76,7 @@ Result DigitalIO::read(const U32 kPin, bool& kVal)
     return SUCCESS;
 }
 
-Result DigitalIO::write(const U32 kPin, const bool kVal)
+Result DigitalIo::write(const U32 kPin, const bool kVal)
 {
     // Check that DIO is initialized.
     if (!mInit)
@@ -98,7 +98,7 @@ Result DigitalIO::write(const U32 kPin, const bool kVal)
     return SUCCESS;
 }
 
-Result DigitalIO::release()
+Result DigitalIo::release()
 {
     if (!mInit)
     {

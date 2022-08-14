@@ -15,7 +15,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "sf/core/Diagnostic.hpp"
-#include "sf/pal/DigitalIO.hpp"
+#include "sf/pal/DigitalIo.hpp"
 
 //////////////////////////////// Private Data //////////////////////////////////
 
@@ -126,7 +126,7 @@ static const NiFpga_IO_ControlBool gDoEnableIds[gDigitalPinCnt] =
 
 /////////////////////////////////// Public /////////////////////////////////////
 
-Result DigitalIO::init(DigitalIO& kDio)
+Result DigitalIo::init(DigitalIo& kDio)
 {
     // Check that DIO is not already initialized.
     if (kDio.mInit)
@@ -146,16 +146,16 @@ Result DigitalIO::init(DigitalIO& kDio)
     return SUCCESS;
 }
 
-DigitalIO::DigitalIO() : mInit(false), mSession(0)
+DigitalIo::DigitalIo() : mInit(false), mSession(0)
 {
 }
 
-DigitalIO::~DigitalIO()
+DigitalIo::~DigitalIo()
 {
     (void) this->release();
 }
 
-Result DigitalIO::setMode(const U32 kPin, const DigitalIO::Mode kMode)
+Result DigitalIo::setMode(const U32 kPin, const DigitalIo::Mode kMode)
 {
     // Check that DIO is initialized.
     if (!mInit)
@@ -173,11 +173,11 @@ Result DigitalIO::setMode(const U32 kPin, const DigitalIO::Mode kMode)
     NiFpga_Bool outputEnable = 0;
     switch (kMode)
     {
-        case DigitalIO::IN:
+        case DigitalIo::IN:
             outputEnable = NiFpga_False;
             break;
 
-        case DigitalIO::OUT:
+        case DigitalIo::OUT:
             outputEnable = NiFpga_True;
             break;
 
@@ -199,7 +199,7 @@ Result DigitalIO::setMode(const U32 kPin, const DigitalIO::Mode kMode)
     return SUCCESS;
 }
 
-Result DigitalIO::read(const U32 kPin, bool& kVal)
+Result DigitalIo::read(const U32 kPin, bool& kVal)
 {
     // Check that DIO is initialized.
     if (!mInit)
@@ -227,7 +227,7 @@ Result DigitalIO::read(const U32 kPin, bool& kVal)
     return SUCCESS;
 }
 
-Result DigitalIO::write(const U32 kPin, const bool kVal)
+Result DigitalIo::write(const U32 kPin, const bool kVal)
 {
     // Check that DIO is initialized.
     if (!mInit)
@@ -254,7 +254,7 @@ Result DigitalIO::write(const U32 kPin, const bool kVal)
     return SUCCESS;
 }
 
-Result DigitalIO::release()
+Result DigitalIo::release()
 {
     // Check that DIO is initialized.
     if (!mInit)
