@@ -1,12 +1,29 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
 ///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/utest-sv-autocoder-harness/Main.hpp
 /// @brief Harness for testing an autocoded state vector configuration. Autocode
-/// is in the same directory in a file named `FooStateVector.hpp`. Expected
-/// state vector element names are passed on command line, followed by expected
-/// region names prefixed with `.`s. The harness prints the type and name of
-/// each element, and name and size of each region on separate lines. The
-/// harness also does a basic read/write/read on each element. On error, the
-/// harness exits with an error code.
-///
+///        is in the same directory in a file named `FooStateVector.hpp`.
+///        Expected state vector element names are passed on command line,
+///        followed by expected region names prefixed with `.`s. The harness
+///        prints the type and name of each element, and name and size of each
+///        region on separate lines. The harness also does a basic
+///        read/write/read on each element. On error, the harness exits with an
+///        error code.
+////////////////////////////////////////////////////////////////////////////////
 
 #include <cstdlib>
 #include <iostream>

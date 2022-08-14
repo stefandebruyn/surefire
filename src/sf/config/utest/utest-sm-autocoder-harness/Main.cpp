@@ -1,16 +1,33 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
 ///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/utest-sm-autocoder-harness/Main.hpp
 /// @brief Harness for testing an autocoded state machine configuration.
-/// State vector and state machine autocode is in the same directory in files
-/// `FooStateVector.hpp` and `FooStateMachine.hpp`. The harness sets the initial
-/// state to 1 and runs the state machine with delta T in a repeating pattern 1,
-/// 2, 3. Each step the harness prints the state vector (but not the state
-/// machine local state vector, which the harness cannot access). The first
-/// command line argument specifies the number of steps to run the state machine
-/// for, and additional arguments specify the initial values of state vector
-/// elements in the form "<elem name>=<initial value>". Prior to setting the
-/// specified initial values, state vector data is randomized except for the
-/// global time, which is initially 0.
-///
+///        State vector and state machine autocode is in the same directory in
+///        files `FooStateVector.hpp` and `FooStateMachine.hpp`. The harness
+///        sets the initial state to 1 and runs the state machine with delta T
+///        in a repeating pattern 1, 2, 3. Each step the harness prints the
+///        state vector (but not the state machine local state vector, which the
+///        harness cannot access). The first command line argument specifies the
+///        number of steps to run the state machine for, and additional
+///        arguments specify the initial values of state vector elements in the
+///        form "<elem name>=<initial value>". Prior to setting the specified
+///        initial values, state vector data is randomized except for the global
+///        time, which is initially 0.
+////////////////////////////////////////////////////////////////////////////////
 
 #include <cstdlib>
 #include <cstring>
