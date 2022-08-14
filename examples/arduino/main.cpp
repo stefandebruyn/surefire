@@ -6,8 +6,8 @@
 #include "sf/pal/Socket.hpp"
 #include "sf/pal/DigitalIo.hpp"
 
-const IPv4Address gMyAddr = {10, 0, 0, 21};
-const IPv4Address gTheirAddr = {10, 0, 0, 20};
+const Ipv4Address gMyAddr = {10, 0, 0, 21};
+const Ipv4Address gTheirAddr = {10, 0, 0, 20};
 const U16 gPort = 8080;
 Socket gSock;
 DigitalIo gDio;

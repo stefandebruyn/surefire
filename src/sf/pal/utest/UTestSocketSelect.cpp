@@ -24,10 +24,10 @@
 /////////////////////////////////// Global /////////////////////////////////////
 
 // IPs used by test sockets.
-static const IPv4Address gTestIp1 = {127, 0, 0, 1};
-static const IPv4Address gTestIp2 = {127, 0, 0, 2};
-static const IPv4Address gTestIp3 = {127, 0, 0, 3};
-static const IPv4Address gTestIp4 = {127, 0, 0, 4};
+static const Ipv4Address gTestIp1 = {127, 0, 0, 1};
+static const Ipv4Address gTestIp2 = {127, 0, 0, 2};
+static const Ipv4Address gTestIp3 = {127, 0, 0, 3};
+static const Ipv4Address gTestIp4 = {127, 0, 0, 4};
 
 // Port used by all test sockets.
 static const U16 gTestPort = 7797;

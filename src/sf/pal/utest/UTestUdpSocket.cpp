@@ -24,8 +24,8 @@
 /////////////////////////////////// Global /////////////////////////////////////
 
 // IPs used for test sockets.
-static const IPv4Address gTestIp1 = {127, 0, 0, 1};
-static const IPv4Address gTestIp2 = {127, 0, 0, 2};
+static const Ipv4Address gTestIp1 = {127, 0, 0, 1};
+static const Ipv4Address gTestIp2 = {127, 0, 0, 2};
 
 // Port used by all test sockets.
 static const U16 gTestPort = 7797;
@@ -116,7 +116,7 @@ TEST(UdpSocket, ErrorCreateInvalidProtocol)
 ///
 TEST(UdpSocket, ErrorCreateInvalidIp)
 {
-    const IPv4Address invalidIp = {123, 123, 123, 123};
+    const Ipv4Address invalidIp = {123, 123, 123, 123};
     CHECK_ERROR(E_SOK_BIND,
                 Socket::init(invalidIp, gTestPort, Socket::UDP, gSock1));
     checkSocketUninitialized(gSock1);

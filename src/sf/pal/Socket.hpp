@@ -31,7 +31,7 @@
 ///
 /// @brief Represents an IPv4 address.
 ///
-struct IPv4Address
+struct Ipv4Address
 {
     U8 oct1; ///< 1st octet
     U8 oct2; ///< 2nd octet
@@ -79,7 +79,7 @@ public:
     /// @retval E_SOK_OPEN    Failed to open socket.
     /// @retval E_SOK_BIND    Failed to bind socket to address.
     ///
-    static Result init(const IPv4Address kIp,
+    static Result init(const Ipv4Address kIp,
                        const U16 kPort,
                        const Protocol kProto,
                        Socket& kSock);
@@ -157,7 +157,7 @@ public:
     /// @retval E_SOK_NULL    kBuf is null.
     /// @retval E_SOK_SEND    Send failed.
     ///
-    Result send(const IPv4Address kDestIp,
+    Result send(const Ipv4Address kDestIp,
                 const U16 kDestPort,
                 const void* const kBuf,
                 const U32 kNumBytes,

@@ -23,7 +23,7 @@
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/Socket.hpp"
 
-Result Socket::init(const IPv4Address kIp,
+Result Socket::init(const Ipv4Address kIp,
                     const U16 kPort,
                     const Protocol kProto,
                     Socket& kSock)
@@ -157,7 +157,7 @@ Socket::~Socket()
     (void) this->close();
 }
 
-Result Socket::send(const IPv4Address kDestIp,
+Result Socket::send(const Ipv4Address kDestIp,
                     const U16 kDestPort,
                     const void* const kBuf,
                     const U32 kNumBytes,
