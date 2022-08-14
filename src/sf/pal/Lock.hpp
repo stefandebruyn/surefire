@@ -36,8 +36,8 @@ public:
     /// @brief Acquires the lock.
     ///
     /// @post On success, current thread has acquired the lock.
-    /// @post On error, current thread has not acquired the lock. The lock is
-    ///       unchanged.
+    /// @post On error, current thread has not acquired the lock. The state of
+    ///       the lock is unchanged.
     ///
     /// @retval SUCCESS  Successfully acquired lock.
     /// @retval [other]  Failed to acquire lock.
@@ -48,8 +48,8 @@ public:
     /// @brief Releases the lock.
     ///
     /// @post On success, current thread has released the lock.
-    /// @post On error, current thread has not released the lock. The lock is
-    ///       unchanged.
+    /// @post On error, current thread has not released the lock. The state of
+    ///       the lock is unchanged.
     ///
     /// @retval SUCCESS  Successfully acquired lock.
     /// @retval [other]  Failed to acquire lock.

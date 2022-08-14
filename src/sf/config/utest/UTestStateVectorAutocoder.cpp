@@ -1,3 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestStateVectorAutocoder.hpp
+/// @brief Unit tests for StateVectorAutocoder.
+////////////////////////////////////////////////////////////////////////////////
+
 #include <fstream>
 #include <cstdlib>
 
@@ -6,16 +26,37 @@
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief String literal path to directory containing state vector harness.
+/// 
+/// @remark SF_REPO_PATH and PATH_SEP are set by the CMake project.
+///
 #define HARNESS_PATH                                                           \
     SF_REPO_PATH PATH_SEP "src" PATH_SEP "sf" PATH_SEP "config" PATH_SEP       \
     "utest" PATH_SEP "utest-sv-autocoder-harness"
 
+///
+/// @brief String literal path to harness output file.
+///
 #define HARNESS_OUT_PATH HARNESS_PATH PATH_SEP "out.tmp"
 
+///
+/// @brief String literal path to harness executable.
+///
 #define HARNESS_BIN_PATH HARNESS_PATH PATH_SEP "a.out"
 
+///
+/// @brief String literal path to state vector autocode generated for the
+/// harness.
+///
 #define AUTOCODE_PATH HARNESS_PATH PATH_SEP "FooStateVector.hpp"
 
+///
+/// @brief Sets up a test by compiling the state vector and generating autocode
+/// on disk.
+///
+/// @param[in] kSrc  State vector config as string.
+///
 #define SETUP(kSrc)                                                            \
     /* Compile state vector. */                                                \
     std::stringstream ss(kSrc);                                                \
@@ -28,6 +69,13 @@
     CHECK_SUCCESS(StateVectorAutocoder::code(ofs, "FooStateVector", svAsm));   \
     ofs.close();
 
+///
+/// @brief Runs the harness executable, redirects its stdout to a file on disk,
+/// disk, and loads the file contents into a string stream SETUP should have
+/// been called prior.
+///
+/// @param[in] kArgs  Harness command line arguments.
+///
 #define RUN_HARNESS(kArgs)                                                     \
     /* Build and run harness. */                                               \
     const I32 status = std::system(                                            \
@@ -42,6 +90,9 @@
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for StateVectorAutocoder.
+///
 TEST_GROUP(StateVectorAutocoder)
 {
     void setup()
@@ -60,6 +111,9 @@ TEST_GROUP(StateVectorAutocoder)
     }
 };
 
+///
+/// @test All element types are autocoded correctly.
+///
 TEST(StateVectorAutocoder, AllElementTypes)
 {
     SETUP(
@@ -92,6 +146,9 @@ TEST(StateVectorAutocoder, AllElementTypes)
         hout.str());
 }
 
+///
+/// @test A small state vector is autocoded correctly.
+///
 TEST(StateVectorAutocoder, SmallStateVector)
 {
     SETUP(
@@ -115,6 +172,9 @@ TEST(StateVectorAutocoder, SmallStateVector)
         hout.str());
 }
 
+///
+/// @test A (relatively) large) state vector is autocoded correctly.
+///
 TEST(StateVectorAutocoder, LargeStateVector)
 {
     SETUP(

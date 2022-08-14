@@ -112,7 +112,7 @@
 
 ///
 /// @brief Runs the harness executable, redirects its stdout to a file on disk,
-/// disk, and loads the file contents into a string stream AUTOCODE_SM should
+/// disk, and loads the file contents into a string stream. AUTOCODE_SM should
 /// have been called prior.
 ///
 /// @param[in] kArgs  Harness command line arguments.

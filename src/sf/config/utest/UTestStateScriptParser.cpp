@@ -1,8 +1,36 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestStateScriptParser.hpp
+/// @brief Unit tests for StateScriptParser.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/config/StateScriptParser.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that parsing a state script generates a certain error.
+///
+/// @param[in] kToks     State script config to parse.
+/// @param[in] kRes      Expected error code.
+/// @param[in] kLineNum  Expected error column number.
+/// @param[in] kColNum   Expected error line number.
+///
 static void checkParseError(const Vec<Token>& kToks,
                             const Result kRes,
                             const I32 kLineNum,
@@ -30,10 +58,16 @@ static void checkParseError(const Vec<Token>& kToks,
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for StateScriptParser.
+///
 TEST_GROUP(StateScriptParser)
 {
 };
 
+///
+/// @test State script with no state sections is parsed correctly.
+///
 TEST(StateScriptParser, NoStateSections)
 {
     TOKENIZE(
@@ -46,6 +80,9 @@ TEST(StateScriptParser, NoStateSections)
     CHECK_EQUAL(toks[6], parse->config.tokDeltaT);
 }
 
+///
+/// @test Initial state option is parsed correctly.
+///
 TEST(StateScriptParser, ConfigInitStateOption)
 {
     TOKENIZE(
@@ -57,6 +94,9 @@ TEST(StateScriptParser, ConfigInitStateOption)
     CHECK_EQUAL(toks[3], parse->config.tokInitState);
 }
 
+///
+/// @test Empty state section is parsed correctly.
+///
 TEST(StateScriptParser, EmptyStateSection)
 {
     TOKENIZE(
@@ -78,6 +118,9 @@ TEST(StateScriptParser, EmptyStateSection)
     CHECK_EQUAL(toks[3], parse->config.tokDeltaT);
 }
 
+///
+/// @test State script with a single state section is parsed correctly.
+///
 TEST(StateScriptParser, OneSection)
 {
     TOKENIZE(
@@ -127,6 +170,9 @@ TEST(StateScriptParser, OneSection)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test State script with two state sections is parsed correctly.
+///
 TEST(StateScriptParser, TwoSections)
 {
     TOKENIZE(
@@ -214,6 +260,9 @@ TEST(StateScriptParser, TwoSections)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test Assertions are parsed correctly.
+///
 TEST(StateScriptParser, Assertion)
 {
     TOKENIZE(
@@ -272,12 +321,18 @@ TEST(StateScriptParser, Assertion)
     CHECK_TRUE(node->right == nullptr);
 }
 
+///
+/// @test A statement outside of a section generates an error.
+///
 TEST(StateScriptParser, ErrorExpectedSection)
 {
     TOKENIZE("foo = 1\n");
     checkParseError(toks, E_SSP_SEC, 1, 1);
 }
 
+///
+/// @test Errors in parsing a code block are surfaced.
+///
 TEST(StateScriptParser, ErrorInBlock)
 {
     TOKENIZE(
@@ -289,6 +344,9 @@ TEST(StateScriptParser, ErrorInBlock)
     checkParseError(toks, E_EXP_SYNTAX, 5, 9);
 }
 
+///
+/// @test Errors in assertion expressions are surfaced.
+///
 TEST(StateScriptParser, ErrorInAssertion)
 {
     TOKENIZE(
@@ -300,6 +358,9 @@ TEST(StateScriptParser, ErrorInAssertion)
     checkParseError(toks, E_EXP_SYNTAX, 5, 13);
 }
 
+///
+/// @test A non-constant token after the delta T option generates an error.
+///
 TEST(StateScriptParser, ErrorUnexpectedTokenAfterDeltaT)
 {
     TOKENIZE(
@@ -308,6 +369,9 @@ TEST(StateScriptParser, ErrorUnexpectedTokenAfterDeltaT)
     checkParseError(toks, E_SSP_DT, 2, 1);
 }
 
+///
+/// @test No tokens after the delta T option generates an error.
+///
 TEST(StateScriptParser, ErrorEofAfterDeltaT)
 {
     TOKENIZE(
@@ -316,6 +380,9 @@ TEST(StateScriptParser, ErrorEofAfterDeltaT)
     checkParseError(toks, E_SSP_DT, 2, 1);
 }
 
+///
+/// @test A non-identifier token after the delta T option generates an error.
+///
 TEST(StateScriptParser, ErrorUnexpectedTokenAfterInitState)
 {
     TOKENIZE(
@@ -324,6 +391,9 @@ TEST(StateScriptParser, ErrorUnexpectedTokenAfterInitState)
     checkParseError(toks, E_SSP_STATE, 2, 1);
 }
 
+///
+/// @test No tokens after the initial state option generates an error.
+///
 TEST(StateScriptParser, ErrorEofAfterInitState)
 {
     TOKENIZE(
@@ -332,7 +402,10 @@ TEST(StateScriptParser, ErrorEofAfterInitState)
     checkParseError(toks, E_SSP_STATE, 2, 1);
 }
 
-TEST(StateScriptParser, ErrorUnknownConfigOption)
+///
+/// @test An unknown option generates an error.
+///
+TEST(StateScriptParser, ErrorUnknownOption)
 {
     TOKENIZE(
         "[options]\n"
@@ -340,6 +413,9 @@ TEST(StateScriptParser, ErrorUnknownConfigOption)
     checkParseError(toks, E_SSP_CONFIG, 2, 1);
 }
 
+///
+/// @test Extraneous tokens after a stop annotation generate an error.
+///
 TEST(StateScriptParser, ErrorExtraTokenAfterStop)
 {
     TOKENIZE(

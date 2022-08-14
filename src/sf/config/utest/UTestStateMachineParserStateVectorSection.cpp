@@ -1,8 +1,36 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestStateMachineParserStateVectorSection.hpp
+/// @brief Unit tests for StateMachineParser parsing state vector sections.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/config/StateMachineParser.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that parsing a state machine generates a certain error.
+///
+/// @param[in] kIt       State machine config to parse.
+/// @param[in] kRes      Expected error code.
+/// @param[in] kLineNum  Expected error column number.
+/// @param[in] kColNum   Expected error line number.
+///
 static void checkParseError(TokenIterator &kIt,
                             const Result kRes,
                             const I32 kLineNum,
@@ -32,10 +60,16 @@ static void checkParseError(TokenIterator &kIt,
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
+///
+/// @brief Unit tests for StateMachineParser parsing state vector sections.
+///
 TEST_GROUP(StateMachineParseStateVectorSection)
 {
 };
 
+///
+/// @test An empty state vector section is parsed correctly.
+///
 TEST(StateMachineParseStateVectorSection, Empty)
 {
     TOKENIZE("[state_vector]");
@@ -47,6 +81,9 @@ TEST(StateMachineParseStateVectorSection, Empty)
     CHECK_EQUAL(toks.size(), it.idx());
 }
 
+///
+/// @test An empty state vector section containing newlines is parsed correctly.
+///
 TEST(StateMachineParseStateVectorSection, EmptyWithNewlines)
 {
     TOKENIZE("[state_vector]\n\n\n");
@@ -58,6 +95,9 @@ TEST(StateMachineParseStateVectorSection, EmptyWithNewlines)
     CHECK_EQUAL(toks.size(), it.idx());
 }
 
+///
+/// @test A state vector section containing one element is parsed correctly.
+///
 TEST(StateMachineParseStateVectorSection, OneElement)
 {
     TOKENIZE(
@@ -75,6 +115,9 @@ TEST(StateMachineParseStateVectorSection, OneElement)
     CHECK_EQUAL(false, parse[0].readOnly);
 }
 
+///
+/// @test A read-only annotation is parsed correctly.
+///
 TEST(StateMachineParseStateVectorSection, ReadOnlyAnnotation)
 {
     TOKENIZE(
@@ -92,6 +135,9 @@ TEST(StateMachineParseStateVectorSection, ReadOnlyAnnotation)
     CHECK_EQUAL(true, parse[0].readOnly);
 }
 
+///
+/// @test An alias annotation is parsed correctly.
+///
 TEST(StateMachineParseStateVectorSection, AliasAnnotation)
 {
     TOKENIZE(
@@ -110,6 +156,9 @@ TEST(StateMachineParseStateVectorSection, AliasAnnotation)
     CHECK_EQUAL(false, parse[0].readOnly);
 }
 
+///
+/// @test Multiple annotations on the same element are parsed correctly.
+///
 TEST(StateMachineParseStateVectorSection, MultipleAnnotations)
 {
     TOKENIZE(
@@ -128,6 +177,10 @@ TEST(StateMachineParseStateVectorSection, MultipleAnnotations)
     CHECK_EQUAL(true, parse[0].readOnly);
 }
 
+///
+/// @test A state vector section containing multiple elements is parsed
+/// correctly.
+///
 TEST(StateMachineParseStateVectorSection, MultipleElements)
 {
     TOKENIZE(
@@ -155,6 +208,9 @@ TEST(StateMachineParseStateVectorSection, MultipleElements)
     CHECK_EQUAL(false, parse[2].readOnly);
 }
 
+///
+/// @test All element types are parsed correctly.
+///
 TEST(StateMachineParseStateVectorSection, AllElementTypes)
 {
     TOKENIZE(
@@ -222,6 +278,9 @@ TEST(StateMachineParseStateVectorSection, AllElementTypes)
     CHECK_EQUAL(false, parse[10].readOnly);
 }
 
+///
+/// @test Multiple elements with annotations are parsed correctly.
+///
 TEST(StateMachineParseStateVectorSection, MultipleElementsWithAnnotations)
 {
     TOKENIZE(
@@ -252,10 +311,17 @@ TEST(StateMachineParseStateVectorSection, MultipleElementsWithAnnotations)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
+///
+/// @brief Unit tests for StateMachineParser parsing state vector sections with
+/// errors.
+///
 TEST_GROUP(StateMachineParseStateVectorSectionErrors)
 {
 };
 
+///
+/// @test Multiple read-only annotations on the same element generate an error.
+///
 TEST(StateMachineParseStateVectorSectionErrors, RedundantReadOnlyAnnotation)
 {
     TOKENIZE(
@@ -264,6 +330,9 @@ TEST(StateMachineParseStateVectorSectionErrors, RedundantReadOnlyAnnotation)
     checkParseError(it, E_SMP_RO_MULT, 2, 20);
 }
 
+///
+/// @test Multiple alias annotations on the same element generate an error.
+///
 TEST(StateMachineParseStateVectorSectionErrors, MultipleAliasAnnotations)
 {
     TOKENIZE(
@@ -272,6 +341,9 @@ TEST(StateMachineParseStateVectorSectionErrors, MultipleAliasAnnotations)
     checkParseError(it, E_SMP_AL_MULT, 2, 20);
 }
 
+///
+/// @test An unexpected token after an alias generates an error.
+///
 TEST(StateMachineParseStateVectorSectionErrors, UnexpectedTokenAfterAlias)
 {
     TOKENIZE(
@@ -280,6 +352,9 @@ TEST(StateMachineParseStateVectorSectionErrors, UnexpectedTokenAfterAlias)
     checkParseError(it, E_SMP_ALIAS, 2, 9);
 }
 
+///
+/// @test No tokens after an alias annotation generates an error.
+///
 TEST(StateMachineParseStateVectorSectionErrors, EofAfterAlias)
 {
     TOKENIZE(
@@ -288,6 +363,10 @@ TEST(StateMachineParseStateVectorSectionErrors, EofAfterAlias)
     checkParseError(it, E_SMP_ALIAS, 2, 9);
 }
 
+///
+/// @test A non-identifier token where an element type is expected generates an
+/// error.
+///
 TEST(StateMachineParseStateVectorSectionErrors, ExpectedElementType)
 {
     TOKENIZE(
@@ -296,6 +375,9 @@ TEST(StateMachineParseStateVectorSectionErrors, ExpectedElementType)
     checkParseError(it, E_SMP_ELEM_TYPE, 2, 1);
 }
 
+///
+/// @test No tokens after an element type generates an error.
+///
 TEST(StateMachineParseStateVectorSectionErrors, EofAfterElementType)
 {
     TOKENIZE(
@@ -304,6 +386,10 @@ TEST(StateMachineParseStateVectorSectionErrors, EofAfterElementType)
     checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
 
+///
+/// @test A non-identifier token where an element name is expected generates an
+/// error.
+///
 TEST(StateMachineParseStateVectorSectionErrors, UnexpectedTokenAfterElementType)
 {
     TOKENIZE(
@@ -312,6 +398,9 @@ TEST(StateMachineParseStateVectorSectionErrors, UnexpectedTokenAfterElementType)
     checkParseError(it, E_SMP_ELEM_NAME, 2, 1);
 }
 
+///
+/// @test An unknown annotation generates an error.
+///
 TEST(StateMachineParseStateVectorSectionErrors, UnknownAnnotation)
 {
     TOKENIZE(

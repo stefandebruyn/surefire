@@ -1,3 +1,23 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/core/utest/UTestTokenizer.cpp
+/// @brief Unit tests for Tokenizer.
+////////////////////////////////////////////////////////////////////////////////
+
 #include <algorithm>
 #include <sstream>
 
@@ -6,6 +26,12 @@
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that a string is tokenized in the expected way.
+///
+/// @param[in] kSrc         String to tokenize.
+/// @param[in] kToksExpect  Expected vector of tokens.
+///
 #define CHECK_TOKENS(kSrc, kToksExpect)                                        \
 {                                                                              \
     std::stringstream ss(kSrc);                                                \
@@ -14,6 +40,15 @@
     CHECK_EQUAL(kToksExpect,  toksActual);                                     \
 }
 
+///
+/// @brief Checks that a string tokenizes into a single token.
+///
+/// @param[in] kSrc      String to tokenize.
+/// @param[in] kType     Expected token type.
+/// @param[in] kStr      Expected token string.
+/// @param[in] kLineNum  Expected token line number.
+/// @param[in] kColNum   Expected token column number.
+///
 #define CHECK_TOKEN(kSrc, kType, kStr, kLineNum, kColNum)                      \
 {                                                                              \
     const Vec<Token> toksExpect =                                              \
@@ -25,10 +60,16 @@
 
 //////////////////////////////////// Tests /////////////////////////////////////
 
+///
+/// @brief Unit tests for Tokenizer.
+///
 TEST_GROUP(Tokenizer)
 {
 };
 
+///
+/// @test Tokens are equated correctly.
+///
 TEST(Tokenizer, TokenEquivalence)
 {
     const Token a = {Token::CONSTANT, "foo", 0, 0};
@@ -51,21 +92,33 @@ TEST(Tokenizer, TokenEquivalence)
     CHECK_TRUE(f != a);
 }
 
+///
+/// @test A section is tokenized correctly.
+///
 TEST(Tokenizer, Section)
 {
     CHECK_TOKEN("[Foo123_/]", Token::SECTION, "[Foo123_/]", 1, 1);
 }
 
+///
+/// @test A label is tokenized correctly.
+///
 TEST(Tokenizer, Label)
 {
     CHECK_TOKEN(".Foo123_-][", Token::LABEL, ".Foo123_-][", 1, 1);
 }
 
+///
+/// @test An identifier is tokenized correctly.
+///
 TEST(Tokenizer, Identifier)
 {
     CHECK_TOKEN("Foo123_", Token::IDENTIFIER, "Foo123_", 1, 1);
 }
 
+///
+/// @test Operators are tokenized correctly.
+///
 TEST(Tokenizer, Operator)
 {
     CHECK_TOKEN("==", Token::OPERATOR, "==", 1, 1);
@@ -83,6 +136,9 @@ TEST(Tokenizer, Operator)
     CHECK_TOKEN("/", Token::OPERATOR, "/", 1, 1);
 }
 
+///
+/// @test Constants are tokenized correctly.
+///
 TEST(Tokenizer, Constant)
 {
     CHECK_TOKEN("123", Token::CONSTANT, "123", 1, 1);
@@ -92,52 +148,82 @@ TEST(Tokenizer, Constant)
     CHECK_TOKEN("false", Token::CONSTANT, "false", 1, 1);
 }
 
+///
+/// @test A colon is tokenized correctly.
+///
 TEST(Tokenizer, Colon)
 {
     CHECK_TOKEN(":", Token::COLON, ":", 1, 1);
 }
 
+///
+/// @test A newline is tokenized correctly.
+///
 TEST(Tokenizer, Newline)
 {
     CHECK_TOKEN("\n", Token::NEWLINE, "(newline)", 1, 1);
 }
 
+///
+/// @test A left parenthese is tokenized correctly.
+///
 TEST(Tokenizer, LeftParen)
 {
     CHECK_TOKEN("(", Token::LPAREN, "(", 1, 1);
 }
 
+///
+/// @test A right parenthese is tokenized correctly.
+///
 TEST(Tokenizer, RightParen)
 {
     CHECK_TOKEN(")", Token::RPAREN, ")", 1, 1);
 }
 
+///
+/// @test An annotation is tokenized correctly.
+///
 TEST(Tokenizer, Annotation)
 {
     CHECK_TOKEN("@Foo123_", Token::ANNOTATION, "@Foo123_", 1, 1);
 }
 
+///
+/// @test Comments are ignored by the tokenizer.
+///
 TEST(Tokenizer, Comment)
 {
     const Vec<Token> empty;
     CHECK_TOKENS("# hello world !#$%^", empty);
 }
 
+///
+/// @test A left brace is tokenized correctly.
+///
 TEST(Tokenizer, LeftBrace)
 {
     CHECK_TOKEN("{", Token::LBRACE, "{", 1, 1);
 }
 
+///
+/// @test A right brace is tokenized correctly.
+///
 TEST(Tokenizer, RightBrace)
 {
     CHECK_TOKEN("}", Token::RBRACE, "}", 1, 1);
 }
 
+///
+/// @test A comma brace is tokenized correctly.
+///
 TEST(Tokenizer, Comma)
 {
     CHECK_TOKEN(",", Token::COMMA, ",", 1, 1);
 }
 
+///
+/// @test Keywords are tokenized correctly.
+///
 TEST(Tokenizer, Keyword)
 {
     CHECK_TOKEN("if", Token::KEYWORD, "if", 1, 1);
@@ -145,17 +231,26 @@ TEST(Tokenizer, Keyword)
     CHECK_TOKEN("->", Token::KEYWORD, "->", 1, 1);
 }
 
+///
+/// @test A string of only spaces generates no tokens.
+///
 TEST(Tokenizer, OnlySpaces)
 {
     const Vec<Token> empty;
     CHECK_TOKENS("    ", empty);
 }
 
+///
+/// @test A string of spaces and then a newline is tokenized correctly.
+///
 TEST(Tokenizer, OnlySpacesThenNewline)
 {
     CHECK_TOKEN("    \n", Token::NEWLINE, "(newline)", 1, 5);
 }
 
+///
+/// @test A string containing all token types is tokenized correctly.
+///
 TEST(Tokenizer, EveryToken)
 {
     const Vec<Token> toksExpect =
@@ -197,6 +292,9 @@ TEST(Tokenizer, EveryToken)
         toksExpect);
 }
 
+///
+/// @test An invalid token generates an error.
+///
 TEST(Tokenizer, InvalidToken)
 {
     // Tokenizer returns error on invalid token.
@@ -220,6 +318,9 @@ TEST(Tokenizer, InvalidToken)
     CHECK_EQUAL(0, toks.size());
 }
 
+///
+/// @test A nonexistent input file generates an error.
+///
 TEST(Tokenizer, NonexistentInputFile)
 {
     // Tokenizer returns error on nonexistent input file.

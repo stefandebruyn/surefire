@@ -1,8 +1,37 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestStateVectorParser.hpp
+/// @brief Unit tests for StateVectorParser.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/config/StateVectorParser.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Checks that parsing a state vector generates a certain error.
+///
+/// @param[in] kToks     State vector config to parse.
+/// @param[in] kRes      Expected error code.
+/// @param[in] kLineNum  Expected error column number.
+/// @param[in] kColNum   Expected error line number.
+/// @param[in] kRegions  Regions to parse.
+///
 static void checkParseError(
     const Vec<Token>& kToks,
     const Result kRes,
@@ -33,10 +62,16 @@ static void checkParseError(
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
+///
+/// @brief Unit tests for StateVectorParser.
+///
 TEST_GROUP(StateVectorParser)
 {
 };
 
+///
+/// @test A state vector with no regions is parsed correctly.
+///
 TEST(StateVectorParser, NoRegions)
 {
     // Parse state vector.
@@ -48,6 +83,9 @@ TEST(StateVectorParser, NoRegions)
     CHECK_EQUAL(0, parse->regions.size());
 }
 
+///
+/// @test A state vector with an empty region is parsed correctly.
+///
 TEST(StateVectorParser, EmptyRegion)
 {
     // Parse state vector.
@@ -65,6 +103,9 @@ TEST(StateVectorParser, EmptyRegion)
     CHECK_EQUAL(0, parse->regions[0].elems.size());
 }
 
+///
+/// @test A state vector with multiple empty regions is parsed correctly.
+///
 TEST(StateVectorParser, MultipleEmptyRegions)
 {
     // Parse state vector.
@@ -88,6 +129,9 @@ TEST(StateVectorParser, MultipleEmptyRegions)
     CHECK_EQUAL(0, parse->regions[1].elems.size());
 }
 
+///
+/// @test Only selected regions are parsed.
+///
 TEST(StateVectorParser, SelectSpecificRegions)
 {
     // Parse state vector, but only regions `Foo` and `Baz`.
@@ -114,6 +158,9 @@ TEST(StateVectorParser, SelectSpecificRegions)
     CHECK_EQUAL(0, parse->regions[1].elems.size());
 }
 
+///
+/// @test A region with one element is parsed correctly.
+///
 TEST(StateVectorParser, RegionWithOneElement)
 {
     // Parse state vector.
@@ -136,6 +183,9 @@ TEST(StateVectorParser, RegionWithOneElement)
     CHECK_EQUAL(toks[3], parse->regions[0].elems[0].tokName);
 }
 
+///
+/// @test A region with multiple elements is parsed correctly.
+///
 TEST(StateVectorParser, RegionWithMultipleElements)
 {
     // Parse state vector.
@@ -163,6 +213,9 @@ TEST(StateVectorParser, RegionWithMultipleElements)
     CHECK_EQUAL(toks[6], parse->regions[0].elems[1].tokName);
 }
 
+///
+/// @test Multiple regions with multiple elements are parsed correctly.
+///
 TEST(StateVectorParser, MultipleRegionsWithMultipleElements)
 {
     // Parse state vector.
@@ -207,6 +260,9 @@ TEST(StateVectorParser, MultipleRegionsWithMultipleElements)
     CHECK_EQUAL(toks[15], parse->regions[1].elems[1].tokName);
 }
 
+///
+/// @test The lock option is parsed correctly.
+///
 TEST(StateVectorParser, LockOption)
 {
     // Parse state vector.
@@ -230,6 +286,9 @@ TEST(StateVectorParser, LockOption)
     CHECK_EQUAL(0, parse->regions[0].elems.size());
 }
 
+///
+/// @test An empty options section is parsed correctly.
+///
 TEST(StateVectorParser, EmptyOptionsSection)
 {
     // Parse state vector.
@@ -251,10 +310,16 @@ TEST(StateVectorParser, EmptyOptionsSection)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
+///
+/// @brief Unit tests for StateVectorParser errors.
+///
 TEST_GROUP(StateVectorParserErrors)
 {
 };
 
+///
+/// @test A token outside of a section generates an error.
+///
 TEST(StateVectorParserErrors, UnexpectedTokenOutsideSection)
 {
     TOKENIZE(
@@ -263,6 +328,10 @@ TEST(StateVectorParserErrors, UnexpectedTokenOutsideSection)
     checkParseError(toks, E_SVP_TOK, 1, 1);
 }
 
+///
+/// @test A non-identifier token where an element type is expected generates an
+/// error.
+///
 TEST(StateVectorParserErrors, NonIdentifierForElementType)
 {
     TOKENIZE(
@@ -271,6 +340,9 @@ TEST(StateVectorParserErrors, NonIdentifierForElementType)
     checkParseError(toks, E_SVP_ELEM_TYPE, 2, 1);
 }
 
+///
+/// @test No tokens after an element type generates an error.
+///
 TEST(StateVectorParserErrors, MissingElementName)
 {
     TOKENIZE(
@@ -279,6 +351,10 @@ TEST(StateVectorParserErrors, MissingElementName)
     checkParseError(toks, E_SVP_ELEM_NAME, 2, 1);
 }
 
+///
+/// @test A non-identifier token where an element name is expected generates an
+/// error.
+///
 TEST(StateVectorParserErrors, NonIdentifierAfterElementType)
 {
     TOKENIZE(
@@ -287,6 +363,9 @@ TEST(StateVectorParserErrors, NonIdentifierAfterElementType)
     checkParseError(toks, E_SVP_ELEM_NAME, 2, 5);
 }
 
+///
+/// @test Selecting an unknown region to parse generates an error.
+///
 TEST(StateVectorParserErrors, SelectNonexistentRegion)
 {
     TOKENIZE(
@@ -295,6 +374,9 @@ TEST(StateVectorParserErrors, SelectNonexistentRegion)
     checkParseError(toks, E_SVP_RGN, -1, -1, {"Bar"});
 }
 
+///
+/// @test Specifying an unknown option generates an error.
+///
 TEST(StateVectorParserErrors, UnknownOption)
 {
     TOKENIZE(

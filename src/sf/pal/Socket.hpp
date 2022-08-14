@@ -89,7 +89,7 @@ public:
     /// returning once at least one socket has data avilable or the timeout
     /// expires.
     ///
-    /// @note Linux: The Linux PSL implementation of this function uses the
+    /// @remark Linux: The Linux PSL implementation of this function uses the
     /// select() system call, which returns to the caller how much of the
     /// timeout was not used. This is not required by POSIX, so if the Linux PSL
     /// was compiled for another POSIX platform, Thread::select() might not
@@ -205,15 +205,19 @@ private:
     bool mInit;
 
 #ifdef SF_PLATFORM_LINUX
+
     ///
     /// @brief Socket file descriptor.
     ///
     I32 mFd;
+
 #elif defined(SF_PLATFORM_ARDUINO)
+
     ///
     /// @brief UDP object.
     ///
     EthernetUDP mUdp;
+
 #endif
 };
 

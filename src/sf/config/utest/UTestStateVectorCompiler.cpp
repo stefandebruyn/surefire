@@ -1,20 +1,54 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestStateVectorCompiler.hpp
+/// @brief Unit tests for StateVectorCompiler.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/config/StateVectorCompiler.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Info for checking a configured state vector element.
+///
 struct ElementInfo final
 {
-    String name;
-    ElementType type;
+    String name;      ///< Expected element name.
+    ElementType type; ///< Expected element type.
 };
 
+///
+/// @brief Info for checking a configured state vector region.
+///
 struct RegionInfo final
 {
-    String name;
-    U32 sizeBytes;
+    String name;   ///< Expected region name.
+    U32 sizeBytes; ///< Expected region size in bytes.
 };
 
+///
+/// @brief Checks that a state vector config has the expected layout when
+/// compiled.
+///
+/// @param[in] kToks     State vector parse.
+/// @param[in] kElems    Expected elements and order.
+/// @param[in] kRegions  Expected regions and order.
+///
 static void checkStateVectorConfig(const Vec<Token>& kToks,
                                    const Vec<ElementInfo> kElems,
                                    const Vec<RegionInfo> kRegions)
@@ -200,6 +234,14 @@ static void checkStateVectorConfig(const Vec<Token>& kToks,
     }
 }
 
+///
+/// @brief Checks that compiling a state vector generates a certain error.
+///
+/// @param[in] kToks     State vector parse.
+/// @param[in] kRes      Expected error code.
+/// @param[in] kLineNum  Expected error line number.
+/// @param[in] kColNum   Expected error column number.
+///
 static void checkCompileError(const Vec<Token>& kToks,
                               const Result kRes,
                               const I32 kLineNum,
@@ -231,10 +273,16 @@ static void checkCompileError(const Vec<Token>& kToks,
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
+///
+/// @brief Unit tests for StateVectorCompiler.
+///
 TEST_GROUP(StateVectorCompiler)
 {
 };
 
+///
+/// @test A state vector with a single element is compiled correctly.
+///
 TEST(StateVectorCompiler, OneElement)
 {
     TOKENIZE(
@@ -250,6 +298,10 @@ TEST(StateVectorCompiler, OneElement)
         });
 }
 
+///
+/// @test A simple state vector with multiple elements and multiple regions is
+/// compiled correctly.
+///
 TEST(StateVectorCompiler, SimpleConfig)
 {
     TOKENIZE(
@@ -272,6 +324,9 @@ TEST(StateVectorCompiler, SimpleConfig)
         });
 }
 
+///
+/// @test All element types are compiled correctly.
+///
 TEST(StateVectorCompiler, AllElementTypes)
 {
     TOKENIZE(
@@ -309,6 +364,9 @@ TEST(StateVectorCompiler, AllElementTypes)
         });
 }
 
+///
+/// @test A state vector with a (relatively) large region is compiled correctly.
+///
 TEST(StateVectorCompiler, OneLargeRegion)
 {
     TOKENIZE(
@@ -402,6 +460,9 @@ TEST(StateVectorCompiler, OneLargeRegion)
         });
 }
 
+///
+/// @test The state vector config language is newline-agnostic.
+///
 TEST(StateVectorCompiler, NewlineAgnostic)
 {
     TOKENIZE(
@@ -422,10 +483,16 @@ TEST(StateVectorCompiler, NewlineAgnostic)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
+///
+/// @brief Unit tests for StateVectorCompiler errors.
+///
 TEST_GROUP(StateVectorCompilerErrors)
 {
 };
 
+///
+/// @test Duplicate element names in the same region generate an error.
+///
 TEST(StateVectorCompilerErrors, DuplicateElementNameSameRegion)
 {
     TOKENIZE(
@@ -435,6 +502,9 @@ TEST(StateVectorCompilerErrors, DuplicateElementNameSameRegion)
     checkCompileError(toks, E_SVC_ELEM_DUPE, 3, 5);
 }
 
+///
+/// @test Duplicate element names in different regions generate an error.
+///
 TEST(StateVectorCompilerErrors, DuplicateElementNameDifferentRegion)
 {
     TOKENIZE(
@@ -445,6 +515,9 @@ TEST(StateVectorCompilerErrors, DuplicateElementNameDifferentRegion)
     checkCompileError(toks, E_SVC_ELEM_DUPE, 4, 5);
 }
 
+///
+/// @test Duplicate region names generate an error.
+///
 TEST(StateVectorCompilerErrors, DuplicateRegionName)
 {
     TOKENIZE(
@@ -455,6 +528,9 @@ TEST(StateVectorCompilerErrors, DuplicateRegionName)
     checkCompileError(toks, E_SVC_RGN_DUPE, 3, 1);
 }
 
+///
+/// @test An empty region generates an error.
+///
 TEST(StateVectorCompilerErrors, EmptyRegion)
 {
     TOKENIZE(
@@ -462,6 +538,9 @@ TEST(StateVectorCompilerErrors, EmptyRegion)
     checkCompileError(toks, E_SVC_RGN_EMPTY, 1, 1);
 }
 
+///
+/// @test An unknown element type generates an error.
+///
 TEST(StateVectorCompilerErrors, UnknownElementType)
 {
     TOKENIZE(
@@ -470,6 +549,9 @@ TEST(StateVectorCompilerErrors, UnknownElementType)
     checkCompileError(toks, E_SVC_ELEM_TYPE, 2, 1);
 }
 
+///
+/// @test Passing a null parse to the state vector compiler generates an error.
+///
 TEST(StateVectorCompilerErrors, NullParse)
 {
     const Ref<const StateVectorParse> smParse;

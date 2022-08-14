@@ -1,6 +1,31 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestTokenIterator.hpp
+/// @brief Unit tests for TokenIterator.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/config/TokenIterator.hpp"
 #include "sf/utest/UTest.hpp"
 
+/////////////////////////////////// Global /////////////////////////////////////
+
+///
+/// @brief Short token sequence for use in tests.
+///
 static const Vec<Token> gToks =
 {
     {Token::CONSTANT, "100", -1, -1},
@@ -9,6 +34,9 @@ static const Vec<Token> gToks =
     {Token::ANNOTATION, "@foo", -1, -1}
 };
 
+///
+/// @brief Token sequence with newlines for use in tests.
+///
 static const Vec<Token> gToksNewlines =
 {
     {Token::CONSTANT, "100", -1, -1},
@@ -21,10 +49,18 @@ static const Vec<Token> gToksNewlines =
     {Token::NEWLINE, "(newline)", -1, -1}
 };
 
+//////////////////////////////////// Tests /////////////////////////////////////
+
+///
+/// @brief Unit tests for TokenIterator.
+///
 TEST_GROUP(TokenIterator)
 {
 };
 
+///
+/// @test TokenIterator::idx() and TokenIterator::seek() work correctly.
+///
 TEST(TokenIterator, IdxAndSeek)
 {
     TokenIterator it(gToks.begin(), gToks.end());
@@ -35,6 +71,9 @@ TEST(TokenIterator, IdxAndSeek)
     CHECK_EQUAL(gToks.size(), it.idx());
 }
 
+///
+/// @test TokenIterator::eof() works correctly.
+///
 TEST(TokenIterator, Eof)
 {
     TokenIterator it(gToks.begin(), gToks.end());
@@ -47,6 +86,9 @@ TEST(TokenIterator, Eof)
     CHECK_TRUE(it.eof());
 }
 
+///
+/// @test TokenIterator::tok() works correctly.
+///
 TEST(TokenIterator, Tok)
 {
     TokenIterator it(gToks.begin(), gToks.end());
@@ -59,6 +101,9 @@ TEST(TokenIterator, Tok)
     CHECK_TRUE(it.tok() == TokenIterator::NONE);
 }
 
+///
+/// @test TokenIterator::take() works correctly.
+///
 TEST(TokenIterator, Take)
 {
     TokenIterator it(gToks.begin(), gToks.end());
@@ -72,6 +117,9 @@ TEST(TokenIterator, Take)
     CHECK_TRUE(it.take() == TokenIterator::NONE);
 }
 
+///
+/// @test TokenIterator::take() with newlines works correctly.
+///
 TEST(TokenIterator, TakeNewlines)
 {
     TokenIterator it(gToksNewlines.begin(), gToksNewlines.end());
@@ -83,6 +131,9 @@ TEST(TokenIterator, TakeNewlines)
     CHECK_EQUAL(8, it.idx());
 }
 
+///
+/// @test TokenIterator::type() and TokenIterator::str() work correctly.
+///
 TEST(TokenIterator, TypeAndStr)
 {
     TokenIterator it(gToks.begin(), gToks.end());
@@ -96,6 +147,9 @@ TEST(TokenIterator, TypeAndStr)
     CHECK_EQUAL("(none)", it.str());
 }
 
+///
+/// @test TokenIterator::eat() works correctly.
+///
 TEST(TokenIterator, Eat)
 {
     TokenIterator it(gToksNewlines.begin(), gToksNewlines.end());
@@ -109,6 +163,9 @@ TEST(TokenIterator, Eat)
     CHECK_EQUAL(8, it.idx());
 }
 
+///
+/// @test TokenIterator::next() works correctly.
+///
 TEST(TokenIterator, Next)
 {
     TokenIterator it(gToks.begin(), gToks.end());
@@ -123,6 +180,9 @@ TEST(TokenIterator, Next)
     CHECK_EQUAL(0, it.idx());
 }
 
+///
+/// @test TokenIterator::slice() works correctly.
+///
 TEST(TokenIterator, Slice)
 {
     TokenIterator it(gToksNewlines.begin(), gToksNewlines.end());
@@ -138,6 +198,9 @@ TEST(TokenIterator, Slice)
     CHECK_TRUE(slice.eof());
 }
 
+///
+/// @test TokenIterator::slice() with backwards bounds works correctly.
+///
 TEST(TokenIterator, SliceBackwardsBounds)
 {
     TokenIterator it(gToks.begin(), gToks.end());
@@ -145,12 +208,18 @@ TEST(TokenIterator, SliceBackwardsBounds)
     CHECK_TRUE(slice.eof());
 }
 
+///
+/// @test A TokenIterator with backwards bounds does not iterate.
+///
 TEST(TokenIterator, BackwardsBounds)
 {
     TokenIterator it(gToks.end(), gToks.begin());
     CHECK_TRUE(it.eof());
 }
 
+///
+/// @test TokenIterator::size() works correctly.
+///
 TEST(TokenIterator, Size)
 {
     TokenIterator it(gToksNewlines.begin(), gToksNewlines.end());

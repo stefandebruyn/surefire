@@ -60,15 +60,8 @@ public:
     ///
     enum Mode : U8
     {
-        ///
-        /// @brief Input pin.
-        ///
-        IN = 0,
-
-        ///
-        /// @brief Output pin.
-        ///
-        OUT = 1
+        IN = 0, ///< Input pin.
+        OUT = 1 ///< Output pin.
     };
 
     ///

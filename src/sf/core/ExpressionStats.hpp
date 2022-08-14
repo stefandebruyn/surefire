@@ -159,7 +159,8 @@ public:
                     T* const kArrA,
                     T* const kArrB,
                     const U32 kSize) :
-        mExpr(kExpr), mHist(kArrA),
+        mExpr(kExpr),
+        mHist(kArrA),
         mSorted(kArrB),
         mSize(kSize),
         mUpdates(0),

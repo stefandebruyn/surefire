@@ -1,8 +1,33 @@
+////////////////////////////////////////////////////////////////////////////////
+///                             S U R E F I R E
+///                             ---------------
+/// This file is part of Surefire, a C++ framework for building flight software
+/// applications. Surefire is open-source under the Apache License 2.0 - a copy
+/// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
+///
+/// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+/// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+/// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+/// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+/// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+/// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+/// IN THE SOFTWARE.
+///
+///                             ---------------
+/// @file  sf/config/utest/UTestStateScriptCompiler.hpp
+/// @brief Unit tests for StateScriptCompiler.
+////////////////////////////////////////////////////////////////////////////////
+
 #include "sf/config/StateScriptCompiler.hpp"
 #include "sf/utest/UTest.hpp"
 
 /////////////////////////////////// Helpers ////////////////////////////////////
 
+///
+/// @brief Initializes the state vector.
+///
+/// @param[in] kSrc  State vector config as string.
+///
 #define INIT_SV(kSrc)                                                          \
     /* Compile state vector. */                                                \
     std::stringstream svSrc(kSrc);                                             \
@@ -12,6 +37,11 @@
     /* Get state vector. */                                                    \
     StateVector& sv = svAsm->get();
 
+///
+/// @brief Initializes the state machine.
+///
+/// @param[in] kSrc  State machine config as string.
+///
 #define INIT_SM(kSrc)                                                          \
     /* Compile state machine, specifying not to rake the assembly. */          \
     std::stringstream smSrc(kSrc);                                             \
@@ -30,6 +60,11 @@
     /* Get local state vector. */                                              \
     StateVector& localSv = smAsm->localStateVector();
 
+///
+/// @brief Initializes the state script.
+///
+/// @param[in] kSrc  State script config as string.
+///
 #define INIT_SS(kSrc)                                                          \
     std::stringstream ssSrc(kSrc);                                             \
     Ref<StateScriptAssembly> ssAsm;                                            \
@@ -39,6 +74,13 @@
                                                ssAsm,                          \
                                                &ssTokInfo));
 
+///
+/// @brief Checks the value of a state vector element.
+///
+/// @param[in] kElemName   Element name.
+/// @param[in] kElemType   Element type identifier.
+/// @param[in] kExpectVal  Expected value
+///
 #define CHECK_SV_ELEM(kElemName, kElemType, kExpectVal)                        \
 {                                                                              \
     Element<kElemType>* _elem = nullptr;                                       \
@@ -46,6 +88,13 @@
     CHECK_EQUAL(kExpectVal, _elem->read());                                    \
 }
 
+///
+/// @brief Checks the value of a state machine local element.
+///
+/// @param[in] kElemName   Element name.
+/// @param[in] kElemType   Element type identifier.
+/// @param[in] kExpectVal  Expected value
+///
 #define CHECK_LOCAL_ELEM(kElemName, kElemType, kExpectVal)                     \
 {                                                                              \
     Element<kElemType>* _elem = nullptr;                                       \
@@ -53,6 +102,15 @@
     CHECK_EQUAL(kExpectVal, _elem->read());                                    \
 }
 
+///
+/// @brief Checks that compiling a state script generates a certain error.
+///
+/// @param[in] kSrc      State script config.
+/// @param[in] kSmAsm    State machine.
+/// @param[in] kRes      Expected error code.
+/// @param[in] kLineNum  Expected error line number.
+/// @param[in] kColNum   Expected error column number.
+///
 static void checkCompileError(std::stringstream& kSrc,
                               const Ref<const StateMachineAssembly> kSmAsm,
                               const Result kRes,
@@ -90,10 +148,16 @@ static void checkCompileError(std::stringstream& kSrc,
 
 ///////////////////////////// Correct Usage Tests //////////////////////////////
 
+///
+/// @brief Unit tests for StateScriptCompiler.
+///
 TEST_GROUP(StateScriptCompiler)
 {
 };
 
+///
+/// @test State script that runs for a single step and passes.
+///
 TEST(StateScriptCompiler, SingleStepPass)
 {
     // General logic: state script executes for a single step. The state machine
@@ -147,6 +211,9 @@ TEST(StateScriptCompiler, SingleStepPass)
     CHECK_LOCAL_ELEM("T", U64, 0);
 }
 
+///
+/// @test State script that runs for a single step and fails.
+///
 TEST(StateScriptCompiler, SingleStepFail)
 {
     // General logic: same as in `SingleStepPass`, except state script expects
@@ -203,6 +270,9 @@ TEST(StateScriptCompiler, SingleStepFail)
     CHECK_LOCAL_ELEM("T", U64, 0);
 }
 
+///
+/// @test State script that runs for multiple steps and passes.
+///
 TEST(StateScriptCompiler, MultiStepPass)
 {
     // General logic: element `bar` is updated according to some basic logic
@@ -277,6 +347,9 @@ TEST(StateScriptCompiler, MultiStepPass)
     CHECK_LOCAL_ELEM("T", U64, 10);
 }
 
+///
+/// @test State script that runs for multiple steps and fails.
+///
 TEST(StateScriptCompiler, MultiStepFail)
 {
     // General logic: same as in `MultiStepPass`, except state machine fails to
@@ -354,6 +427,9 @@ TEST(StateScriptCompiler, MultiStepFail)
     CHECK_LOCAL_ELEM("T", U64, 8);
 }
 
+///
+/// @test State script with a delta T that is not 1.
+///
 TEST(StateScriptCompiler, DeltaT)
 {
     // General logic: state script steps from T=0 to T=9 with a delta T of 3.
@@ -400,6 +476,9 @@ TEST(StateScriptCompiler, DeltaT)
     CHECK_LOCAL_ELEM("T", U64, 9);
 }
 
+///
+/// @test State time element is updated correctly in a state script.
+///
 TEST(StateScriptCompiler, StateTime)
 {
     // General logic: state `Initial` loops every 6 steps. In the state, element
@@ -454,6 +533,9 @@ TEST(StateScriptCompiler, StateTime)
     CHECK_LOCAL_ELEM("T", U64, 5);
 }
 
+///
+/// @test Variant of the `StateTime` test with a state script that fails.
+///
 TEST(StateScriptCompiler, StateTimeFail)
 {
     // General logic: same as in `StateTime`, but the state machine sets an
@@ -515,6 +597,9 @@ TEST(StateScriptCompiler, StateTimeFail)
     CHECK_LOCAL_ELEM("T", U64, 4);
 }
 
+///
+/// @test State script with a state machine that has multiple states.
+///
 TEST(StateScriptCompiler, MultiState)
 {
     // General logic: states `Foo` and `Bar` transition to one another when
@@ -605,6 +690,9 @@ TEST(StateScriptCompiler, MultiState)
     CHECK_LOCAL_ELEM("baz", F64, (3.0 / 2.0));
 }
 
+///
+/// @test Multi-state state script that fails an assertion in a state section.
+///
 TEST(StateScriptCompiler, MultiStateFailInStateSection)
 {
     // General logic: same as in `MultiState`, but state `Bar` fails to execute
@@ -696,6 +784,10 @@ TEST(StateScriptCompiler, MultiStateFailInStateSection)
     CHECK_LOCAL_ELEM("baz", F64, 1.0);
 }
 
+///
+/// @test Multi-state state script that fails an assertion in the all states
+/// section.
+///
 TEST(StateScriptCompiler, MultiStateFailInAllStatesSection)
 {
     // General logic: same as in `MultiState`, but state `Bar` fails to execute
@@ -787,6 +879,9 @@ TEST(StateScriptCompiler, MultiStateFailInAllStatesSection)
     CHECK_LOCAL_ELEM("baz", F64, (1.0 / 2.0));
 }
 
+///
+/// @test State scripts may use element aliases in assertions.
+///
 TEST(StateScriptCompiler, UseAliasInAssert)
 {
     // General logic: state `Initial` increments element `foo` indefinitely.
@@ -833,6 +928,9 @@ TEST(StateScriptCompiler, UseAliasInAssert)
     CHECK_SV_ELEM("foo", I32, 11);
 }
 
+///
+/// @test State scripts may use element aliases in assignment statements.
+///
 TEST(StateScriptCompiler, UseAliasInInput)
 {
     // General logic: state `Initial` sets element `bar` to true when `foo` is
@@ -883,6 +981,9 @@ TEST(StateScriptCompiler, UseAliasInInput)
     CHECK_SV_ELEM("bar", bool, true);
 }
 
+///
+/// @test State scripts may use element aliases in conditionals.
+///
 TEST(StateScriptCompiler, UseAliasInGuard)
 {
     // General logic: state `Initial` sets element `foo` to true on T=5. `foo`
@@ -929,6 +1030,9 @@ TEST(StateScriptCompiler, UseAliasInGuard)
     CHECK_SV_ELEM("foo", bool, true);
 }
 
+///
+/// @test State scripts that use stats functions update the expression stats.
+///
 TEST(StateScriptCompiler, UpdateExpressionStats)
 {
     // General logic: state `Initial` sets element `foo` to various values for
@@ -978,6 +1082,10 @@ TEST(StateScriptCompiler, UpdateExpressionStats)
     CHECK_SV_ELEM("foo", I32, 1);
 }
 
+///
+/// @test State script that specifies an initial state other than the first
+/// defined.
+///
 TEST(StateScriptCompiler, ConfigInitialState)
 {
     // General logic: states `Foo` and `Bar` are terminal states. `Foo` sets
@@ -1026,6 +1134,9 @@ TEST(StateScriptCompiler, ConfigInitialState)
     CHECK_SV_ELEM("foo", bool, false);
 }
 
+///
+/// @test State script with an empty state section.
+///
 TEST(StateScriptCompiler, EmptyStateSection)
 {
     // General logic: states `Foo` and `Bar` are terminal states. `Foo` sets
@@ -1070,6 +1181,10 @@ TEST(StateScriptCompiler, EmptyStateSection)
     CHECK_SV_ELEM("time", U64, 0);
 }
 
+///
+/// @test State script statements affect the program state seen by successive
+/// statements within the same step.
+///
 TEST(StateScriptCompiler, ImperativeInputs)
 {
     // General logic: state machine has no interesting logic, state script has
@@ -1120,10 +1235,16 @@ TEST(StateScriptCompiler, ImperativeInputs)
 
 ///////////////////////////////// Error Tests //////////////////////////////////
 
+///
+/// @brief Unit tests for StateScriptCompiler errors.
+///
 TEST_GROUP(StateScriptCompilerErrors)
 {
 };
 
+///
+/// @test Passing a null parse to the compiler generates an error.
+///
 TEST(StateScriptCompilerErrors, NullParse)
 {
     INIT_SV(
@@ -1145,6 +1266,9 @@ TEST(StateScriptCompilerErrors, NullParse)
     CHECK_TRUE(ssAsm == nullptr);
 }
 
+///
+/// @test Two state sections of the same name generates an error.
+///
 TEST(StateScriptCompilerErrors, DupeSection)
 {
     INIT_SV(
@@ -1166,6 +1290,9 @@ TEST(StateScriptCompilerErrors, DupeSection)
     checkCompileError(ss, smAsm, E_SSC_DUPE, 5, 1);
 }
 
+///
+/// @test State section with an unknown state generates an error.
+///
 TEST(StateScriptCompilerErrors, UnknownState)
 {
     INIT_SV(
@@ -1186,6 +1313,9 @@ TEST(StateScriptCompilerErrors, UnknownState)
     checkCompileError(ss, smAsm, E_SSC_STATE, 4, 1);
 }
 
+///
+/// @test Assignment statement with no condition generates an error.
+///
 TEST(StateScriptCompilerErrors, UnguardedInput)
 {
     INIT_SV(
@@ -1209,6 +1339,9 @@ TEST(StateScriptCompilerErrors, UnguardedInput)
     checkCompileError(ss, smAsm, E_SSC_GUARD, 5, 1);
 }
 
+///
+/// @test Assertion with no condition generates an error.
+///
 TEST(StateScriptCompilerErrors, UnguardedAssert)
 {
     INIT_SV(
@@ -1232,6 +1365,9 @@ TEST(StateScriptCompilerErrors, UnguardedAssert)
     checkCompileError(ss, smAsm, E_SSC_GUARD, 5, 1);
 }
 
+///
+/// @test Stop annotation with no condition generates an error.
+///
 TEST(StateScriptCompilerErrors, UnguardedStop)
 {
     INIT_SV(
@@ -1255,6 +1391,9 @@ TEST(StateScriptCompilerErrors, UnguardedStop)
     checkCompileError(ss, smAsm, E_SSC_GUARD, 5, 1);
 }
 
+///
+/// @test Illegal else keyword generates an error.
+///
 TEST(StateScriptCompilerErrors, IllegalElse)
 {
     INIT_SV(
@@ -1279,6 +1418,9 @@ TEST(StateScriptCompilerErrors, IllegalElse)
     checkCompileError(ss, smAsm, E_SSC_ELSE, 6, 1);
 }
 
+///
+/// @test Errors in conditional expressions are surfaced.
+///
 TEST(StateScriptCompilerErrors, SurfaceErrorInGuardExpression)
 {
     INIT_SV(
@@ -1302,6 +1444,9 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInGuardExpression)
     checkCompileError(ss, smAsm, E_EXC_ELEM, 5, 1);
 }
 
+///
+/// @test Nested conditionals generate an error.
+///
 TEST(StateScriptCompilerErrors, NestedGuard)
 {
     INIT_SV(
@@ -1325,6 +1470,10 @@ TEST(StateScriptCompilerErrors, NestedGuard)
     checkCompileError(ss, smAsm, E_SSC_NEST, 5, 11);
 }
 
+///
+/// @test An unreachable assignment statement after a stop annotation generates
+/// an error.
+///
 TEST(StateScriptCompilerErrors, UnreachableInput)
 {
     INIT_SV(
@@ -1351,6 +1500,9 @@ TEST(StateScriptCompilerErrors, UnreachableInput)
     checkCompileError(ss, smAsm, E_SSC_UNRCH, 7, 5);
 }
 
+///
+/// @test An unreachable assertion after a stop annotation generates an error.
+///
 TEST(StateScriptCompilerErrors, UnreachableAssert)
 {
     INIT_SV(
@@ -1377,6 +1529,9 @@ TEST(StateScriptCompilerErrors, UnreachableAssert)
     checkCompileError(ss, smAsm, E_SSC_UNRCH, 7, 5);
 }
 
+///
+/// @test Errors in assertion expressions are surfaced.
+///
 TEST(StateScriptCompilerErrors, SurfaceErrorInAssertExpression)
 {
     INIT_SV(
@@ -1400,6 +1555,9 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInAssertExpression)
     checkCompileError(ss, smAsm, E_EXC_ELEM, 5, 15);
 }
 
+///
+/// @test Errors in asignment statements are surfaced.
+///
 TEST(StateScriptCompilerErrors, SurfaceErrorInAction)
 {
     INIT_SV(
@@ -1423,6 +1581,9 @@ TEST(StateScriptCompilerErrors, SurfaceErrorInAction)
     checkCompileError(ss, smAsm, E_SMC_ASG_ELEM, 5, 7);
 }
 
+///
+/// @test A state script with no stop annotation generates an error.
+///
 TEST(StateScriptCompilerErrors, NoStop)
 {
     INIT_SV(
@@ -1446,6 +1607,10 @@ TEST(StateScriptCompilerErrors, NoStop)
     checkCompileError(ss, smAsm, E_SSC_STOP, -1, -1);
 }
 
+///
+/// @test Running a state script with a very large delta T eventually generates
+/// an error when the global time element overflows.
+///
 TEST(StateScriptCompilerErrors, GlobalClockOverflow)
 {
     // Compile objects.
@@ -1471,6 +1636,9 @@ TEST(StateScriptCompilerErrors, GlobalClockOverflow)
     CHECK_ERROR(E_SSC_OVFL, ssAsm->run(ssTokInfo, report));
 }
 
+///
+/// @test Specifying a floating delta T generates an error.
+///
 TEST(StateScriptCompilerErrors, DeltaTFloating)
 {
     INIT_SV(
@@ -1492,6 +1660,9 @@ TEST(StateScriptCompilerErrors, DeltaTFloating)
     checkCompileError(ss, smAsm, E_SSC_DT, 2, 9);
 }
 
+///
+/// @test Specifying a negative delta T generates an error.
+///
 TEST(StateScriptCompilerErrors, DeltaTNegative)
 {
     INIT_SV(
@@ -1513,6 +1684,9 @@ TEST(StateScriptCompilerErrors, DeltaTNegative)
     checkCompileError(ss, smAsm, E_SSC_DT, 2, 9);
 }
 
+///
+/// @test Specifying a too large of a delta T generates an error.
+///
 TEST(StateScriptCompilerErrors, DeltaTTooLarge)
 {
     INIT_SV(
@@ -1534,6 +1708,9 @@ TEST(StateScriptCompilerErrors, DeltaTTooLarge)
     checkCompileError(ss, smAsm, E_SSC_DT, 2, 9);
 }
 
+///
+/// @test Specifying an unknown initial state generates an error.
+///
 TEST(StateScriptCompilerErrors, UnknownInitialState)
 {
     INIT_SV(
@@ -1556,6 +1733,10 @@ TEST(StateScriptCompilerErrors, UnknownInitialState)
     checkCompileError(ss, smAsm, E_SSC_STATE, 3, 12);
 }
 
+///
+/// @test Providing a raked state machine assembly to the state script compiler
+/// generates an error.
+///
 TEST(StateScriptCompilerErrors, RakedStateMachineAssembly)
 {
     INIT_SV(
