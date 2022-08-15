@@ -5,6 +5,8 @@
 /// applications. Surefire is open-source under the Apache License 2.0 - a copy
 /// of the license may be obtained at www.apache.org/licenses/LICENSE-2.0.
 ///
+/// Copyright (c) 2022 the Surefire authors. All rights reserved.
+///
 /// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 /// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 /// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE

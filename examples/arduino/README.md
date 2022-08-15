@@ -5,7 +5,7 @@ This example uses [Arduino CMake Toolchain](https://github.com/a9183756-gh/Ardui
 After installing the Arduino SDK, this example can be built with:
 
 ```bash
-cd sf
+cd surefire
 git submodule update --init --recursive
 mkdir build && cd build
 cmake .. -DCMAKE_TOOLCHAIN_FILE=../Arduino-CMake-Toolchain/Arduino-toolchain.cmake -DSF_ARDUINO_MAC_ADDR=0xA8610AAE759C
@@ -28,4 +28,4 @@ To upload the binary, connect the Arduino to your computer and run:
 make upload-arduino-example SERIAL_PORT=/dev/ttyUSB0
 ```
 
-Change the serial port as necessary (the correct serial port can be determined in Arduino IDE by going to Tools > Port).
+Change the serial port as necessary. The correct serial port can be determined in Arduino IDE by going to Tools > Port.
