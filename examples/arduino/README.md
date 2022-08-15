@@ -1,6 +1,6 @@
 # Arduino Example
 
-This example uses [Arduino CMake Toolchain](https://github.com/a9183756-gh/Arduino-CMake-Toolchain) (included in the repo root as a submodule) to cross-compile for Arduino.
+This example uses [Arduino CMake Toolchain](https://github.com/a9183756-gh/Arduino-CMake-Toolchain) (included in the repo root as a submodule) to cross-compile for Arduino. This example does not exercise the full Arduino PSL, and is mostly a compilation smoketest.
 
 After installing the Arduino SDK, this example can be built with:
 
