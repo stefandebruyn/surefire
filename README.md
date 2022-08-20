@@ -1,14 +1,3 @@
-**NOTE: This project is WIP.** The master branch contains features that are complete and tested:
-
-* [x] State vector, state machine, and task APIs
-* [x] Compilers and autocoders for state vector and state machine config languages
-* [x] Socket, thread, digital I/O, and analog I/O abstractions
-* [ ] Task execution API
-* [ ] Configurable network and device I/O tasks
-* [ ] Documentation and examples
-
----
-
 <p align="center">
     <image src="docs/assets/surefire-patch.png" width="200px">
 </p>
@@ -30,8 +19,19 @@ Surefire is a C++ framework for building flight software applications at the lev
 
 Surefire natively supports Linux and sbRIO-9637, with some support for Arduino platforms. The Surefire Core Library is written in bare metal C++11 and built on an abstraction layer, so the user may develop custom ports.
 
+## Work in Progress
+
+**Surefire is WIP.** The master branch contains features that are complete and tested:
+
+* [x] State vector, state machine, and task APIs
+* [x] Compilers and autocoders for state vector and state machine config files
+* [x] Socket, thread, digital I/O, and analog I/O abstractions
+* [ ] Task execution API
+* [ ] Configurable network and device I/O tasks
+* [ ] Documentation and examples
+
 ---
 
 ## Origin
 
-Surefire was originally developed as a computer science honors thesis at the University of Texas at Austin. The original thesis can be found in the repo [here](docs/debruyn-honors-thesis.pdf). The halcyon bird, delta, and sun cross on the mission patch are borrowed from mission patches of the [Texas Rocket Engineering Lab](https://www.texasrocketlab.com), whose flight software was a spiritual predecessor to Surefire.
+Surefire was originally developed as a computer science honors thesis at the University of Texas at Austin. The original thesis can be found in the repo [here](docs/debruyn-honors-thesis.pdf). The halcyon bird, delta, and sun cross on the mission patch are borrowed from mission patches of the [Texas Rocket Engineering Lab](https://www.texasrocketlab.com), whose flight software is a spiritual predecessor to Surefire.
