@@ -1,10 +1,10 @@
-**NOTE: This project is in beta. The master branch is tested and functional, but work on additional features, docs, etc. is ongoing.**
+**NOTE: This project is in beta. The master branch is tested and functional, but work is ongoing.**
 
 * [x] State vector, state machine, and task APIs
 * [x] Compilers and autocoders for state vector and state machine config languages
 * [x] Socket, thread, digital I/O, and analog I/O abstractions
-* [ ] Task execution API (#9)
-* [ ] First class support for network and device I/O tasks (#10, #11, #12, #13, #14)
+* [ ] Task execution API
+* [ ] Configurable network and device I/O tasks
 * [ ] Documentation and examples
 
 ---
@@ -13,11 +13,11 @@
     <image src="docs/assets/surefire-patch.png" width="200px">
 </p>
 
-Surefire is a C++ framework for building flight software applications at the level of advanced collegiate rocketry. Surefire provides three main things:
+Surefire is a C++ framework for building flight software applications at the level of advanced collegiate rocketry. The framework provides three main things:
 
 1. Portable interfaces for common flight software needs
 2. Config languages to allow rapid iteration of flight software
-3. State machine language to streamline integration of domain-specific control logic
+3. State machine domain-specific language (DSL) to streamline integration of domain-specific control logic
 
 ## Getting Started
 
