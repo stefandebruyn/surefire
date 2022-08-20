@@ -22,7 +22,7 @@ Ideally, a Surefire application accesses only the Core Library and possibly PAL.
 
 ## Application Architecture
 
-A Surefire application performs real-time control via an **executor**, or scheduler. The executor periodically executes **tasks** according to some schedule. A task can be anything; common examples are control algorithms and device drivers. Tasks communicate through an area of shared memory called the **state vector**. The state vector is divided into scalar data **elements**. Tasks on different machines communicate by sending elements of their state vectors over the network. Tasks may be implemented by **state machines** that operate on state vector elements.
+A Surefire application performs real-time control via an **executor**, or scheduler. The executor periodically executes **tasks** according to some schedule. A task can be anything; common examples are control algorithms and device drivers. Tasks communicate through an area of shared memory called the **state vector**. The state vector is divided into scalar data **elements**. Tasks on different machines communicate by sharing elements of their state vectors over the network. Tasks may be implemented by **state machines** that operate on state vector elements.
 
 ## Application Configuration
 
