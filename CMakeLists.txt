@@ -53,10 +53,6 @@ endif()
 # access files elsewhere in the repository, e.g., autocoder tests.
 add_compile_options(-DSF_REPO_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Requires that the CppUTest submodule be initialized. If this errors out, run
-# `git submodule update --init --recursive`.
-add_subdirectory(cpputest)
-
 add_subdirectory(examples)
 
 ##################################### CLI ######################################
