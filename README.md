@@ -2,6 +2,10 @@
     <image src="docs/assets/surefire-patch.png" width="200px">
 </p>
 
+<p align="center">
+    <a href="https://github.com/stefandebruyn/surefire/actions"><img alt="Actions Status" src="https://github.com/stefandebruyn/surefire/actions/workflows/build.yml/badge.svg"></a>
+</p>
+
 Surefire is a C++ framework for building flight software applications at the level of advanced collegiate rocketry. The framework provides three main things:
 
 1. Portable interfaces for common flight software needs
