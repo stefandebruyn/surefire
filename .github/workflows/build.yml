@@ -12,6 +12,10 @@ jobs:
     - name: Install dependencies
       run: sudo apt-get install cpputest
     - name: Build unit tests
-      run: mkdir build && cd build && cmake .. && make utest
+      run: mkdir build && cd build && cmake .. -DSF_COVERAGE=true && make utest
     - name: Run unit tests
       run: sudo ./build/utest -v
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        gcov: true
