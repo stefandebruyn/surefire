@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
-      run: sudo apt-get install cpputest lcov
+      run: sudo apt-get install cpputest
     - name: Build unit tests
       run: mkdir build && cd build && cmake .. -DSF_COVERAGE=true && make utest
     - name: Run unit tests
