@@ -1,6 +1,8 @@
 name: build
 
 on:
+  merge:
+    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
