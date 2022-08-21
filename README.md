@@ -6,7 +6,7 @@ Surefire is a C++ framework for building flight software applications at the lev
 
 1. Portable interfaces for common flight software needs
 2. Config languages to allow rapid iteration of flight software
-3. State machine domain-specific language (DSL) to streamline integration of domain-specific control logic
+3. State machine domain-specific language (DSL) to streamline integration of control logic
 
 ## Getting Started
 
