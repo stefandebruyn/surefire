@@ -29,12 +29,12 @@
 ///
 /// @brief Macro for disabling code coverage.
 ///
-#define SF_DISABLE_CODE_COV // foo
+#define SF_DISABLE_CODE_COV // LCOV_EXCL_START
 
 ///
 /// @brief Macro for enabling code coverage.
 ///
-#define SF_ENABLE_CODE_COV // bar
+#define SF_ENABLE_CODE_COV // LCOV_EXCL_STOP
 
 #ifdef SF_ENABLE_ASSERTS
 ///

@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
-      run: sudo apt-get install cpputest
+      run: sudo apt-get install cpputest lcov
     - name: Build unit tests
       run: mkdir build && cd build && cmake .. -DSF_COVERAGE=true && make utest
     - name: Run unit tests
@@ -18,4 +18,6 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
-        gcov: true
+        lcov: true
+        ignore:
+        - "src/sf/utest"

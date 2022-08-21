@@ -56,7 +56,7 @@ add_compile_options(-DSF_REPO_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
 # Enable code coverage if specified.
 if(${SF_COVERAGE})
     add_compile_options(--coverage)
-    link_libraries(gcov)
+    link_libraries(lcov)
 endif()
 
 add_subdirectory(examples)
