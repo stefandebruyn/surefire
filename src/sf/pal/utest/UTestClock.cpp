@@ -25,11 +25,13 @@
 
 using namespace Sf;
 
+/////////////////////////////////// Helpers ////////////////////////////////////
+
 ///
-/// @brief Recursively computes a Fibonacci number. Used as meaningless work to
-/// burn CPU cycles.
+/// @brief Recursively computes a Fibonacci number. This is used as meaningless
+/// work to burn CPU cycles.
 ///
-/// @param[in] kN  
+/// @param[in] kN  Fibonacci number to compute.
 ///
 /// @return kNth Fibonacci number.
 ///
@@ -42,6 +44,8 @@ static uint64_t fib(const uint64_t kN)
 
     return (fib(kN - 1) + fib(kN - 2));
 }
+
+//////////////////////////////////// Tests /////////////////////////////////////
 
 ///
 /// @brief Unit tests for Clock.
