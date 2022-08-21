@@ -19,14 +19,17 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "sf/core/Assert.hpp"
 #include "sf/pal/System.hpp"
 
 namespace Sf
 {
 
+SF_DISABLE_CODE_COV
 void System::exit(const I32 kStatus)
 {
     ::exit(kStatus);
 }
+SF_ENABLE_CODE_COV
 
 } // namespace Sf
