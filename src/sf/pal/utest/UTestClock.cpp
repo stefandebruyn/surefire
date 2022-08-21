@@ -26,6 +26,24 @@
 using namespace Sf;
 
 ///
+/// @brief Recursively computes a Fibonacci number. Used as meaningless work to
+/// burn CPU cycles.
+///
+/// @param[in] kN  
+///
+/// @return kNth Fibonacci number.
+///
+static uint64_t fib(const uint64_t kN)
+{
+    if (kN <= 1)
+    {
+        return kN;
+    }
+
+    return (fib(kN - 1) + fib(kN - 2));
+}
+
+///
 /// @brief Unit tests for Clock.
 ///
 TEST_GROUP(Clock)
@@ -40,6 +58,14 @@ TEST(Clock, MonotonicNanoTime)
     U64 lastTimeNs = Clock::nanoTime();
     for (U32 i = 0; i < 100; ++i)
     {
+        // Do some meaningless work before taking another timestamp. Without
+        // this, the test occasionally fails on some systems due to the same
+        // timestamp being seen twice in a row. This is believed to be caused by
+        // some combation of
+        //   1. Fast CPUs or very little contention in the system
+        //   2. Low system clock resolution
+        //   3. Compiler optimizations
+        (void) fib(10);
         const U64 curTimeNs = Clock::nanoTime();
         CHECK_TRUE(curTimeNs > lastTimeNs);
         lastTimeNs = curTimeNs;
