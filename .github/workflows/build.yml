@@ -19,6 +19,4 @@ jobs:
       uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        lcov: true
-        ignore:
-        - "src/sf/utest"
+        gcov: true
