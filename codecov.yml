@@ -19,4 +19,4 @@ coverage:
 github_checks:
   annotations: true
 ignore:
-- "*/**/utest/**/*"
+- "**/utest"
