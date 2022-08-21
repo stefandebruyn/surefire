@@ -27,6 +27,9 @@
 // the user must provide it themselves or modify the typedefs in this file.
 #include <stdint.h>
 
+namespace Sf
+{
+
 ///
 /// @brief Signed 8-bit integer.
 ///
@@ -96,5 +99,7 @@ typedef double F64;
     // Only assert that F64 is 8 bytes on platforms where this is expected.
     static_assert(sizeof(F64) == 8, "F64 is not 8 bytes");
 #endif
+
+} // namespace Sf
 
 #endif

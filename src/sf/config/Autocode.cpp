@@ -18,6 +18,9 @@
 
 #include "sf/config/Autocode.hpp"
 
+namespace Sf
+{
+
 Autocode::Autocode(std::ostream& kOs) : mOs(kOs), mIndentLvl(0)
 {
 }
@@ -54,3 +57,5 @@ String& Autocode::formatStep(String& kStr)
 {
     return kStr;
 }
+
+} // namespace Sf

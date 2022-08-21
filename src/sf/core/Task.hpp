@@ -27,6 +27,9 @@
 #include "sf/core/Result.hpp"
 #include "sf/core/StateVector.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Enumeration of possible task execution modes.
 ///
@@ -161,5 +164,7 @@ private:
     ///
     bool mInit;
 };
+
+} // namespace Sf
 
 #endif

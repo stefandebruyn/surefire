@@ -23,6 +23,8 @@
 #include "sf/config/StateScriptParser.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 ///

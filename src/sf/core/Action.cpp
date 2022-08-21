@@ -18,6 +18,9 @@
 
 #include "sf/core/Action.hpp"
 
+namespace Sf
+{
+
 IAction::IAction(const U32 kDestState) : destState(kDestState)
 {
 }
@@ -35,3 +38,5 @@ bool TransitionAction::execute()
 {
     return true;
 }
+
+} // namespace Sf

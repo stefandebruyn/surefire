@@ -22,6 +22,9 @@
 #include "sf/core/Assert.hpp"
 #include "sf/core/Expression.hpp"
 
+namespace Sf
+{
+
 /////////////////////////////////// Public /////////////////////////////////////
 
 Result StateMachineAutocoder::code(std::ostream& kOs,
@@ -53,6 +56,10 @@ Result StateMachineAutocoder::code(std::ostream& kOs,
     // Add includes.
     a("#include \"sf/core/StateMachine.hpp\"");
     a("#include \"sf/core/StateVector.hpp\"");
+    a();
+
+    // Use Sf namespace to simplify things.
+    a("using namespace Sf;");
     a();
 
     // Begin namespace.
@@ -952,3 +959,5 @@ void StateMachineAutocoder::codeState(
       kState->id, kState->id, entryAddr, stepAddr, exitAddr);
     a();
 }
+
+} // namespace Sf

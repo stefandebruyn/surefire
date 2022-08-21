@@ -23,6 +23,8 @@
 #include "sf/core/Region.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 ///
 /// @brief Unit tests for Region.
 ///

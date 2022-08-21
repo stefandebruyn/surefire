@@ -23,6 +23,8 @@
 #include "sf/config/StateVectorCompiler.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 ///

@@ -30,6 +30,9 @@
 #    include "sf/psl/sbrio9637/NiFpgaSession.hpp"
 #endif
 
+namespace Sf
+{
+
 ///
 /// @brief Platform-agnostic interface for accessing digital I/O pin hardware.
 ///
@@ -192,5 +195,7 @@ private:
 
 #endif
 };
+
+} // namespace Sf
 
 #endif

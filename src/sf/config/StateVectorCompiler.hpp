@@ -28,6 +28,9 @@
 #include "sf/config/StateVectorParser.hpp"
 #include "sf/pal/Spinlock.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Compiled state vector.
 ///
@@ -197,5 +200,7 @@ private:
                                   StateVector::ElementConfig& kElemConfig,
                                   U8*& kBumpPtr);
 };
+
+} // namespace Sf
 
 #endif

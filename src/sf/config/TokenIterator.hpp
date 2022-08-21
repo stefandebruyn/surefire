@@ -25,6 +25,9 @@
 
 #include "sf/config/Tokenizer.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Token iterator utility for parsing token sequences.
 ///
@@ -175,5 +178,7 @@ private:
     ///
     const U32 mSize;
 };
+
+} // namespace Sf
 
 #endif

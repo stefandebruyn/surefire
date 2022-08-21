@@ -26,6 +26,8 @@
 #include "sf/config/Tokenizer.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 ///

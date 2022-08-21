@@ -22,6 +22,8 @@
 
 #include "UTestThreadCommon.hpp"
 
+using namespace Sf;
+
 ///
 /// @brief Unit tests for the fair thread scheduling policy.
 ///

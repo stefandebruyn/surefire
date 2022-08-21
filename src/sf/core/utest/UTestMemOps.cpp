@@ -23,6 +23,8 @@
 #include "sf/core/MemOps.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 ///
 /// @brief Unit tests for the MemOps namespace.
 ///

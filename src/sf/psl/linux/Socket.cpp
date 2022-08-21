@@ -25,6 +25,9 @@
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/Socket.hpp"
 
+namespace Sf
+{
+
 Result Socket::init(const Ipv4Address kIp,
                     const U16 kPort,
                     const Protocol kProto,
@@ -266,3 +269,5 @@ Result Socket::close()
 
     return SUCCESS;
 }
+
+} // namespace Sf

@@ -30,6 +30,9 @@
 #include "sf/core/ExpressionStats.hpp"
 #include "sf/core/Result.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Implements a deterministic finite state machine that interfaces with
 /// StateVector elements.
@@ -331,5 +334,7 @@ private:
                                         const StateMachine::Block* const kBlock,
                                         const bool kExit);
 };
+
+} // namespace Sf
 
 #endif

@@ -27,6 +27,9 @@
 #include "sf/core/Result.hpp"
 #include "sf/pal/Lock.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief A region represents the backing memory of a contiguous set of state
 /// vector elements.
@@ -127,5 +130,7 @@ private:
     ///
     ILock* const mLock;
 };
+
+} // namespace Sf
 
 #endif

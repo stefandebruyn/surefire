@@ -25,6 +25,8 @@
 #include "sf/pal/Console.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 ///

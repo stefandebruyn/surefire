@@ -27,6 +27,9 @@
 #include "sf/core/BasicTypes.hpp"
 #include "sf/pal/Lock.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Enumeration of possible state vector element data types.
 ///
@@ -240,5 +243,7 @@ private:
     ///
     ILock* const mLock;
 };
+
+} // namespace Sf
 
 #endif

@@ -23,6 +23,8 @@
 #include "sf/pal/Socket.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 // IPs used by test sockets.

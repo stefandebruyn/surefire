@@ -25,6 +25,9 @@
 
 #include "sf/core/BasicTypes.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Return code type.
 ///
@@ -286,5 +289,7 @@ enum : Result
     E_NI_FPGA_DMODE = 65540,
     E_NI_FPGA_AIMODE = 65541,
 };
+
+} // namespace Sf
 
 #endif

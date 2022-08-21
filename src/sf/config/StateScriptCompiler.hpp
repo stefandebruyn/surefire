@@ -28,6 +28,9 @@
 #include "sf/config/StateMachineCompiler.hpp"
 #include "sf/config/StateScriptParser.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Compiled state script.
 ///
@@ -256,5 +259,7 @@ private:
                                  StateScriptAssembly::Config& kConfig,
                                  ErrorInfo* const kErr);
 };
+
+} // namespace Sf
 
 #endif

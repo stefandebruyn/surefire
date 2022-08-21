@@ -28,6 +28,9 @@
 #include "sf/core/Expression.hpp"
 #include "sf/core/Result.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Abstract interface for a state machine action. Transitions are
 /// considered special actions.
@@ -181,5 +184,7 @@ public:
     ///
     bool execute() final override;
 };
+
+} // namespace Sf
 
 #endif

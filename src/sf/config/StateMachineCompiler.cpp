@@ -24,6 +24,9 @@
 #include "sf/config/StateVectorCompiler.hpp"
 #include "sf/core/Assert.hpp"
 
+namespace Sf
+{
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 ///
@@ -1229,3 +1232,5 @@ StateMachineAssembly::StateMachineAssembly(
     const StateMachineAssembly::Workspace& kWs) : mWs(kWs)
 {
 }
+
+} // namespace Sf

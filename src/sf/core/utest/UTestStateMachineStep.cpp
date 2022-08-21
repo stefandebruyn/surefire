@@ -24,6 +24,8 @@
 #include "sf/pal/Clock.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 ///////////////////////////// State Machine Config /////////////////////////////
 
 /*

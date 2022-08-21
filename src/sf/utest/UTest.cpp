@@ -18,6 +18,8 @@
 
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 #if defined(SF_UTEST_HAS_CONFIG)
 
 SimpleString StringFrom(const Token& kTok)

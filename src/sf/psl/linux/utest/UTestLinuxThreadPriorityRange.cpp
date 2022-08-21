@@ -23,6 +23,8 @@
 #include "sf/pal/Thread.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 ///
 /// @brief Unit tests for thread priority ranges on Linux platforms.
 ///

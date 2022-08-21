@@ -27,6 +27,8 @@
 #include "sf/pal/Thread.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 // Arguments used by test threads.

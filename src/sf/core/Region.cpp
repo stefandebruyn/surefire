@@ -20,6 +20,9 @@
 #include "sf/core/Region.hpp"
 #include "sf/core/MemOps.hpp"
 
+namespace Sf
+{
+
 Region::Region(void* const kAddr, const U32 kSizeBytes) :
     Region(kAddr, kSizeBytes, nullptr)
 {
@@ -99,3 +102,5 @@ U32 Region::size() const
 {
     return mSizeBytes;
 }
+
+} // namespace Sf

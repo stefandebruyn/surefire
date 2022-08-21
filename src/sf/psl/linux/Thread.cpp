@@ -22,6 +22,9 @@
 
 #include "sf/pal/Thread.hpp"
 
+namespace Sf
+{
+
 const I32 Thread::FAIR_MIN_PRI = 0;
 
 const I32 Thread::FAIR_MAX_PRI = 0;
@@ -283,3 +286,5 @@ Result Thread::getPthreadPolicy(const Policy kPolicy,
 
     return SUCCESS;
 }
+
+} // namespace Sf

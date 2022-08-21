@@ -19,6 +19,9 @@
 #include "sf/core/MemOps.hpp"
 #include "sf/core/StateVector.hpp"
 
+namespace Sf
+{
+
 Result StateVector::init(const Config kConfig, StateVector& kSv)
 {
     // Check that state vector is not already initialized.
@@ -286,3 +289,5 @@ Result StateVector::getRegionConfig(const char* const kName,
     // If we get this far, the region wasn't found.
     return E_SV_KEY;
 }
+
+} // namespace Sf

@@ -23,6 +23,8 @@
 #include "sf/config/ExpressionParser.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 ///

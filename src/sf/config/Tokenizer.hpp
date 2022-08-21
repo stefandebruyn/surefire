@@ -28,6 +28,9 @@
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Result.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Config file tokenizer.
 ///
@@ -57,5 +60,7 @@ namespace Tokenizer
                     Vec<Token>& kToks,
                     ErrorInfo* const kErr);
 }
+
+} // namespace Sf
 
 #endif

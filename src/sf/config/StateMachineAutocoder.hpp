@@ -26,6 +26,9 @@
 #include "sf/config/Autocode.hpp"
 #include "sf/config/StateMachineCompiler.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief State machine autocoder.
 ///
@@ -238,5 +241,7 @@ private:
                           Autocode& kAutocode,
                           StateMachineAutocoder::Workspace& kWs);
 };
+
+} // namespace Sf
 
 #endif

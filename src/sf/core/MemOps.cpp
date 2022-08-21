@@ -18,6 +18,9 @@
 
 #include "sf/core/MemOps.hpp"
 
+namespace Sf
+{
+
 I32 MemOps::strcmp(const char* kA, const char* kB)
 {
     I32 ret = 0;
@@ -69,3 +72,5 @@ void* MemOps::memcpy(void* kDest, const void* const kSrc, const U32 kBytes)
 
     return dest;
 }
+
+} // namespace Sf

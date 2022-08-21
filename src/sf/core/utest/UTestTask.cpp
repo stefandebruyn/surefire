@@ -25,6 +25,8 @@
 #include "sf/core/Task.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 // Test state vector backing storage.

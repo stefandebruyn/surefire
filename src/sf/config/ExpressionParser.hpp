@@ -28,6 +28,9 @@
 #include "sf/config/TokenIterator.hpp"
 #include "sf/config/Tokenizer.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Parsed expression. Expressions are represented as trees.
 ///
@@ -187,5 +190,7 @@ private:
     static void convertTree(Ref<ExpressionParse::MutNode> kFrom,
                             Ref<const ExpressionParse>& kTo);
 };
+
+} // namespace Sf
 
 #endif

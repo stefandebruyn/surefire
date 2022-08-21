@@ -25,6 +25,9 @@
 
 #include "sf/core/Result.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Namespace of diagnostic utilities.
 ///
@@ -67,5 +70,7 @@ namespace Diag
         }
     }
 }
+
+} // namespace Sf
 
 #endif

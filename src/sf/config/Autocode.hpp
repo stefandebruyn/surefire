@@ -31,6 +31,9 @@
 #include "sf/core/BasicTypes.hpp"
 #include "sf/config/StlTypes.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Autocoding utility object.
 ///
@@ -162,5 +165,7 @@ private:
     ///
     static String& formatStep(String& kStr);
 };
+
+} // namespace Sf
 
 #endif

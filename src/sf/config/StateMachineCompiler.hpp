@@ -28,6 +28,9 @@
 #include "sf/config/StateVectorCompiler.hpp"
 #include "sf/core/StateVector.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Compiled state machine.
 ///
@@ -398,5 +401,7 @@ private:
                                StateMachineAssembly::Workspace& kWs,
                                ErrorInfo* const kErr);
 };
+
+} // namespace Sf
 
 #endif

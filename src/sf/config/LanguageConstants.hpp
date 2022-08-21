@@ -27,6 +27,9 @@
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Element.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Config language constants.
 ///
@@ -266,5 +269,7 @@ struct OpInfo final
     bool arithmeticOperands; ///< If can have arithmetic operands.
     bool logicalOperands;    ///< If can have logical operands.
 };
+
+} // namespace Sf
 
 #endif

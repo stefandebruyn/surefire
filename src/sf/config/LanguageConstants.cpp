@@ -18,6 +18,9 @@
 
 #include "sf/config/LanguageConstants.hpp"
 
+namespace Sf
+{
+
 const String LangConst::funcRollAvg = "roll_avg";
 
 const String LangConst::funcRollMedian = "roll_median";
@@ -195,3 +198,5 @@ const Map<String, OpInfo> OpInfo::fromStr =
 };
 
 const Set<String> OpInfo::relOps = {lt.str, lte.str, gt.str, gte.str};
+
+} // namespace Sf

@@ -21,6 +21,9 @@
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/Spinlock.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Lock for synchronizing FGPA session management - opening sessions,
 /// closing sessions, updating the session count, etc.
@@ -134,3 +137,5 @@ Result niFpgaSessionClose(const NiFpga_Session kSession)
 
     return SUCCESS;
 }
+
+} // namespace Sf

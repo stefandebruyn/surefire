@@ -23,6 +23,8 @@
 #include "sf/pal/AnalogIo.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 ///
 /// @brief Number of analog inputs on sbRIO-9637.
 ///

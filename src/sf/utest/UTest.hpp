@@ -41,6 +41,8 @@
 // Must be the last include.
 #include "CppUTest/TestHarness.h"
 
+using namespace Sf;
+
 // Find the path separator appropriate for the current platform.
 #ifdef _WIN32
 #    define PATH_SEP "\\"
@@ -55,7 +57,7 @@
 ///
 #define CHECK_SUCCESS(kExpr)                                                   \
 {                                                                              \
-    const Result _res = (kExpr);                                               \
+    const Sf::Result _res = (kExpr);                                           \
     CHECK_EQUAL(SUCCESS, _res);                                                \
 }
 
@@ -67,12 +69,12 @@
 ///
 #define CHECK_ERROR(kErr, kExpr)                                               \
 {                                                                              \
-    const Result _res = (kExpr);                                               \
-    if ((_res == E_ASSERT) && (Assert::failFile != nullptr))                   \
+    const Sf::Result _res = (kExpr);                                           \
+    if ((_res == Sf::E_ASSERT) && (Sf::Assert::failFile != nullptr))           \
     {                                                                          \
-        Console::printf("\n`E_ASSERT` originating at %s:%d\n",                 \
-                        Assert::failFile,                                      \
-                        Assert::failLineNum);                                  \
+        Sf::Console::printf("\nE_ASSERT originating at %s:%d\n",               \
+                            Sf::Assert::failFile,                              \
+                            Sf::Assert::failLineNum);                          \
     }                                                                          \
     CHECK_EQUAL(kErr, _res);                                                   \
 }
@@ -86,12 +88,12 @@
 /// @param[in] kStr  String to tokenize.
 ///
 #define TOKENIZE(kStr)                                                         \
-    Vec<Token> toks;                                                           \
+    Sf::Vec<Sf::Token> toks;                                                   \
     {                                                                          \
         std::stringstream _ss(kStr);                                           \
-        CHECK_SUCCESS(Tokenizer::tokenize(_ss, toks, nullptr));                \
+        CHECK_SUCCESS(Sf::Tokenizer::tokenize(_ss, toks, nullptr));            \
     }                                                                          \
-    TokenIterator it(toks.begin(), toks.end());
+    Sf::TokenIterator it(toks.begin(), toks.end());
 
 ///
 /// @brief Converts a vector to a string, so that vectors can be passed to more

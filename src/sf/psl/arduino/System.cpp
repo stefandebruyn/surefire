@@ -18,8 +18,13 @@
 
 #include "sf/pal/System.hpp"
 
+namespace Sf
+{
+
 void System::exit(const I32 kStatus)
 {
     (void) kStatus;
     while (true);
 }
+
+} // namespace Sf

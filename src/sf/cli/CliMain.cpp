@@ -28,6 +28,8 @@
 #include "sf/core/Assert.hpp"
 #include "sf/core/BasicTypes.hpp"
 
+using namespace Sf;
+
 ///
 /// @brief Prints the CLI help message.
 ///

@@ -17,7 +17,7 @@ Surefire is a C++ framework for building flight software applications at the lev
 
 ## Supported Platforms
 
-Surefire natively supports Linux and sbRIO-9637, with some support for Arduino platforms. The Surefire Core Library is written in bare metal C++11 and built on an abstraction layer, so the user may develop custom ports.
+Surefire natively supports Linux and NI sbRIO-9637, with some support for Arduino platforms. The Surefire Core Library is written in bare metal C++11 and built on an abstraction layer, so the user may develop custom ports.
 
 ## Work in Progress
 

@@ -23,6 +23,8 @@
 #include "sf/core/StateMachine.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 ///////////////////////////// State Machine Config /////////////////////////////
 
 /*

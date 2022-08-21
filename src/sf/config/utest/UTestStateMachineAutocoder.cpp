@@ -30,6 +30,8 @@
 #include "sf/utest/UTest.hpp"
 #include "utest-sm-autocoder-harness/Common.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 ///

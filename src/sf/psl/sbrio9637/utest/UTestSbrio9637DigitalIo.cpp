@@ -24,6 +24,8 @@
 #include "sf/pal/DigitalIo.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 ///
 /// @brief Number of digital pins on sbRIO-9637.
 ///

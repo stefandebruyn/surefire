@@ -24,6 +24,8 @@
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/Spinlock.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 ///

@@ -26,6 +26,9 @@
 #include "sf/config/StlTypes.hpp"
 #include "sf/core/BasicTypes.hpp"
 
+namespace Sf
+{
+
 namespace Cli
 {
     ///
@@ -58,5 +61,7 @@ namespace Cli
     ///
     I32 svAutocode(const Vec<String> kArgs);
 }
+
+} // namespace Sf
 
 #endif

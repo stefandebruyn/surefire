@@ -29,6 +29,8 @@
 
 #include "sf/core/StateVector.hpp"
 
+using namespace Sf;
+
 ///
 /// @brief Random generator used by random*() functions.
 ///

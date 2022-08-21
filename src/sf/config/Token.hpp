@@ -29,6 +29,9 @@
 #include "sf/config/LanguageConstants.hpp"
 #include "sf/config/StlTypes.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Token object that represents a token in a tokenized config file. Also
 /// acts as a namespace for token metadata.
@@ -126,5 +129,7 @@ struct Token final
     ///
     friend std::ostream& operator<<(std::ostream& kOs, const Token& kTok);
 };
+
+} // namespace Sf
 
 #endif

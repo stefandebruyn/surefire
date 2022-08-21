@@ -20,6 +20,9 @@
 #include "sf/pal/Console.hpp"
 #include "sf/pal/System.hpp"
 
+namespace Sf
+{
+
 void Diag::printOnError(const Result kRes, const char* const kMsg)
 {
     if (kRes != SUCCESS)
@@ -37,3 +40,5 @@ void Diag::haltOnError(const Result kRes, const char* const kMsg)
         System::exit(1);
     }
 }
+
+} // namespace Sf

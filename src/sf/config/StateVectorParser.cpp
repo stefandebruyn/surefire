@@ -19,6 +19,9 @@
 #include "sf/config/StateVectorParser.hpp"
 #include "sf/core/Assert.hpp"
 
+namespace Sf
+{
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 ///
@@ -232,3 +235,5 @@ Result StateVectorParser::parseOptions(TokenIterator& kIt,
 
     return SUCCESS;
 }
+
+} // namespace Sf

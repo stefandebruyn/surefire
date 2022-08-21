@@ -22,6 +22,9 @@
 #include "sf/config/ErrorInfo.hpp"
 #include "sf/pal/Console.hpp"
 
+namespace Sf
+{
+
 void ErrorInfo::set(ErrorInfo* const kErr,
                     const Token& kTokErr,
                     const String kText,
@@ -98,3 +101,5 @@ String ErrorInfo::prettifyError() const
     // file, so just print the text and subtext.
     return (Console::red + text + Console::reset + ": " + subtext);
 }
+
+} // namespace Sf

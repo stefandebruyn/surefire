@@ -30,6 +30,9 @@
 #include "sf/core/BasicTypes.hpp"
 #include "sf/core/Result.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Represents an IPv4 address.
 ///
@@ -222,5 +225,7 @@ private:
 
 #endif
 };
+
+} // namespace Sf
 
 #endif

@@ -31,6 +31,9 @@
 #include "sf/config/TokenIterator.hpp"
 #include "sf/core/StateMachine.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Parse of a state machine.
 ///
@@ -466,5 +469,7 @@ private:
                                 ErrorInfo* const kErr);
 
 };
+
+} // namespace Sf
 
 #endif

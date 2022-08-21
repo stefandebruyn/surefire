@@ -25,6 +25,9 @@
 
 #include "sf/core/Result.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Platform-agnmostic lock interface. This is intended for any
 /// synchronization primitive that may be "acquired" and "released", though the
@@ -58,5 +61,7 @@ public:
     ///
     virtual Result release() = 0;
 };
+
+} // namespace Sf
 
 #endif

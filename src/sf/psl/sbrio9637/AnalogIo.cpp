@@ -18,6 +18,9 @@
 
 #include "sf/pal/AnalogIo.hpp"
 
+namespace Sf
+{
+
 //////////////////////////////// Private Data //////////////////////////////////
 
 ///
@@ -356,3 +359,5 @@ Result AnalogIo::release()
 
     return SUCCESS;
 }
+
+} // namespace Sf

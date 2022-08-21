@@ -26,6 +26,8 @@
 #include "sf/pal/Thread.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 ///

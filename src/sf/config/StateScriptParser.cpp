@@ -19,6 +19,9 @@
 #include "sf/core/Assert.hpp"
 #include "sf/config/StateScriptParser.hpp"
 
+namespace Sf
+{
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 ///
@@ -153,3 +156,5 @@ StateScriptParse::StateScriptParse(
     sections(kSections), config(kConfig)
 {
 }
+
+} // namespace Sf

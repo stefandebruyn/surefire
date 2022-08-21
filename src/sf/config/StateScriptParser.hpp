@@ -25,6 +25,9 @@
 
 #include "sf/config/StateMachineParser.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Parse of a state script.
 ///
@@ -121,5 +124,7 @@ public:
 
     StateScriptParser() = delete;
 };
+
+} // namespace Sf
 
 #endif

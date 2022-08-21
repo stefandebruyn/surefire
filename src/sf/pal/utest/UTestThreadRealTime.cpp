@@ -23,7 +23,7 @@
 #include "UTestThreadCommon.hpp"
 #include "sf/pal/Clock.hpp"
 
-#include <iostream>
+using namespace Sf;
 
 /////////////////////////////////// Global /////////////////////////////////////
 

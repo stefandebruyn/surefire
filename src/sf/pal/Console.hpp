@@ -25,6 +25,9 @@
 
 #include "sf/core/BasicTypes.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Platform-agnostic interface for printing to the system console.
 ///
@@ -73,5 +76,7 @@ namespace Console
     ///
     I32 printf(const char* const kFmt, ...);
 }
+
+} // namespace Sf
 
 #endif

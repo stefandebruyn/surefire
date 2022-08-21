@@ -32,6 +32,8 @@
 
 #include "FooStateVector.hpp"
 
+using namespace Sf;
+
 ///
 /// @brief Exits with an error status if two values are not equal.
 ///

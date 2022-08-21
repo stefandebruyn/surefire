@@ -18,6 +18,9 @@
 
 #include "sf/config/Token.hpp"
 
+namespace Sf
+{
+
 bool Token::operator==(const Token& kOther) const
 {
     return ((this->type == kOther.type)
@@ -37,3 +40,5 @@ std::ostream& operator<<(std::ostream& kOs, const Token& kTok)
                 << "\", lineNum=" << kTok.lineNum << ", colNum=" << kTok.colNum
                 << ")");
 }
+
+} // namespace Sf

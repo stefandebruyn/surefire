@@ -25,6 +25,9 @@
 
 #include "sf/core/BasicTypes.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Platform-agnostic interface for miscellaneous system functions.
 ///
@@ -40,5 +43,7 @@ namespace System
     ///
     void exit(const I32 kStatus);
 }
+
+} // namespace Sf
 
 #endif

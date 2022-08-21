@@ -33,8 +33,8 @@ int main(int argc, char* argv[])
     // it doesn't trigger the memory leak detector.
     // https://www.ni.com/en-us/support/documentation/bugs/18/labview-2018-fpga-module-known-issues.html#660205_by_Date
     NiFpga_Session session;
-    (void) niFpgaSessionOpen(session);
-    (void) niFpgaSessionClose(session);
+    (void) Sf::niFpgaSessionOpen(session);
+    (void) Sf::niFpgaSessionClose(session);
 #endif
 
     return CommandLineTestRunner::RunAllTests(argc, argv);

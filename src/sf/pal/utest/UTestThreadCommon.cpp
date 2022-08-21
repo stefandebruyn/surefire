@@ -18,6 +18,8 @@
 
 #include "UTestThreadCommon.hpp"
 
+using namespace Sf;
+
 Result nop(void* kArgs)
 {
     (void) kArgs;

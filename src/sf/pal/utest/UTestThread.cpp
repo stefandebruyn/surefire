@@ -23,6 +23,8 @@
 #include "UTestThreadCommon.hpp"
 #include "sf/pal/Clock.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 Thread gTestThreads[gTestMaxThreads];

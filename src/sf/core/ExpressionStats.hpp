@@ -25,6 +25,9 @@
 
 #include "sf/core/Expression.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Abstract interface for the ExpressionStats template. An
 /// ExpressionStats computes stats on a rolling window of past values. The
@@ -564,5 +567,7 @@ public:
     ///
     IExpression::NodeType nodeType() const final override;
 };
+
+} // namespace Sf
 
 #endif

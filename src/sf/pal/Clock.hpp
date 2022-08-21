@@ -26,6 +26,9 @@
 
 #include "sf/core/BasicTypes.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Platform-agnostic interface for accessing the system clock and other
 /// timekeeping utilities.
@@ -91,5 +94,7 @@ namespace Clock
         while ((nanoTime() - startNs) < kNs);
     }
 }
+
+} // namespace Sf
 
 #endif

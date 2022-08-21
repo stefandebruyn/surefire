@@ -30,6 +30,9 @@
 #include "sf/core/Result.hpp"
 #include "sf/pal/Lock.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Spinlock synchronization primitive. Acquiring a spinlock means
 /// busy-waiting in a loop while the lock is held by another thread.
@@ -119,5 +122,7 @@ private:
 
 #endif
 };
+
+} // namespace Sf
 
 #endif

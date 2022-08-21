@@ -18,6 +18,9 @@
 
 #include "sf/core/Expression.hpp"
 
+namespace Sf
+{
+
 ////////////////////////////////// IExprNode ///////////////////////////////////
 
 template<>
@@ -482,3 +485,5 @@ F64 safeCast<F64, bool>(const bool kRhs)
 }
 
 } // namespace ExprOpFuncs
+
+} // namespace Sf

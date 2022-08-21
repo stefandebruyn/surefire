@@ -19,6 +19,9 @@
 #include "sf/core/Diagnostic.hpp"
 #include "sf/pal/DigitalIo.hpp"
 
+namespace Sf
+{
+
 //////////////////////////////// Private Data //////////////////////////////////
 
 // FPGA API has its own bool type - assert that this type is equivalent to C++
@@ -275,3 +278,5 @@ Result DigitalIo::release()
 
     return SUCCESS;
 }
+
+} // namespace Sf

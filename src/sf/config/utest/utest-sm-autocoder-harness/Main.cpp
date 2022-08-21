@@ -40,6 +40,8 @@
 #include "FooStateMachine.hpp"
 #include "FooStateVector.hpp"
 
+using namespace Sf;
+
 ///
 /// @brief Sets the value of a state vector element.
 ///

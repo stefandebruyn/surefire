@@ -18,6 +18,9 @@
 
 #include "sf/core/ExpressionStats.hpp"
 
+namespace Sf
+{
+
 IExprStatsNode::IExprStatsNode(IExpressionStats& kStats) : mStats(kStats)
 {
 }
@@ -96,3 +99,5 @@ IExpression::NodeType RollRangeNode::nodeType() const
 {
     return IExpression::ROLL_RANGE;
 }
+
+} // namespace Sf

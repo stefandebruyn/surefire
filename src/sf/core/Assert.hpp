@@ -57,9 +57,9 @@ do                                                                             \
     const bool _res = (kExpr);                                                 \
     if (_res != true)                                                          \
     {                                                                          \
-        Console::printf("\nAssertion failed at %s:%d:\n    %s\n",              \
+        ::Sf::Console::printf("\nAssertion failed at %s:%d:\n    %s\n",        \
                         __FILE__, __LINE__, #kExpr);                           \
-        System::exit(1);                                                       \
+        ::Sf::System::exit(1);                                                 \
     }                                                                          \
 } while (false);                                                               \
 SF_ENABLE_CODE_COV;
@@ -74,8 +74,8 @@ SF_ENABLE_CODE_COV;
 /// defined at compile time, the macro has no effect.
 ///
 #define SF_SAVE_FAIL_SITE                                                      \
-::Assert::failFile = __FILE__;                                                 \
-::Assert::failLineNum = __LINE__;
+::Sf::Assert::failFile = __FILE__;                                             \
+::Sf::Assert::failLineNum = __LINE__;
 #else
 #    define SF_SAVE_FAIL_SITE
 #endif
@@ -113,6 +113,9 @@ do                                                                             \
 } while (false);                                                               \
 SF_ENABLE_CODE_COV;
 
+namespace Sf
+{
+
 ///
 /// @brief Namespace of global data for debugging asserts.
 ///
@@ -129,5 +132,7 @@ namespace Assert
     ///
     extern I32 failLineNum;
 }
+
+} // namespace Sf
 
 #endif

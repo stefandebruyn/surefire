@@ -26,6 +26,9 @@
 #include "sf/config/StateVectorCompiler.hpp"
 #include "sf/core/Assert.hpp"
 
+namespace Sf
+{
+
 I32 Cli::sm(const Vec<String> kArgs)
 {
     // Check that arguments were passed.
@@ -223,3 +226,5 @@ I32 Cli::smAutocode(const Vec<String> kArgs)
 
     return SUCCESS;
 }
+
+} // namespace Sf

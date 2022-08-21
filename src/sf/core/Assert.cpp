@@ -18,6 +18,11 @@
 
 #include "sf/core/Assert.hpp"
 
+namespace Sf
+{
+
 const char* Assert::failFile = nullptr;
 
 I32 Assert::failLineNum = -1;
+
+} // namespace Sf

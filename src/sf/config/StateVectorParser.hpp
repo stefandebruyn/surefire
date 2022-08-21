@@ -30,6 +30,9 @@
 #include "sf/config/TokenIterator.hpp"
 #include "sf/core/StateVector.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Parse of a state vector.
 ///
@@ -154,5 +157,7 @@ private:
                                StateVectorParse::Options& kOpts,
                                ErrorInfo* const kErr);
 };
+
+} // namespace Sf
 
 #endif

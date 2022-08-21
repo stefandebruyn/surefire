@@ -20,6 +20,9 @@
 #include "sf/core/StateMachine.hpp"
 #include "sf/pal/Clock.hpp"
 
+namespace Sf
+{
+
 /////////////////////////////////// Public /////////////////////////////////////
 
 U32 StateMachine::Block::execute() const
@@ -377,3 +380,5 @@ Result StateMachine::checkBlockTransitions(
 
     return SUCCESS;
 }
+
+} // namespace Sf

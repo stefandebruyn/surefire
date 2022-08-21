@@ -27,6 +27,9 @@
 #include "sf/core/Element.hpp"
 #include "sf/core/Result.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Abstract interface for an expression tree node.
 ///
@@ -749,5 +752,7 @@ namespace Limits
     template<typename T>
     T max();
 }
+
+} // namespace Sf
 
 #endif

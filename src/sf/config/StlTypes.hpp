@@ -29,6 +29,9 @@
 #include <string>
 #include <vector>
 
+namespace Sf
+{
+
 ///
 /// @brief Alias for a shared pointer (a "reference").
 ///
@@ -57,5 +60,7 @@ using Set = std::set<T, TCompare>;
 ///
 template<typename T>
 using Vec = std::vector<T>;
+
+} // namespace Sf
 
 #endif

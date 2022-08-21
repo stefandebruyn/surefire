@@ -21,6 +21,9 @@
 
 #include "sf/config/Tokenizer.hpp"
 
+namespace Sf
+{
+
 /////////////////////////////////// Helpers ////////////////////////////////////
 
 static Result tokenizeLine(const String& kLine,
@@ -242,3 +245,5 @@ Result Tokenizer::tokenize(std::istream& kIs,
 
     return SUCCESS;
 }
+
+} // namespace Sf

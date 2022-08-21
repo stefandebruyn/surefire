@@ -20,6 +20,9 @@
 
 #include "sf/config/TokenIterator.hpp"
 
+namespace Sf
+{
+
 const Token TokenIterator::NONE =
 {
     Token::NONE,
@@ -133,3 +136,5 @@ U32 TokenIterator::size() const
 {
     return mSize;
 }
+
+} // namespace Sf

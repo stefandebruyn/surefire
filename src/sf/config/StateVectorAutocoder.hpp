@@ -25,6 +25,9 @@
 
 #include "sf/config/StateVectorCompiler.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief State vector autocoder.
 ///
@@ -42,5 +45,7 @@ namespace StateVectorAutocoder
                 const String kName,
                 const Ref<const StateVectorAssembly> kSvAsm);
 }
+
+} // namespace Sf
 
 #endif

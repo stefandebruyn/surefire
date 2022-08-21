@@ -29,6 +29,9 @@
 #include "sf/core/Region.hpp"
 #include "sf/core/Result.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief A state vector is a collection of named state vector elements and
 /// regions. The StateVector object serves only as a lookup table for elements
@@ -273,5 +276,7 @@ private:
         return SUCCESS;
     }
 };
+
+} // namespace Sf
 
 #endif

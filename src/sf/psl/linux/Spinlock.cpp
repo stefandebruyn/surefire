@@ -18,6 +18,9 @@
 
 #include "sf/pal/Spinlock.hpp"
 
+namespace Sf
+{
+
 Result Spinlock::init(Spinlock& kLock)
 {
     // Check that spinlock is not already initialized.
@@ -73,3 +76,5 @@ Result Spinlock::release()
 
     return SUCCESS;
 }
+
+} // namespace Sf

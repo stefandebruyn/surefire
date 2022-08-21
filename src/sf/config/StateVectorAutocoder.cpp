@@ -20,6 +20,9 @@
 #include "sf/config/StateVectorAutocoder.hpp"
 #include "sf/core/Assert.hpp"
 
+namespace Sf
+{
+
 Result StateVectorAutocoder::code(std::ostream& kOs,
                                   const String kName,
                                   const Ref<const StateVectorAssembly> kSvAsm)
@@ -50,6 +53,10 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
 
     // Add includes.
     a("#include \"sf/core/StateVector.hpp\"");
+    a();
+
+    // Use Sf namespace to simplify things.
+    a("using namespace Sf;");
     a();
 
     // Begin namespace.
@@ -231,3 +238,5 @@ Result StateVectorAutocoder::code(std::ostream& kOs,
 
     return SUCCESS;
 }
+
+} // namespace Sf

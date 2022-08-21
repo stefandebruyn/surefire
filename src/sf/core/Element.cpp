@@ -18,6 +18,9 @@
 
 #include "sf/core/Element.hpp"
 
+namespace Sf
+{
+
 template<>
 ElementType Element<I8>::type() const
 {
@@ -83,3 +86,5 @@ ElementType Element<bool>::type() const
 {
     return ElementType::BOOL;
 }
+
+} // namespace Sf

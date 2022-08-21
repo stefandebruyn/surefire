@@ -23,6 +23,8 @@
 #include "sf/pal/Console.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 ///
 /// @brief Unit tests for Console.
 ///

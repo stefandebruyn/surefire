@@ -25,6 +25,9 @@
 
 #include <iostream>
 
+namespace Sf
+{
+
 namespace Cli
 {
     ///
@@ -35,5 +38,7 @@ namespace Cli
     ///
     std::ostream& error();
 }
+
+} // namespace Sf
 
 #endif

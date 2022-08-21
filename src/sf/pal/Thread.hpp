@@ -30,6 +30,9 @@
 #include "sf/core/Result.hpp"
 #include "sf/core/BasicTypes.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Platform-agnostic threading interface.
 ///
@@ -206,5 +209,7 @@ private:
 
 #endif
 };
+
+} // namespace Sf
 
 #endif

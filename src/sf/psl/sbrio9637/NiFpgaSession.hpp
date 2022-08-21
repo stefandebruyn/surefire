@@ -27,6 +27,9 @@
 #include "nifpga/NiFpga_IO.h"
 #include "sf/core/Result.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Opens a new FPGA session.
 ///
@@ -53,5 +56,7 @@ Result niFpgaSessionOpen(NiFpga_Session& kSession);
 ///                          session does not exist.
 ///
 Result niFpgaSessionClose(const NiFpga_Session kSession);
+
+} // namespace Sf
 
 #endif

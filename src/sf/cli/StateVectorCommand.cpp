@@ -25,6 +25,9 @@
 #include "sf/core/Assert.hpp"
 #include "sf/pal/Console.hpp"
 
+namespace Sf
+{
+
 I32 Cli::sv(const Vec<String> kArgs)
 {
     // Check that arguments were passed.
@@ -175,3 +178,5 @@ I32 Cli::svAutocode(const Vec<String> kArgs)
 
     return SUCCESS;
 }
+
+} // namespace Sf

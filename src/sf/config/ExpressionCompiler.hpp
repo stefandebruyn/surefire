@@ -29,6 +29,9 @@
 #include "sf/core/ExpressionStats.hpp"
 #include "sf/core/StateVector.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Compiled expression.
 ///
@@ -196,5 +199,7 @@ private:
                               ExpressionAssembly::Workspace& kWs,
                               ErrorInfo* const kErr);
 };
+
+} // namespace Sf
 
 #endif

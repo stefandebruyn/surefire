@@ -21,6 +21,9 @@
 #include "sf/core/Diagnostic.hpp"
 #include "sf/pal/DigitalIo.hpp"
 
+namespace Sf
+{
+
 Result DigitalIo::init(DigitalIo& kDio)
 {
     if (kDio.mInit)
@@ -122,3 +125,5 @@ Result DigitalIo::release()
 
     return res;
 }
+
+} // namespace Sf

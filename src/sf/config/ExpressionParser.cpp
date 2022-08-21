@@ -21,6 +21,9 @@
 #include "sf/config/ExpressionParser.hpp"
 #include "sf/core/Assert.hpp"
 
+namespace Sf
+{
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 ///
@@ -559,3 +562,5 @@ ExpressionParse::ExpressionParse(const Token kData,
     data(kData), left(kLeft), right(kRight), func(kFunc)
 {
 }
+
+} // namespace Sf

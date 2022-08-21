@@ -21,6 +21,9 @@
 
 #include "sf/pal/Console.hpp"
 
+namespace Sf
+{
+
 static constexpr U32 gPrintBufSize = 128;
 
 I32 Console::printf(const char* const kFmt, ...)
@@ -33,3 +36,5 @@ I32 Console::printf(const char* const kFmt, ...)
     va_end(args);
     return ret;
 }
+
+} // namespace Sf

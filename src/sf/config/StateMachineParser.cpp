@@ -23,6 +23,9 @@
 #include "sf/config/StateMachineParser.hpp"
 #include "sf/core/Assert.hpp"
 
+namespace Sf
+{
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 ///
@@ -892,3 +895,5 @@ StateMachineParse::StateMachineParse(
     hasLocalSection(kHasLocalSection)
 {
 }
+
+} // namespace Sf

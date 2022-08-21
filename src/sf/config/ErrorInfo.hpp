@@ -27,6 +27,9 @@
 #include "sf/config/Token.hpp"
 #include "sf/core/BasicTypes.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Object for capturing info about a parser, compiler, etc. error.
 ///
@@ -102,5 +105,7 @@ struct ErrorInfo final
     ///
     String prettifyError() const;
 };
+
+} // namespace Sf
 
 #endif

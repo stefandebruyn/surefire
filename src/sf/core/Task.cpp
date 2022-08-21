@@ -18,6 +18,9 @@
 
 #include "sf/core/Task.hpp"
 
+namespace Sf
+{
+
 ITask::ITask(const Element<U8>* const kElemMode) :
     mModeElem(kElemMode), mInit(false)
 {
@@ -78,3 +81,5 @@ Result ITask::stepSafe()
 {
     return SUCCESS;
 }
+
+} // namespace Sf

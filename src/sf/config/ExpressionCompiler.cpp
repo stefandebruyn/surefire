@@ -23,6 +23,9 @@
 #include "sf/config/LanguageConstants.hpp"
 #include "sf/core/Assert.hpp"
 
+namespace Sf
+{
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 ///
@@ -573,8 +576,8 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<I8>> nodeElem(new ElementExprNode<I8>(
                     *static_cast<const Element<I8>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, I8>(ExprOpFuncs::safeCast<F64, I8>,
-                                                         *nodeElem));
+                kNode.reset(new UnaryOpExprNode<F64, I8>(
+                    ExprOpFuncs::safeCast<F64, I8>, *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
@@ -583,8 +586,8 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<I16>> nodeElem(new ElementExprNode<I16>(
                     *static_cast<const Element<I16>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, I16>(ExprOpFuncs::safeCast<F64, I16>,
-                                                          *nodeElem));
+                kNode.reset(new UnaryOpExprNode<F64, I16>(
+                    ExprOpFuncs::safeCast<F64, I16>, *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
@@ -593,8 +596,8 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<I32>> nodeElem(new ElementExprNode<I32>(
                     *static_cast<const Element<I32>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, I32>(ExprOpFuncs::safeCast<F64, I32>,
-                                                          *nodeElem));
+                kNode.reset(new UnaryOpExprNode<F64, I32>(
+                    ExprOpFuncs::safeCast<F64, I32>, *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
@@ -603,8 +606,8 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<I64>> nodeElem(new ElementExprNode<I64>(
                     *static_cast<const Element<I64>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, I64>(ExprOpFuncs::safeCast<F64, I64>,
-                                                          *nodeElem));
+                kNode.reset(new UnaryOpExprNode<F64, I64>(
+                    ExprOpFuncs::safeCast<F64, I64>, *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
@@ -613,8 +616,8 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<U8>> nodeElem(new ElementExprNode<U8>(
                     *static_cast<const Element<U8>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, U8>(ExprOpFuncs::safeCast<F64, U8>,
-                                                         *nodeElem));
+                kNode.reset(new UnaryOpExprNode<F64, U8>(
+                    ExprOpFuncs::safeCast<F64, U8>, *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
@@ -623,8 +626,8 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<U16>> nodeElem(new ElementExprNode<U16>(
                     *static_cast<const Element<U16>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, U16>(ExprOpFuncs::safeCast<F64, U16>,
-                                                          *nodeElem));
+                kNode.reset(new UnaryOpExprNode<F64, U16>(
+                    ExprOpFuncs::safeCast<F64, U16>, *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
@@ -633,8 +636,8 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<U32>> nodeElem(new ElementExprNode<U32>(
                     *static_cast<const Element<U32>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, U32>(ExprOpFuncs::safeCast<F64, U32>,
-                                                          *nodeElem));
+                kNode.reset(new UnaryOpExprNode<F64, U32>(
+                    ExprOpFuncs::safeCast<F64, U32>, *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
@@ -643,8 +646,8 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<U64>> nodeElem(new ElementExprNode<U64>(
                     *static_cast<const Element<U64>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, U64>(ExprOpFuncs::safeCast<F64, U64>,
-                                                          *nodeElem));
+                kNode.reset(new UnaryOpExprNode<F64, U64>(
+                    ExprOpFuncs::safeCast<F64, U64>, *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
@@ -653,8 +656,8 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<F32>> nodeElem(new ElementExprNode<F32>(
                     *static_cast<const Element<F32>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, F32>(ExprOpFuncs::safeCast<F64, F32>,
-                                                          *nodeElem));
+                kNode.reset(new UnaryOpExprNode<F64, F32>(
+                    ExprOpFuncs::safeCast<F64, F32>, *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
@@ -663,8 +666,8 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<F64>> nodeElem(new ElementExprNode<F64>(
                     *static_cast<const Element<F64>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, F64>(ExprOpFuncs::safeCast<F64, F64>,
-                                                          *nodeElem));
+                kNode.reset(new UnaryOpExprNode<F64, F64>(
+                    ExprOpFuncs::safeCast<F64, F64>, *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
@@ -673,8 +676,8 @@ Result ExpressionCompiler::compileImpl(const Ref<const ExpressionParse> kParse,
             {
                 const Ref<IExprNode<bool>> nodeElem(new ElementExprNode<bool>(
                     *static_cast<const Element<bool>*>(elemObj)));
-                kNode.reset(new UnaryOpExprNode<F64, bool>(ExprOpFuncs::safeCast<F64, bool>,
-                                                           *nodeElem));
+                kNode.reset(new UnaryOpExprNode<F64, bool>(
+                    ExprOpFuncs::safeCast<F64, bool>, *nodeElem));
                 kWs.exprNodes.push_back(nodeElem);
                 break;
             }
@@ -708,3 +711,5 @@ ExpressionAssembly::ExpressionAssembly(
     const ExpressionAssembly::Workspace& kWs) : mWs(kWs)
 {
 }
+
+} // namespace Sf

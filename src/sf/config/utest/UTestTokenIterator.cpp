@@ -23,6 +23,8 @@
 #include "sf/config/TokenIterator.hpp"
 #include "sf/utest/UTest.hpp"
 
+using namespace Sf;
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 ///

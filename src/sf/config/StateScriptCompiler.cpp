@@ -25,6 +25,9 @@
 #include "sf/pal/Clock.hpp"
 #include "sf/pal/Console.hpp"
 
+namespace Sf
+{
+
 /////////////////////////////////// Global /////////////////////////////////////
 
 ///
@@ -824,3 +827,5 @@ Result StateScriptAssembly::printStateVector(std::ostream& kOs)
 
     return SUCCESS;
 }
+
+} // namespace Sf

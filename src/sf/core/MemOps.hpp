@@ -25,6 +25,9 @@
 
 #include "sf/core/BasicTypes.hpp"
 
+namespace Sf
+{
+
 ///
 /// @brief Namespace of memory utilities.
 ///
@@ -60,5 +63,7 @@ namespace MemOps
     ///
     void* memcpy(void* kDest, const void* const kSrc, const U32 kBytes);
 }
+
+} // namespace Sf
 
 #endif
