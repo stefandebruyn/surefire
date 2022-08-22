@@ -35,7 +35,7 @@ using namespace Sf;
 ///
 /// @return kNth Fibonacci number.
 ///
-static uint64_t fib(const uint64_t kN)
+static U64 fib(const U64 kN)
 {
     if (kN <= 1)
     {
