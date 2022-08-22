@@ -26,16 +26,6 @@
 #include "sf/pal/Console.hpp"
 #include "sf/pal/System.hpp"
 
-///
-/// @brief Macro for disabling code coverage.
-///
-#define SF_DISABLE_CODE_COV // GCOV_EXCL_START
-
-///
-/// @brief Macro for enabling code coverage.
-///
-#define SF_ENABLE_CODE_COV // GCOV_EXCL_STOP
-
 #ifdef SF_ENABLE_ASSERTS
 ///
 /// @brief "Unsafe" assert macro which halts the program on failure. Unsafe
@@ -51,7 +41,6 @@
 /// @param[in] kExpr  Expression to assert. If untrue, program halts.
 ///
 #define SF_ASSERT(kExpr)                                                       \
-SF_DISABLE_CODE_COV;                                                           \
 do                                                                             \
 {                                                                              \
     const bool _res = (kExpr);                                                 \
@@ -61,8 +50,7 @@ do                                                                             \
                         __FILE__, __LINE__, #kExpr);                           \
         Sf::System::exit(1);                                                   \
     }                                                                          \
-} while (false);                                                               \
-SF_ENABLE_CODE_COV;
+} while (false);
 #else
 #    define SF_ASSERT(kExpr)
 #endif
@@ -99,7 +87,6 @@ Sf::Assert::failLineNum = __LINE__;
 ///                   current function.
 ///
 #define SF_SAFE_ASSERT(kExpr)                                                  \
-SF_DISABLE_CODE_COV;                                                           \
 do                                                                             \
 {                                                                              \
     const bool _res = (kExpr);                                                 \
@@ -110,8 +97,7 @@ do                                                                             \
                                                                                \
         return E_ASSERT;                                                       \
     }                                                                          \
-} while (false);                                                               \
-SF_ENABLE_CODE_COV;
+} while (false);
 
 namespace Sf
 {

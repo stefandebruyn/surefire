@@ -24,11 +24,9 @@
 namespace Sf
 {
 
-// GCOV_EXCL_START
 void System::exit(const I32 kStatus)
 {
     ::exit(kStatus);
 }
-// GCOV_EXCL_STOP
 
 } // namespace Sf
