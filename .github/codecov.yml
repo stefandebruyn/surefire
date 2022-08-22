@@ -18,5 +18,3 @@ coverage:
     project: true
 github_checks:
   annotations: true
-ignore:
-- "*/**/utest/**/*"
